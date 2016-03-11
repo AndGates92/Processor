@@ -82,7 +82,7 @@ begin
 		end if;
 	end process reg;
 
-	state_det: process(StateC, Start, DoneOp, UnCmdInt, CmdC)
+	state_det: process(StateC, Start, DoneOp, UnCmdInt, CmdC, UnCmdC)
 	begin
 		StateN <= StateC; -- avoid latches
 		case StateC is
@@ -141,7 +141,7 @@ begin
 		BNot(k) <= not Op1C(k);
 	end generate not_bit;
 
-	data : process(StateC, SSum, SSubN, USum, USubN, SCmp, UCmp, BNot, BAnd, BOr, BXor, ResC, Op1, Op2, CmdC)
+	data : process(StateC, SSum, SSubN, USum, USubN, SCmp, UCmp, BNot, BAnd, BOr, BXor, ResC, Op1, Op2, Op1C, Op2C, OvflC, UnflC, UnCmdC, CmdC)
 	begin
 		ResN <= ResC;
 		Op1N <= Op1C;

@@ -35,6 +35,8 @@ architecture booth_radix2 of mul is
 
 	signal Op1_2comp	: unsigned(OP1_L - 1 downto 0);
 
+	signal ProdLowIdle	: unsigned(OP2_L - 1 downto 0);
+
 	type state_list is (IDLE, INIT, COMPUTE, OUTPUT);
 	signal StateC, StateN: state_list;
 
@@ -68,11 +70,11 @@ begin
 					if (unsigned(Op1) = zero_op1) or (unsigned(Op2) = zero_op2) then -- fast track in case of zero input
 						StateN <= OUTPUT;
 					else
-						StateN <= INIT;
+						StateN <= COMPUTE;
 					end if;
 				end if;
-			when INIT =>
-				StateN <= COMPUTE;
+--			when INIT =>
+--				StateN <= COMPUTE;
 			when COMPUTE =>
 				if CountC = to_unsigned(OP2_L - 1, CountC'length) then
 					StateN <= OUTPUT;
@@ -94,7 +96,9 @@ begin
 	Diff <= ProdC + SubC;
 	Diff_Shift <= ProdC + (SubC(SubC'length-2 downto 0) & "0");
 
-	data: process(ProdC, StateC, CountC, Op1, Op2, tmp)
+	ProdLowIdle <= (others => '0') when (unsigned(Op1) = zero_op1) else unsigned(Op2);
+
+	data: process(ProdC, StateC, CountC, Op1, Op2, tmp, ProdLowIdle)
 	begin
 		-- avoid latches
 		ProdN <= ProdC;
@@ -105,13 +109,13 @@ begin
 
 		case StateC is
 			when IDLE =>
-				ProdN <= (others => '0');
-			when INIT =>
+--				ProdN <= (others => '0');
+--			when INIT =>
 				AddN(AddN'length-1 downto (AddN'length-OP1_L)) <= unsigned(Op1);
 				AddN((AddN'length-OP1_L-1) downto 0) <= to_unsigned(0, AddN'length-OP1_L);
 				SubN(SubN'length-1 downto (SubN'length-OP1_L)) <= Op1_2comp;
 				SubN((SubN'length-OP1_L-1) downto 0) <= to_unsigned(0, SubN'length-OP1_L);
-				ProdN(OP2_L downto 0) <= unsigned(Op2 & "0");
+				ProdN(OP2_L downto 0) <= ProdLowIdle & "0";
 				ProdN(ProdN'length-1 downto OP2_L + 1) <= to_unsigned(0,OP1_L);
 				CountN <= (others => '0');
 			when COMPUTE =>
@@ -156,6 +160,8 @@ architecture booth_radix4 of mul is
 	signal Sum, Diff, Sum_Shift, Diff_Shift		: unsigned(OP1_L downto 0);
 	signal tmp 					: unsigned(OP1_L+OP2_L+1 - 1 downto 0);
 
+	signal ProdLowIdle	: unsigned(OP2_L - 1 downto 0);
+
 	signal Op1_2comp	: unsigned(OP1_L - 1 downto 0);
 
 	type state_list is (IDLE, INIT, COMPUTE, OUTPUT);
@@ -182,7 +188,7 @@ begin
 		end if;
 	end process reg;
 
-	state_det: process(StateC, Start, CountC)
+	state_det: process(StateC, Start, CountC, Op1, Op2)
 	begin
 		StateN <= StateC; -- avoid latches
 		case StateC is
@@ -191,11 +197,11 @@ begin
 					if (unsigned(Op1) = zero_op1) or (unsigned(Op2) = zero_op2) then -- fast track in case of zero input
 						StateN <= OUTPUT;
 					else
-						StateN <= INIT;
+						StateN <= COMPUTE;
 					end if;
 				end if;
-			when INIT =>
-				StateN <= COMPUTE;
+--			when INIT =>
+--				StateN <= COMPUTE;
 			when COMPUTE =>
 				if CountC = to_unsigned(OP2_L/2 - 1, CountC'length) then
 					StateN <= OUTPUT;
@@ -217,7 +223,9 @@ begin
 	Diff <= (ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto ((ProdC'length-1)/2)+1)) + (SubC(SubC'length-1 downto SubC'length-1) & SubC);
 	Diff_Shift <= (ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto ((ProdC'length-1)/2)+1)) + (SubC & "0");
 
-	data: process(ProdC, StateC, CountC, Op1, Op2, tmp, AddC, SubC, Sum, Sum_Shift, Diff, Diff_shift)
+	ProdLowIdle <= (others => '0') when (unsigned(Op1) = zero_op1) else unsigned(Op2);
+
+	data: process(ProdC, StateC, CountC, Op1, Op2, tmp, AddC, SubC, Sum, Sum_Shift, Diff, Diff_shift, Op1_2comp, ProdLowIdle)
 	begin
 		-- avoid latches
 		ProdN <= ProdC;
@@ -228,11 +236,11 @@ begin
 
 		case StateC is
 			when IDLE =>
-				ProdN <= (others => '0');
-			when INIT =>
+--				ProdN <= (others => '0');
+--			when INIT =>
 				AddN <= unsigned(Op1);
 				SubN <= Op1_2comp;
-				ProdN(OP2_L downto 0) <= unsigned(Op2 & "0");
+				ProdN(OP2_L downto 0) <= ProdLowIdle & "0";
 				ProdN(ProdN'length-1 downto OP2_L + 1) <= to_unsigned(0,OP1_L);
 				CountN <= (others => '0');
 			when COMPUTE =>

@@ -76,7 +76,7 @@ begin
 		end if;
 	end process reg;
 
-	state_det: process(StateC, Start, CountC)
+	state_det: process(StateC, Start, CountC, Dividend, Divisor)
 	begin
 		StateN <= StateC; -- avoid latches
 		case StateC is
@@ -126,7 +126,7 @@ begin
 
 	Sign <=  Dividend(OP1_L - 1) xor Divisor(OP2_L - 1);
 
-	data: process(QuotC, RemC, SignC, SignDvdC, StateC, CountC, DivisorC, RemProp, DivisorProp, DividendProp, Sign, Dividend)
+	data: process(QuotC, RemC, SignC, SignDvdC, StateC, CountC, DivisorC, RemProp, DivisorProp, DividendProp, Sign, Dividend, ZeroDvdC, ZeroDvsC, ZeroDvd, ZeroDvs)
 	begin
 		-- avoid latches
 		DivisorN <= DivisorC;
