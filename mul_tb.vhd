@@ -13,7 +13,7 @@ end entity mul_tb;
 architecture bench of mul_tb is
 
 	constant CLK_PERIOD	: time := 10 ns;
-	constant NUM_TEST	: integer := 100;
+	constant NUM_TEST	: integer := 1000;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;

@@ -4,6 +4,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.alu_pkg.all;
+use work.proc_pkg.all;
 
 entity mul is
 generic (
@@ -37,7 +38,7 @@ architecture booth_radix2 of mul is
 
 	signal ProdLowIdle	: unsigned(OP2_L - 1 downto 0);
 
-	type state_list is (IDLE, INIT, COMPUTE, OUTPUT);
+	type state_list is (IDLE, COMPUTE, OUTPUT);
 	signal StateC, StateN: state_list;
 
 	signal CountC, CountN: unsigned(count_length(OP2_L)-1 downto 0);
@@ -73,8 +74,6 @@ begin
 						StateN <= COMPUTE;
 					end if;
 				end if;
---			when INIT =>
---				StateN <= COMPUTE;
 			when COMPUTE =>
 				if CountC = to_unsigned(OP2_L - 1, CountC'length) then
 					StateN <= OUTPUT;
@@ -109,8 +108,6 @@ begin
 
 		case StateC is
 			when IDLE =>
---				ProdN <= (others => '0');
---			when INIT =>
 				AddN(AddN'length-1 downto (AddN'length-OP1_L)) <= unsigned(Op1);
 				AddN((AddN'length-OP1_L-1) downto 0) <= to_unsigned(0, AddN'length-OP1_L);
 				SubN(SubN'length-1 downto (SubN'length-OP1_L)) <= Op1_2comp;
@@ -164,7 +161,7 @@ architecture booth_radix4 of mul is
 
 	signal Op1_2comp	: unsigned(OP1_L - 1 downto 0);
 
-	type state_list is (IDLE, INIT, COMPUTE, OUTPUT);
+	type state_list is (IDLE, COMPUTE, OUTPUT);
 	signal StateC, StateN: state_list;
 
 	signal CountC, CountN: unsigned(count_length(OP2_L/2)-1 downto 0);
@@ -200,8 +197,6 @@ begin
 						StateN <= COMPUTE;
 					end if;
 				end if;
---			when INIT =>
---				StateN <= COMPUTE;
 			when COMPUTE =>
 				if CountC = to_unsigned(OP2_L/2 - 1, CountC'length) then
 					StateN <= OUTPUT;
@@ -236,8 +231,6 @@ begin
 
 		case StateC is
 			when IDLE =>
---				ProdN <= (others => '0');
---			when INIT =>
 				AddN <= unsigned(Op1);
 				SubN <= Op1_2comp;
 				ProdN(OP2_L downto 0) <= ProdLowIdle & "0";

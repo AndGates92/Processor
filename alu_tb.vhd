@@ -268,8 +268,6 @@ begin
 		variable Unfl_rtl, Unfl_ideal	: integer;
 		variable Op1_int, Op2_int	: integer;
 		variable seed1, seed2	: positive;
-		variable Op2	: std_logic_vector(OP2_L_TB-1 downto 0);
-		variable Op1	: std_logic_vector(OP1_L_TB-1 downto 0);
 		variable Cmd	: std_logic_vector(CMD_L_TB-1 downto 0);
 		variable Cmd_txt	: string(1 to 4);
 		variable pass	: integer;

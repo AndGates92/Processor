@@ -4,6 +4,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.alu_pkg.all;
+use work.proc_pkg.all;
 
 entity div is
 generic (

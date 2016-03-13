@@ -19,7 +19,6 @@ package alu_pkg is
 
 	function calc_length_multiplier (op1_l, op2_l, base : integer; multiplicand : integer) return integer;
 	function sel_multiplicand (op1_l, op2_l : integer) return integer;
-	function count_length(op2_l : integer) return integer;
 
 	component mul
 	generic (
@@ -119,16 +118,4 @@ package body alu_pkg is
 		return multiplicand;
 	end;
 
-	function count_length(op2_l : integer) return integer is
-		variable nbit, tmp	: integer;
-	begin
-		tmp := integer(ceil(log2(real(op2_l))));
-		if (2**tmp = op2_l) then
-			nbit := tmp + 1;
-		else
-			nbit := tmp;
-		end if;
-
-		return nbit;
-	end;
 end package body alu_pkg;
