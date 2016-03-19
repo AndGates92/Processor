@@ -34,6 +34,8 @@ architecture booth_radix2 of mul is
 	signal Sum, Diff, Sum_Shift, Diff_Shift		: unsigned(OP1_L+OP2_L+1 - 1 downto 0);
 	signal tmp 					: unsigned(OP1_L+OP2_L+1 - 1 downto 0);
 
+	signal ProdLSB		: unsigned(1 downto 0);
+
 	signal Op1_2comp	: unsigned(OP1_L - 1 downto 0);
 
 	signal ProdLowIdle	: unsigned(OP2_L - 1 downto 0);
@@ -117,7 +119,8 @@ begin
 				CountN <= (others => '0');
 			when COMPUTE =>
 				CountN <= CountC + 1;
-				case ProdC(1 downto 0) is
+				ProdLSB <= ProdC(1 downto 0);
+				case ProdLSB is
 					when "00"|"11" =>
 						tmp <= ProdC;
 					when "01" =>
@@ -156,6 +159,8 @@ architecture booth_radix4 of mul is
 	signal AddN, AddC, SubN, SubC	: unsigned(OP1_L - 1 downto 0);
 	signal Sum, Diff, Sum_Shift, Diff_Shift		: unsigned(OP1_L downto 0);
 	signal tmp 					: unsigned(OP1_L+OP2_L+1 - 1 downto 0);
+
+	signal ProdLSB		: unsigned(2 downto 0);
 
 	signal ProdLowIdle	: unsigned(OP2_L - 1 downto 0);
 
@@ -238,7 +243,8 @@ begin
 				CountN <= (others => '0');
 			when COMPUTE =>
 				CountN <= CountC + 1;
-				case ProdC(2 downto 0) is
+				ProdLSB <= ProdC(2 downto 0);
+				case ProdLSB is
 					when "000"|"111" =>
 						tmp <= ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto 1);
 					when "001"|"010" =>

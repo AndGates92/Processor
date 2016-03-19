@@ -10,7 +10,10 @@ GHDL_RUN_ARGS = --vcd=
 WAVE_READER = gtkwave
 
 all:
-	make erg_file_all 
+	make reg_file_all
+	make mul_all
+	make div_all
+	make alu_all
 
 work_dir:
 	mkdir -p ${WORK_DIR}
@@ -66,10 +69,10 @@ alu_all:
 mul: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o
 	@echo "Analysing mul.vhd"
 	${GHDL} -a ${GHDL_ARGS} mul.vhd
-	@echo "Analysing mul_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} mul_cfg.vhd
 	@echo "Analysing mul_tb.vhd"
 	${GHDL} -a ${GHDL_ARGS} mul_tb.vhd
+	@echo "Analysing mul_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} mul_cfg.vhd
 	@echo "Elaborating mul_tb"
 	${GHDL} -e ${GHDL_ARGS} mul_tb
 	rm -r e~mul_tb.o
