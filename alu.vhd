@@ -9,8 +9,7 @@ use work.proc_pkg.all;
 entity alu is
 generic (
 	OP1_L	: positive := 16;
-	OP2_L	: positive := 16;
-	CMD_L	: positive := 4
+	OP2_L	: positive := 16
 );
 port (
 	rst	: in std_logic;

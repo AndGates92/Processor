@@ -21,11 +21,10 @@ architecture bench of alu_tb is
 
 	constant OP1_L_TB	: integer := 16;
 	constant OP2_L_TB	: integer := 16;
-	constant CMD_L_TB	: integer := 4;
 
 	signal Op1_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
 	signal Op2_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
-	signal Cmd_tb	: std_logic_vector(CMD_L_TB - 1 downto 0);
+	signal Cmd_tb	: std_logic_vector(CMD_L - 1 downto 0);
 
 	signal Ovfl_tb	: std_logic;
 	signal Unfl_tb	: std_logic;
@@ -40,8 +39,7 @@ begin
 
 	DUT: alu generic map(
 		OP1_L => OP1_L_TB,
-		OP2_L => OP2_L_TB,
-		CMD_L => CMD_L_TB
+		OP2_L => OP2_L_TB
 	)
 	port map (
 		rst => rst_tb,
@@ -73,17 +71,17 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure push_op(variable Op1_int : out integer; variable Op2_int: out integer; variable Cmd: out std_logic_vector(CMD_L_TB-1 downto 0); variable seed1, seed2: inout positive) is
+		procedure push_op(variable Op1_int : out integer; variable Op2_int: out integer; variable Cmd: out std_logic_vector(CMD_L-1 downto 0); variable seed1, seed2: inout positive) is
 			variable Op1_in, Op2_in, Cmd_in	: integer;
 			variable rand_val, sign_val	: real;
-			variable Cmd_int: std_logic_vector(CMD_L_TB-1 downto 0);
+			variable Cmd_int: std_logic_vector(CMD_L-1 downto 0);
 		begin
 			uniform(seed1, seed2, rand_val);
-			Cmd_in := integer(rand_val*(2.0**(real(CMD_L_TB)) - 1.0));
+			Cmd_in := integer(rand_val*(2.0**(real(CMD_L)) - 1.0));
 
-			Cmd_tb <= std_logic_vector(to_unsigned(Cmd_in, CMD_L_TB));
-			Cmd := std_logic_vector(to_unsigned(Cmd_in, CMD_L_TB));
-			Cmd_int := std_logic_vector(to_unsigned(Cmd_in, CMD_L_TB));
+			Cmd_tb <= std_logic_vector(to_unsigned(Cmd_in, CMD_L));
+			Cmd := std_logic_vector(to_unsigned(Cmd_in, CMD_L));
+			Cmd_int := std_logic_vector(to_unsigned(Cmd_in, CMD_L));
 
 			if (Cmd_int = CMD_SSUM) or (Cmd_int = CMD_SSUB) or (Cmd_int = CMD_SCMP) then
 				uniform(seed1, seed2, rand_val);
@@ -114,7 +112,7 @@ begin
 			Start_tb <= '0';
 		end procedure push_op;
 
-		procedure reference(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_L_TB-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer) is
+		procedure reference(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer) is
 			variable tmp_op1	: std_logic_vector(OP1_L_TB-1 downto 0);
 			variable tmp_op2	: std_logic_vector(OP2_L_TB-1 downto 0);
 			variable tmp_res	: std_logic_vector(OP1_L_TB-1 downto 0);
@@ -206,7 +204,7 @@ begin
 			end case;
 		end procedure reference;
 
-		procedure std_vect_to_txt(variable Cmd: in std_logic_vector(CMD_L_TB-1 downto 0); Cmd_txt : out string) is
+		procedure std_vect_to_txt(variable Cmd: in std_logic_vector(CMD_L-1 downto 0); Cmd_txt : out string) is
 		begin
 			case Cmd is
 				when CMD_USUM =>
@@ -268,7 +266,7 @@ begin
 		variable Unfl_rtl, Unfl_ideal	: integer;
 		variable Op1_int, Op2_int	: integer;
 		variable seed1, seed2	: positive;
-		variable Cmd	: std_logic_vector(CMD_L_TB-1 downto 0);
+		variable Cmd	: std_logic_vector(CMD_L-1 downto 0);
 		variable Cmd_txt	: string(1 to 4);
 		variable pass	: integer;
 		variable num_pass	: integer;

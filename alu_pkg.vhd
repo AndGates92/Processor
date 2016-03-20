@@ -5,17 +5,22 @@ use ieee.numeric_std.all;
 
 package alu_pkg is 
 
-	constant CMD_USUM	: std_logic_vector(4 - 1 downto 0) := "0000";
-	constant CMD_SSUM	: std_logic_vector(4 - 1 downto 0) := "0001";
-	constant CMD_USUB	: std_logic_vector(4 - 1 downto 0) := "0010";
-	constant CMD_SSUB	: std_logic_vector(4 - 1 downto 0) := "0011";
-	constant CMD_UCMP	: std_logic_vector(4 - 1 downto 0) := "0100";
-	constant CMD_SCMP	: std_logic_vector(4 - 1 downto 0) := "0101";
-	constant CMD_AND	: std_logic_vector(4 - 1 downto 0) := "0110";
-	constant CMD_OR		: std_logic_vector(4 - 1 downto 0) := "0111";
-	constant CMD_XOR	: std_logic_vector(4 - 1 downto 0) := "1000";
-	constant CMD_NOT	: std_logic_vector(4 - 1 downto 0) := "1001";
-	constant CMD_SHIFT	: std_logic_vector(4 - 1 downto 0) := "1010";
+	constant CMD_L	: positive := 4;
+
+	constant CMD_USUM	: std_logic_vector(CMD_L - 1 downto 0) := "0000";
+	constant CMD_SSUM	: std_logic_vector(CMD_L - 1 downto 0) := "0001";
+	constant CMD_USUB	: std_logic_vector(CMD_L - 1 downto 0) := "0010";
+	constant CMD_SSUB	: std_logic_vector(CMD_L - 1 downto 0) := "0011";
+	constant CMD_UCMP	: std_logic_vector(CMD_L - 1 downto 0) := "0100";
+	constant CMD_SCMP	: std_logic_vector(CMD_L - 1 downto 0) := "0101";
+	constant CMD_AND	: std_logic_vector(CMD_L - 1 downto 0) := "0110";
+	constant CMD_OR		: std_logic_vector(CMD_L - 1 downto 0) := "0111";
+	constant CMD_XOR	: std_logic_vector(CMD_L - 1 downto 0) := "1000";
+	constant CMD_NOT	: std_logic_vector(CMD_L - 1 downto 0) := "1001";
+	constant CMD_SHIFT	: std_logic_vector(CMD_L - 1 downto 0) := "1010";
+	constant CMD_MUL	: std_logic_vector(CMD_L - 1 downto 0) := "1011";
+	constant CMD_DIV	: std_logic_vector(CMD_L - 1 downto 0) := "1100";
+
 
 	function calc_length_multiplier (op1_l, op2_l, base : integer; multiplicand : integer) return integer;
 	function sel_multiplicand (op1_l, op2_l : integer) return integer;
@@ -56,8 +61,7 @@ package alu_pkg is
 	component alu
 	generic (
 		OP1_L	: positive := 16;
-		OP2_L	: positive := 16;
-		CMD_L	: positive := 4
+		OP2_L	: positive := 16
 	);
 	port (
 		rst	: in std_logic;
