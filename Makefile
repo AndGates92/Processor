@@ -14,6 +14,7 @@ all:
 	make mul_all
 	make div_all
 	make alu_all
+	make decode_stage_all
 
 work_dir:
 	mkdir -p ${WORK_DIR}
@@ -27,6 +28,8 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} alu_pkg.vhd
 	@echo "Analysing reg_file_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} reg_file_pkg.vhd
+	@echo "Analysing pipeline_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} pipeline_pkg.vhd
 
 reg_file: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/reg_file_pkg.o
 	@echo "Analysing reg_file.vhd"
@@ -39,7 +42,7 @@ reg_file: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/reg_file_pkg.o
 	mv reg_file_tb ${WORK_DIR}
 
 simulate_reg_file: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/reg_file_pkg.o ${WORK_DIR}/reg_file.o ${WORK_DIR}/reg_file_tb.o
-	cd ${WORK_DIR} && ${GHDL} -r ${GHDL_ARGS} reg_file_tb ${GHDL_RUN_ARGS}reg_file.vcd
+	cd ${WORK_DIR} && ${GHDL} -r reg_file_tb ${GHDL_RUN_ARGS}reg_file.vcd
 
 reg_file_all:
 	make work_dir
@@ -58,7 +61,7 @@ alu: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o
 	mv alu_tb ${WORK_DIR}
 
 simulate_alu: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/alu.o ${WORK_DIR}/alu_tb.o
-	cd ${WORK_DIR} &&  ${GHDL} -r ${GHDL_ARGS} alu_tb ${GHDL_RUN_ARGS}alu.vcd
+	cd ${WORK_DIR} &&  ${GHDL} -r alu_tb ${GHDL_RUN_ARGS}alu.vcd
 
 alu_all:
 	make work_dir
@@ -79,7 +82,7 @@ mul: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o
 	mv mul_tb ${WORK_DIR}
 
 simulate_mul: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/mul.o ${WORK_DIR}/mul_cfg.o ${WORK_DIR}/mul_tb.o
-	cd ${WORK_DIR} && ${GHDL} -r ${GHDL_ARGS} mul_tb ${GHDL_RUN_ARGS}mul.vcd
+	cd ${WORK_DIR} && ${GHDL} -r mul_tb ${GHDL_RUN_ARGS}mul.vcd
 
 mul_all:
 	make work_dir
@@ -101,10 +104,29 @@ div: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o
 	mv div_tb ${WORK_DIR}
 
 simulate_div: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/div.o ${WORK_DIR}/div_cfg.o ${WORK_DIR}/div_tb.o
-	cd ${WORK_DIR} && ${GHDL} -r ${GHDL_ARGS} div_tb ${GHDL_RUN_ARGS}div.vcd
+	cd ${WORK_DIR} && ${GHDL} -r div_tb ${GHDL_RUN_ARGS}div.vcd
 
 div_all:
 	make work_dir
 	make libraries
 	make div
 	make simulate_div
+
+decode_stage: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/pipeline_pkg.o
+	@echo "Analysing decode.vhd"
+	${GHDL} -a ${GHDL_ARGS} decode.vhd
+	@echo "Analysing decode_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} decode_tb.vhd
+	@echo "Elaborating decode_stage_tb"
+	${GHDL} -e ${GHDL_ARGS} decode_stage_tb
+	rm -r e~decode_stage_tb.o
+	mv decode_stage_tb ${WORK_DIR}
+
+simulate_decode_stage: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/pipeline_pkg.o ${WORK_DIR}/decode.o ${WORK_DIR}/decode_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r decode_stage_tb ${GHDL_RUN_ARGS}decode.vcd
+
+decode_stage_all:
+	make work_dir
+	make libraries
+	make decode_stage
+	make simulate_decode_stage
