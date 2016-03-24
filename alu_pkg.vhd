@@ -5,21 +5,21 @@ use ieee.numeric_std.all;
 
 package alu_pkg is 
 
-	constant CMD_L	: positive := 4;
+	constant CMD_ALU_L	: positive := 4;
 
-	constant CMD_USUM	: std_logic_vector(CMD_L - 1 downto 0) := "0000";
-	constant CMD_SSUM	: std_logic_vector(CMD_L - 1 downto 0) := "0001";
-	constant CMD_USUB	: std_logic_vector(CMD_L - 1 downto 0) := "0010";
-	constant CMD_SSUB	: std_logic_vector(CMD_L - 1 downto 0) := "0011";
-	constant CMD_UCMP	: std_logic_vector(CMD_L - 1 downto 0) := "0100";
-	constant CMD_SCMP	: std_logic_vector(CMD_L - 1 downto 0) := "0101";
-	constant CMD_AND	: std_logic_vector(CMD_L - 1 downto 0) := "0110";
-	constant CMD_OR		: std_logic_vector(CMD_L - 1 downto 0) := "0111";
-	constant CMD_XOR	: std_logic_vector(CMD_L - 1 downto 0) := "1000";
-	constant CMD_NOT	: std_logic_vector(CMD_L - 1 downto 0) := "1001";
-	constant CMD_SHIFT	: std_logic_vector(CMD_L - 1 downto 0) := "1010";
-	constant CMD_MUL	: std_logic_vector(CMD_L - 1 downto 0) := "1011";
-	constant CMD_DIV	: std_logic_vector(CMD_L - 1 downto 0) := "1100";
+	constant CMD_USUM	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(0,CMD_ALU_L));
+	constant CMD_SSUM	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(1,CMD_ALU_L));
+	constant CMD_USUB	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(2,CMD_ALU_L));
+	constant CMD_SSUB	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(3,CMD_ALU_L));
+	constant CMD_UCMP	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(4,CMD_ALU_L));
+	constant CMD_SCMP	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(5,CMD_ALU_L));
+	constant CMD_AND	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(6,CMD_ALU_L));
+	constant CMD_OR		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(7,CMD_ALU_L));
+	constant CMD_XOR	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(8,CMD_ALU_L));
+	constant CMD_NOT	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(9,CMD_ALU_L));
+	constant CMD_SHIFT	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(10,CMD_ALU_L));
+	constant CMD_MUL	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(11,CMD_ALU_L));
+	constant CMD_DIV	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(12,CMD_ALU_L));
 
 
 	function calc_length_multiplier (op1_l, op2_l, base : integer; multiplicand : integer) return integer;
@@ -68,7 +68,7 @@ package alu_pkg is
 		clk	: in std_logic;
 		Op1	: in std_logic_vector(OP1_L - 1 downto 0);
 		Op2	: in std_logic_vector(OP2_L - 1 downto 0);
-		Cmd	: in std_logic_vector(CMD_L - 1 downto 0);
+		Cmd	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
 		Start	: in std_logic;
 		Done	: out std_logic;
 		Ovfl	: out std_logic;

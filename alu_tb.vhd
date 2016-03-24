@@ -24,7 +24,7 @@ architecture bench of alu_tb is
 
 	signal Op1_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
 	signal Op2_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
-	signal Cmd_tb	: std_logic_vector(CMD_L - 1 downto 0);
+	signal Cmd_tb	: std_logic_vector(CMD_ALU_L - 1 downto 0);
 
 	signal Ovfl_tb	: std_logic;
 	signal Unfl_tb	: std_logic;
@@ -71,17 +71,17 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure push_op(variable Op1_int : out integer; variable Op2_int: out integer; variable Cmd: out std_logic_vector(CMD_L-1 downto 0); variable seed1, seed2: inout positive) is
+		procedure push_op(variable Op1_int : out integer; variable Op2_int: out integer; variable Cmd: out std_logic_vector(CMD_ALU_L-1 downto 0); variable seed1, seed2: inout positive) is
 			variable Op1_in, Op2_in, Cmd_in	: integer;
 			variable rand_val, sign_val	: real;
-			variable Cmd_int: std_logic_vector(CMD_L-1 downto 0);
+			variable Cmd_int: std_logic_vector(CMD_ALU_L-1 downto 0);
 		begin
 			uniform(seed1, seed2, rand_val);
-			Cmd_in := integer(rand_val*(2.0**(real(CMD_L)) - 1.0));
+			Cmd_in := integer(rand_val*(2.0**(real(CMD_ALU_L)) - 1.0));
 
-			Cmd_tb <= std_logic_vector(to_unsigned(Cmd_in, CMD_L));
-			Cmd := std_logic_vector(to_unsigned(Cmd_in, CMD_L));
-			Cmd_int := std_logic_vector(to_unsigned(Cmd_in, CMD_L));
+			Cmd_tb <= std_logic_vector(to_unsigned(Cmd_in, CMD_ALU_L));
+			Cmd := std_logic_vector(to_unsigned(Cmd_in, CMD_ALU_L));
+			Cmd_int := std_logic_vector(to_unsigned(Cmd_in, CMD_ALU_L));
 
 			if (Cmd_int = CMD_SSUM) or (Cmd_int = CMD_SSUB) or (Cmd_int = CMD_SCMP) then
 				uniform(seed1, seed2, rand_val);
@@ -112,7 +112,7 @@ begin
 			Start_tb <= '0';
 		end procedure push_op;
 
-		procedure reference(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer) is
+		procedure reference(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_ALU_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer) is
 			variable tmp_op1	: std_logic_vector(OP1_L_TB-1 downto 0);
 			variable tmp_op2	: std_logic_vector(OP2_L_TB-1 downto 0);
 			variable tmp_res	: std_logic_vector(OP1_L_TB-1 downto 0);
@@ -121,116 +121,87 @@ begin
 		begin
 			Ovfl_ideal := 0;
 			Unfl_ideal := 0;
-			case Cmd is
-				when CMD_USUM =>
-					Res_tmp := Op1_int + Op2_int;
-					Res_ideal := Res_tmp;
-					if (Res_tmp > (2**(OP1_L_TB) - 1)) then
-						Ovfl_ideal := 1;
-						Res_ideal := Res_tmp - 2**(OP1_L_TB);
-					end if;
-				when CMD_SSUM =>
-					Res_tmp := Op1_int + Op2_int;
-					Res_ideal := Res_tmp;
-					if (Res_tmp > (2**(OP1_L_TB-1) - 1)) then
-						Ovfl_ideal := 1;
-						Res_ideal := -2*(2**(OP1_L_TB-1)) + Res_tmp;
-					elsif (Res_tmp < (-(2**(OP1_L_TB-1)))) then
-						Unfl_ideal := 1;
-						Res_ideal := 2*(2**(OP1_L_TB-1)) + Res_tmp;
-					end if;
-				when CMD_USUB =>
-					Res_tmp := Op1_int - Op2_int;
-					Res_ideal := Res_tmp;
-					if (Res_tmp < 0) then
-						Unfl_ideal := 1;
-						Res_ideal := 2**(OP1_L_TB) + Res_tmp;
-					end if;
-				when CMD_SSUB =>
-					Res_tmp := Op1_int - Op2_int;
-					Res_ideal := Res_tmp;
-					if (Res_tmp > (2**(OP1_L_TB-1) - 1)) then
-						Ovfl_ideal := 1;
-						Res_ideal := -2*(2**(OP1_L_TB-1)) + Res_tmp;
-					elsif (Res_tmp < (-(2**(OP1_L_TB-1)))) then
-						Unfl_ideal := 1;
-						Res_ideal := 2*(2**(OP1_L_TB-1)) + Res_tmp;
-					end if;
-				when CMD_UCMP =>
-					if (Op1_int = Op2_int) then
-						Res_ideal := 0;
-					elsif (Op1_int > Op2_int) then
-						Res_ideal := 1;
-					else
-						Res_ideal := (2**(OP1_L_TB)) - 1;
-					end if;
-				when CMD_SCMP =>
-					if (Op1_int = Op2_int) then
-						Res_ideal := 0;
-					elsif (Op1_int > Op2_int) then
-						Res_ideal := 1;
-					else
-						Res_ideal := - 1;
-					end if;
-				when CMD_AND =>
-					tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
-					tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
-					for i in 0 to OP1_L_TB-1 loop
-						tmp_res(i) := tmp_op1(i) and tmp_op2(i);
-					end loop;
-					Res_ideal := to_integer(unsigned(tmp_res));
-				when CMD_OR =>
-					tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
-					tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
-					for i in 0 to OP1_L_TB-1 loop
-						tmp_res(i) := tmp_op1(i) or tmp_op2(i);
-					end loop;
-					Res_ideal := to_integer(unsigned(tmp_res));
-				when CMD_XOR =>
-					tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
-					tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
-					for i in 0 to OP1_L_TB-1 loop
-						tmp_res(i) := tmp_op1(i) xor tmp_op2(i);
-					end loop;
-					Res_ideal := to_integer(unsigned(tmp_res));
-				when CMD_NOT =>
-					tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
-					for i in 0 to OP1_L_TB-1 loop
-						tmp_res(i) := not tmp_op1(i);
-					end loop;
-					Res_ideal := to_integer(unsigned(tmp_res));
-				when others =>
+			if (Cmd = CMD_USUM) then
+				Res_tmp := Op1_int + Op2_int;
+				Res_ideal := Res_tmp;
+				if (Res_tmp > (2**(OP1_L_TB) - 1)) then
+					Ovfl_ideal := 1;
+					Res_ideal := Res_tmp - 2**(OP1_L_TB);
+				end if;
+			elsif (Cmd = CMD_SSUM) then
+				Res_tmp := Op1_int + Op2_int;
+				Res_ideal := Res_tmp;
+				if (Res_tmp > (2**(OP1_L_TB-1) - 1)) then
+					Ovfl_ideal := 1;
+					Res_ideal := -2*(2**(OP1_L_TB-1)) + Res_tmp;
+				elsif (Res_tmp < (-(2**(OP1_L_TB-1)))) then
+					Unfl_ideal := 1;
+					Res_ideal := 2*(2**(OP1_L_TB-1)) + Res_tmp;
+				end if;
+			elsif (Cmd = CMD_USUB) then
+				Res_tmp := Op1_int - Op2_int;
+				Res_ideal := Res_tmp;
+				if (Res_tmp < 0) then
+					Unfl_ideal := 1;
+					Res_ideal := 2**(OP1_L_TB) + Res_tmp;
+				end if;
+			elsif (Cmd = CMD_SSUB) then
+				Res_tmp := Op1_int - Op2_int;
+				Res_ideal := Res_tmp;
+				if (Res_tmp > (2**(OP1_L_TB-1) - 1)) then
+					Ovfl_ideal := 1;
+					Res_ideal := -2*(2**(OP1_L_TB-1)) + Res_tmp;
+				elsif (Res_tmp < (-(2**(OP1_L_TB-1)))) then
+					Unfl_ideal := 1;
+					Res_ideal := 2*(2**(OP1_L_TB-1)) + Res_tmp;
+				end if;
+			elsif (Cmd = CMD_UCMP) then
+				if (Op1_int = Op2_int) then
 					Res_ideal := 0;
-			end case;
+				elsif (Op1_int > Op2_int) then
+					Res_ideal := 1;
+				else
+					Res_ideal := (2**(OP1_L_TB)) - 1;
+				end if;
+			elsif (Cmd = CMD_SCMP) then
+				if (Op1_int = Op2_int) then
+					Res_ideal := 0;
+				elsif (Op1_int > Op2_int) then
+					Res_ideal := 1;
+				else
+					Res_ideal := - 1;
+				end if;
+			elsif (Cmd = CMD_AND) then
+				tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
+				tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
+				for i in 0 to OP1_L_TB-1 loop
+					tmp_res(i) := tmp_op1(i) and tmp_op2(i);
+				end loop;
+				Res_ideal := to_integer(unsigned(tmp_res));
+			elsif (Cmd = CMD_OR) then
+				tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
+				tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
+				for i in 0 to OP1_L_TB-1 loop
+					tmp_res(i) := tmp_op1(i) or tmp_op2(i);
+				end loop;
+				Res_ideal := to_integer(unsigned(tmp_res));
+			elsif (Cmd = CMD_XOR) then
+				tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
+				tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
+				for i in 0 to OP1_L_TB-1 loop
+					tmp_res(i) := tmp_op1(i) xor tmp_op2(i);
+				end loop;
+				Res_ideal := to_integer(unsigned(tmp_res));
+			elsif (Cmd = CMD_NOT) then
+				tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
+				for i in 0 to OP1_L_TB-1 loop
+					tmp_res(i) := not tmp_op1(i);
+				end loop;
+				Res_ideal := to_integer(unsigned(tmp_res));
+			else
+				Res_ideal := 0;
+			end if;
 		end procedure reference;
-
-		procedure std_vect_to_txt(variable Cmd: in std_logic_vector(CMD_L-1 downto 0); Cmd_txt : out string) is
-		begin
-			case Cmd is
-				when CMD_USUM =>
-					Cmd_txt := "USUM";
-				when CMD_SSUM =>
-					Cmd_txt := "SSUM";
-				when CMD_USUB =>
-					Cmd_txt := "USUB";
-				when CMD_SSUB =>
-					Cmd_txt := "SSUB";
-				when CMD_UCMP =>
-					Cmd_txt := "UCMP";
-				when CMD_SCMP =>
-					Cmd_txt := "SCMP";
-				when CMD_AND =>
-					Cmd_txt := "BAND";
-				when CMD_OR =>
-					Cmd_txt := "B_OR";
-				when CMD_XOR =>
-					Cmd_txt := "BXOR";
-				when CMD_NOT =>
-					Cmd_txt := "BNOT";
-				when others =>
-					Cmd_txt := "UCMD";
-			end case;
-		end procedure std_vect_to_txt;
 
 		procedure verify(variable Op1_int, Op2_int, Res_ideal, Res_rtl, Ovfl_ideal, Ovfl_rtl, Unfl_ideal, Unfl_rtl: in integer; Cmd_txt : in string; variable pass: out integer) is
 		begin
@@ -266,7 +237,7 @@ begin
 		variable Unfl_rtl, Unfl_ideal	: integer;
 		variable Op1_int, Op2_int	: integer;
 		variable seed1, seed2	: positive;
-		variable Cmd	: std_logic_vector(CMD_L-1 downto 0);
+		variable Cmd	: std_logic_vector(CMD_ALU_L-1 downto 0);
 		variable Cmd_txt	: string(1 to 4);
 		variable pass	: integer;
 		variable num_pass	: integer;
@@ -293,7 +264,7 @@ begin
 			Ovfl_rtl := std_logic_to_int(Ovfl_tb);
 			Unfl_rtl := std_logic_to_int(Unfl_tb);
 
-			std_vect_to_txt(Cmd, Cmd_txt);
+			Cmd_txt := alu_cmd_std_vect_to_txt(Cmd);
 			reference(Op1_int, Op2_int, Cmd, Res_ideal, Ovfl_ideal, Unfl_ideal);
 			verify(Op1_int, Op2_int, Res_ideal, Res_rtl, Ovfl_ideal, Ovfl_rtl, Unfl_ideal, Unfl_rtl, Cmd_txt, pass);
 

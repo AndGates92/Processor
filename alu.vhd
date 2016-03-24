@@ -16,7 +16,7 @@ port (
 	clk	: in std_logic;
 	Op1	: in std_logic_vector(OP1_L - 1 downto 0);
 	Op2	: in std_logic_vector(OP2_L - 1 downto 0);
-	Cmd	: in std_logic_vector(CMD_L - 1 downto 0);
+	Cmd	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
 	Start	: in std_logic;
 	Done	: out std_logic;
 	Ovfl	: out std_logic;
@@ -32,7 +32,7 @@ architecture rtl of alu is
 
 	signal Op1N, Op1C	: unsigned(OP1_L - 1 downto 0);
 	signal Op2N, Op2C	: unsigned(OP2_L - 1 downto 0);
-	signal CmdN, CmdC	: std_logic_vector(CMD_L - 1 downto 0);
+	signal CmdN, CmdC	: std_logic_vector(CMD_ALU_L - 1 downto 0);
 	signal ResN, ResC	: unsigned(OP1_L - 1 downto 0);
 
 	signal SCmp, UCmp	: unsigned(OP1_L - 1 downto 0);

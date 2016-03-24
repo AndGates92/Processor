@@ -36,7 +36,7 @@ port (
 
 	Done	: out std_logic;
 
-	CmdALU	: out std_logic_vector(CMD_L - 1 downto 0);
+	CmdALU	: out std_logic_vector(CMD_ALU_L - 1 downto 0);
 	Ctrl	: out std_logic_vector(CTRL_L - 1 downto 0);
 
 	PCOut	: out std_logic_vector(PC_L - 1 downto 0);
@@ -60,7 +60,7 @@ architecture rtl of decode_stage is
 	signal DataInC, DataInN			: std_logic_vector(REG_L - 1 downto 0);
 
 	signal ImmediateC, ImmediateN	: std_logic_vector(REG_L - 1 downto 0);
-	signal CmdALUC, CmdALUN		: std_logic_vector(CMD_L - 1 downto 0);
+	signal CmdALUC, CmdALUN		: std_logic_vector(CMD_ALU_L - 1 downto 0);
 
 	signal PCC, PCN		: unsigned(PC_L - 1 downto 0);
 	signal PCCallC, PCCallN	: unsigned(PC_L - 1 downto 0);
@@ -86,7 +86,7 @@ begin
 				end if;
 			when DECODE =>
 				if (InstrC(INSTR_L - 1 downto INSTR_L - 4) = "0000") then
-					StateN <= OUTPUT;
+					
 				else
 					StateN <= OUTPUT;
 				end if;
@@ -99,11 +99,11 @@ begin
 
 	InstrN <= Instr when StateC = IDLE else InstrC;
 
-	RegInN <=	'1' when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_S) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_M)) else 
+	RegInN <=	'1' when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_S) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CLR) or  (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_SET)) else 
 			'0' when (StateC = IDLE) else
 			RegInC;
 
-	RegOut1N <=	'1' when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_S) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R)) else 
+	RegOut1N <=	'1' when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_S) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R)) else 
 			'0' when (StateC = IDLE) else
 			RegOut1C;
 
@@ -111,11 +111,11 @@ begin
 			'0'  when (StateC = IDLE) else
 			RegOut2C;
 
-	AddressInN <=	(InstrC(INSTR_L - OP_CODE_L - 1 downto INSTR_L - OP_CODE_L - count_length(REG_NUM))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_M) or  (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_S)) else 
+	AddressInN <=	(InstrC(INSTR_L - OP_CODE_L - 1 downto INSTR_L - OP_CODE_L - count_length(REG_NUM))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_M) or  (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_S) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CLR) or  (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_SET)) else 
 			(others => '0') when (StateC = IDLE) else
 			AddressInC;
 
-	AddressOut1N <=	(InstrC(INSTR_L - OP_CODE_L - 1 downto INSTR_L - OP_CODE_L - count_length(REG_NUM))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_S)) else 
+	AddressOut1N <=	(InstrC(INSTR_L - OP_CODE_L - 1 downto INSTR_L - OP_CODE_L - count_length(REG_NUM))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_S)) else 
 			(InstrC(INSTR_L - OP_CODE_L - count_length(REG_NUM) - 1 downto INSTR_L - OP_CODE_L - 2*count_length(REG_NUM))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I)) else
 			(others => '0') when (StateC = IDLE) else
 			AddressOut1C;
@@ -124,24 +124,25 @@ begin
 			(others => '0')  when (StateC = IDLE) else
 			AddressOut2C;
 
-	ImmediateN <=	ZERO_VEC(OP_CODE_L + 3*count_length(REG_NUM) + CMD_L - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 3*count_length(REG_NUM) - 1 downto CMD_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) else
-			ZERO_VEC(OP_CODE_L + 2*count_length(REG_NUM) + CMD_L - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 2*count_length(REG_NUM) - 1 downto CMD_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) else
-			ZERO_VEC(OP_CODE_L + count_length(REG_NUM) + CMD_L - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 2*count_length(REG_NUM) - 1 downto 0)) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_S) or  (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_S)) else
-			(others => '0') when (StateC = IDLE) else
+	ImmediateN <=	ZERO_VEC(OP_CODE_L + 3*count_length(REG_NUM) + CMD_ALU_L - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 3*count_length(REG_NUM) - 1 downto CMD_ALU_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) else
+			ZERO_VEC(OP_CODE_L + 2*count_length(REG_NUM) + CMD_ALU_L - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 2*count_length(REG_NUM) - 1 downto CMD_ALU_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) else
+			ZERO_VEC(OP_CODE_L + count_length(REG_NUM) - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - count_length(REG_NUM) - 1 downto 0)) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_S) or  (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_S)) else
+			(others => '1') when ((StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_SET)) else
+			(others => '0') when (StateC = IDLE) or ((StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CLR)) else
 			ImmediateC;
 
-	CmdALUN <=	InstrC(CMD_L - 1 downto 0) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R)) else
+	CmdALUN <=	InstrC(CMD_ALU_L - 1 downto 0) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R)) else
 			(others => '0') when (StateC = IDLE) else
 			CmdALUC;
 
-	PCCallN <=	unsigned(PCIn) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CALL) else
+	PCCallN <=	unsigned(PCIn) + INCR_PC when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CALL) else
 			(others => '0') when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RET) else
 			PCCallC;
 
 	PCN <=	unsigned(PCIn) when (StateC = IDLE) else
-		PCC + unsigned(ZERO_VEC(PC_L - (INSTR_L - OP_CODE_L) - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 1 downto 0))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_JUMP) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CALL)) else
-		PCC + unsigned(ZERO_VEC(PC_L - (INSTR_L - OP_CODE_L) - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 1 downto 0))) when (StateC = DECODE) and (((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRE) and (StatusRegIn(0) = '1')) or ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRNE) and (StatusRegIn(0) = '0')) or ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRL) and (StatusRegIn(4) = '1')) or ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRG) and (StatusRegIn(4) = '0'))) else
-		PCCallC + INCR_PC when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RET) else
+		PCC + unsigned(ZERO_VEC(PC_L - (INSTR_L - OP_CODE_L) - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 1 downto 0))) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_JUMP) else
+		unsigned(ZERO_VEC(PC_L - (INSTR_L - OP_CODE_L) - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 1 downto 0))) when (StateC = DECODE) and (((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRE) and (StatusRegIn(0) = '1')) or ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRNE) and (StatusRegIn(0) = '0')) or ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRL) and (StatusRegIn(4) = '1')) or ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRG) and (StatusRegIn(4) = '0'))  or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CALL)) else
+		PCCallC when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RET) else
 		(others => '0') when (StateC = IDLE) else
 		PCC;
 

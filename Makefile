@@ -20,8 +20,6 @@ work_dir:
 	mkdir -p ${WORK_DIR}
 
 libraries: 
-	@echo "Analysing tb_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} tb_pkg.vhd
 	@echo "Analysing proc_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} proc_pkg.vhd
 	@echo "Analysing alu_pkg.vhd"
@@ -30,6 +28,8 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} reg_file_pkg.vhd
 	@echo "Analysing pipeline_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} pipeline_pkg.vhd
+	@echo "Analysing tb_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} tb_pkg.vhd
 
 reg_file: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/reg_file_pkg.o
 	@echo "Analysing reg_file.vhd"
