@@ -151,7 +151,7 @@ begin
 			std_logic_vector(to_unsigned(3, CTRL_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_M) else
 			std_logic_vector(to_unsigned(4, CTRL_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_S) else
 			std_logic_vector(to_unsigned(5, CTRL_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_STR_S) else
-			std_logic_vector(to_unsigned(6, CTRL_L)) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I)) else
+			std_logic_vector(to_unsigned(6, CTRL_L)) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_SET) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CLR)) else
 			(others => '0');
 
 	Enable_reg_file <= RegOut2C & RegOut1C & RegInC when (StateC = OUTPUT) else (others => '0');

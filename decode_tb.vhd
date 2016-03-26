@@ -288,7 +288,7 @@ begin
 				CtrlOut := 4;
 			elsif (OpCode = OP_CODE_STR_S) then
 				CtrlOut := 5;
-			elsif (OpCode = OP_CODE_MOV_R) or (OpCode = OP_CODE_MOV_I) then
+			elsif (OpCode = OP_CODE_MOV_R) or (OpCode = OP_CODE_MOV_I) or (OpCode = OP_CODE_SET) or (OpCode = OP_CODE_CLR) then
 				CtrlOut := 6;
 			else
 				CtrlOut := 0;
