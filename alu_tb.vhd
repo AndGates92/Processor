@@ -3,6 +3,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
+use std.textio.all;
+
 library work;
 use work.alu_pkg.all;
 use work.tb_pkg.all;
@@ -203,31 +205,40 @@ begin
 			end if;
 		end procedure reference;
 
-		procedure verify(variable Op1_int, Op2_int, Res_ideal, Res_rtl, Ovfl_ideal, Ovfl_rtl, Unfl_ideal, Unfl_rtl: in integer; Cmd_txt : in string; variable pass: out integer) is
+		procedure verify(variable Op1_int, Op2_int, Res_ideal, Res_rtl, Ovfl_ideal, Ovfl_rtl, Unfl_ideal, Unfl_rtl: in integer; Cmd_txt : in string; file file_pointer : text; variable pass: out integer) is
+			variable file_line	: line;
 		begin
 			if (Res_rtl = Res_ideal) and (Ovfl_ideal = Ovfl_rtl) and (Unfl_ideal = Unfl_rtl) then
-				report "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": PASSED";
+				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": PASS"));
+				writeline(file_pointer, file_line);
 				pass := 1;
 			elsif (Ovfl_ideal = Ovfl_rtl) and (Unfl_ideal = Unfl_rtl) then
-				report "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAILED (Result)" severity warning;
+				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Result)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Res_ideal = Res_rtl) and (Unfl_ideal = Unfl_rtl) then
-				report "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAILED (Overflow)" severity warning;
+				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Overflow)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Ovfl_ideal = Ovfl_rtl) and (Res_ideal = Res_rtl) then
-				report "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAILED (Underflow)" severity warning;
+				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Underflow)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Ovfl_ideal = Ovfl_rtl) then
-				report "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAILED (Result and underflow)" severity warning;
+				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Result and underflow)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Unfl_ideal = Unfl_rtl) then
-				report "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAILED (Result and overflow)" severity warning;
+				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Result and overflow)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Res_ideal = Res_rtl) then
-				report "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAILED (Underflow and overflow)" severity warning;
+				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Underflow and overflow)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			else
-				report "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAILED (Result, overflow and underflow)" severity warning;
+				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Result, overflow and underflow)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			end if;
 		end procedure verify;
@@ -242,6 +253,9 @@ begin
 		variable pass	: integer;
 		variable num_pass	: integer;
 
+		file file_pointer	: text;
+		variable file_line	: line;
+
 	begin
 
 		wait for 1 ns;
@@ -249,6 +263,8 @@ begin
 		num_pass := 0;
 
 		reset;
+		file_open(file_pointer, filename, append_mode);
+
 
 		for i in 0 to NUM_TEST-1 loop
 			push_op(Op1_int, Op2_int, Cmd, seed1, seed2);
@@ -266,15 +282,17 @@ begin
 
 			Cmd_txt := alu_cmd_std_vect_to_txt(Cmd);
 			reference(Op1_int, Op2_int, Cmd, Res_ideal, Ovfl_ideal, Unfl_ideal);
-			verify(Op1_int, Op2_int, Res_ideal, Res_rtl, Ovfl_ideal, Ovfl_rtl, Unfl_ideal, Unfl_rtl, Cmd_txt, pass);
+			verify(Op1_int, Op2_int, Res_ideal, Res_rtl, Ovfl_ideal, Ovfl_rtl, Unfl_ideal, Unfl_rtl, Cmd_txt, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
 			wait until rising_edge(clk_tb);
 		end loop;
 
-		report "PASSED: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST);
+		write(file_line, string'( "ALU => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST)));
+		writeline(file_pointer, file_line);
 
+		file_close(file_pointer);
 		stop <= true;
 
 	end process test;

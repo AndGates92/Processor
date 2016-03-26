@@ -8,6 +8,8 @@ use work.pipeline_pkg.all;
 
 package tb_pkg is 
 
+	constant filename	: string := "summary.log";
+
 	function rand_num return real;
 	function rand_sign(sign_val : real) return real;
 	function std_logic_to_int(val : std_logic) return integer;

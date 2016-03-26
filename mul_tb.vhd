@@ -3,6 +3,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
+use std.textio.all;
+
 library work;
 use work.alu_pkg.all;
 use work.tb_pkg.all;
@@ -117,15 +119,18 @@ begin
 			Start_tb <= '0';
 		end procedure push_op_fix;
 
-		procedure verify(variable Op1_int, Op2_int, Res_rtl: in integer; variable pass: out integer) is
+		procedure verify(variable Op1_int, Op2_int, Res_rtl: in integer; file file_pointer : text; variable pass: out integer) is
 			variable Res_ideal	: integer;
+			variable file_line	: line;
 		begin
 			Res_ideal := Op1_int*Op2_int;
 			if (Res_rtl = Res_ideal) then
-				report "Multiplication of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL " & integer'image(Res_rtl) & " and reference " & integer'image(Res_ideal) & ": PASSED";
+				write(file_line, string'("Multiplication of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL " & integer'image(Res_rtl) & " and reference " & integer'image(Res_ideal) & ": PASS"));
+				writeline(file_pointer, file_line);
 				pass := 1;
 			else
-				report "Multiplication of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL " & integer'image(Res_rtl) & " and reference " & integer'image(Res_ideal) & ": FAILED" severity warning;
+				write(file_line, string'("Multiplication of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL " & integer'image(Res_rtl) & " and reference " & integer'image(Res_ideal) & ": FAIL"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			end if;
 		end procedure verify;
@@ -138,6 +143,9 @@ begin
 		variable mpnd	: int_arr := (0, 0, 0);
 		variable mptr	: int_arr := (0, 0, 0);
 
+		file file_pointer	: text;
+		variable file_line	: line;
+
 	begin
 
 		wait for 1 ns;
@@ -147,6 +155,7 @@ begin
 		mpnd := (0, 10, 0);
 
 		reset;
+		file_open(file_pointer, filename, append_mode);
 
 		for i in 0 to NUM_TEST-1 loop
 			push_op(Op1_int, Op2_int, seed1, seed2);
@@ -154,7 +163,7 @@ begin
 			wait on Done_tb;
 
 			Res_rtl := to_integer(signed(Res_tb));
-			verify(Op1_int, Op2_int, Res_rtl, pass);
+			verify(Op1_int, Op2_int, Res_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
@@ -167,15 +176,17 @@ begin
 			wait on Done_tb;
 
 			Res_rtl := to_integer(signed(Res_tb));
-			verify(Op1_int, Op2_int, Res_rtl, pass);
+			verify(Op1_int, Op2_int, Res_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
 			wait until rising_edge(clk_tb);
 		end loop;
 
-		report "PASSED: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST + (int_arr'high + 1));
+		write(file_line, string'("MULTIPLICATION => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST + (int_arr'high + 1))));
+		writeline(file_pointer, file_line);
 
+		file_close(file_pointer);
 		stop <= true;
 
 	end process test;

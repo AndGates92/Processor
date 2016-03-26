@@ -3,6 +3,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
+use std.textio.all;
+
 library work;
 use work.alu_pkg.all;
 use work.tb_pkg.all;
@@ -120,8 +122,9 @@ begin
 			Start_tb <= '0';
 		end procedure push_op_fix;
 
-		procedure verify(variable Op1_int, Op2_int, Quot_rtl, Rem_rtl: in integer; variable pass: out integer) is
+		procedure verify(variable Op1_int, Op2_int, Quot_rtl, Rem_rtl: in integer; file file_pointer : text; variable pass: out integer) is
 			variable Rem_ideal, Quot_ideal	: integer;
+			variable file_line	: line;
 		begin
 			if (Op1_int /= 0) and (Op2_int /= 0) then
 				Quot_ideal := integer(Op1_int/Op2_int);
@@ -144,16 +147,20 @@ begin
 			end if;
 
 			if (Rem_rtl = Rem_ideal) and (Quot_ideal = Quot_rtl) then
-				report "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": PASSED";
+				write(file_line, string'( "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": PASS"));
+				writeline(file_pointer, file_line);
 				pass := 1;
 			elsif (Rem_rtl = Rem_ideal) then
-				report "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": FAILED (Quotient wrong)";
+				write(file_line, string'( "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": FAIL (Quotient wrong)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Quot_rtl = Quot_ideal) then
-				report "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": FAILED (Remainder wrong)" severity warning;
+				write(file_line, string'( "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": FAIL (Remainder wrong)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			else
-				report "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": FAILED (Quotient and remainder wrong)" severity warning;
+				write(file_line, string'( "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": FAIL (Quotient and remainder wrong)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			end if;
 		end procedure verify;
@@ -166,6 +173,9 @@ begin
 		variable dvd	: int_arr := (0, 10, -10, 0);
 		variable dvs	: int_arr := (10, 0, 0, 0);
 
+		file file_pointer	: text;
+		variable file_line	: line;
+
 	begin
 
 		wait for 1 ns;
@@ -175,6 +185,7 @@ begin
 		dvd := (0, 10, -10, 0);
 
 		reset;
+		file_open(file_pointer, filename, append_mode);
 
 		for i in 0 to NUM_TEST-1 loop
 			push_op(Op1_int, Op2_int, seed1, seed2);
@@ -183,7 +194,7 @@ begin
 
 			Quot_rtl := to_integer(signed(Quot_tb));
 			Rem_rtl := to_integer(signed(Rem_tb));
-			verify(Op1_int, Op2_int, Quot_rtl, Rem_rtl, pass);
+			verify(Op1_int, Op2_int, Quot_rtl, Rem_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
@@ -197,15 +208,17 @@ begin
 
 			Quot_rtl := to_integer(signed(Quot_tb));
 			Rem_rtl := to_integer(signed(Rem_tb));
-			verify(Op1_int, Op2_int, Quot_rtl, Rem_rtl, pass);
+			verify(Op1_int, Op2_int, Quot_rtl, Rem_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
 			wait until rising_edge(clk_tb);
 		end loop;
 
-		report "PASSED: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST + (int_arr'high + 1));
+		write(file_line, string'( "DIVISION => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST + (int_arr'high + 1))));
+		writeline(file_pointer, file_line);
 
+		file_close(file_pointer);
 		stop <= true;
 
 	end process test;

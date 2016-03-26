@@ -7,9 +7,12 @@ GHDL = ghdl
 GHDL_ARGS = -g --workdir=${WORK_DIR}
 GHDL_RUN_ARGS = --vcd=
 
+LOG_FILE = work/summary.log
+
 WAVE_READER = gtkwave
 
 all:
+	rm -f ${LOG_FILE}
 	make reg_file_all
 	make mul_all
 	make div_all
