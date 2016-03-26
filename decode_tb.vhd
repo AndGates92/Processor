@@ -222,6 +222,16 @@ begin
 				AddressOut2_int := 0;
 				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				Enable_reg_file_int := 0;
+			elsif (OpCode_vec = OP_CODE_EOP) then
+				Immediate_in := 0;
+				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
+				Instr_tb <= OpCode_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - 1) downto 0);
+				AddressIn_int := 0;
+				AddressOut1_int := 0;
+				AddressOut2_int := 0;
+				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
+				Immediate_int := Immediate_in;
+				Enable_reg_file_int := 0;
 			else
 				Instr_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(INSTR_L_TB)) - 1.0), INSTR_L_TB));
 				AddressIn_int := 0;
@@ -238,7 +248,7 @@ begin
 			NewInstr_tb <= '0';
 		end procedure push_op;
 
-		procedure reference(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer) is
+		procedure reference(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out integer) is
 		begin
 			if (OpCode = OP_CODE_SET) then
 				ImmediateOut := integer(2.0**(real(INSTR_L_TB)) - 1.0);
@@ -259,8 +269,8 @@ begin
 			end if;
 
 			if (OpCode = OP_CODE_CALL) then
-				PCCallOut :=	PCIn + INCR_PC_TB;
-			elsif ( OpCode = OP_CODE_RET) then
+				PCCallOut := PCIn + INCR_PC_TB;
+			elsif (OpCode = OP_CODE_RET) then
 				PCCallOut := 0;
 			else
 				PCCallOut := PCCallIn;
@@ -282,15 +292,24 @@ begin
 				CtrlOut := 0;
 			end if;
 
+			if (OpCode = OP_CODE_EOP) then
+				EndOfProg := 1;
+			else
+				EndOfProg := 0;
+			end if;
+
 		end procedure reference;
 
-		procedure verify(variable ALU_func_ideal, ALU_func_rtl : in std_logic_vector(CMD_ALU_L - 1 downto 0); variable Immediate_ideal, Immediate_rtl : in integer; variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable OpCode_str: in string; variable AddressIn_ideal, AddressOut1_ideal, AddressOut2_ideal : in integer; variable AddressIn_rtl, AddressOut1_rtl, AddressOut2_rtl : in integer; variable PCOut_ideal, PCOut_rtl : in integer; variable CtrlOut_ideal, CtrlOut_rtl : in integer; variable Enable_reg_file_ideal, Enable_reg_file_rtl : in integer; variable pass : out integer) is
+		procedure verify(variable ALU_func_ideal, ALU_func_rtl : in std_logic_vector(CMD_ALU_L - 1 downto 0); variable Immediate_ideal, Immediate_rtl : in integer; variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable OpCode_str: in string; variable AddressIn_ideal, AddressOut1_ideal, AddressOut2_ideal : in integer; variable AddressIn_rtl, AddressOut1_rtl, AddressOut2_rtl : in integer; variable PCOut_ideal, PCOut_rtl : in integer; variable CtrlOut_ideal, CtrlOut_rtl : in integer; variable Enable_reg_file_ideal, Enable_reg_file_rtl : in integer; variable EndOfProg_ideal, EndOfPRog_rtl : in integer; variable PCIn: in integer; variable pass : out integer) is
 		begin
 
+			report "Op code " & OpCode_str & " PC Input " & integer'image(PCIn)  &" decoding:";
 			if (OpCode = OP_CODE_ALU_R) or (OpCode = OP_CODE_ALU_I) then
-				report "Op code " & OpCode_str & " decoding: RTL => Immediate " & integer'image(Immediate_rtl) & " ALU function " & alu_cmd_std_vect_to_txt(ALU_func_rtl) & " AddressIn " & integer'image(AddressIn_rtl) & " AddressOut1 " & integer'image(AddressOut1_rtl) & " AddressOut2 " & integer'image(AddressOut2_rtl) & " PCOut " & integer'image(PCOut_rtl) &  " Ctrl " & integer'image(CtrlOut_rtl) & " Enable Reg File " & integer'image(Enable_reg_file_rtl) &" reference => Immediate " & integer'image(Immediate_ideal) & " ALU function " & alu_cmd_std_vect_to_txt(ALU_func_ideal) & " AddressIn " & integer'image(AddressIn_ideal) & " AddressOut1 " & integer'image(AddressOut1_ideal) & " AddressOut2 " & integer'image(AddressOut2_ideal) & " PCOut " & integer'image(PCOut_ideal) & " Ctrl " & integer'image(CtrlOut_ideal) & " Enable Reg File " & integer'image(Enable_reg_file_ideal);
+				report "RTL => Immediate " & integer'image(Immediate_rtl) & " ALU function " & alu_cmd_std_vect_to_txt(ALU_func_rtl) & " AddressIn " & integer'image(AddressIn_rtl) & " AddressOut1 " & integer'image(AddressOut1_rtl) & " AddressOut2 " & integer'image(AddressOut2_rtl) & " PCOut " & integer'image(PCOut_rtl) &  " Ctrl " & integer'image(CtrlOut_rtl) & " Enable Reg File " & integer'image(Enable_reg_file_rtl) & " End of program " & integer'image(EndOfProg_rtl);
+				report "Reference => Immediate " & integer'image(Immediate_ideal) & " ALU function " & alu_cmd_std_vect_to_txt(ALU_func_ideal) & " AddressIn " & integer'image(AddressIn_ideal) & " AddressOut1 " & integer'image(AddressOut1_ideal) & " AddressOut2 " & integer'image(AddressOut2_ideal) & " PCOut " & integer'image(PCOut_ideal) & " Ctrl " & integer'image(CtrlOut_ideal) & " Enable Reg File " & integer'image(Enable_reg_file_ideal) & " End of program " & integer'image(EndOfProg_ideal);
 			else
-				report "Op code " & OpCode_str & " decoding: RTL => Immediate " & integer'image(Immediate_rtl) & " ALU function " & integer'image(to_integer(unsigned(ALU_func_rtl))) & " AddressIn " & integer'image(AddressIn_rtl) & " AddressOut1 " & integer'image(AddressOut1_rtl) & " AddressOut2 " & integer'image(AddressOut2_rtl) & " PCOut " & integer'image(PCOut_rtl) & " Ctrl " & integer'image(CtrlOut_rtl) & " Enable Reg File " & integer'image(Enable_reg_file_rtl) & " reference => Immediate " & integer'image(Immediate_ideal) & " ALU function " & integer'image(to_integer(unsigned(ALU_func_ideal))) & " AddressIn " & integer'image(AddressIn_ideal) & " AddressOut1 " & integer'image(AddressOut1_ideal) & " AddressOut2 " & integer'image(AddressOut2_ideal) & " PCOut " & integer'image(PCOut_ideal) & " Ctrl " & integer'image(CtrlOut_ideal) & " Enable Reg File " & integer'image(Enable_reg_file_ideal);
+				report "RTL => Immediate " & integer'image(Immediate_rtl) & " ALU function " & integer'image(to_integer(unsigned(ALU_func_rtl))) & " AddressIn " & integer'image(AddressIn_rtl) & " AddressOut1 " & integer'image(AddressOut1_rtl) & " AddressOut2 " & integer'image(AddressOut2_rtl) & " PCOut " & integer'image(PCOut_rtl) & " Ctrl " & integer'image(CtrlOut_rtl) & " Enable Reg File " & integer'image(Enable_reg_file_rtl) & " End of program " & integer'image(EndOfProg_ideal);
+				report "Reference => Immediate " & integer'image(Immediate_ideal) & " ALU function " & integer'image(to_integer(unsigned(ALU_func_ideal))) & " AddressIn " & integer'image(AddressIn_ideal) & " AddressOut1 " & integer'image(AddressOut1_ideal) & " AddressOut2 " & integer'image(AddressOut2_ideal) & " PCOut " & integer'image(PCOut_ideal) & " Ctrl " & integer'image(CtrlOut_ideal) & " Enable Reg File " & integer'image(Enable_reg_file_ideal) & " End of program " & integer'image(EndOfProg_ideal);
 			end if;
 
 			if (ALU_func_ideal = ALU_func_rtl) and (Immediate_ideal = Immediate_rtl) and (AddressIn_ideal = AddressIn_rtl) and (AddressOut1_ideal = AddressOut1_rtl) and (AddressOut2_ideal = AddressOut2_rtl) and (PCOut_ideal = PCOut_rtl)  and (CtrlOut_ideal = CtrlOut_rtl) and (Enable_reg_file_ideal = Enable_reg_file_rtl) then
@@ -320,6 +339,12 @@ begin
 			elsif (Enable_reg_file_ideal /= Enable_reg_file_rtl) then
 				report "FAILED (Enable Reg File)" severity warning;
 				pass := 0;
+			elsif (EndOfProg_ideal /= EndOfProg_rtl) then
+				report "FAILED (End of program)" severity warning;
+				pass := 0;
+			else
+				report "FAILED (Unknown error)" severity warning;
+				pass := 0;
 			end if;
 		end procedure verify;
 
@@ -336,6 +361,7 @@ begin
 		variable CtrlOut_ideal,CtrlOut_rtl	: integer;
 		variable PCCallIn,PCCallOut	: integer;
 		variable En_reg_file_int_rtl, En_reg_file_int_ideal	: integer;
+		variable EndOfProg_ideal,EndOfProg_rtl	: integer;
 		variable seed1, seed2	: positive;
 		variable pass	: integer;
 		variable num_pass	: integer;
@@ -363,19 +389,20 @@ begin
 			En_reg_file_int_rtl := to_integer(unsigned(Enable_reg_file_tb));
 			PCOut_int_rtl := to_integer(unsigned(PCOut_tb));
 			CtrlOut_rtl := to_integer(unsigned(Ctrl_tb));
+			EndOfProg_rtl := std_logic_to_int(EndOfProg_tb);
 
-			reference(OpCode, Immediate_int, PCIn_int, PCCallIn, StatusReg, Immediate_int_ideal, PCOut_int_ideal, PCCallOut, CtrlOut_ideal);
+			reference(OpCode, Immediate_int, PCIn_int, PCCallIn, StatusReg, Immediate_int_ideal, PCOut_int_ideal, PCCallOut, CtrlOut_ideal, EndOfProg_ideal);
 
-			verify(ALU_func_ideal, ALU_func_rtl, Immediate_int_ideal, Immediate_int_rtl, OpCode, op_code_std_vect_to_txt(OpCode), AddressIn_int_ideal, AddressOut1_int_ideal, AddressOut2_int_ideal, AddressIn_int_rtl, AddressOut1_int_rtl, AddressOut2_int_rtl, PCOut_int_ideal, PCOut_int_rtl, CtrlOut_ideal, CtrlOut_rtl, En_reg_file_int_ideal, En_reg_file_int_rtl, pass);
+			verify(ALU_func_ideal, ALU_func_rtl, Immediate_int_ideal, Immediate_int_rtl, OpCode, op_code_std_vect_to_txt(OpCode), AddressIn_int_ideal, AddressOut1_int_ideal, AddressOut2_int_ideal, AddressIn_int_rtl, AddressOut1_int_rtl, AddressOut2_int_rtl, PCOut_int_ideal, PCOut_int_rtl, CtrlOut_ideal, CtrlOut_rtl, En_reg_file_int_ideal, En_reg_file_int_rtl, EndOfProg_ideal, EndOfProg_rtl, PCIn_int, pass);
 
-			PCCallIn := PCCallIn;
+			PCCallIn := PCCallOut;
 
 			num_pass := num_pass + pass;
 
 			wait until rising_edge(clk_tb);
 		end loop;
 
-		report "PASSED: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST);
+		report "DECODER PASSED: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST);
 
 		stop <= true;
 

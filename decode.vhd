@@ -85,11 +85,7 @@ begin
 					StateN <= DECODE;
 				end if;
 			when DECODE =>
-				if (InstrC(INSTR_L - 1 downto INSTR_L - 4) = "0000") then
-					
-				else
-					StateN <= OUTPUT;
-				end if;
+				StateN <= OUTPUT;
 			when OUTPUT =>
 				StateN <= IDLE;
 			when others =>
@@ -103,7 +99,7 @@ begin
 			'0' when (StateC = IDLE) else
 			RegInC;
 
-	RegOut1N <=	'1' when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_S) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R)) else 
+	RegOut1N <=	'1' when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_S) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R)  or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R)) else 
 			'0' when (StateC = IDLE) else
 			RegOut1C;
 
@@ -116,7 +112,7 @@ begin
 			AddressInC;
 
 	AddressOut1N <=	(InstrC(INSTR_L - OP_CODE_L - 1 downto INSTR_L - OP_CODE_L - count_length(REG_NUM))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_S)) else 
-			(InstrC(INSTR_L - OP_CODE_L - count_length(REG_NUM) - 1 downto INSTR_L - OP_CODE_L - 2*count_length(REG_NUM))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I)) else
+			(InstrC(INSTR_L - OP_CODE_L - count_length(REG_NUM) - 1 downto INSTR_L - OP_CODE_L - 2*count_length(REG_NUM))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R)) else
 			(others => '0') when (StateC = IDLE) else
 			AddressOut1C;
 
@@ -145,6 +141,10 @@ begin
 		PCCallC when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RET) else
 		(others => '0') when (StateC = IDLE) else
 		PCC;
+
+	EndOfProgN <=	'1' when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_EOP) else
+			'0' when (StateC = IDLE) else
+			EndOfProgC;
 
 	CtrlN <=	std_logic_vector(to_unsigned(1, CTRL_L)) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I)) else
 			std_logic_vector(to_unsigned(2, CTRL_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_LD_M) else

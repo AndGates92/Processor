@@ -121,6 +121,8 @@ package body tb_pkg is
 			Op_Code_txt := "RET ";
 		elsif (OpCode = OP_CODE_NOP) then
 			Op_Code_txt := "NOP ";
+		elsif (OpCode = OP_CODE_EOP) then
+			Op_Code_txt := "EOP ";
 		else
 			Op_Code_txt := "UOPC";
 		end if;
