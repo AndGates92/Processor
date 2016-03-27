@@ -7,7 +7,8 @@ use std.textio.all;
 
 library work;
 use work.alu_pkg.all;
-use work.pipeline_pkg.all;
+use work.decode_pkg.all;
+use work.ctrl_pkg.all;
 use work.proc_pkg.all;
 use work.tb_pkg.all;
 
@@ -29,7 +30,6 @@ architecture bench of decode_stage_tb is
 	signal PC_L_TB		: positive := 28;
 	signal STAT_REG_L_TB	: positive := 8;
 	signal INCR_PC_TB	: positive := 4;
-	signal CTRL_L_TB	: positive := 3;
 	signal EN_REG_FILE_L_TB	: positive := 3;
 
 	signal NewInstr_tb	: std_logic;
@@ -47,7 +47,7 @@ architecture bench of decode_stage_tb is
 	signal Done_tb		: std_logic;
 
 	signal CmdALU_tb	: std_logic_vector(CMD_ALU_L - 1 downto 0);
-	signal Ctrl_tb		: std_logic_vector(CTRL_L_TB - 1 downto 0);
+	signal Ctrl_tb		: std_logic_vector(CTRL_L - 1 downto 0);
 
 	signal PCOut_tb		: std_logic_vector(PC_L_TB - 1 downto 0);
 
@@ -62,7 +62,6 @@ begin
 		PC_L => PC_L_TB,
 		STAT_REG_L => STAT_REG_L_TB,
 		INCR_PC => INCR_PC_TB,
-		CTRL_L => CTRL_L_TB,
 		EN_REG_FILE_L => EN_REG_FILE_L_TB
 	)
 	port map (
@@ -154,7 +153,7 @@ begin
 			ALU_func_vec := std_logic_vector(to_unsigned(ALU_func_in, CMD_ALU_L));
 			ALU_func := ALU_func_vec;
 
-			if ((OpCode_vec = OP_CODE_MOV_I) or (OpCode_vec = OP_CODE_STR_S) or (OpCode_vec = OP_CODE_STR_M)) then
+			if ((OpCode_vec = OP_CODE_MOV_I) or (OpCode_vec = OP_CODE_RD_S) or (OpCode_vec = OP_CODE_RD_M)) then
 				uniform(seed1, seed2, rand_val);
 				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L_TB - OP_CODE_L - count_length(REG_NUM_TB))) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
@@ -175,7 +174,7 @@ begin
 				AddressOut2_int := 0;
 				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				Enable_reg_file_int := 0;
-			elsif (OpCode_vec = OP_CODE_LD_S) or (OpCode_vec = OP_CODE_LD_M) then
+			elsif (OpCode_vec = OP_CODE_WR_S) or (OpCode_vec = OP_CODE_WR_M) then
 				uniform(seed1, seed2, rand_val);
 				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L_TB - OP_CODE_L - count_length(REG_NUM_TB))) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
@@ -279,19 +278,19 @@ begin
 			end if;
 
 			if (OpCode = OP_CODE_ALU_R) or (OpCode = OP_CODE_ALU_I) then
-				CtrlOut := 1;
-			elsif (OpCode = OP_CODE_LD_M) then
-				CtrlOut := 2;
-			elsif (OpCode = OP_CODE_STR_M) then
-				CtrlOut := 3;
-			elsif (OpCode = OP_CODE_LD_S) then
-				CtrlOut := 4;
-			elsif (OpCode = OP_CODE_STR_S) then
-				CtrlOut := 5;
+				CtrlOut := to_integer(unsigned(CTRL_ALU));
+			elsif (OpCode = OP_CODE_WR_M) then
+				CtrlOut := to_integer(unsigned(CTRL_WR_M));
+			elsif (OpCode = OP_CODE_RD_M) then
+				CtrlOut := to_integer(unsigned(CTRL_RD_M));
+			elsif (OpCode = OP_CODE_WR_S) then
+				CtrlOut := to_integer(unsigned(CTRL_WR_S));
+			elsif (OpCode = OP_CODE_RD_S) then
+				CtrlOut := to_integer(unsigned(CTRL_RD_S));
 			elsif (OpCode = OP_CODE_MOV_R) or (OpCode = OP_CODE_MOV_I) or (OpCode = OP_CODE_SET) or (OpCode = OP_CODE_CLR) then
-				CtrlOut := 6;
+				CtrlOut := to_integer(unsigned(CTRL_MOV));
 			else
-				CtrlOut := 0;
+				CtrlOut := to_integer(unsigned(CTRL_DISABLE));
 			end if;
 
 			if (OpCode = OP_CODE_EOP) then
@@ -397,7 +396,10 @@ begin
 		reset;
 
 		PCCallIn := 0;
-		file_open(file_pointer, filename, append_mode);
+		file_open(file_pointer, log_file, append_mode);
+
+		write(file_line, string'( "Decode stage Test"));
+		writeline(file_pointer, file_line);
 
 		for i in 0 to NUM_TEST-1 loop
 			push_op(ALU_func_ideal, Immediate_int, OpCode, AddressIn_int_ideal, AddressOut1_int_ideal, AddressOut2_int_ideal, PCIn_int, StatusReg, En_reg_file_int_ideal, seed1, seed2);
@@ -425,9 +427,11 @@ begin
 			wait until rising_edge(clk_tb);
 		end loop;
 
+		file_close(file_pointer);
+
+		file_open(file_pointer, summary_file, append_mode);
 		write(file_line, "DECODE STAGE => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST));
 		writeline(file_pointer, file_line);
-
 		file_close(file_pointer);
 
 		stop <= true;

@@ -4,11 +4,12 @@ use ieee.std_logic_1164.all;
 
 library work;
 use work.alu_pkg.all;
-use work.pipeline_pkg.all;
+use work.decode_pkg.all;
 
 package tb_pkg is 
 
-	constant filename	: string := "summary.log";
+	constant log_file	: string := "summary.log";
+	constant summary_file	: string := "summary";
 
 	function rand_num return real;
 	function rand_sign(sign_val : real) return real;
@@ -107,14 +108,14 @@ package body tb_pkg is
 			Op_Code_txt := "JUMP";
 		elsif (OpCode = OP_CODE_CALL) then
 			Op_Code_txt := "CALL";
-		elsif (OpCode = OP_CODE_STR_S) then
-			Op_Code_txt := "STRS";
-		elsif (OpCode = OP_CODE_LD_S) then
-			Op_Code_txt := "LD_S";
-		elsif (OpCode = OP_CODE_STR_M) then
-			Op_Code_txt := "STRM";
-		elsif (OpCode = OP_CODE_LD_M) then
-			Op_Code_txt := "LD_M";
+		elsif (OpCode = OP_CODE_RD_S) then
+			Op_Code_txt := "RD_S";
+		elsif (OpCode = OP_CODE_WR_S) then
+			Op_Code_txt := "WR_S";
+		elsif (OpCode = OP_CODE_RD_M) then
+			Op_Code_txt := "RD_M";
+		elsif (OpCode = OP_CODE_WR_M) then
+			Op_Code_txt := "WR_M";
 		elsif (OpCode = OP_CODE_CLR) then
 			Op_Code_txt := "CLR ";
 		elsif (OpCode = OP_CODE_SET) then

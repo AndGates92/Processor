@@ -5,9 +5,10 @@ use ieee.numeric_std.all;
 
 library work;
 use work.proc_pkg.all;
+use work.ctrl_pkg.all;
 use work.alu_pkg.all;
 
-package pipeline_pkg is 
+package decode_pkg is 
 
 	constant OP_CODE_L	: positive := 5;
 
@@ -19,12 +20,12 @@ package pipeline_pkg is
 	constant OP_CODE_BRL	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, OP_CODE_L));
 	constant OP_CODE_JUMP	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(6, OP_CODE_L));
 	constant OP_CODE_CALL	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(7, OP_CODE_L));
-	constant OP_CODE_STR_M	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(8, OP_CODE_L));
-	constant OP_CODE_LD_M	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(9, OP_CODE_L));
+	constant OP_CODE_RD_M	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(8, OP_CODE_L));
+	constant OP_CODE_WR_M	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(9, OP_CODE_L));
 	constant OP_CODE_CLR	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(10, OP_CODE_L));
 	constant OP_CODE_SET	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(11, OP_CODE_L));
-	constant OP_CODE_LD_S	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(12, OP_CODE_L));
-	constant OP_CODE_STR_S	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(13, OP_CODE_L));
+	constant OP_CODE_WR_S	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(12, OP_CODE_L));
+	constant OP_CODE_RD_S	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(13, OP_CODE_L));
 	constant OP_CODE_MOV_I	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(14, OP_CODE_L));
 	constant OP_CODE_MOV_R	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(15, OP_CODE_L));
 	constant OP_CODE_RET	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(16, OP_CODE_L));
@@ -39,7 +40,6 @@ package pipeline_pkg is
 		PC_L		: positive := 32;
 		STAT_REG_L	: positive := 8;
 		INCR_PC		: positive := 4;
-		CTRL_L		: positive := 3;
 		EN_REG_FILE_L	: positive := 3
 	);
 	port (
@@ -69,4 +69,4 @@ package pipeline_pkg is
 	);
 	end component;
 
-end package pipeline_pkg;
+end package decode_pkg;

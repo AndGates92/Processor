@@ -45,8 +45,7 @@ architecture non_restoring of div is
 	signal ZeroDvdN, ZeroDvdC, ZeroDvd	: std_logic;
 	signal ZeroDvsN, ZeroDvsC, ZeroDvs	: std_logic;
 
-	type state_list is (IDLE, COMPUTE_FIRST, COMPUTE, COMPUTE_LAST, OUTPUT);
-	signal StateC, StateN: state_list;
+	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
 
 	signal CountC, CountN: unsigned(count_length(OP2_L-2)-1 downto 0);
 
@@ -80,30 +79,29 @@ begin
 	state_det: process(StateC, Start, CountC, Dividend, Divisor)
 	begin
 		StateN <= StateC; -- avoid latches
-		case StateC is
-			when IDLE =>
-				if (Start = '1') then
-					if (unsigned(Dividend) = zero_op1) or (unsigned(Divisor) = zero_op2) then -- fast track in case of zero input
-						StateN <= OUTPUT;
-					else
-						StateN <= COMPUTE_FIRST;
-					end if;
-				end if;
-			when COMPUTE_FIRST =>
-				StateN <= COMPUTE;
-			when COMPUTE =>
-				if CountC = to_unsigned(OP2_L - 3, CountC'length) then
-					StateN <= COMPUTE_LAST;
+		if (StateC = IDLE) then
+			if (Start = '1') then
+				if (unsigned(Dividend) = zero_op1) or (unsigned(Divisor) = zero_op2) then -- fast track in case of zero input
+					StateN <= OUTPUT;
 				else
-					StateN <= COMPUTE;
+					StateN <= EXECUTE_FIRST;
 				end if;
-			when COMPUTE_LAST =>
-				StateN <= OUTPUT;
-			when OUTPUT =>
-				StateN <= IDLE;
-			when others =>
-				StateN <= StateC;
-		end case;
+			end if;
+		elsif (StateC = EXECUTE_FIRST) then
+			StateN <= EXECUTE;
+		elsif (StateC = EXECUTE) then
+			if CountC = to_unsigned(OP2_L - 3, CountC'length) then
+				StateN <= EXECUTE_LAST;
+			else
+				StateN <= EXECUTE;
+			end if;
+		elsif (StateC = EXECUTE_LAST) then
+			StateN <= OUTPUT;
+		elsif (StateC = OUTPUT) then
+			StateN <= IDLE;
+		else
+			StateN <= StateC;
+		end if;
 	end process state_det;
 
 	ZeroDvd <=	'1' when unsigned(Dividend) = zero_op1 else
@@ -139,40 +137,39 @@ begin
 		ZeroDvsN <= ZeroDvsC;
 		ZeroDvdN <= ZeroDvdC;
 
-		case StateC is
-			when IDLE =>
-				DivisorN <= DivisorProp;
-				QuotN <= DividendProp(DividendProp'length -1 downto 0);
-				RemN <= (others => '0');
-				SignN <= Sign;
-				SignDvdN <= Dividend(OP1_L - 1);
-				CountN <= (others => '0');
-				ZeroDvdN <= ZeroDvd;
-				ZeroDvsN <= ZeroDvs;
-			when COMPUTE_FIRST =>
-				RemN <= RemProp;
-				QuotN <= QuotC(QuotC'length-1 - 1 downto 0) & "0";
-			when COMPUTE =>
-				CountN <= CountC + 1;
-				QuotN <= QuotC(QuotC'length-1 - 1 downto 1) & (not unsigned(RemC(RemC'length - 1 downto RemC'length - 1))) & "0";
-				RemN <= RemProp;
-			when COMPUTE_LAST =>
-				QuotN <= QuotC(QuotC'length - 1 downto 1) & (not unsigned(RemC(RemC'length - 1 downto RemC'length - 1)));
-				if RemC(RemC'length - 1) = '1' then
-					RemN <= RemC + signed("0" & DivisorC);
-				else
-					RemN <= RemC;
-				end if;
-			when OUTPUT =>
+		if (StateC = IDLE) then
+			DivisorN <= DivisorProp;
+			QuotN <= DividendProp(DividendProp'length -1 downto 0);
+			RemN <= (others => '0');
+			SignN <= Sign;
+			SignDvdN <= Dividend(OP1_L - 1);
+			CountN <= (others => '0');
+			ZeroDvdN <= ZeroDvd;
+			ZeroDvsN <= ZeroDvs;
+		elsif (StateC = EXECUTE_FIRST) then
+			RemN <= RemProp;
+			QuotN <= QuotC(QuotC'length-1 - 1 downto 0) & "0";
+		elsif (StateC = EXECUTE) then
+			CountN <= CountC + 1;
+			QuotN <= QuotC(QuotC'length-1 - 1 downto 1) & (not unsigned(RemC(RemC'length - 1 downto RemC'length - 1))) & "0";
+			RemN <= RemProp;
+		elsif (StateC = EXECUTE_LAST) then
+			QuotN <= QuotC(QuotC'length - 1 downto 1) & (not unsigned(RemC(RemC'length - 1 downto RemC'length - 1)));
+			if RemC(RemC'length - 1) = '1' then
+				RemN <= RemC + signed("0" & DivisorC);
+			else
 				RemN <= RemC;
-				QuotN <= QuotC;
-			when others =>
-				DivisorN <= DivisorC;
-				SignN <= SignC;
-				CountN <= CountC;
-				QuotN <= QuotC;
-				RemN <= RemC;
-		end case;
+			end if;
+		elsif (StateC = OUTPUT) then
+			RemN <= RemC;
+			QuotN <= QuotC;
+		else
+			DivisorN <= DivisorC;
+			SignN <= SignC;
+			CountN <= CountC;
+			QuotN <= QuotC;
+			RemN <= RemC;
+		end if;
 	end process data;
 
 	Done <=	'1' when StateC = OUTPUT else 

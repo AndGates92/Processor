@@ -42,8 +42,7 @@ architecture rtl of reg_file is
 	signal AddressOut2C, AddressOut2N	: std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	signal AddressInC, AddressInN	: std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 
-	type state_list is (IDLE, LOAD_STORE, OUTPUT);
-	signal StateC, StateN: state_list;
+	signal StateC, StateN	: std_logic_vector(STATE_L - 1 downto 0);
 
 	signal EnableC, EnableN	: std_logic_vector(EN_L - 1 downto 0);
 	signal DoneC, DoneN	: std_logic_vector(OUT_NUM - 1 downto 0);
@@ -89,32 +88,31 @@ begin
 	AddressOut2N <= AddressOut2 when StateC = IDLE else AddressOut2C;
 
 	UPDATE_REG_OUT: for i in 0 to REG_NUM-1 generate
-		RegFileN(i) <= DataInC when (EnableC(0) = '1') and (AddressInC = std_logic_vector(to_unsigned(i, count_length(REG_NUM)))) and (StateC = LOAD_STORE) else RegFileC(i);
+		RegFileN(i) <= DataInC when (EnableC(0) = '1') and (AddressInC = std_logic_vector(to_unsigned(i, count_length(REG_NUM)))) and (StateC = EXECUTE) else RegFileC(i);
 	end generate;
 
-	DataOut1N <= RegFileC(to_integer(unsigned(AddressOut1C))) when (EnableC(1) = '1') and (StateC = LOAD_STORE) else (others => '0');
-	DataOut2N <= RegFileC(to_integer(unsigned(AddressOut2C))) when (EnableC(2) = '1') and (StateC = LOAD_STORE) else (others => '0');
+	DataOut1N <= RegFileC(to_integer(unsigned(AddressOut1C))) when (EnableC(1) = '1') and (StateC = EXECUTE) else (others => '0');
+	DataOut2N <= RegFileC(to_integer(unsigned(AddressOut2C))) when (EnableC(2) = '1') and (StateC = EXECUTE) else (others => '0');
 
-	DoneN <= EnableC(2 downto 1) when StateC = LOAD_STORE else (others => '0');
+	DoneN <= EnableC(2 downto 1) when StateC = EXECUTE else (others => '0');
 	End_LS <= '1' when StateC = OUTPUT else '0';
 
 	state_det: process(StateC, Enable)
 	begin
 		StateN <= StateC; -- avoid latches
-		case StateC is
-			when IDLE =>
-				if (Enable = ZeroEnable) then
-					StateN <= IDLE;
-				else
-					StateN <= LOAD_STORE;
-				end if;
-			when LOAD_STORE =>
-				StateN <= OUTPUT;
-			when OUTPUT =>
+		if (StateC = IDLE) then
+			if (Enable = ZeroEnable) then
 				StateN <= IDLE;
-			when others =>
-				StateN <= StateC;
-		end case;
+			else
+				StateN <= EXECUTE;
+			end if;
+		elsif (StateC = EXECUTE) then
+			StateN <= OUTPUT;
+		elsif (StateC = OUTPUT) then
+			StateN <= IDLE;
+		else
+			StateN <= StateC;
+		end if;
 	end process state_det;
 
 end rtl;

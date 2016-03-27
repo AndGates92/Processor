@@ -40,8 +40,7 @@ architecture booth_radix2 of mul is
 
 	signal ProdLowIdle	: unsigned(OP2_L - 1 downto 0);
 
-	type state_list is (IDLE, COMPUTE, OUTPUT);
-	signal StateC, StateN: state_list;
+	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
 
 	signal CountC, CountN: unsigned(count_length(OP2_L)-1 downto 0);
 
@@ -67,26 +66,25 @@ begin
 	state_det: process(StateC, Start, CountC)
 	begin
 		StateN <= StateC; -- avoid latches
-		case StateC is
-			when IDLE =>
-				if (Start = '1') then
-					if (unsigned(Op1) = zero_op1) or (unsigned(Op2) = zero_op2) then -- fast track in case of zero input
-						StateN <= OUTPUT;
-					else
-						StateN <= COMPUTE;
-					end if;
-				end if;
-			when COMPUTE =>
-				if CountC = to_unsigned(OP2_L - 1, CountC'length) then
+		if (StateC = IDLE) then
+			if (Start = '1') then
+				if (unsigned(Op1) = zero_op1) or (unsigned(Op2) = zero_op2) then -- fast track in case of zero input
 					StateN <= OUTPUT;
 				else
-					StateN <= COMPUTE;
+					StateN <= EXECUTE;
 				end if;
-			when OUTPUT =>
-				StateN <= IDLE;
-			when others =>
-				StateN <= StateC;
-		end case;
+			end if;
+		elsif (StateC = EXECUTE) then
+			if CountC = to_unsigned(OP2_L - 1, CountC'length) then
+				StateN <= OUTPUT;
+			else
+				StateN <= EXECUTE;
+			end if;
+		elsif (StateC = OUTPUT) then
+			StateN <= IDLE;
+		else
+			StateN <= StateC;
+		end if;
 	end process state_det;
 
 	Op1_2comp <= (not unsigned(Op1)) + 1;
@@ -108,38 +106,37 @@ begin
 		CountN <= CountC;
 		tmp <= (others => '0');
 
-		case StateC is
-			when IDLE =>
-				AddN(AddN'length-1 downto (AddN'length-OP1_L)) <= unsigned(Op1);
-				AddN((AddN'length-OP1_L-1) downto 0) <= to_unsigned(0, AddN'length-OP1_L);
-				SubN(SubN'length-1 downto (SubN'length-OP1_L)) <= Op1_2comp;
-				SubN((SubN'length-OP1_L-1) downto 0) <= to_unsigned(0, SubN'length-OP1_L);
-				ProdN(OP2_L downto 0) <= ProdLowIdle & "0";
-				ProdN(ProdN'length-1 downto OP2_L + 1) <= to_unsigned(0,OP1_L);
-				CountN <= (others => '0');
-			when COMPUTE =>
-				CountN <= CountC + 1;
-				ProdLSB <= ProdC(1 downto 0);
-				case ProdLSB is
-					when "00"|"11" =>
-						tmp <= ProdC;
-					when "01" =>
-						tmp <= Sum;
-					when "10" =>
-						tmp <= Diff;
-					when others =>
-						tmp <= ProdC;
-				end case;
-				if tmp(tmp'length-1) = '0' then
-					ProdN <= "0" & tmp(tmp'length-1 downto 1);
-				else
-					ProdN <= "1" & tmp(tmp'length-1 downto 1);
-				end if;
-			when OUTPUT =>
-				ProdN <= ProdC;
-			when others =>
-				ProdN <= ProdC;
-		end case;
+		if (StateC = IDLE) then
+			AddN(AddN'length-1 downto (AddN'length-OP1_L)) <= unsigned(Op1);
+			AddN((AddN'length-OP1_L-1) downto 0) <= to_unsigned(0, AddN'length-OP1_L);
+			SubN(SubN'length-1 downto (SubN'length-OP1_L)) <= Op1_2comp;
+			SubN((SubN'length-OP1_L-1) downto 0) <= to_unsigned(0, SubN'length-OP1_L);
+			ProdN(OP2_L downto 0) <= ProdLowIdle & "0";
+			ProdN(ProdN'length-1 downto OP2_L + 1) <= to_unsigned(0,OP1_L);
+			CountN <= (others => '0');
+		elsif (StateC = EXECUTE) then
+			CountN <= CountC + 1;
+			ProdLSB <= ProdC(1 downto 0);
+			case ProdLSB is
+				when "00"|"11" =>
+					tmp <= ProdC;
+				when "01" =>
+					tmp <= Sum;
+				when "10" =>
+					tmp <= Diff;
+				when others =>
+					tmp <= ProdC;
+			end case;
+			if tmp(tmp'length-1) = '0' then
+				ProdN <= "0" & tmp(tmp'length-1 downto 1);
+			else
+				ProdN <= "1" & tmp(tmp'length-1 downto 1);
+			end if;
+		elsif (StateC = OUTPUT) then
+			ProdN <= ProdC;
+		else
+			ProdN <= ProdC;
+		end if;
 	end process data;
 
 	Done <= '1' when StateC = OUTPUT else '0';
@@ -166,8 +163,7 @@ architecture booth_radix4 of mul is
 
 	signal Op1_2comp	: unsigned(OP1_L - 1 downto 0);
 
-	type state_list is (IDLE, COMPUTE, OUTPUT);
-	signal StateC, StateN: state_list;
+	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
 
 	signal CountC, CountN: unsigned(count_length(OP2_L/2)-1 downto 0);
 
@@ -193,26 +189,25 @@ begin
 	state_det: process(StateC, Start, CountC, Op1, Op2)
 	begin
 		StateN <= StateC; -- avoid latches
-		case StateC is
-			when IDLE =>
-				if (Start = '1') then
-					if (unsigned(Op1) = zero_op1) or (unsigned(Op2) = zero_op2) then -- fast track in case of zero input
-						StateN <= OUTPUT;
-					else
-						StateN <= COMPUTE;
-					end if;
-				end if;
-			when COMPUTE =>
-				if CountC = to_unsigned(OP2_L/2 - 1, CountC'length) then
+		if (StateC = IDLE) then
+			if (Start = '1') then
+				if (unsigned(Op1) = zero_op1) or (unsigned(Op2) = zero_op2) then -- fast track in case of zero input
 					StateN <= OUTPUT;
 				else
-					StateN <= COMPUTE;
+					StateN <= EXECUTE;
 				end if;
-			when OUTPUT =>
-				StateN <= IDLE;
-			when others =>
-				StateN <= StateC;
-		end case;
+			end if;
+		elsif (StateC = EXECUTE) then
+			if CountC = to_unsigned(OP2_L/2 - 1, CountC'length) then
+				StateN <= OUTPUT;
+			else
+				StateN <= EXECUTE;
+			end if;
+		elsif (StateC = OUTPUT) then
+			StateN <= IDLE;
+		else
+			StateN <= StateC;
+		end if;
 	end process state_det;
 
 	Op1_2comp <= (not unsigned(Op1)) + 1;
@@ -234,36 +229,35 @@ begin
 		CountN <= CountC;
 		tmp <= (others => '0');
 
-		case StateC is
-			when IDLE =>
-				AddN <= unsigned(Op1);
-				SubN <= Op1_2comp;
-				ProdN(OP2_L downto 0) <= ProdLowIdle & "0";
-				ProdN(ProdN'length-1 downto OP2_L + 1) <= to_unsigned(0,OP1_L);
-				CountN <= (others => '0');
-			when COMPUTE =>
-				CountN <= CountC + 1;
-				ProdLSB <= ProdC(2 downto 0);
-				case ProdLSB is
-					when "000"|"111" =>
-						tmp <= ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto 1);
-					when "001"|"010" =>
-						tmp <= Sum & ProdC(((ProdC'length-1)/2) downto 1);
-					when "011" =>
-						tmp <= Sum_Shift & ProdC(((ProdC'length-1)/2) downto 1);
-					when "100" =>
-						tmp <= Diff_Shift & ProdC(((ProdC'length-1)/2) downto 1);
-					when "101"|"110" =>
-						tmp <= Diff & ProdC(((ProdC'length-1)/2) downto 1);
-					when others =>
-						tmp <= ProdC;
-				end case;
-				ProdN <= tmp(tmp'length-1 downto tmp'length-1) & tmp(tmp'length-1 downto 1);
-			when OUTPUT =>
-				ProdN <= ProdC;
-			when others =>
-				ProdN <= ProdC;
-		end case;
+		if (StateC = IDLE) then
+			AddN <= unsigned(Op1);
+			SubN <= Op1_2comp;
+			ProdN(OP2_L downto 0) <= ProdLowIdle & "0";
+			ProdN(ProdN'length-1 downto OP2_L + 1) <= to_unsigned(0,OP1_L);
+			CountN <= (others => '0');
+		elsif (StateC = EXECUTE) then
+			CountN <= CountC + 1;
+			ProdLSB <= ProdC(2 downto 0);
+			case ProdLSB is
+				when "000"|"111" =>
+					tmp <= ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto 1);
+				when "001"|"010" =>
+					tmp <= Sum & ProdC(((ProdC'length-1)/2) downto 1);
+				when "011" =>
+					tmp <= Sum_Shift & ProdC(((ProdC'length-1)/2) downto 1);
+				when "100" =>
+					tmp <= Diff_Shift & ProdC(((ProdC'length-1)/2) downto 1);
+				when "101"|"110" =>
+					tmp <= Diff & ProdC(((ProdC'length-1)/2) downto 1);
+				when others =>
+					tmp <= ProdC;
+			end case;
+			ProdN <= tmp(tmp'length-1 downto tmp'length-1) & tmp(tmp'length-1 downto 1);
+		elsif (StateC = OUTPUT) then
+			ProdN <= ProdC;
+		else
+			ProdN <= ProdC;
+		end if;
 	end process data;
 
 	Done <= '1' when StateC = OUTPUT else '0';

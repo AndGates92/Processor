@@ -263,8 +263,10 @@ begin
 		num_pass := 0;
 
 		reset;
-		file_open(file_pointer, filename, append_mode);
+		file_open(file_pointer, log_file, append_mode);
 
+		write(file_line, string'( "ALU Test"));
+		writeline(file_pointer, file_line);
 
 		for i in 0 to NUM_TEST-1 loop
 			push_op(Op1_int, Op2_int, Cmd, seed1, seed2);
@@ -289,6 +291,9 @@ begin
 			wait until rising_edge(clk_tb);
 		end loop;
 
+		file_close(file_pointer);
+
+		file_open(file_pointer, summary_file, append_mode);
 		write(file_line, string'( "ALU => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST)));
 		writeline(file_pointer, file_line);
 
