@@ -8,6 +8,8 @@ use work.proc_pkg.all;
 
 package reg_file_pkg is 
 
+	constant LOAD_STORE	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
+
 	component reg_file
 	generic (
 		REG_L	: positive := 16;

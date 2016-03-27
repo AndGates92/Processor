@@ -88,13 +88,13 @@ begin
 	AddressOut2N <= AddressOut2 when StateC = IDLE else AddressOut2C;
 
 	UPDATE_REG_OUT: for i in 0 to REG_NUM-1 generate
-		RegFileN(i) <= DataInC when (EnableC(0) = '1') and (AddressInC = std_logic_vector(to_unsigned(i, count_length(REG_NUM)))) and (StateC = EXECUTE) else RegFileC(i);
+		RegFileN(i) <= DataInC when (EnableC(0) = '1') and (AddressInC = std_logic_vector(to_unsigned(i, count_length(REG_NUM)))) and (StateC = LOAD_STORE) else RegFileC(i);
 	end generate;
 
-	DataOut1N <= RegFileC(to_integer(unsigned(AddressOut1C))) when (EnableC(1) = '1') and (StateC = EXECUTE) else (others => '0');
-	DataOut2N <= RegFileC(to_integer(unsigned(AddressOut2C))) when (EnableC(2) = '1') and (StateC = EXECUTE) else (others => '0');
+	DataOut1N <= RegFileC(to_integer(unsigned(AddressOut1C))) when (EnableC(1) = '1') and (StateC = LOAD_STORE) else (others => '0');
+	DataOut2N <= RegFileC(to_integer(unsigned(AddressOut2C))) when (EnableC(2) = '1') and (StateC = LOAD_STORE) else (others => '0');
 
-	DoneN <= EnableC(2 downto 1) when StateC = EXECUTE else (others => '0');
+	DoneN <= EnableC(2 downto 1) when StateC = LOAD_STORE else (others => '0');
 	End_LS <= '1' when StateC = OUTPUT else '0';
 
 	state_det: process(StateC, Enable)
@@ -104,9 +104,9 @@ begin
 			if (Enable = ZeroEnable) then
 				StateN <= IDLE;
 			else
-				StateN <= EXECUTE;
+				StateN <= LOAD_STORE;
 			end if;
-		elsif (StateC = EXECUTE) then
+		elsif (StateC = LOAD_STORE) then
 			StateN <= OUTPUT;
 		elsif (StateC = OUTPUT) then
 			StateN <= IDLE;

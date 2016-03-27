@@ -84,18 +84,18 @@ begin
 				if (unsigned(Dividend) = zero_op1) or (unsigned(Divisor) = zero_op2) then -- fast track in case of zero input
 					StateN <= OUTPUT;
 				else
-					StateN <= EXECUTE_FIRST;
+					StateN <= COMPUTE_FIRST;
 				end if;
 			end if;
-		elsif (StateC = EXECUTE_FIRST) then
-			StateN <= EXECUTE;
-		elsif (StateC = EXECUTE) then
+		elsif (StateC = COMPUTE_FIRST) then
+			StateN <= COMPUTE;
+		elsif (StateC = COMPUTE) then
 			if CountC = to_unsigned(OP2_L - 3, CountC'length) then
-				StateN <= EXECUTE_LAST;
+				StateN <= COMPUTE_LAST;
 			else
-				StateN <= EXECUTE;
+				StateN <= COMPUTE;
 			end if;
-		elsif (StateC = EXECUTE_LAST) then
+		elsif (StateC = COMPUTE_LAST) then
 			StateN <= OUTPUT;
 		elsif (StateC = OUTPUT) then
 			StateN <= IDLE;
@@ -146,14 +146,14 @@ begin
 			CountN <= (others => '0');
 			ZeroDvdN <= ZeroDvd;
 			ZeroDvsN <= ZeroDvs;
-		elsif (StateC = EXECUTE_FIRST) then
+		elsif (StateC = COMPUTE_FIRST) then
 			RemN <= RemProp;
 			QuotN <= QuotC(QuotC'length-1 - 1 downto 0) & "0";
-		elsif (StateC = EXECUTE) then
+		elsif (StateC = COMPUTE) then
 			CountN <= CountC + 1;
 			QuotN <= QuotC(QuotC'length-1 - 1 downto 1) & (not unsigned(RemC(RemC'length - 1 downto RemC'length - 1))) & "0";
 			RemN <= RemProp;
-		elsif (StateC = EXECUTE_LAST) then
+		elsif (StateC = COMPUTE_LAST) then
 			QuotN <= QuotC(QuotC'length - 1 downto 1) & (not unsigned(RemC(RemC'length - 1 downto RemC'length - 1)));
 			if RemC(RemC'length - 1) = '1' then
 				RemN <= RemC + signed("0" & DivisorC);

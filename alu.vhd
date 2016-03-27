@@ -86,11 +86,11 @@ begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = IDLE) then
 			if (Start = '1') then
-				StateN <= EXECUTE;
+				StateN <= COMPUTE;
 			else
 				StateN <= IDLE;
 			end if;
-		elsif (StateC = EXECUTE) then
+		elsif (StateC = COMPUTE) then
 			if DoneOp = '1' then
 				StateN <= OUTPUT;
 			elsif (CmdC = CMD_UCMP) or (CmdC = CMD_SCMP) then
@@ -98,7 +98,7 @@ begin
 			elsif (UnCmdC = '1') then
 				StateN <= OUTPUT;
 			else
-				StateN <= EXECUTE;
+				StateN <= COMPUTE;
 			end if;
 		elsif (StateC = COMPARE) then
 			StateN <= OUTPUT;
@@ -109,7 +109,7 @@ begin
 		end if;
 	end process state_det;
 
-	UnCmdInt <= '0' when (StateC = EXECUTE ) and ((CmdC = CMD_USUM) or (CmdC = CMD_SSUM) or (CmdC = CMD_USUB) or (CmdC = CMD_SSUB) or (CmdC = CMD_UCMP) or (CmdC = CMD_SCMP) or (CmdC = CMD_AND) or (CmdC = CMD_OR) or (CmdC = CMD_NOT) or (CmdC = CMD_XOR)) else '1';
+	UnCmdInt <= '0' when (StateC = COMPUTE ) and ((CmdC = CMD_USUM) or (CmdC = CMD_SSUM) or (CmdC = CMD_USUB) or (CmdC = CMD_SSUB) or (CmdC = CMD_UCMP) or (CmdC = CMD_SCMP) or (CmdC = CMD_AND) or (CmdC = CMD_OR) or (CmdC = CMD_NOT) or (CmdC = CMD_XOR)) else '1';
 
 	USum <= ("0" & Op1C) + ("0" & Op2C);
 	USubN <= ("0" & Op1C) - ("0" & Op2C);
@@ -159,7 +159,7 @@ begin
 			UnflN <= '0';
 			OvflN <= '0';
 			UnCmdN <= UnCmdInt;
-		elsif (StateC = EXECUTE) then
+		elsif (StateC = COMPUTE) then
 			if (CmdC = CMD_USUM) then
 				ResN <= USum(USum'length-1 - 1 downto 0);
 				if (USum(USum'length-1) = '1') then

@@ -24,9 +24,10 @@ package alu_pkg is
 	constant CMD_MUL	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(11,CMD_ALU_L));
 	constant CMD_DIV	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(12,CMD_ALU_L));
 
+	constant COMPUTE	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
 	constant COMPARE	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_L));
-	constant EXECUTE_FIRST	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_L));
-	constant EXECUTE_LAST	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_L));
+	constant COMPUTE_FIRST	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_L));
+	constant COMPUTE_LAST	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_L));
 
 	function calc_length_multiplier (op1_l, op2_l, base : integer; multiplicand : integer) return integer;
 	function sel_multiplicand (op1_l, op2_l : integer) return integer;

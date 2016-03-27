@@ -32,6 +32,8 @@ package decode_pkg is
 	constant OP_CODE_NOP	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(17, OP_CODE_L));
 	constant OP_CODE_EOP	: std_logic_vector(OP_CODE_L - 1 downto 0) := std_logic_vector(to_unsigned(18, OP_CODE_L));
 
+	constant DECODE	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
+
 	component decode_stage
 	generic (
 		INSTR_L		: positive := 32;

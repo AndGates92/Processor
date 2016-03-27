@@ -71,14 +71,14 @@ begin
 				if (unsigned(Op1) = zero_op1) or (unsigned(Op2) = zero_op2) then -- fast track in case of zero input
 					StateN <= OUTPUT;
 				else
-					StateN <= EXECUTE;
+					StateN <= COMPUTE;
 				end if;
 			end if;
-		elsif (StateC = EXECUTE) then
+		elsif (StateC = COMPUTE) then
 			if CountC = to_unsigned(OP2_L - 1, CountC'length) then
 				StateN <= OUTPUT;
 			else
-				StateN <= EXECUTE;
+				StateN <= COMPUTE;
 			end if;
 		elsif (StateC = OUTPUT) then
 			StateN <= IDLE;
@@ -114,7 +114,7 @@ begin
 			ProdN(OP2_L downto 0) <= ProdLowIdle & "0";
 			ProdN(ProdN'length-1 downto OP2_L + 1) <= to_unsigned(0,OP1_L);
 			CountN <= (others => '0');
-		elsif (StateC = EXECUTE) then
+		elsif (StateC = COMPUTE) then
 			CountN <= CountC + 1;
 			ProdLSB <= ProdC(1 downto 0);
 			case ProdLSB is
@@ -194,14 +194,14 @@ begin
 				if (unsigned(Op1) = zero_op1) or (unsigned(Op2) = zero_op2) then -- fast track in case of zero input
 					StateN <= OUTPUT;
 				else
-					StateN <= EXECUTE;
+					StateN <= COMPUTE;
 				end if;
 			end if;
-		elsif (StateC = EXECUTE) then
+		elsif (StateC = COMPUTE) then
 			if CountC = to_unsigned(OP2_L/2 - 1, CountC'length) then
 				StateN <= OUTPUT;
 			else
-				StateN <= EXECUTE;
+				StateN <= COMPUTE;
 			end if;
 		elsif (StateC = OUTPUT) then
 			StateN <= IDLE;
@@ -235,7 +235,7 @@ begin
 			ProdN(OP2_L downto 0) <= ProdLowIdle & "0";
 			ProdN(ProdN'length-1 downto OP2_L + 1) <= to_unsigned(0,OP1_L);
 			CountN <= (others => '0');
-		elsif (StateC = EXECUTE) then
+		elsif (StateC = COMPUTE) then
 			CountN <= CountC + 1;
 			ProdLSB <= ProdC(2 downto 0);
 			case ProdLSB is
