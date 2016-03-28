@@ -4,6 +4,7 @@ use ieee.std_logic_1164.all;
 
 library work;
 use work.alu_pkg.all;
+use work.ctrl_pkg.all;
 use work.decode_pkg.all;
 
 package tb_pkg is 
@@ -15,6 +16,8 @@ package tb_pkg is
 	function rand_sign(sign_val : real) return real;
 	function std_logic_to_int(val : std_logic) return integer;
 	function alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string;
+	function full_alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string;
+	function ctrl_cmd_std_vect_to_txt(Cmd: std_logic_vector(CTRL_CMD_L-1 downto 0)) return string;
 	function op_code_std_vect_to_txt(OpCode: std_logic_vector(OP_CODE_L-1 downto 0)) return string;
 
 end package tb_pkg;
@@ -77,6 +80,48 @@ package body tb_pkg is
 			Cmd_txt := "BXOR";
 		elsif (Cmd = CMD_NOT) then
 			Cmd_txt := "BNOT";
+		elsif (Cmd = CMD_DISABLE) then
+			Cmd_txt := "DISA";
+		else
+			Cmd_txt := "UCMD";
+		end if;
+
+		return Cmd_txt;
+
+	end;
+
+	function full_alu_cmd_std_vect_to_txt(Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string is
+		variable Cmd_txt : string(1 to 4);
+	begin
+		if (Cmd = CMD_MUL) then
+			Cmd_txt := "MULT";
+		elsif (Cmd = CMD_DIV) then
+			Cmd_txt := "DIVI";
+		else
+			Cmd_txt := alu_cmd_std_vect_to_txt(Cmd);
+		end if;
+
+		return Cmd_txt;
+
+	end;
+
+	function ctrl_cmd_std_vect_to_txt(Cmd: std_logic_vector(CTRL_CMD_L-1 downto 0)) return string is
+		variable Cmd_txt : string(1 to 3);
+	begin
+		if (Cmd = CTRL_CMD_DISABLE) then
+			Cmd_txt := "DIS";
+		elsif (Cmd = CTRL_CMD_ALU) then
+			Cmd_txt := "ALU";
+		elsif (Cmd = CTRL_CMD_RD_M) then
+			Cmd_txt := "RDM";
+		elsif (Cmd = CTRL_CMD_RD_S) then
+			Cmd_txt := "RDS";
+		elsif (Cmd = CTRL_CMD_WR_M) then
+			Cmd_txt := "WRS";
+		elsif (Cmd = CTRL_CMD_WR_S) then
+			Cmd_txt := "WRS";
+		elsif (Cmd = CTRL_CMD_MOV) then
+			Cmd_txt := "MOV";
 		else
 			Cmd_txt := "UCMD";
 		end if;

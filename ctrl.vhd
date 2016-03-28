@@ -25,14 +25,11 @@ port (
 	rst		: in std_logic;
 	clk		: in std_logic;
 
+	-- Decode Stage
 	Immediate	: in std_logic_vector(REG_L - 1 downto 0);
-
 	EndDecoding	: in std_logic;
-
-	Ctrl	: in std_logic_vector(CTRL_L - 1 downto 0);
-
+	CtrlCmd	: in std_logic_vector(CTRL_CMD_L - 1 downto 0);
 	CmdALU_In	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
-
 	AddressRegFileIn_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	AddressRegFileOut1_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	AddressRegFileOut2_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
@@ -79,11 +76,12 @@ port (
 	AddressRegFileOut2	: out std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	EnableRegFile	: out std_logic_vector(EN_REG_FILE_L - 1 downto 0)
 );
+end entity ctrl;
 
 architecture rtl of ctrl is
 
 	signal ImmediateN, ImmediateC	: std_logic_vector(REG_L - 1 downto 0);
-	signal CtrlN, CtrlC	: std_logic_vector(CTRL_L - 1 downto 0);
+	signal CtrlCmdN, CtrlCmdC	: std_logic_vector(CTRL_CMD_L - 1 downto 0);
 
 	-- ALU
 	signal CmdALUN, CmdALUC		: std_logic_vector(CMD_ALU_L - 1 downto 0);
@@ -106,7 +104,7 @@ begin
 			NextStateC <= IDLE;
 
 			ImmediateC <= (others => '0');
-			CtrlC <= (others => '0');
+			CtrlCmdC <= (others => '0');
 
 			-- ALU
 			CmdALUC <= CMD_DISABLE;
@@ -122,7 +120,7 @@ begin
 			NextStateC <= NextStateN;
 
 			ImmediateC <= ImmediateN;
-			CtrlC <= CtrlN;
+			CtrlCmdC <= CtrlCmdN;
 
 			-- ALU
 			CmdALUC <= CmdALUN;
@@ -135,7 +133,7 @@ begin
 		end if;
 	end process reg;
 
-	state_det: process(StateC, NextStateC, CtrlC, Ctrl, Enable_reg_file_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
+	state_det: process(StateC, NextStateC, CtrlCmdC, CtrlCmd, Enable_reg_file_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
 		variable State_tmp	: std_logic_vector(STATE_L - 1 downto 0);
 	begin
 		StateN <= StateC; -- avoid latches
@@ -143,13 +141,13 @@ begin
 		State_tmp := StateC;
 		if (StateC = IDLE) then
 			if (EndDecoding = '1') then
-				if (Ctrl = CTRL_ALU) or  (Ctrl = CTRL_WR_S) or (Ctrl = CTRL_WR_M) or ((Ctrl = CTRL_MOV) and Enable_reg_file_In(1) = '1') then
+				if (CtrlCmd = CTRL_CMD_ALU) or  (CtrlCmd = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) or ((CtrlCmd = CTRL_CMD_MOV) and Enable_reg_file_In(1) = '1') then
 					StateN <= REG_FILE_READ;
 					NextStateN <= REG_FILE_READ;
-				elsif (Ctrl = CTRL_RD_S) or (Ctrl = CTRL_RD_M) then
+				elsif (CtrlCmd = CTRL_CMD_RD_S) or (CtrlCmd = CTRL_CMD_RD_M) then
 					StateN <= MEMORY_ACCESS;
 					NextStateN <= MEMORY_ACCESS;
-				elsif ((Ctrl = CTRL_MOV) and Enable_reg_file_In(1) = '0') then
+				elsif ((CtrlCmd = CTRL_CMD_MOV) and Enable_reg_file_In(1) = '0') then
 					StateN <= REG_FILE_WRITE;
 					NextStateN <= REG_FILE_WRITE;
 				else
@@ -187,16 +185,16 @@ begin
 				NextStateN <= IDLE;
 			end if;
 		elsif (StateC = REG_FILE_READ) then
-			if (CtrlC = CTRL_ALU) then
+			if (CtrlCmdC = CTRL_CMD_ALU) then
 				if (CmdALUC = CMD_MUL)
 					State_tmp := MULTIPLICATION;
 				elsif (CmdALUC = CMD_DIV)
 					State_tmp := DIVISION;
 				else
 					State_tmp := ALU_OP;
-			elsif (CtrlC = CTRL_WR_S) or (Ctrl = CTRL_WR_M) then
+			elsif (CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) then
 				State_tmp := MEMORY_ACCESS;
-			elsif (CtrlC = CTRL_CTRL_MOV) and (Enable_reg_file(1) = '1') then
+			elsif (CtrlCmdC = CTRL_CMD_MOV) and (Enable_reg_file(1) = '1') then
 				State_tmp := REG_FILE_WRITE;
 			else
 				State_tmp := StateC;
@@ -209,9 +207,9 @@ begin
 				StateN <= StateC;
 			end if;
 		elsif (StateC = MEMORY_ACCESS) then
-				if (Ctrl = CTRL_WR_S) or (Ctrl = CTRL_WR_M) then
+				if (CtrlCmd = CTRL_CMD_RD_S) or (CtrlCmd = CTRL_CMD_RD_M) then
 					State_tmp := REG_FILE_STR;
-				elsif (Ctrl = CTRL_MOV) then
+				elsif (CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)  then
 					State_tmp := IDLE;
 				else
 					State_tmp := StateC;
@@ -231,7 +229,7 @@ begin
 
 	ImmediateN <= Immediate when (EndDecoding = '1') else ImmediateC;
 	CmdALUN <= CmdALU_In when (EndDecoding = '1') else CmdALUC;
-	CtrlN <= Ctrl when (EndDecoding = '1') else CtrlC;
+	CtrlCmdN <= CtrlCmd when (EndDecoding = '1') else CtrlCmdC;
 	AddressRegFileInN <= AddressRegFileIn_In when (EndDecoding = '1') else AddressRegFileInC;
 	AddressRegFileOut1N <= AddressRegFileOut1_In when (EndDecoding = '1') else AddressRegFileOut1C;
 	AddressRegFileOut2N <= AddressRegFileOut2_In when (EndDecoding = '1') else AddressRegFileOut2C;
@@ -268,13 +266,13 @@ begin
 			ImmediateC;
 
 	EnableRegFile <=	(EnableRegFileC(EN_REG_FILE_L - 1 downto 1) & "0") when (NextStateC = REG_FILE_READ) else -- read data
-				("00" & EnableRegFileC(0)) when (((DoneALU = '1') or (DoneMul = '1') or (DoneDiv = '1') or (DoneMem = '1') or ((CtrlC = CTRL_MOV) and (EnableRegFileC(1) = '0'))) and (NextStateC = REG_FILE_WRITE)) else -- store data (result of an operation or a memory access or an immediate to a register)
+				("00" & EnableRegFileC(0)) when (((DoneALU = '1') or (DoneMul = '1') or (DoneDiv = '1') or (DoneMem = '1') or ((CtrlCmdC = CTRL_CMD_MOV) and (EnableRegFileC(1) = '0'))) and (NextStateC = REG_FILE_WRITE)) else -- store data (result of an operation or a memory access or an immediate to a register)
 				(others => '0');
 
 	-- Memory access
 	DataMemIn <= DataRegOut1;
-	AddressMem <= (ImmediateC + BASE_STACK) when ((CtrlC = CTRL_RD_S) or (CtrlC = CTRL_WR_S)) else ImmediateC;
-	ReadMem <= '1' when ((CtrlC = CTRL_RD_S) or (CtrlC = CTRL_RD_M)) else '0';
-	EnableMem <= '1' when (((CtrlC = CTRL_RD_S) or (CtrlC = CTRL_RD_M) or (DoneRegFile = '1')) and (NextStateC = MEMORY_ACCESS)) else '0';
+	AddressMem <= (ImmediateC + BASE_STACK) when ((CtrlCmdC = CTRL_CMD_RD_S) or (CtrlCmdC = CTRL_CMD_WR_S)) else ImmediateC;
+	ReadMem <= '1' when ((CtrlCmdC = CTRL_CMD_RD_S) or (CtrlCmdC = CTRL_CMD_RD_M)) else '0';
+	EnableMem <= '1' when (((CtrlCmdC = CTRL_CMD_RD_S) or (CtrlCmdC = CTRL_CMD_RD_M) or (DoneRegFile = '1')) and (NextStateC = MEMORY_ACCESS)) else '0';
 
 end rtl;
