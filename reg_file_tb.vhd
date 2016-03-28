@@ -157,37 +157,30 @@ begin
 		begin
 			if (DataOut1_ideal = DataOut1_rtl) and (DataOut2_ideal = DataOut2_rtl) and (Done_ideal = Done_rtl) then
 				write(file_line, string'("Register File: Stored " & integer'image(DataIn_int) & " Read RTL Out1 " & integer'image(DataOut1_rtl) & " Out2 " & integer'image(DataOut2_rtl) & " Done_rtl "  & integer'image(Done_rtl) & " Ideal Out1 " & integer'image(DataOut1_ideal) & " Out2 " & integer'image(DataOut2_ideal) & " Done_ideal "  & integer'image(Done_ideal) & ": PASS"));
-				writeline(file_pointer, file_line);
 				pass := 1;
 			elsif (DataOut1_ideal /= DataOut1_rtl) and (DataOut2_ideal = DataOut2_rtl) and (Done_ideal = Done_rtl) then
 				write(file_line, string'("Register File: Stored " & integer'image(DataIn_int) & " Read RTL Out1 " & integer'image(DataOut1_rtl) & " Out2 " & integer'image(DataOut2_rtl) & " Done_rtl "  & integer'image(Done_rtl) & " Ideal Out1 " & integer'image(DataOut1_ideal) & " Out2 " & integer'image(DataOut2_ideal) & " Done_ideal "  & integer'image(Done_ideal) & ": FAIL (Data Out 1)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (DataOut1_ideal = DataOut1_rtl) and (DataOut2_ideal /= DataOut2_rtl) and (Done_ideal = Done_rtl) then
 				write(file_line, string'("Register File: Stored " & integer'image(DataIn_int) & " Read RTL Out1 " & integer'image(DataOut1_rtl) & " Out2 " & integer'image(DataOut2_rtl) & " Done_rtl "  & integer'image(Done_rtl) & " Ideal Out1 " & integer'image(DataOut1_ideal) & " Out2 " & integer'image(DataOut2_ideal) & " Done_ideal "  & integer'image(Done_ideal) & ": FAIL (Data Out 2)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (DataOut1_ideal = DataOut1_rtl) and (DataOut2_ideal = DataOut2_rtl) and (Done_ideal /= Done_rtl) then
 				write(file_line, string'("Register File: Stored " & integer'image(DataIn_int) & " Read RTL Out1 " & integer'image(DataOut1_rtl) & " Out2 " & integer'image(DataOut2_rtl) & " Done_rtl "  & integer'image(Done_rtl) & " Ideal Out1 " & integer'image(DataOut1_ideal) & " Out2 " & integer'image(DataOut2_ideal) & " Done_ideal "  & integer'image(Done_ideal) & ": FAIL (Done signal)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (DataOut1_ideal /= DataOut1_rtl) and (DataOut2_ideal /= DataOut2_rtl) and (Done_ideal = Done_rtl) then
 				write(file_line, string'("Register File: Stored " & integer'image(DataIn_int) & " Read RTL Out1 " & integer'image(DataOut1_rtl) & " Out2 " & integer'image(DataOut2_rtl) & " Done_rtl "  & integer'image(Done_rtl) & " Ideal Out1 " & integer'image(DataOut1_ideal) & " Out2 " & integer'image(DataOut2_ideal) & " Done_ideal "  & integer'image(Done_ideal) & ": FAIL (Data Out 1 and Out 2)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (DataOut1_ideal /= DataOut1_rtl) and (DataOut2_ideal = DataOut2_rtl) and (Done_ideal /= Done_rtl) then
 				write(file_line, string'("Register File: Stored " & integer'image(DataIn_int) & " Read RTL Out1 " & integer'image(DataOut1_rtl) & " Out2 " & integer'image(DataOut2_rtl) & " Done_rtl "  & integer'image(Done_rtl) & " Ideal Out1 " & integer'image(DataOut1_ideal) & " Out2 " & integer'image(DataOut2_ideal) & " Done_ideal "  & integer'image(Done_ideal) & ": FAIL (Data Out 1 and Done signal)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (DataOut1_ideal = DataOut1_rtl) and (DataOut2_ideal /= DataOut2_rtl) and (Done_ideal /= Done_rtl) then
 				write(file_line, string'("Register File: Stored " & integer'image(DataIn_int) & " Read RTL Out1 " & integer'image(DataOut1_rtl) & " Out2 " & integer'image(DataOut2_rtl) & " Done_rtl "  & integer'image(Done_rtl) & " Ideal Out1 " & integer'image(DataOut1_ideal) & " Out2 " & integer'image(DataOut2_ideal) & " Done_ideal "  & integer'image(Done_ideal) & ": FAIL (Data Out 2 and Done signal)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			else
 				write(file_line, string'("Register File: Stored " & integer'image(DataIn_int) & " Read RTL Out1 " & integer'image(DataOut1_rtl) & " Out2 " & integer'image(DataOut2_rtl) & " Done_rtl "  & integer'image(Done_rtl) & " Ideal Out1 " & integer'image(DataOut1_ideal) & " Out2 " & integer'image(DataOut2_ideal) & " Done_ideal "  & integer'image(Done_ideal) & ": FAIL (Data Out 1 and Out 2 and Done signal)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			end if;
+			writeline(file_pointer, file_line);
 		end procedure verify;
 
 		variable RegFileOut, RegFileIn	: reg_file_tb;

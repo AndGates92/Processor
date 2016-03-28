@@ -8,22 +8,22 @@ use work.proc_pkg.all;
 
 package alu_pkg is 
 
-	constant CMD_ALU_L	: positive := 4;
+	constant ALU_CMD_L	: positive := 4;
 
-	constant CMD_USUM	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(0,CMD_ALU_L));
-	constant CMD_SSUM	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(1,CMD_ALU_L));
-	constant CMD_USUB	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(2,CMD_ALU_L));
-	constant CMD_SSUB	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(3,CMD_ALU_L));
-	constant CMD_UCMP	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(4,CMD_ALU_L));
-	constant CMD_SCMP	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(5,CMD_ALU_L));
-	constant CMD_AND	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(6,CMD_ALU_L));
-	constant CMD_OR		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(7,CMD_ALU_L));
-	constant CMD_XOR	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(8,CMD_ALU_L));
-	constant CMD_NOT	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(9,CMD_ALU_L));
-	constant CMD_SHIFT	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(10,CMD_ALU_L));
-	constant CMD_MUL	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(11,CMD_ALU_L));
-	constant CMD_DIV	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(12,CMD_ALU_L));
-	constant CMD_DISABLE	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(integer(2.0**(real(CMD_ALU_L)) - 1.0),CMD_ALU_L));
+	constant CMD_USUM	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(0,ALU_CMD_L));
+	constant CMD_SSUM	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(1,ALU_CMD_L));
+	constant CMD_USUB	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(2,ALU_CMD_L));
+	constant CMD_SSUB	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(3,ALU_CMD_L));
+	constant CMD_UCMP	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(4,ALU_CMD_L));
+	constant CMD_SCMP	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(5,ALU_CMD_L));
+	constant CMD_AND	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(6,ALU_CMD_L));
+	constant CMD_OR		: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(7,ALU_CMD_L));
+	constant CMD_XOR	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(8,ALU_CMD_L));
+	constant CMD_NOT	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(9,ALU_CMD_L));
+	constant CMD_SHIFT	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(10,ALU_CMD_L));
+	constant CMD_MUL	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(11,ALU_CMD_L));
+	constant CMD_DIV	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(12,ALU_CMD_L));
+	constant CMD_DISABLE	: std_logic_vector(ALU_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(integer(2.0**(real(ALU_CMD_L)) - 1.0),ALU_CMD_L));
 
 	constant COMPUTE	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
 	constant COMPARE	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_L));
@@ -76,7 +76,7 @@ package alu_pkg is
 		clk	: in std_logic;
 		Op1	: in std_logic_vector(OP1_L - 1 downto 0);
 		Op2	: in std_logic_vector(OP2_L - 1 downto 0);
-		Cmd	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
+		Cmd	: in std_logic_vector(ALU_CMD_L - 1 downto 0);
 		Start	: in std_logic;
 		Done	: out std_logic;
 		Ovfl	: out std_logic;

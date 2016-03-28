@@ -26,7 +26,7 @@ architecture bench of alu_tb is
 
 	signal Op1_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
 	signal Op2_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
-	signal Cmd_tb	: std_logic_vector(CMD_ALU_L - 1 downto 0);
+	signal Cmd_tb	: std_logic_vector(ALU_CMD_L - 1 downto 0);
 
 	signal Ovfl_tb	: std_logic;
 	signal Unfl_tb	: std_logic;
@@ -73,17 +73,17 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure push_op(variable Op1_int : out integer; variable Op2_int: out integer; variable Cmd: out std_logic_vector(CMD_ALU_L-1 downto 0); variable seed1, seed2: inout positive) is
+		procedure push_op(variable Op1_int : out integer; variable Op2_int: out integer; variable Cmd: out std_logic_vector(ALU_CMD_L-1 downto 0); variable seed1, seed2: inout positive) is
 			variable Op1_in, Op2_in, Cmd_in	: integer;
 			variable rand_val, sign_val	: real;
-			variable Cmd_int: std_logic_vector(CMD_ALU_L-1 downto 0);
+			variable Cmd_int: std_logic_vector(ALU_CMD_L-1 downto 0);
 		begin
 			uniform(seed1, seed2, rand_val);
-			Cmd_in := integer(rand_val*(2.0**(real(CMD_ALU_L)) - 1.0));
+			Cmd_in := integer(rand_val*(2.0**(real(ALU_CMD_L)) - 1.0));
 
-			Cmd_tb <= std_logic_vector(to_unsigned(Cmd_in, CMD_ALU_L));
-			Cmd := std_logic_vector(to_unsigned(Cmd_in, CMD_ALU_L));
-			Cmd_int := std_logic_vector(to_unsigned(Cmd_in, CMD_ALU_L));
+			Cmd_tb <= std_logic_vector(to_unsigned(Cmd_in, ALU_CMD_L));
+			Cmd := std_logic_vector(to_unsigned(Cmd_in, ALU_CMD_L));
+			Cmd_int := std_logic_vector(to_unsigned(Cmd_in, ALU_CMD_L));
 
 			if (Cmd_int = CMD_SSUM) or (Cmd_int = CMD_SSUB) or (Cmd_int = CMD_SCMP) then
 				uniform(seed1, seed2, rand_val);
@@ -114,7 +114,7 @@ begin
 			Start_tb <= '0';
 		end procedure push_op;
 
-		procedure reference(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_ALU_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer) is
+		procedure reference(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(ALU_CMD_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer) is
 			variable tmp_op1	: std_logic_vector(OP1_L_TB-1 downto 0);
 			variable tmp_op2	: std_logic_vector(OP2_L_TB-1 downto 0);
 			variable tmp_res	: std_logic_vector(OP1_L_TB-1 downto 0);
@@ -210,37 +210,30 @@ begin
 		begin
 			if (Res_rtl = Res_ideal) and (Ovfl_ideal = Ovfl_rtl) and (Unfl_ideal = Unfl_rtl) then
 				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": PASS"));
-				writeline(file_pointer, file_line);
 				pass := 1;
 			elsif (Ovfl_ideal = Ovfl_rtl) and (Unfl_ideal = Unfl_rtl) then
 				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Result)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Res_ideal = Res_rtl) and (Unfl_ideal = Unfl_rtl) then
 				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Overflow)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Ovfl_ideal = Ovfl_rtl) and (Res_ideal = Res_rtl) then
 				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Underflow)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Ovfl_ideal = Ovfl_rtl) then
 				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Result and underflow)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Unfl_ideal = Unfl_rtl) then
 				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Result and overflow)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Res_ideal = Res_rtl) then
 				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Underflow and overflow)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			else
 				write(file_line, string'( "ALU operation " & Cmd_txt & " of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Result:" & integer'image(Res_rtl) & ", overflow:" & integer'image(Ovfl_rtl) & ", underflow:" & integer'image(Unfl_rtl) & " and reference: Result " & integer'image(Res_ideal) & ", overflow:" & integer'image(Ovfl_ideal) & ", underflow:" & integer'image(Unfl_ideal) & ": FAIL (Result, overflow and underflow)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			end if;
+			writeline(file_pointer, file_line);
 		end procedure verify;
 
 		variable Res_rtl, Res_ideal	: integer;
@@ -248,7 +241,7 @@ begin
 		variable Unfl_rtl, Unfl_ideal	: integer;
 		variable Op1_int, Op2_int	: integer;
 		variable seed1, seed2	: positive;
-		variable Cmd	: std_logic_vector(CMD_ALU_L-1 downto 0);
+		variable Cmd	: std_logic_vector(ALU_CMD_L-1 downto 0);
 		variable Cmd_txt	: string(1 to 4);
 		variable pass	: integer;
 		variable num_pass	: integer;

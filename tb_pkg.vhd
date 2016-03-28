@@ -15,8 +15,8 @@ package tb_pkg is
 	function rand_num return real;
 	function rand_sign(sign_val : real) return real;
 	function std_logic_to_int(val : std_logic) return integer;
-	function alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string;
-	function full_alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string;
+	function alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(ALU_CMD_L-1 downto 0)) return string;
+	function full_alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(ALU_CMD_L-1 downto 0)) return string;
 	function ctrl_cmd_std_vect_to_txt(Cmd: std_logic_vector(CTRL_CMD_L-1 downto 0)) return string;
 	function op_code_std_vect_to_txt(OpCode: std_logic_vector(OP_CODE_L-1 downto 0)) return string;
 
@@ -57,7 +57,7 @@ package body tb_pkg is
 		return val_conv;
 	end;
 
-	function alu_cmd_std_vect_to_txt(Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string is
+	function alu_cmd_std_vect_to_txt(Cmd: std_logic_vector(ALU_CMD_L-1 downto 0)) return string is
 		variable Cmd_txt : string(1 to 4);
 	begin
 		if (Cmd = CMD_USUM) then
@@ -90,7 +90,7 @@ package body tb_pkg is
 
 	end;
 
-	function full_alu_cmd_std_vect_to_txt(Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string is
+	function full_alu_cmd_std_vect_to_txt(Cmd: std_logic_vector(ALU_CMD_L-1 downto 0)) return string is
 		variable Cmd_txt : string(1 to 4);
 	begin
 		if (Cmd = CMD_MUL) then
@@ -106,22 +106,22 @@ package body tb_pkg is
 	end;
 
 	function ctrl_cmd_std_vect_to_txt(Cmd: std_logic_vector(CTRL_CMD_L-1 downto 0)) return string is
-		variable Cmd_txt : string(1 to 3);
+		variable Cmd_txt : string(1 to 4);
 	begin
 		if (Cmd = CTRL_CMD_DISABLE) then
-			Cmd_txt := "DIS";
+			Cmd_txt := "DIS ";
 		elsif (Cmd = CTRL_CMD_ALU) then
-			Cmd_txt := "ALU";
+			Cmd_txt := "ALU ";
 		elsif (Cmd = CTRL_CMD_RD_M) then
-			Cmd_txt := "RDM";
+			Cmd_txt := "RD_M";
 		elsif (Cmd = CTRL_CMD_RD_S) then
-			Cmd_txt := "RDS";
+			Cmd_txt := "RD_S";
 		elsif (Cmd = CTRL_CMD_WR_M) then
-			Cmd_txt := "WRS";
+			Cmd_txt := "WR_S";
 		elsif (Cmd = CTRL_CMD_WR_S) then
-			Cmd_txt := "WRS";
+			Cmd_txt := "WR_S";
 		elsif (Cmd = CTRL_CMD_MOV) then
-			Cmd_txt := "MOV";
+			Cmd_txt := "MOV ";
 		else
 			Cmd_txt := "UCMD";
 		end if;

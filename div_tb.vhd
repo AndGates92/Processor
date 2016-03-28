@@ -148,21 +148,18 @@ begin
 
 			if (Rem_rtl = Rem_ideal) and (Quot_ideal = Quot_rtl) then
 				write(file_line, string'( "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": PASS"));
-				writeline(file_pointer, file_line);
 				pass := 1;
 			elsif (Rem_rtl = Rem_ideal) then
 				write(file_line, string'( "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": FAIL (Quotient wrong)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (Quot_rtl = Quot_ideal) then
 				write(file_line, string'( "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": FAIL (Remainder wrong)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			else
 				write(file_line, string'( "Division of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL Quotient " & integer'image(Quot_rtl) & " Remainder " & integer'image(Rem_rtl) & " and reference Quotient " & integer'image(Quot_ideal) & " Remainder " & integer'image(Rem_ideal) & ": FAIL (Quotient and remainder wrong)"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			end if;
+			writeline(file_pointer, file_line);
 		end procedure verify;
 
 		variable Quot_rtl, Rem_rtl	: integer;

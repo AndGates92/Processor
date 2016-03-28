@@ -126,13 +126,12 @@ begin
 			Res_ideal := Op1_int*Op2_int;
 			if (Res_rtl = Res_ideal) then
 				write(file_line, string'("Multiplication of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL " & integer'image(Res_rtl) & " and reference " & integer'image(Res_ideal) & ": PASS"));
-				writeline(file_pointer, file_line);
 				pass := 1;
 			else
 				write(file_line, string'("Multiplication of " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL " & integer'image(Res_rtl) & " and reference " & integer'image(Res_ideal) & ": FAIL"));
-				writeline(file_pointer, file_line);
 				pass := 0;
 			end if;
+			writeline(file_pointer, file_line);
 		end procedure verify;
 
 		variable Res_rtl	: integer;

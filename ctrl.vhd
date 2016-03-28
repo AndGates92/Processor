@@ -29,7 +29,7 @@ port (
 	Immediate	: in std_logic_vector(REG_L - 1 downto 0);
 	EndDecoding	: in std_logic;
 	CtrlCmd	: in std_logic_vector(CTRL_CMD_L - 1 downto 0);
-	CmdALU_In	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
+	CmdALU_In	: in std_logic_vector(ALU_CMD_L - 1 downto 0);
 	AddressRegFileIn_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	AddressRegFileOut1_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	AddressRegFileOut2_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
@@ -41,7 +41,7 @@ port (
 	Op1ALU	: out std_logic_vector(OP1_L - 1 downto 0);
 	Op2ALU	: out std_logic_vector(OP2_L - 1 downto 0);
 	ResALU	: in std_logic_vector(OP1_L - 1 downto 0);
-	CmdALU	: out std_logic_vector(CMD_ALU_L - 1 downto 0);
+	CmdALU	: out std_logic_vector(ALU_CMD_L - 1 downto 0);
 
 	-- Multiplier
 	DoneMul	: in std_logic;
@@ -84,7 +84,7 @@ architecture rtl of ctrl is
 	signal CtrlCmdN, CtrlCmdC	: std_logic_vector(CTRL_CMD_L - 1 downto 0);
 
 	-- ALU
-	signal CmdALUN, CmdALUC		: std_logic_vector(CMD_ALU_L - 1 downto 0);
+	signal CmdALUN, CmdALUC		: std_logic_vector(ALU_CMD_L - 1 downto 0);
 
 	-- Register File
 	signal AddressRegFileInN, AddressRegFileInC	: std_logic_vector(count_length(REG_NUM) - 1 downto 0);
@@ -141,7 +141,7 @@ begin
 		State_tmp := StateC;
 		if (StateC = IDLE) then
 			if (EndDecoding = '1') then
-				if (CtrlCmd = CTRL_CMD_ALU) or  (CtrlCmd = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) or ((CtrlCmd = CTRL_CMD_MOV) and Enable_reg_file_In(1) = '1') then
+				if (CtrlCmd = CTRL_ALU_CMD) or  (CtrlCmd = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) or ((CtrlCmd = CTRL_CMD_MOV) and Enable_reg_file_In(1) = '1') then
 					StateN <= REG_FILE_READ;
 					NextStateN <= REG_FILE_READ;
 				elsif (CtrlCmd = CTRL_CMD_RD_S) or (CtrlCmd = CTRL_CMD_RD_M) then
@@ -185,7 +185,7 @@ begin
 				NextStateN <= IDLE;
 			end if;
 		elsif (StateC = REG_FILE_READ) then
-			if (CtrlCmdC = CTRL_CMD_ALU) then
+			if (CtrlCmdC = CTRL_ALU_CMD) then
 				if (CmdALUC = CMD_MUL)
 					State_tmp := MULTIPLICATION;
 				elsif (CmdALUC = CMD_DIV)
