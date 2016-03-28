@@ -59,7 +59,7 @@ begin
 		if (rst = '1') then
 			Op1C <= (others => '0');
 			Op2C <= (others => '0');
-			CmdC <= (others => '0');
+			CmdC <= CMD_DISABLE;
 			SSubC <= (others => '0');
 			USubC <= (others => '0');
 			OvflC <= '0';
@@ -109,7 +109,7 @@ begin
 		end if;
 	end process state_det;
 
-	UnCmdInt <= '0' when (StateC = COMPUTE ) and ((CmdC = CMD_USUM) or (CmdC = CMD_SSUM) or (CmdC = CMD_USUB) or (CmdC = CMD_SSUB) or (CmdC = CMD_UCMP) or (CmdC = CMD_SCMP) or (CmdC = CMD_AND) or (CmdC = CMD_OR) or (CmdC = CMD_NOT) or (CmdC = CMD_XOR)) else '1';
+	UnCmdInt <= '0' when (StateC = COMPUTE) and ((CmdC = CMD_USUM) or (CmdC = CMD_SSUM) or (CmdC = CMD_USUB) or (CmdC = CMD_SSUB) or (CmdC = CMD_UCMP) or (CmdC = CMD_SCMP) or (CmdC = CMD_AND) or (CmdC = CMD_OR) or (CmdC = CMD_NOT) or (CmdC = CMD_XOR)) else '1';
 
 	USum <= ("0" & Op1C) + ("0" & Op2C);
 	USubN <= ("0" & Op1C) - ("0" & Op2C);

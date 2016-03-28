@@ -23,6 +23,7 @@ package alu_pkg is
 	constant CMD_SHIFT	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(10,CMD_ALU_L));
 	constant CMD_MUL	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(11,CMD_ALU_L));
 	constant CMD_DIV	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(12,CMD_ALU_L));
+	constant CMD_DISABLE	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(integer(2.0**(real(CMD_ALU_L)) - 1.0),CMD_ALU_L));
 
 	constant COMPUTE	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
 	constant COMPARE	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_L));
