@@ -19,19 +19,19 @@ architecture bench of ctrl_tb is
 	constant CLK_PERIOD	: time := 10 ns;
 	constant NUM_TEST	: integer := 1000;
 
-	constant OP1_L_TB	: positive := 32;
-	constant OP2_L_TB	: positive := 32;
-	constant INSTR_L_TB	: positive := 32;
+	constant OP1_L_TB	: positive := 16;
+	constant OP2_L_TB	: positive := 16;
 	constant REG_NUM_TB	: positive := 16;
 	constant ADDR_L_TB	: positive := 16;
-	constant REG_L_TB	: positive := 32;
+	constant REG_L_TB	: positive := 16;
 	constant STAT_REG_L_TB	: positive := 8;
 	constant EN_REG_FILE_L_TB	: positive := 3;
 	constant OUT_NUM_TB	: positive := 2;
+	constant BASE_STACK_TB	: positive := 16#8000#;
 
 	signal rst_tb	: std_logic;
 	signal stop	: boolean := false;
-	signal clk_tb	: std_logic;
+	signal clk_tb	: std_logic := '0';
 
 	-- Decode stage
 	signal Immediate_tb	: std_logic_vector(REG_L_TB - 1 downto 0);
@@ -89,12 +89,12 @@ begin
 	DUT: ctrl generic map (
 		OP1_L => OP1_L_TB,
 		OP2_L => OP2_L_TB,
-		INSTR_L => INSTR_L_TB,
 		REG_NUM => REG_NUM_TB,
 		ADDR_L => ADDR_L_TB,
 		REG_L => REG_L_TB,
 		STAT_REG_L => STAT_REG_L_TB,
-		EN_REG_FILE_L => EN_REG_FILE_L,
+		EN_REG_FILE_L => EN_REG_FILE_L_TB,
+		BASE_STACK => BASE_STACK_TB,
 		OUT_NUM => OUT_NUM_TB
 	)
 	port map (
@@ -144,7 +144,7 @@ begin
 
 		-- Register File
 		DoneRegFile => DoneRegFile_tb,
-		DoneReadStatus => DoneReadStatus,
+		DoneReadStatus => DoneReadStatus_tb,
 		DataRegIn => DataRegIn_tb,	
 		DataRegOut1 => DataRegOut1_tb,
 		DataRegOut2 => DataRegOut2_tb,
@@ -163,54 +163,6 @@ begin
 			rst_tb <= '0';
 			wait until rising_edge(clk_tb);
 			rst_tb <= '1';
-			Instr_tb <= (others => '0');
-			PCIn_tb <= (others => '0');
-			StatusRegIn_tb <= (others => '0');
-			NewInstr_tb <= '0';
-			wait until rising_edge(clk_tb);
-			rst_tb <= '0';
-		end procedure reset;
-
-		procedure push_op(variable CmdALU_vec : out std_logic_vector(ALU_CMD_L - 1 downto 0); variable CtrlCmd_vec : out std_logic_vector(CTRL_CMD_L - 1 downto 0); variable EnableRegFile_vec : out std_logic_vector(EN_REG_FILE_L - 1 downto 0); variable seed1, seed2: inout positive) is
-			variable CmdALU_in, Immediate_in, CtrlCmd_in, AddressIn_in, AddressOut1_in, AddressOut2_in, EnableRegFile_in	: integer;
-		begin
-
-			uniform(seed1, seed2, rand_val);
-			CtrlCmd_in := integer(rand_val*(2.0**(real(CTRL_CMD_L)) - 1.0));
-			CtrlCmd_tb <= std_logic_vector(to_unsigned(CtrlCmd_in, CTRL_CMD_L));
-			CtrlCmd_vec := std_logic_vector(to_unsigned(CtrlCmd_in, CTRL_CMD_L));
-
-			uniform(seed1, seed2, rand_val);
-			EnableRegFile_in := integer(rand_val*(2.0**(real(EN_REG_FILE_L_TB)) - 1.0));
-			Enable_reg_file_In_tb <= std_logic_vector(to_unsigned(EnableRegFile_in, EN_REG_FILE_L_TB));
-			EnableRegFile_vec := std_logic_vector(to_unsigned(EnableRegFile_in, EN_REG_FILE_L_TB));
-
-			uniform(seed1, seed2, rand_val);
-			CmdALU_in := integer(rand_val*(2.0**(real(ALU_CMD_L)) - 1.0));
-			CmdALU_tb <= std_logic_vector(to_unsigned(CmdALU_in, ALU_CMD_L));
-			CmdALU_vec := std_logic_vector(to_unsigned(CmdALU_in, ALU_CMD_L));
-
-			uniform(seed1, seed2, rand_val);
-			Immediate_in := integer(rand_val*(2.0**(real(REG_L_TB)) - 1.0));
-			Immediate_tb <= std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
-
-			uniform(seed1, seed2, rand_val);
-			AddressIn_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
-			AddressIn_tb <= std_logic_vector(to_unsigned(AddressIn_in, count_length(REG_NUM_TB)));
-
-			uniform(seed1, seed2, rand_val);
-			AddressOut1_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
-			AddressOut1_tb <= std_logic_vector(to_unsigned(AddressOut1_in, count_length(REG_NUM_TB)));
-
-			uniform(seed1, seed2, rand_val);
-			AddressOut2_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
-			AddressOut2_tb <= std_logic_vector(to_unsigned(AddressOut2_in, coutn_length(REG_NUM_TB)));
-
-			EnableALU_tb <= '0';
-			EnableMul_tb <= '0';
-			EnableDiv_tb <= '0';
-			EnableRegFile_tb <= '0';
-			EnableMem_tb <= '0';
 
 			ResALU_tb <= (others => '0');
 			ResMul_tb <= (others => '0');
@@ -220,6 +172,79 @@ begin
 			DataRegOut2_tb <= (others => '0');
 			DataMemOut_tb <= (others => '0');
 
+			DoneALU_tb <= '0';
+			DoneMul_tb <= '0';
+			DoneDiv_tb <= '0';
+			DoneRegFile_tb <= '0';
+			DoneMemory_tb <= '0';
+			DoneReadStatus_tb <= (others => '0');
+
+			EndDecoding_tb <= '0';
+
+			CtrlCmd_tb <= (others => '0');
+			CmdALU_In_tb <= (others => '0');
+			Enable_reg_file_In_tb <= (others => '0');
+			AddressRegFileIn_In_tb <= (others => '0');
+			AddressRegFileOut1_In_tb <= (others => '0');
+			AddressRegFileOut2_In_tb <= (others => '0');
+			Immediate_tb <= (others => '0');
+
+			wait until rising_edge(clk_tb);
+			rst_tb <= '0';
+		end procedure reset;
+
+		procedure push_op(variable CmdALU_vec : out std_logic_vector(ALU_CMD_L - 1 downto 0); variable CtrlCmd_vec : out std_logic_vector(CTRL_CMD_L - 1 downto 0); variable EnableRegFile_vec : out std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0); variable seed1, seed2: inout positive) is
+			variable CmdALU_in, Immediate_in, CtrlCmd_in, AddressRegFileIn_in, AddressRegFileOut1_in, AddressRegFileOut2_in, EnableRegFile_in	: integer;
+			variable rand_val	: real;
+		begin
+
+			uniform(seed1, seed2, rand_val);
+			CtrlCmd_in := integer(rand_val*(2.0**(real(CTRL_CMD_L)) - 1.0));
+			CtrlCmd_tb <= std_logic_vector(to_unsigned(CtrlCmd_in, CTRL_CMD_L));
+			CtrlCmd_vec := std_logic_vector(to_unsigned(CtrlCmd_in, CTRL_CMD_L));
+
+CtrlCmd_tb <= CTRL_CMD_MOV;
+CtrlCmd_vec := CTRL_CMD_MOV;
+
+			uniform(seed1, seed2, rand_val);
+			EnableRegFile_in := integer(rand_val*(2.0**(real(EN_REG_FILE_L_TB)) - 1.0));
+			Enable_reg_file_In_tb <= std_logic_vector(to_unsigned(EnableRegFile_in, EN_REG_FILE_L_TB));
+			EnableRegFile_vec := std_logic_vector(to_unsigned(EnableRegFile_in, EN_REG_FILE_L_TB));
+
+			uniform(seed1, seed2, rand_val);
+			CmdALU_in := integer(rand_val*(2.0**(real(ALU_CMD_L)) - 1.0));
+			CmdALU_In_tb <= std_logic_vector(to_unsigned(CmdALU_in, ALU_CMD_L));
+			CmdALU_vec := std_logic_vector(to_unsigned(CmdALU_in, ALU_CMD_L));
+
+			uniform(seed1, seed2, rand_val);
+			Immediate_in := integer(rand_val*(2.0**(real(REG_L_TB)) - 1.0));
+			Immediate_tb <= std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
+
+			uniform(seed1, seed2, rand_val);
+			AddressRegFileIn_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
+			AddressRegFileIn_In_tb <= std_logic_vector(to_unsigned(AddressRegFileIn_in, count_length(REG_NUM_TB)));
+
+			uniform(seed1, seed2, rand_val);
+			AddressRegFileOut1_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
+			AddressRegFileOut1_In_tb <= std_logic_vector(to_unsigned(AddressRegFileOut1_in, count_length(REG_NUM_TB)));
+
+			uniform(seed1, seed2, rand_val);
+			AddressRegFileOut2_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
+			AddressRegFileOut2_In_tb <= std_logic_vector(to_unsigned(AddressRegFileOut2_in, count_length(REG_NUM_TB)));
+
+			ResALU_tb <= (others => '0');
+			ResMul_tb <= (others => '0');
+			ResDiv_tb <= (others => '0');
+
+			DataRegOut1_tb <= (others => '0');
+			DataRegOut2_tb <= (others => '0');
+			DataMemOut_tb <= (others => '0');
+
+			DoneALU_tb <= '0';
+			DoneMul_tb <= '0';
+			DoneDiv_tb <= '0';
+			DoneRegFile_tb <= '0';
+			DoneMemory_tb <= '0';
 			DoneReadStatus_tb <= (others => '0');
 
 
@@ -229,7 +254,7 @@ begin
 			EndDecoding_tb <= '0';
 		end procedure push_op;
 
-		procedure reference(variable CtrlCmd_vec : in std_logic_vector(CTRL_CMD_L_TB - 1 downto 0); variable CmdALU_vec : in std_logic_vector(ALU_CMD_L - 1 downto 0); variable EnableRegFile_vec : in std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0); variable ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess : out integer) i 
+		procedure reference(variable CtrlCmd_vec : in std_logic_vector(CTRL_CMD_L - 1 downto 0); variable CmdALU_vec : in std_logic_vector(ALU_CMD_L - 1 downto 0); variable EnableRegFile_vec : in std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0); variable ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess : out integer) is
 		begin
 			Mul := 0;
 			Div := 0;
@@ -237,26 +262,26 @@ begin
 			ReadRegFile := 0;
 			WriteRegFile := 0;
 			MemAccess := 0;
-			if (CtrlCmd_vec = CTRL_DISABLE)
-				if (EnableALU_tb := '0')
+			if (CtrlCmd_vec = CTRL_CMD_DISABLE) then
+				if (EnableALU_tb = '0') then
 					ALUOp := 0;
 				else
 					ALUOp := 1;
 				end if;
 
-				if (EnableMul_tb := '0')
+				if (EnableMul_tb = '0') then
 					Mul := 0;
 				else
 					Mul := 1;
 				end if;
 
-				if (EnableDiv_tb := '0')
+				if (EnableDiv_tb = '0') then
 					Div := 0;
 				else
 					Div := 1;
 				end if;
 
-				if (EnableRegFile_tb := std_logic_vector(to_unsigned(0,OUT_NUM_TB)))
+				if (EnableRegFile_tb = std_logic_vector(to_unsigned(0,OUT_NUM_TB))) then
 					ReadRegFile := 0;
 					WriteRegFile := 0;
 				else
@@ -264,13 +289,13 @@ begin
 					ReadRegFile := 1;
 				end if;
 
-				if (EnableMemory_tb := '0')
+				if (EnableMemory_tb = '0') then
 					MemAccess := 0;
 				else
 					MemAccess := 1;
 				end if;
-			elsif (CtrlCmd_vec = CTRL_ALU) then
-				wait on EnableRegFile_tb;
+			elsif (CtrlCmd_vec = CTRL_CMD_ALU) then
+				wait until rising_edge(clk_tb);
 				if (EnableRegFile_tb = (EnableRegFile_vec(EN_REG_FILE_L_TB - 1 downto 1) & "0")) then
 					ReadRegFile := 1;
 				else
@@ -278,7 +303,7 @@ begin
 				end if;
 				for clk_cycle in 0 to 2 loop
 					wait until rising_edge(clk_tb);
-				end if;
+				end loop;
 				DoneRegFile_tb <= '1';
 				if (CmdALU_vec = CMD_MUL) then
 					if (EnableMul_tb = '1') then
@@ -289,7 +314,7 @@ begin
 					for clk_cycle in 0 to 15 loop
 						wait until rising_edge(clk_tb);
 						DoneRegFile_tb <= '0';
-					end if;
+					end loop;
 					DoneMul_tb <= '1';
 				elsif (CmdALU_vec = CMD_DIV) then
 					if (EnableDiv_tb = '1') then
@@ -300,7 +325,7 @@ begin
 					for clk_cycle in 0 to 31 loop
 						wait until rising_edge(clk_tb);
 						DoneRegFile_tb <= '0';
-					end if;
+					end loop;
 					DoneDiv_tb <= '1';
 				else
 					wait on EnableALU_tb;
@@ -312,9 +337,10 @@ begin
 					for clk_cycle in 0 to 3 loop
 						wait until rising_edge(clk_tb);
 						DoneRegFile_tb <= '0';
-					end if;
+					end loop;
 					DoneALU_tb <= '1';
 				end if;
+				wait until rising_edge(clk_tb);
 				if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 					WriteRegFile := 1;
 				else
@@ -322,10 +348,11 @@ begin
 				end if;
 				for clk_cycle in 0 to 2 loop
 					wait until rising_edge(clk_tb);
-				end if;
+					DoneALU_tb <= '0';
+				end loop;
 				DoneRegFile_tb <= '1';
-			elsif (CtrlCmd_vec = CTRL_WR_M) or (CtrlCmd_vec = CTRL_WR_S) then
-				wait on EnableRegFile_tb;
+			elsif (CtrlCmd_vec = CTRL_CMD_WR_M) or (CtrlCmd_vec = CTRL_CMD_WR_S) then
+				wait until rising_edge(clk_tb);
 				if (EnableRegFile_tb = (EnableRegFile_vec(EN_REG_FILE_L_TB - 1 downto 1) & "0")) then
 					ReadRegFile := 1;
 				else
@@ -333,8 +360,9 @@ begin
 				end if;
 				for clk_cycle in 0 to 2 loop
 					wait until rising_edge(clk_tb);
-				end if;
+				end loop;
 				DoneRegFile_tb <= '1';
+				wait until rising_edge(clk_tb);
 				if (EnableMemory_tb = '1') then
 					MemAccess := 1;
 				else
@@ -342,11 +370,11 @@ begin
 				end if;
 				for clk_cycle in 0 to 7 loop
 					wait until rising_edge(clk_tb);
-					DoneRegFile_tb <= '1';
-				end if;
+					DoneRegFile_tb <= '0';
+				end loop;
 				DoneMemory_tb <= '1';
-			elsif (CtrlCmd_vec = CTRL_RD_M) or (CtrlCmd_vec = CTRL_RD_S) then
-				wait on EnableMemory_tb;
+			elsif (CtrlCmd_vec = CTRL_CMD_RD_M) or (CtrlCmd_vec = CTRL_CMD_RD_S) then
+				wait until rising_edge(clk_tb);
 				if (EnableMemory_tb = '1') then
 					MemAccess := 1;
 				else
@@ -354,8 +382,9 @@ begin
 				end if;
 				for clk_cycle in 0 to 7 loop
 					wait until rising_edge(clk_tb);
-				end if;
+				end loop;
 				DoneMemory_tb <= '1';
+				wait until rising_edge(clk_tb);
 				if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 					WriteRegFile := 1;
 				else
@@ -364,11 +393,11 @@ begin
 				for clk_cycle in 0 to 2 loop
 					wait until rising_edge(clk_tb);
 					DoneMemory_tb <= '0';
-				end if;
+				end loop;
 				DoneRegFile_tb <= '1';
-			elsif (CtrlCmd_vec = CTRL_MOV) then
+			elsif (CtrlCmd_vec = CTRL_CMD_MOV) then
 				if (EnableRegFile_vec(1) = '0') then
-					wait on EnableRegFile_tb;
+					wait until rising_edge(clk_tb);
 					if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 						WriteRegFile := 1;
 					else
@@ -376,10 +405,10 @@ begin
 					end if;
 					for clk_cycle in 0 to 2 loop
 						wait until rising_edge(clk_tb);
-					end if;
+					end loop;
 					DoneRegFile_tb <= '1';
 				else
-					wait on EnableRegFile_tb;
+					wait until rising_edge(clk_tb);
 					if (EnableRegFile_tb = (EnableRegFile_vec(EN_REG_FILE_L_TB - 1 downto 1) & "0")) then
 						ReadRegFile := 1;
 					else
@@ -387,8 +416,9 @@ begin
 					end if;
 					for clk_cycle in 0 to 2 loop
 						wait until rising_edge(clk_tb);
-					end if;
+					end loop;
 					DoneRegFile_tb <= '1';
+					wait until rising_edge(clk_tb);
 					if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 						WriteRegFile := 1;
 					else
@@ -397,32 +427,32 @@ begin
 					for clk_cycle in 0 to 2 loop
 						wait until rising_edge(clk_tb);
 						DoneRegFile_tb <= '0';
-					end if;
+					end loop;
 					DoneRegFile_tb <= '1';
 				end if;
 			end if;
 		end procedure reference;
 
-		procedure verify(variable CtrlCmd_vec : in std_logic_vector(CTRL_CMD_L_TB - 1 downto 0); variable CtrlCmd_str : in string; variable CmdALU_vec : in std_logic_vector(ALU_CMD_L - 1 downto 0); variable CmdALU_str : in string; variable EnableRegFile_vec : in std_logic_vector(EN_REG_FILE_L _TB - 1 downto 0); variable ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess : in integer; file file_pointer : text; variable pass : out integer) is
+		procedure verify(variable CtrlCmd_vec : in std_logic_vector(CTRL_CMD_L - 1 downto 0); variable CtrlCmd_str : in string; variable CmdALU_vec : in std_logic_vector(ALU_CMD_L - 1 downto 0); variable CmdALU_str : in string; variable EnableRegFile_vec : in std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0); variable ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess : in integer; file file_pointer : text; variable pass : out integer) is
 			variable file_line	: line;
 		begin
 			write(file_line, string'("CONTROL UNIT: Ctrl Command " & CtrlCmd_str & " ALU Command " & CmdALU_str  & " Register File (In:" & integer'image(std_logic_to_int(EnableRegFile_vec(0))) & " Out1:" & integer'image(std_logic_to_int(EnableRegFile_vec(1))) & " Out2:" & integer'image(std_logic_to_int(EnableRegFile_vec(2))) & "):"));
 			writeline(file_pointer, file_line);
 			write(file_line, string'("ALU " & integer'image(ALUOp) & " Multiplication " & integer'image(Mul) & " Division " & integer'image(Div) & " Register File (Write: " & integer'image(WriteRegFile) & " and Read: " & integer'image(ReadRegFile) & ") Memory Access " & integer'image(MemAccess)));
 			writeline(file_pointer, file_line);
-			if ((CtrlCmd_vec = CTRL_ALU_CMD) and (CmdALU_vec = CMD_MUL) and (ALUOp = 0) and (Mul = 1) and (Div = 0) and (ReadRegFile = 1) and (WriteRegFile = 1) and (MemAccess = 0)) then
+			if ((CtrlCmd_vec = CTRL_CMD_ALU) and (CmdALU_vec = CMD_MUL) and (ALUOp = 0) and (Mul = 1) and (Div = 0) and (ReadRegFile = 1) and (WriteRegFile = 1) and (MemAccess = 0)) then
 				write(file_line, string'("PASS"));
 				pass := 1;
-			elsif ((CtrlCmd_vec = CTRL_ALU_CMD) and (CmdALU_vec = CMD_DIV) and (ALUOp = 0) and (Mul = 0) and (Div = 1) and (ReadRegFile = 1) and (WriteRegFile = 1) and (MemAccess = 0)) then
+			elsif ((CtrlCmd_vec = CTRL_CMD_ALU) and (CmdALU_vec = CMD_DIV) and (ALUOp = 0) and (Mul = 0) and (Div = 1) and (ReadRegFile = 1) and (WriteRegFile = 1) and (MemAccess = 0)) then
 				write(file_line, string'("PASS"));
 				pass := 1;
-			elsif ((CtrlCmd_vec = CTRL_ALU_CMD) and (ALUOp = 1) and (Mul = 0) and (Div = 0) and (ReadRegFile = 1) and (WriteRegFile = 1) and (MemAccess = 0)) then
+			elsif ((CtrlCmd_vec = CTRL_CMD_ALU) and (ALUOp = 1) and (Mul = 0) and (Div = 0) and (ReadRegFile = 1) and (WriteRegFile = 1) and (MemAccess = 0)) then
 				write(file_line, string'("PASS"));
 				pass := 1;
-			elsif (((CtrlCmd_vec = CTRL_CMD_WR_S) or (CtrlCmd_vec = CTRL_CMD_WR_W)) and (ALUOp = 0) and (Mul = 0) and (Div = 0) and (ReadRegFile = 1) and (WriteRegFile = 0) and (MemAccess = 1)) then
+			elsif (((CtrlCmd_vec = CTRL_CMD_WR_S) or (CtrlCmd_vec = CTRL_CMD_WR_M)) and (ALUOp = 0) and (Mul = 0) and (Div = 0) and (ReadRegFile = 1) and (WriteRegFile = 0) and (MemAccess = 1)) then
 				write(file_line, string'("PASS"));
 				pass := 1;
-			elsif (((CtrlCmd_vec = CTRL_CMD_RD_S) or (CtrlCmd_vec = CTRL_CMD_RD_W)) and (ALUOp = 0) and (Mul = 0) and (Div = 0) and (ReadRegFile = 0) and (WriteRegFile = 1) and (MemAccess = 1)) then
+			elsif (((CtrlCmd_vec = CTRL_CMD_RD_S) or (CtrlCmd_vec = CTRL_CMD_RD_M)) and (ALUOp = 0) and (Mul = 0) and (Div = 0) and (ReadRegFile = 0) and (WriteRegFile = 1) and (MemAccess = 1)) then
 				write(file_line, string'("PASS"));
 				pass := 1;
 			elsif ((CtrlCmd_vec = CTRL_CMD_MOV) and (EnableRegFile_vec(1) = '1') and (ALUOp = 0) and (Mul = 0) and (Div = 0) and (ReadRegFile = 1) and (WriteRegFile = 1) and (MemAccess = 0)) then
@@ -434,8 +464,8 @@ begin
 			elsif ((CtrlCmd_vec = CTRL_CMD_DISABLE) and (ALUOp = 0) and (Mul = 0) and (Div = 0) and (ReadRegFile = 0) and (WriteRegFile = 0) and (MemAccess = 0)) then
 				write(file_line, string'("PASS"));
 				pass := 1;
-			elsif ((CtrlCmd_vec /= CTRL_CMD_MOV) and (CtrlCmd_vec /= CTRL_CMD_WR_M) and (CtrlCmd_vec /= CTRL_CMD_WR_S) and (CtrlCmd_vec /= CTRL_CMD_RD_M) and (CtrlCmd_vec /= CTRL_CMD_RD_S) and (CtrlCmd_vec /= CTRL_ALU_CMD) and (ALUOp = 0) and (Mul = 0) and (Div = 0) and (ReadRegFile = 0) and (WriteRegFile = 0) and (MemAccess = 0)) then
-				write(file_line, string'("PASS (unknown command"));
+			elsif ((CtrlCmd_vec /= CTRL_CMD_MOV) and (CtrlCmd_vec /= CTRL_CMD_WR_M) and (CtrlCmd_vec /= CTRL_CMD_WR_S) and (CtrlCmd_vec /= CTRL_CMD_RD_M) and (CtrlCmd_vec /= CTRL_CMD_RD_S) and (CtrlCmd_vec /= CTRL_CMD_ALU) and (ALUOp = 0) and (Mul = 0) and (Div = 0) and (ReadRegFile = 0) and (WriteRegFile = 0) and (MemAccess = 0)) then
+				write(file_line, string'("PASS (unknown command)"));
 				pass := 1;
 			else
 				write(file_line, string'("FAIL"));
@@ -444,13 +474,15 @@ begin
 			writeline(file_pointer, file_line);
 		end procedure verify;
 
-		file file_pointer : text;
+		file file_pointer	: text;
 		variable file_line	: line;
-		variable CmdALU_vec : std_logic_vector(ALU_CMD_L - 1 downto 0);
-		variable CtrlCmd_vec : std_logic_vector(CTRL_CMD_L - 1 downto 0); 
-		variable EnableRegFile_vec : std_logic_vector(EN_REG_FILE_L - 1 downto 0);
-		variable ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess : integer;
-		variable seed1, seed2: positive;
+		variable CmdALU_vec	: std_logic_vector(ALU_CMD_L - 1 downto 0);
+		variable CtrlCmd_vec	: std_logic_vector(CTRL_CMD_L - 1 downto 0); 
+		variable EnableRegFile_vec	: std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0);
+		variable ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess	: integer;
+		variable seed1, seed2	: positive;
+		variable pass		: integer;
+		variable num_pass	: integer;
 
 	begin
 
@@ -469,7 +501,7 @@ begin
 
 			push_op(CmdALU_vec, CtrlCmd_vec, EnableRegFile_vec, seed1, seed2);
 			reference(CtrlCmd_vec,CmdALU_vec, EnableRegFile_vec, ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess);
-			verify(CtrlCmd_vec, ctrl_cmd_std_vect_to_txt(Cmd), CmdALU_vec, full_alu_cmd_std_vect_to_txt(Cmd), EnableRegFile_vec, ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess, file_pointer,  pass);
+			verify(CtrlCmd_vec, ctrl_cmd_std_vect_to_txt(CtrlCmd_vec), CmdALU_vec, full_alu_cmd_std_vect_to_txt(CmdALU_vec), EnableRegFile_vec, ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess, file_pointer,  pass);
 
 			num_pass := num_pass + pass;
 

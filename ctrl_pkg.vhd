@@ -30,12 +30,12 @@ package ctrl_pkg is
 	generic (
 		OP1_L		: positive := 32;
 		OP2_L		: positive := 32;
-		INSTR_L		: positive := 32;
 		REG_NUM		: positive := 16;
 		ADDR_L		: positive := 16;
 		REG_L		: positive := 32;
 		STAT_REG_L	: positive := 8;
 		EN_REG_FILE_L	: positive := 3;
+		BASE_STACK	: positive := 16#8000#;
 		OUT_NUM		: positive := 2
 	);
 	port (
