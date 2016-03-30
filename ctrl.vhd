@@ -35,26 +35,23 @@ port (
 	AddressRegFileOut2_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	Enable_reg_file_In	: in std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
+	Op1	: out std_logic_vector(OP1_L - 1 downto 0);
+	Op2	: out std_logic_vector(OP2_L - 1 downto 0);
+
 	-- ALU
 	DoneALU	: in std_logic;
 	EnableALU	: out std_logic;
-	Op1ALU	: out std_logic_vector(OP1_L - 1 downto 0);
-	Op2ALU	: out std_logic_vector(OP2_L - 1 downto 0);
 	ResALU	: in std_logic_vector(OP1_L - 1 downto 0);
 	CmdALU	: out std_logic_vector(ALU_CMD_L - 1 downto 0);
 
 	-- Multiplier
 	DoneMul	: in std_logic;
 	EnableMul	: out std_logic;
-	Op1Mul	: out std_logic_vector(OP1_L - 1 downto 0);
-	Op2Mul	: out std_logic_vector(OP2_L - 1 downto 0);
 	ResMul	: in std_logic_vector(OP1_L + OP2_L - 1 downto 0);
 
 	-- Divider
 	DoneDiv	: in std_logic;
 	EnableDiv	: out std_logic;
-	Op1Div	: out std_logic_vector(OP1_L - 1 downto 0);
-	Op2Div	: out std_logic_vector(OP2_L - 1 downto 0);
 	ResDiv	: in std_logic_vector(OP1_L - 1 downto 0);
 
 	-- Memory access
@@ -242,19 +239,16 @@ begin
 --			Op1ALUC		when (StateC = ALU_OP) else
 --			(others => '0');
 
-	Op1ALU <= DataRegOut1;
-	Op2ALU <= DataRegOut2 when (DoneReadStatus(1) = '1') else ImmediateC;
+	Op1 <= DataRegOut1;
+	Op2 <= DataRegOut2 when (DoneReadStatus(1) = '1') else ImmediateC;
+
 	EnableALU <= '1' when ((DoneRegFile = '1') and (NextStateC = ALU_OP)) else '0';
 	CmdALU <= CmdALUC;
 
 	-- Multiplication
-	Op1Mul <= DataRegOut1;
-	Op2Mul <= DataRegOut2 when (EnableRegFileC(2) = '1') else ImmediateC;
 	EnableMul <= '1' when ((DoneRegFile = '1') and (NextStateC = MULTIPLICATION)) else '0';
 
 	-- Division
-	Op1Div <= DataRegOut1;
-	Op2Div <= DataRegOut2 when (EnableRegFileC(2) = '1') else ImmediateC;
 	EnableDiv <= '1' when ((DoneRegFile = '1') and (NextStateC = DIVISION)) else '0';
 
 	-- Register File

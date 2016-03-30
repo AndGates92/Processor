@@ -53,26 +53,23 @@ package ctrl_pkg is
 		AddressRegFileOut2_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 		Enable_reg_file_In	: in std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
+		Op1	: out std_logic_vector(OP1_L - 1 downto 0);
+		Op2	: out std_logic_vector(OP2_L - 1 downto 0);
+
 		-- ALU
 		DoneALU	: in std_logic;
 		EnableALU	: out std_logic;
-		Op1ALU	: out std_logic_vector(OP1_L - 1 downto 0);
-		Op2ALU	: out std_logic_vector(OP2_L - 1 downto 0);
 		ResALU	: in std_logic_vector(OP1_L - 1 downto 0);
 		CmdALU	: out std_logic_vector(ALU_CMD_L - 1 downto 0);
 
 		-- Multiplier
 		DoneMul	: in std_logic;
 		EnableMul	: out std_logic;
-		Op1Mul	: out std_logic_vector(OP1_L - 1 downto 0);
-		Op2Mul	: out std_logic_vector(OP2_L - 1 downto 0);
 		ResMul	: in std_logic_vector(OP1_L + OP2_L - 1 downto 0);
 
 		-- Divider
 		DoneDiv	: in std_logic;
 		EnableDiv	: out std_logic;
-		Op1Div	: out std_logic_vector(OP1_L - 1 downto 0);
-		Op2Div	: out std_logic_vector(OP2_L - 1 downto 0);
 		ResDiv	: in std_logic_vector(OP1_L - 1 downto 0);
 
 		-- Memory access

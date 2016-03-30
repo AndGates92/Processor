@@ -43,26 +43,23 @@ architecture bench of ctrl_tb is
 	signal AddressRegFileOut2_In_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
 	signal Enable_reg_file_In_tb	: std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0);
 
+	signal Op1_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
+	signal Op2_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
+
 	-- ALU
 	signal DoneALU_tb	: std_logic;
 	signal EnableALU_tb	: std_logic;
-	signal Op1ALU_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
-	signal Op2ALU_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
 	signal ResALU_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
 	signal CmdALU_tb	: std_logic_vector(ALU_CMD_L - 1 downto 0);
 
 	-- Multiplier
 	signal DoneMul_tb	: std_logic;
 	signal EnableMul_tb	: std_logic;
-	signal Op1Mul_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
-	signal Op2Mul_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
 	signal ResMul_tb	: std_logic_vector(OP1_L_TB + OP2_L_TB - 1 downto 0);
 
 	-- Divider
 	signal DoneDiv_tb	: std_logic;
 	signal EnableDiv_tb	: std_logic;
-	signal Op1Div_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
-	signal Op2Div_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
 	signal ResDiv_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
 
 	-- Memory access
@@ -112,26 +109,23 @@ begin
 		AddressRegFileOut2_In => AddressRegFileOut2_In_tb,
 		Enable_reg_file_In => Enable_reg_file_In_tb,
 
+		Op1 => Op1_tb,
+		Op2 => Op2_tb,
+
 		-- ALU
 		DoneALU => DoneALU_tb,
 		EnableALU => EnableALU_tb,
-		Op1ALU => Op1ALU_tb,
-		Op2ALU => Op2ALU_tb,
 		ResALU => ResALU_tb,
 		CmdALU => CmdALU_tb,
 
 		-- Multiplier
 		DoneMul => DoneMul_tb,
 		EnableMul => EnableMul_tb,
-		Op1Mul => Op1Mul_tb,
-		Op2Mul => Op2Mul_tb,
 		ResMul => ResMul_tb,
 
 		-- Divider
 		DoneDiv => DoneDiv_tb,
 		EnableDiv => EnableDiv_tb,
-		Op1Div => Op1Div_tb,
-		Op2Div => Op2Div_tb,
 		ResDiv => ResDiv_tb,
 
 		-- Memory access
