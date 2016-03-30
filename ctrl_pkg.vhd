@@ -43,6 +43,8 @@ package ctrl_pkg is
 		rst		: in std_logic;
 		clk		: in std_logic;
 
+		EndExecution	: out std_logic;
+
 		-- Decode stage
 		Immediate	: in std_logic_vector(REG_L - 1 downto 0);
 		EndDecoding	: in std_logic;
@@ -51,7 +53,7 @@ package ctrl_pkg is
 		AddressRegFileIn_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 		AddressRegFileOut1_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 		AddressRegFileOut2_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-		Enable_reg_file_In	: in std_logic_vector(EN_REG_FILE_L - 1 downto 0);
+		EnableRegFile_In	: in std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
 		Op1	: out std_logic_vector(OP1_L - 1 downto 0);
 		Op2	: out std_logic_vector(OP2_L - 1 downto 0);

@@ -32,7 +32,7 @@ port (
 	AddressOut1	: out std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	AddressOut2	: out std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	Immediate	: out std_logic_vector(REG_L - 1 downto 0);
-	Enable_reg_file	: out std_logic_vector(EN_REG_FILE_L - 1 downto 0);
+	EnableRegFile	: out std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
 	Done	: out std_logic;
 
@@ -152,7 +152,7 @@ begin
 			CTRL_CMD_MOV when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_SET) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CLR)) else
 			CTRL_CMD_DISABLE;
 
-	Enable_reg_file <= RegOut2C & RegOut1C & RegInC when (StateC = OUTPUT) else (others => '0');
+	EnableRegFile <= RegOut2C & RegOut1C & RegInC when (StateC = OUTPUT) else (others => '0');
 	AddressIn <= AddressInC when (StateC = OUTPUT) else (others => '0');
 	AddressOut1 <= AddressOut1C when (StateC = OUTPUT) else (others => '0');
 	AddressOut2 <= AddressOut2C when (StateC = OUTPUT) else (others => '0');

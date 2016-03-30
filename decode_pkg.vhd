@@ -58,7 +58,7 @@ package decode_pkg is
 		AddressOut1	: out std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 		AddressOut2	: out std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 		Immediate	: out std_logic_vector(REG_L - 1 downto 0);
-		Enable_reg_file	: out std_logic_vector(EN_REG_FILE_L - 1 downto 0);
+		EnableRegFile	: out std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
 		Done		: out std_logic;
 

@@ -33,6 +33,8 @@ architecture bench of ctrl_tb is
 	signal stop	: boolean := false;
 	signal clk_tb	: std_logic := '0';
 
+	signal EndExecution_tb	: std_logic;
+
 	-- Decode stage
 	signal Immediate_tb	: std_logic_vector(REG_L_TB - 1 downto 0);
 	signal EndDecoding_tb	: std_logic;
@@ -41,7 +43,7 @@ architecture bench of ctrl_tb is
 	signal AddressRegFileIn_In_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
 	signal AddressRegFileOut1_In_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
 	signal AddressRegFileOut2_In_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
-	signal Enable_reg_file_In_tb	: std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0);
+	signal EnableRegFile_In_tb	: std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0);
 
 	signal Op1_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
 	signal Op2_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
@@ -99,6 +101,8 @@ begin
 		rst => rst_tb,
 		clk => clk_tb,
 
+		EndExecution => EndExecution_tb,
+
 		-- Decode stage
 		Immediate => Immediate_tb,
 		EndDecoding => EndDecoding_tb,
@@ -107,7 +111,7 @@ begin
 		AddressRegFileIn_In => AddressRegFileIn_In_tb,
 		AddressRegFileOut1_In => AddressRegFileOut1_In_tb,
 		AddressRegFileOut2_In => AddressRegFileOut2_In_tb,
-		Enable_reg_file_In => Enable_reg_file_In_tb,
+		EnableRegFile_In => EnableRegFile_In_tb,
 
 		Op1 => Op1_tb,
 		Op2 => Op2_tb,
@@ -177,7 +181,7 @@ begin
 
 			CtrlCmd_tb <= (others => '0');
 			CmdALU_In_tb <= (others => '0');
-			Enable_reg_file_In_tb <= (others => '0');
+			EnableRegFile_In_tb <= (others => '0');
 			AddressRegFileIn_In_tb <= (others => '0');
 			AddressRegFileOut1_In_tb <= (others => '0');
 			AddressRegFileOut2_In_tb <= (others => '0');
@@ -202,7 +206,7 @@ CtrlCmd_vec := CTRL_CMD_MOV;
 
 			uniform(seed1, seed2, rand_val);
 			EnableRegFile_in := integer(rand_val*(2.0**(real(EN_REG_FILE_L_TB)) - 1.0));
-			Enable_reg_file_In_tb <= std_logic_vector(to_unsigned(EnableRegFile_in, EN_REG_FILE_L_TB));
+			EnableRegFile_In_tb <= std_logic_vector(to_unsigned(EnableRegFile_in, EN_REG_FILE_L_TB));
 			EnableRegFile_vec := std_logic_vector(to_unsigned(EnableRegFile_in, EN_REG_FILE_L_TB));
 
 			uniform(seed1, seed2, rand_val);

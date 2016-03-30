@@ -25,6 +25,8 @@ port (
 	rst		: in std_logic;
 	clk		: in std_logic;
 
+	EndExecution	: out std_logic;
+
 	-- Decode Stage
 	Immediate	: in std_logic_vector(REG_L - 1 downto 0);
 	EndDecoding	: in std_logic;
@@ -33,7 +35,7 @@ port (
 	AddressRegFileIn_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	AddressRegFileOut1_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	AddressRegFileOut2_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-	Enable_reg_file_In	: in std_logic_vector(EN_REG_FILE_L - 1 downto 0);
+	EnableRegFile_In	: in std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
 	Op1	: out std_logic_vector(OP1_L - 1 downto 0);
 	Op2	: out std_logic_vector(OP2_L - 1 downto 0);
@@ -132,7 +134,7 @@ begin
 		end if;
 	end process reg;
 
-	state_det: process(StateC, NextStateC, CtrlCmdC, CtrlCmd, Enable_reg_file_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
+	state_det: process(StateC, NextStateC, CtrlCmdC, CtrlCmd, EnableRegFile_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
 		variable State_tmp	: std_logic_vector(STATE_L - 1 downto 0);
 	begin
 		StateN <= StateC; -- avoid latches
@@ -140,13 +142,13 @@ begin
 		State_tmp := StateC;
 		if (StateC = IDLE) then
 			if (EndDecoding = '1') then
-				if (CtrlCmd = CTRL_CMD_ALU) or (CtrlCmd = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) or ((CtrlCmd = CTRL_CMD_MOV) and (Enable_reg_file_In(1) = '1')) then
+				if (CtrlCmd = CTRL_CMD_ALU) or (CtrlCmd = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) or ((CtrlCmd = CTRL_CMD_MOV) and (EnableRegFile_In(1) = '1')) then
 					StateN <= REG_FILE_READ;
 					NextStateN <= REG_FILE_READ;
 				elsif (CtrlCmd = CTRL_CMD_RD_S) or (CtrlCmd = CTRL_CMD_RD_M) then
 					StateN <= MEMORY_ACCESS;
 					NextStateN <= MEMORY_ACCESS;
-				elsif ((CtrlCmd = CTRL_CMD_MOV) and Enable_reg_file_In(1) = '0') then
+				elsif ((CtrlCmd = CTRL_CMD_MOV) and EnableRegFile_In(1) = '0') then
 					StateN <= REG_FILE_WRITE;
 					NextStateN <= REG_FILE_WRITE;
 				else
@@ -226,13 +228,15 @@ begin
 		end if;
 	end process state_det;
 
+	EndExecution <= '1' when ((StateC = REG_FILE_WRITE) and (DoneRegFile = '1')) or (((CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)) and (StateC = MEMORY_ACCESS) and (DoneMemory = '1')) else '0';
+
 	ImmediateN <= Immediate when (EndDecoding = '1') else ImmediateC;
 	CmdALUN <= CmdALU_In when (EndDecoding = '1') else CmdALUC;
 	CtrlCmdN <= CtrlCmd when (EndDecoding = '1') else CtrlCmdC;
 	AddressRegFileInN <= AddressRegFileIn_In when (EndDecoding = '1') else AddressRegFileInC;
 	AddressRegFileOut1N <= AddressRegFileOut1_In when (EndDecoding = '1') else AddressRegFileOut1C;
 	AddressRegFileOut2N <= AddressRegFileOut2_In when (EndDecoding = '1') else AddressRegFileOut2C;
-	EnableRegFileN <= Enable_reg_file_In when (EndDecoding = '1') else EnableRegFileC;
+	EnableRegFileN <= EnableRegFile_In when (EndDecoding = '1') else EnableRegFileC;
 
 	-- ALU
 --	Op1ALUN <=	DataOut1	when ((DoneRegFile = '1') and NextStateC = ALU_OP) else
