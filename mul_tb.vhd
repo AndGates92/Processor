@@ -21,9 +21,6 @@ architecture bench of mul_tb is
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
 
-	constant OP1_L_TB	: integer := 16;
-	constant OP2_L_TB	: integer := 16;
-
 	signal Op1_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
 	signal Op2_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
 

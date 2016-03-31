@@ -21,9 +21,6 @@ architecture bench of alu_tb is
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
 
-	constant OP1_L_TB	: integer := 16;
-	constant OP2_L_TB	: integer := 16;
-
 	signal Op1_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
 	signal Op2_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
 	signal Cmd_tb	: std_logic_vector(ALU_CMD_L - 1 downto 0);
@@ -114,97 +111,6 @@ begin
 			Start_tb <= '0';
 		end procedure push_op;
 
-		procedure reference(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(ALU_CMD_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer) is
-			variable tmp_op1	: std_logic_vector(OP1_L_TB-1 downto 0);
-			variable tmp_op2	: std_logic_vector(OP2_L_TB-1 downto 0);
-			variable tmp_res	: std_logic_vector(OP1_L_TB-1 downto 0);
-			variable rand_val, sign_val	: real;
-			variable Res_tmp	: integer;
-		begin
-			Ovfl_ideal := 0;
-			Unfl_ideal := 0;
-			if (Cmd = CMD_USUM) then
-				Res_tmp := Op1_int + Op2_int;
-				Res_ideal := Res_tmp;
-				if (Res_tmp > (2**(OP1_L_TB) - 1)) then
-					Ovfl_ideal := 1;
-					Res_ideal := Res_tmp - 2**(OP1_L_TB);
-				end if;
-			elsif (Cmd = CMD_SSUM) then
-				Res_tmp := Op1_int + Op2_int;
-				Res_ideal := Res_tmp;
-				if (Res_tmp > (2**(OP1_L_TB-1) - 1)) then
-					Ovfl_ideal := 1;
-					Res_ideal := -2*(2**(OP1_L_TB-1)) + Res_tmp;
-				elsif (Res_tmp < (-(2**(OP1_L_TB-1)))) then
-					Unfl_ideal := 1;
-					Res_ideal := 2*(2**(OP1_L_TB-1)) + Res_tmp;
-				end if;
-			elsif (Cmd = CMD_USUB) then
-				Res_tmp := Op1_int - Op2_int;
-				Res_ideal := Res_tmp;
-				if (Res_tmp < 0) then
-					Unfl_ideal := 1;
-					Res_ideal := 2**(OP1_L_TB) + Res_tmp;
-				end if;
-			elsif (Cmd = CMD_SSUB) then
-				Res_tmp := Op1_int - Op2_int;
-				Res_ideal := Res_tmp;
-				if (Res_tmp > (2**(OP1_L_TB-1) - 1)) then
-					Ovfl_ideal := 1;
-					Res_ideal := -2*(2**(OP1_L_TB-1)) + Res_tmp;
-				elsif (Res_tmp < (-(2**(OP1_L_TB-1)))) then
-					Unfl_ideal := 1;
-					Res_ideal := 2*(2**(OP1_L_TB-1)) + Res_tmp;
-				end if;
-			elsif (Cmd = CMD_UCMP) then
-				if (Op1_int = Op2_int) then
-					Res_ideal := 0;
-				elsif (Op1_int > Op2_int) then
-					Res_ideal := 1;
-				else
-					Res_ideal := (2**(OP1_L_TB)) - 1;
-				end if;
-			elsif (Cmd = CMD_SCMP) then
-				if (Op1_int = Op2_int) then
-					Res_ideal := 0;
-				elsif (Op1_int > Op2_int) then
-					Res_ideal := 1;
-				else
-					Res_ideal := - 1;
-				end if;
-			elsif (Cmd = CMD_AND) then
-				tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
-				tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
-				for i in 0 to OP1_L_TB-1 loop
-					tmp_res(i) := tmp_op1(i) and tmp_op2(i);
-				end loop;
-				Res_ideal := to_integer(unsigned(tmp_res));
-			elsif (Cmd = CMD_OR) then
-				tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
-				tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
-				for i in 0 to OP1_L_TB-1 loop
-					tmp_res(i) := tmp_op1(i) or tmp_op2(i);
-				end loop;
-				Res_ideal := to_integer(unsigned(tmp_res));
-			elsif (Cmd = CMD_XOR) then
-				tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
-				tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
-				for i in 0 to OP1_L_TB-1 loop
-					tmp_res(i) := tmp_op1(i) xor tmp_op2(i);
-				end loop;
-				Res_ideal := to_integer(unsigned(tmp_res));
-			elsif (Cmd = CMD_NOT) then
-				tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
-				for i in 0 to OP1_L_TB-1 loop
-					tmp_res(i) := not tmp_op1(i);
-				end loop;
-				Res_ideal := to_integer(unsigned(tmp_res));
-			else
-				Res_ideal := 0;
-			end if;
-		end procedure reference;
-
 		procedure verify(variable Op1_int, Op2_int, Res_ideal, Res_rtl, Ovfl_ideal, Ovfl_rtl, Unfl_ideal, Unfl_rtl: in integer; Cmd_txt : in string; file file_pointer : text; variable pass: out integer) is
 			variable file_line	: line;
 		begin
@@ -276,7 +182,7 @@ begin
 			Unfl_rtl := std_logic_to_int(Unfl_tb);
 
 			Cmd_txt := alu_cmd_std_vect_to_txt(Cmd);
-			reference(Op1_int, Op2_int, Cmd, Res_ideal, Ovfl_ideal, Unfl_ideal);
+			alu_ref(Op1_int, Op2_int, Cmd, Res_ideal, Ovfl_ideal, Unfl_ideal);
 			verify(Op1_int, Op2_int, Res_ideal, Res_rtl, Ovfl_ideal, Ovfl_rtl, Unfl_ideal, Unfl_rtl, Cmd_txt, file_pointer, pass);
 
 			num_pass := num_pass + pass;

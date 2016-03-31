@@ -19,8 +19,6 @@ architecture bench of reg_file_tb is
 	constant NUM_TEST	: integer := 1000;
 
 	constant REG_L_TB	: positive := 16;
-	constant REG_NUM_TB	: positive := 16;
-	constant EN_L_TB	: positive := 3;
 	constant OUT_NUM_TB	: positive := 2;
 
 	signal rst_tb	: std_logic;
@@ -31,20 +29,19 @@ architecture bench of reg_file_tb is
 	signal AddressIn_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
 	signal AddressOut1_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
 	signal AddressOut2_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
-	signal Enable_tb	: std_logic_vector(EN_L_TB-1 downto 0);
+	signal Enable_tb	: std_logic_vector(EN_REG_FILE_L_TB-1 downto 0);
 	signal Done_tb		: std_logic_vector(OUT_NUM_TB-1 downto 0);
 	signal DataOut1_tb	: std_logic_vector(REG_L_TB-1 downto 0);
 	signal DataOut2_tb	: std_logic_vector(REG_L_TB-1 downto 0);
 	signal End_LS_tb	: std_logic;
 
-	type reg_file_tb is array(0 to REG_NUM_TB) of integer;
 
 begin
 
 	DUT: reg_file generic map(
 		REG_L => REG_L_TB,
 		REG_NUM => REG_NUM_TB,
-		EN_L => EN_L_TB,
+		EN_L => EN_REG_FILE_L_TB,
 		OUT_NUM => OUT_NUM_TB
 	)
 	port map(
@@ -64,7 +61,7 @@ begin
 	clk_tb <= not clk_tb after CLK_PERIOD/2 when not stop;
 
 	test: process
-		procedure reset(variable RegFileOut_int : out reg_file_tb) is
+		procedure reset(variable RegFileOut_int : out reg_file_array) is
 		begin
 			rst_tb <= '0';
 			wait until rising_edge(clk_tb);
@@ -109,10 +106,10 @@ begin
 
 			while (Enable_in = 0) loop
 				uniform(seed1, seed2, rand_val);
-				Enable_in := integer(rand_val*(2.0**(real(EN_L_TB)) - 1.0));
+				Enable_in := integer(rand_val*(2.0**(real(EN_REG_FILE_L_TB)) - 1.0));
 			end loop;
 
-			Enable_tb <= std_logic_vector(to_unsigned(Enable_in, EN_L_TB));
+			Enable_tb <= std_logic_vector(to_unsigned(Enable_in, EN_REG_FILE_L_TB));
 			Enable_int := Enable_in;
 
 			wait until rising_edge(clk_tb);
@@ -120,37 +117,6 @@ begin
 			Enable_tb <= (others => '0');
 
 		end procedure push_op;
-
-		procedure reference(variable RegFileIn_int: in reg_file_tb; variable DataIn_int : in integer; variable AddressIn_int: in integer; variable AddressOut1_int : in integer; variable AddressOut2_int: in integer; variable Enable_int: in integer; variable Done_int: out integer; variable DataOut1_int: out integer; variable DataOut2_int : out integer; variable RegFileOut_int: out reg_file_tb) is
-			variable Enable_vec	: std_logic_vector(EN_L_TB - 1 downto 0);
-			variable Done_tmp	: integer;
-		begin
-
-			Done_tmp := 0;
-			RegFileOut_int := RegFileIn_int;
-			Enable_vec := std_logic_vector(to_unsigned(Enable_int,EN_L_TB));
-
-			if (Enable_vec(0) = '1') then
-				RegFileOut_int(AddressIn_int) := DataIn_int;
-			end if;
-
-			if (Enable_vec(1) = '1') then
-				DataOut1_int := RegFileIn_int(AddressOut1_int);
-				Done_tmp := Done_tmp + 1;
-			else
-				DataOut1_int := 0;
-			end if;
-
-			if (Enable_vec(2) = '1') then
-				DataOut2_int := RegFileIn_int(AddressOut2_int);
-				Done_tmp := Done_tmp + 2;
-			else
-				DataOut2_int := 0;
-			end if;
-
-			Done_int := Done_tmp;
-
-		end procedure reference;
 
 		procedure verify(variable DataIn_int : in integer; variable DataOut1_ideal, DataOut2_ideal, Done_ideal : in integer; variable DataOut1_rtl, DataOut2_rtl, Done_rtl : in integer; file file_pointer : text; variable pass : out integer) is
 			variable file_line	: line;
@@ -183,7 +149,7 @@ begin
 			writeline(file_pointer, file_line);
 		end procedure verify;
 
-		variable RegFileOut, RegFileIn	: reg_file_tb;
+		variable RegFileOut, RegFileIn	: reg_file_array;
 		variable DataIn, AddressIn, AddressOut1, AddressOut2, Enable	: integer;
 		variable Done_rtl, DataOut1_rtl, DataOut2_rtl	: integer;
 		variable Done_ideal, DataOut1_ideal, DataOut2_ideal	: integer;
@@ -217,7 +183,7 @@ begin
 			DataOut2_rtl := to_integer(unsigned(DataOut2_tb));
 			Done_rtl := to_integer(unsigned(Done_tb));
 
-			reference(RegFileIn, DataIn, AddressIn, AddressOut1, AddressOut2, Enable, Done_ideal, DataOut1_ideal, DataOut2_ideal, RegFileOut);
+			reg_file_ref(RegFileIn, DataIn, AddressIn, AddressOut1, AddressOut2, Enable, Done_ideal, DataOut1_ideal, DataOut2_ideal, RegFileOut);
 
 			verify(DataIn, DataOut1_ideal, DataOut2_ideal, Done_ideal, DataOut1_rtl, DataOut2_rtl, Done_rtl, file_pointer, pass);
 

@@ -47,6 +47,8 @@ architecture bench of alu_tb is
 	signal Start_tb	: std_logic;
 	signal Done_tb	: std_logic;
 
+	type reg_file_array is array(0 to REG_NUM_TB) of integer;
+
 begin
 
 	DUT: execute_stage generic map(
@@ -84,7 +86,7 @@ begin
 
 	test: process
 
-		procedure reset is
+		procedure reset(variable RegFileOut_int : out reg_file_array) is
 		begin
 			rst_tb <= '0';
 			wait until rising_edge(clk_tb);
@@ -94,6 +96,7 @@ begin
 			AddressRegFileOut2_In_tb <= (others => '0');
 			Immediate_tb <= (others => '0');
 			EnableRegFile_tb <= (others => '0');
+			RegFileOut_int := (others => 0);
 			Start_tb <= '0';
 			wait until rising_edge(clk_tb);
 			rst_tb <= '0';
@@ -160,6 +163,7 @@ begin
 			Start_tb <= '0';
 		end procedure push_op;
 
+		variable RegFileOut, RegFileIn	: reg_file_array;
 
 		variable pass	: integer;
 		variable num_pass	: integer;
@@ -188,7 +192,7 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "ALU => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST)));
+		write(file_line, string'( "EXECUTE STAGE => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST)));
 		writeline(file_pointer, file_line);
 
 		file_close(file_pointer);

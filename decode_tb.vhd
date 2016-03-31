@@ -24,13 +24,8 @@ architecture bench of decode_stage_tb is
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
 
-	signal INSTR_L_TB	: positive := 28;
-	signal REG_NUM_TB	: positive := 16;
-	signal REG_L_TB		: positive := 28;
-	signal PC_L_TB		: positive := 28;
-	signal STAT_REG_L_TB	: positive := 8;
-	signal INCR_PC_TB	: positive := 4;
-	signal EN_REG_FILE_L_TB	: positive := 3;
+	constant REG_L_TB		: positive := 28;
+	constant PC_L_TB		: positive := 28;
 
 	signal NewInstr_tb	: std_logic;
 	signal Instr_tb		: std_logic_vector(INSTR_L_TB - 1 downto 0);
@@ -249,58 +244,6 @@ begin
 			NewInstr_tb <= '0';
 		end procedure push_op;
 
-		procedure reference(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out integer) is
-		begin
-			if (OpCode = OP_CODE_SET) then
-				ImmediateOut := integer(2.0**(real(INSTR_L_TB)) - 1.0);
-			elsif (OpCode = OP_CODE_CLR) or (OpCode = OP_CODE_BRE) or  (OpCode = OP_CODE_BRNE) or  (OpCode = OP_CODE_BRG) or (OpCode = OP_CODE_BRL) or (OpCode = OP_CODE_JUMP) or (OpCode = OP_CODE_CALL) then 
-				ImmediateOut := 0;
-			else
-				ImmediateOut := ImmediateIn;
-			end if;
-
-			if (OpCode = OP_CODE_JUMP) then
-				PCOut := PCIn + ImmediateIn;
-			elsif ((OpCode = OP_CODE_BRE) and (StatReg(0) = '1')) or ((OpCode = OP_CODE_BRNE) and (StatReg(0) = '0')) or ((OpCode = OP_CODE_BRG) and (StatReg(4) = '0')) or ((OpCode = OP_CODE_BRL) and (StatReg(4) = '1')) or (OpCode = OP_CODE_CALL) then
-				PCOut := ImmediateIn;
-			elsif (OpCode = OP_CODE_RET) then
-				PCOut := PCCallIn;
-			else
-				PCOut := PCIn;
-			end if;
-
-			if (OpCode = OP_CODE_CALL) then
-				PCCallOut := PCIn + INCR_PC_TB;
-			elsif (OpCode = OP_CODE_RET) then
-				PCCallOut := 0;
-			else
-				PCCallOut := PCCallIn;
-			end if;
-
-			if (OpCode = OP_CODE_ALU_R) or (OpCode = OP_CODE_ALU_I) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_ALU));
-			elsif (OpCode = OP_CODE_WR_M) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_WR_M));
-			elsif (OpCode = OP_CODE_RD_M) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_RD_M));
-			elsif (OpCode = OP_CODE_WR_S) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_WR_S));
-			elsif (OpCode = OP_CODE_RD_S) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_RD_S));
-			elsif (OpCode = OP_CODE_MOV_R) or (OpCode = OP_CODE_MOV_I) or (OpCode = OP_CODE_SET) or (OpCode = OP_CODE_CLR) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_MOV));
-			else
-				CtrlOut := to_integer(unsigned(CTRL_CMD_DISABLE));
-			end if;
-
-			if (OpCode = OP_CODE_EOP) then
-				EndOfProg := 1;
-			else
-				EndOfProg := 0;
-			end if;
-
-		end procedure reference;
-
 		procedure verify(variable ALU_func_ideal, ALU_func_rtl : in std_logic_vector(ALU_CMD_L - 1 downto 0); variable Immediate_ideal, Immediate_rtl : in integer; variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable OpCode_str: in string; variable AddressIn_ideal, AddressOut1_ideal, AddressOut2_ideal : in integer; variable AddressIn_rtl, AddressOut1_rtl, AddressOut2_rtl : in integer; variable PCOut_ideal, PCOut_rtl : in integer; variable CtrlOut_ideal, CtrlOut_rtl : in integer; variable EnableRegFile_ideal, EnableRegFile_rtl : in integer; variable EndOfProg_ideal, EndOfPRog_rtl : in integer; variable PCIn: in integer; file file_pointer : text; variable pass : out integer) is
 			variable file_line	: line;
 		begin
@@ -406,7 +349,7 @@ begin
 			CtrlOut_rtl := to_integer(unsigned(Ctrl_tb));
 			EndOfProg_rtl := std_logic_to_int(EndOfProg_tb);
 
-			reference(OpCode, Immediate_int, PCIn_int, PCCallIn, StatusReg, Immediate_int_ideal, PCOut_int_ideal, PCCallOut, CtrlOut_ideal, EndOfProg_ideal);
+			decode_ref(OpCode, Immediate_int, PCIn_int, PCCallIn, StatusReg, Immediate_int_ideal, PCOut_int_ideal, PCCallOut, CtrlOut_ideal, EndOfProg_ideal);
 
 			verify(ALU_func_ideal, ALU_func_rtl, Immediate_int_ideal, Immediate_int_rtl, OpCode, op_code_std_vect_to_txt(OpCode), AddressIn_int_ideal, AddressOut1_int_ideal, AddressOut2_int_ideal, AddressIn_int_rtl, AddressOut1_int_rtl, AddressOut2_int_rtl, PCOut_int_ideal, PCOut_int_rtl, CtrlOut_ideal, CtrlOut_rtl, EnRegFile_int_ideal, EnRegFile_int_rtl, EndOfProg_ideal, EndOfProg_rtl, PCIn_int, file_pointer, pass);
 
