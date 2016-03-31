@@ -36,7 +36,7 @@ port (
 
 	Done	: out std_logic;
 
-	CmdALU	: out std_logic_vector(ALU_CMD_L - 1 downto 0);
+	CmdALU	: out std_logic_vector(CMD_ALU_L - 1 downto 0);
 	Ctrl	: out std_logic_vector(CTRL_CMD_L - 1 downto 0);
 
 	PCOut	: out std_logic_vector(PC_L - 1 downto 0);
@@ -59,7 +59,7 @@ architecture rtl of decode_stage is
 	signal DataInC, DataInN			: std_logic_vector(REG_L - 1 downto 0);
 
 	signal ImmediateC, ImmediateN	: std_logic_vector(REG_L - 1 downto 0);
-	signal CmdALUC, CmdALUN		: std_logic_vector(ALU_CMD_L - 1 downto 0);
+	signal CmdALUC, CmdALUN		: std_logic_vector(CMD_ALU_L - 1 downto 0);
 
 	signal PCC, PCN		: unsigned(PC_L - 1 downto 0);
 	signal PCCallC, PCCallN	: unsigned(PC_L - 1 downto 0);
@@ -118,14 +118,14 @@ begin
 			(others => '0')  when (StateC = IDLE) else
 			AddressOut2C;
 
-	ImmediateN <=	ZERO_VEC(OP_CODE_L + 3*count_length(REG_NUM) + ALU_CMD_L - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 3*count_length(REG_NUM) - 1 downto ALU_CMD_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) else
-			ZERO_VEC(OP_CODE_L + 2*count_length(REG_NUM) + ALU_CMD_L - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 2*count_length(REG_NUM) - 1 downto ALU_CMD_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) else
+	ImmediateN <=	ZERO_VEC(OP_CODE_L + 3*count_length(REG_NUM) + CMD_ALU_L - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 3*count_length(REG_NUM) - 1 downto CMD_ALU_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) else
+			ZERO_VEC(OP_CODE_L + 2*count_length(REG_NUM) + CMD_ALU_L - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 2*count_length(REG_NUM) - 1 downto CMD_ALU_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) else
 			ZERO_VEC(OP_CODE_L + count_length(REG_NUM) - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - count_length(REG_NUM) - 1 downto 0)) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_WR_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RD_S) or  (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_WR_S)) else
 			(others => '1') when ((StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_SET)) else
 			(others => '0') when (StateC = IDLE) or ((StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CLR)) else
 			ImmediateC;
 
-	CmdALUN <=	InstrC(ALU_CMD_L - 1 downto 0) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R)) else
+	CmdALUN <=	InstrC(CMD_ALU_L - 1 downto 0) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R)) else
 			(others => '0') when (StateC = IDLE) else
 			CmdALUC;
 

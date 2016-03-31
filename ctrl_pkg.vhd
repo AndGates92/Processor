@@ -49,7 +49,7 @@ package ctrl_pkg is
 		Immediate	: in std_logic_vector(REG_L - 1 downto 0);
 		EndDecoding	: in std_logic;
 		CtrlCmd	: in std_logic_vector(CTRL_CMD_L - 1 downto 0);
-		CmdALU_In	: in std_logic_vector(ALU_CMD_L - 1 downto 0);
+		CmdALU_In	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
 		AddressRegFileIn_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 		AddressRegFileOut1_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 		AddressRegFileOut2_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
@@ -62,7 +62,7 @@ package ctrl_pkg is
 		DoneALU	: in std_logic;
 		EnableALU	: out std_logic;
 		ResALU	: in std_logic_vector(OP1_L - 1 downto 0);
-		CmdALU	: out std_logic_vector(ALU_CMD_L - 1 downto 0);
+		CmdALU	: out std_logic_vector(CMD_ALU_L - 1 downto 0);
 
 		-- Multiplier
 		DoneMul	: in std_logic;

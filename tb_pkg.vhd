@@ -26,13 +26,14 @@ package tb_pkg is
 
 	procedure decode_ref(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out integer);
 	procedure reg_file_ref(variable RegFileIn_int: in reg_file_array; variable DataIn_int : in integer; variable AddressIn_int: in integer; variable AddressOut1_int : in integer; variable AddressOut2_int: in integer; variable Enable_int: in integer; variable Done_int: out integer; variable DataOut1_int: out integer; variable DataOut2_int : out integer; variable RegFileOut_int: out reg_file_array);
-	procedure alu_ref(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(ALU_CMD_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer);
+	procedure alu_ref(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_ALU_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer);
 
 	function rand_num return real;
+	function rand_bin(rand_val : real) return real;
 	function rand_sign(sign_val : real) return real;
 	function std_logic_to_int(val : std_logic) return integer;
-	function alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(ALU_CMD_L-1 downto 0)) return string;
-	function full_alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(ALU_CMD_L-1 downto 0)) return string;
+	function alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string;
+	function full_alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string;
 	function ctrl_cmd_std_vect_to_txt(Cmd: std_logic_vector(CTRL_CMD_L-1 downto 0)) return string;
 	function op_code_std_vect_to_txt(OpCode: std_logic_vector(OP_CODE_L-1 downto 0)) return string;
 
@@ -41,57 +42,57 @@ end package tb_pkg;
 package body tb_pkg is
 
 
-		procedure decode_ref(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out integer) is
-		begin
-			if (OpCode = OP_CODE_SET) then
-				ImmediateOut := integer(2.0**(real(INSTR_L_TB)) - 1.0);
-			elsif (OpCode = OP_CODE_CLR) or (OpCode = OP_CODE_BRE) or  (OpCode = OP_CODE_BRNE) or  (OpCode = OP_CODE_BRG) or (OpCode = OP_CODE_BRL) or (OpCode = OP_CODE_JUMP) or (OpCode = OP_CODE_CALL) then 
-				ImmediateOut := 0;
-			else
-				ImmediateOut := ImmediateIn;
-			end if;
+	procedure decode_ref(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out integer) is
+	begin
+		if (OpCode = OP_CODE_SET) then
+			ImmediateOut := integer(2.0**(real(INSTR_L_TB)) - 1.0);
+		elsif (OpCode = OP_CODE_CLR) or (OpCode = OP_CODE_BRE) or  (OpCode = OP_CODE_BRNE) or  (OpCode = OP_CODE_BRG) or (OpCode = OP_CODE_BRL) or (OpCode = OP_CODE_JUMP) or (OpCode = OP_CODE_CALL) then 
+			ImmediateOut := 0;
+		else
+			ImmediateOut := ImmediateIn;
+		end if;
 
-			if (OpCode = OP_CODE_JUMP) then
-				PCOut := PCIn + ImmediateIn;
-			elsif ((OpCode = OP_CODE_BRE) and (StatReg(0) = '1')) or ((OpCode = OP_CODE_BRNE) and (StatReg(0) = '0')) or ((OpCode = OP_CODE_BRG) and (StatReg(3) = '0')) or ((OpCode = OP_CODE_BRL) and (StatReg(3) = '1')) or (OpCode = OP_CODE_CALL) then
-				PCOut := ImmediateIn;
-			elsif (OpCode = OP_CODE_RET) then
-				PCOut := PCCallIn;
-			else
-				PCOut := PCIn;
-			end if;
+		if (OpCode = OP_CODE_JUMP) then
+			PCOut := PCIn + ImmediateIn;
+		elsif ((OpCode = OP_CODE_BRE) and (StatReg(0) = '1')) or ((OpCode = OP_CODE_BRNE) and (StatReg(0) = '0')) or ((OpCode = OP_CODE_BRG) and (StatReg(3) = '0')) or ((OpCode = OP_CODE_BRL) and (StatReg(3) = '1')) or (OpCode = OP_CODE_CALL) then
+			PCOut := ImmediateIn;
+		elsif (OpCode = OP_CODE_RET) then
+			PCOut := PCCallIn;
+		else
+			PCOut := PCIn;
+		end if;
 
-			if (OpCode = OP_CODE_CALL) then
-				PCCallOut := PCIn + INCR_PC_TB;
-			elsif (OpCode = OP_CODE_RET) then
-				PCCallOut := 0;
-			else
-				PCCallOut := PCCallIn;
-			end if;
+		if (OpCode = OP_CODE_CALL) then
+			PCCallOut := PCIn + INCR_PC_TB;
+		elsif (OpCode = OP_CODE_RET) then
+			PCCallOut := 0;
+		else
+			PCCallOut := PCCallIn;
+		end if;
 
-			if (OpCode = OP_CODE_ALU_R) or (OpCode = OP_CODE_ALU_I) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_ALU));
-			elsif (OpCode = OP_CODE_WR_M) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_WR_M));
-			elsif (OpCode = OP_CODE_RD_M) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_RD_M));
-			elsif (OpCode = OP_CODE_WR_S) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_WR_S));
-			elsif (OpCode = OP_CODE_RD_S) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_RD_S));
-			elsif (OpCode = OP_CODE_MOV_R) or (OpCode = OP_CODE_MOV_I) or (OpCode = OP_CODE_SET) or (OpCode = OP_CODE_CLR) then
-				CtrlOut := to_integer(unsigned(CTRL_CMD_MOV));
-			else
-				CtrlOut := to_integer(unsigned(CTRL_CMD_DISABLE));
-			end if;
+		if (OpCode = OP_CODE_ALU_R) or (OpCode = OP_CODE_ALU_I) then
+			CtrlOut := to_integer(unsigned(CTRL_CMD_ALU));
+		elsif (OpCode = OP_CODE_WR_M) then
+			CtrlOut := to_integer(unsigned(CTRL_CMD_WR_M));
+		elsif (OpCode = OP_CODE_RD_M) then
+			CtrlOut := to_integer(unsigned(CTRL_CMD_RD_M));
+		elsif (OpCode = OP_CODE_WR_S) then
+			CtrlOut := to_integer(unsigned(CTRL_CMD_WR_S));
+		elsif (OpCode = OP_CODE_RD_S) then
+			CtrlOut := to_integer(unsigned(CTRL_CMD_RD_S));
+		elsif (OpCode = OP_CODE_MOV_R) or (OpCode = OP_CODE_MOV_I) or (OpCode = OP_CODE_SET) or (OpCode = OP_CODE_CLR) then
+			CtrlOut := to_integer(unsigned(CTRL_CMD_MOV));
+		else
+			CtrlOut := to_integer(unsigned(CTRL_CMD_DISABLE));
+		end if;
 
-			if (OpCode = OP_CODE_EOP) then
-				EndOfProg := 1;
-			else
-				EndOfProg := 0;
-			end if;
+		if (OpCode = OP_CODE_EOP) then
+			EndOfProg := 1;
+		else
+			EndOfProg := 0;
+		end if;
 
-		end procedure decode_ref;
+	end procedure decode_ref;
 
 	procedure reg_file_ref(variable RegFileIn_int: in reg_file_array; variable DataIn_int : in integer; variable AddressIn_int: in integer; variable AddressOut1_int : in integer; variable AddressOut2_int: in integer; variable Enable_int: in integer; variable Done_int: out integer; variable DataOut1_int: out integer; variable DataOut2_int : out integer; variable RegFileOut_int: out reg_file_array) is
 		variable Enable_vec	: std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0);
@@ -124,7 +125,7 @@ package body tb_pkg is
 
 	end procedure reg_file_ref;
 
-	procedure alu_ref(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(ALU_CMD_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer) is
+	procedure alu_ref(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_ALU_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer) is
 		variable tmp_op1	: std_logic_vector(OP1_L_TB-1 downto 0);
 		variable tmp_op2	: std_logic_vector(OP2_L_TB-1 downto 0);
 		variable tmp_res	: std_logic_vector(OP1_L_TB-1 downto 0);
@@ -133,14 +134,14 @@ package body tb_pkg is
 	begin
 		Ovfl_ideal := 0;
 		Unfl_ideal := 0;
-		if (Cmd = CMD_USUM) then
+		if (Cmd = CMD_ALU_USUM) then
 			Res_tmp := Op1_int + Op2_int;
 			Res_ideal := Res_tmp;
 			if (Res_tmp > (2**(OP1_L_TB) - 1)) then
 				Ovfl_ideal := 1;
 				Res_ideal := Res_tmp - 2**(OP1_L_TB);
 			end if;
-		elsif (Cmd = CMD_SSUM) then
+		elsif (Cmd = CMD_ALU_SSUM) then
 			Res_tmp := Op1_int + Op2_int;
 			Res_ideal := Res_tmp;
 			if (Res_tmp > (2**(OP1_L_TB-1) - 1)) then
@@ -150,14 +151,14 @@ package body tb_pkg is
 				Unfl_ideal := 1;
 				Res_ideal := 2*(2**(OP1_L_TB-1)) + Res_tmp;
 			end if;
-		elsif (Cmd = CMD_USUB) then
+		elsif (Cmd = CMD_ALU_USUB) then
 			Res_tmp := Op1_int - Op2_int;
 			Res_ideal := Res_tmp;
 			if (Res_tmp < 0) then
 				Unfl_ideal := 1;
 				Res_ideal := 2**(OP1_L_TB) + Res_tmp;
 			end if;
-		elsif (Cmd = CMD_SSUB) then
+		elsif (Cmd = CMD_ALU_SSUB) then
 			Res_tmp := Op1_int - Op2_int;
 			Res_ideal := Res_tmp;
 			if (Res_tmp > (2**(OP1_L_TB-1) - 1)) then
@@ -167,7 +168,7 @@ package body tb_pkg is
 				Unfl_ideal := 1;
 				Res_ideal := 2*(2**(OP1_L_TB-1)) + Res_tmp;
 			end if;
-		elsif (Cmd = CMD_UCMP) then
+		elsif (Cmd = CMD_ALU_UCMP) then
 			if (Op1_int = Op2_int) then
 				Res_ideal := 0;
 			elsif (Op1_int > Op2_int) then
@@ -175,7 +176,7 @@ package body tb_pkg is
 			else
 				Res_ideal := (2**(OP1_L_TB)) - 1;
 			end if;
-		elsif (Cmd = CMD_SCMP) then
+		elsif (Cmd = CMD_ALU_SCMP) then
 			if (Op1_int = Op2_int) then
 				Res_ideal := 0;
 			elsif (Op1_int > Op2_int) then
@@ -183,28 +184,28 @@ package body tb_pkg is
 			else
 				Res_ideal := - 1;
 			end if;
-		elsif (Cmd = CMD_AND) then
+		elsif (Cmd = CMD_ALU_AND) then
 			tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
 			tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
 			for i in 0 to OP1_L_TB-1 loop
 				tmp_res(i) := tmp_op1(i) and tmp_op2(i);
 			end loop;
 			Res_ideal := to_integer(unsigned(tmp_res));
-		elsif (Cmd = CMD_OR) then
+		elsif (Cmd = CMD_ALU_OR) then
 			tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
 			tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
 			for i in 0 to OP1_L_TB-1 loop
 				tmp_res(i) := tmp_op1(i) or tmp_op2(i);
 			end loop;
 			Res_ideal := to_integer(unsigned(tmp_res));
-		elsif (Cmd = CMD_XOR) then
+		elsif (Cmd = CMD_ALU_XOR) then
 			tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
 			tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
 			for i in 0 to OP1_L_TB-1 loop
 				tmp_res(i) := tmp_op1(i) xor tmp_op2(i);
 			end loop;
 			Res_ideal := to_integer(unsigned(tmp_res));
-		elsif (Cmd = CMD_NOT) then
+		elsif (Cmd = CMD_ALU_NOT) then
 			tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
 			for i in 0 to OP1_L_TB-1 loop
 				tmp_res(i) := not tmp_op1(i);
@@ -226,7 +227,6 @@ package body tb_pkg is
 
 	function rand_sign(sign_val : real) return real is
 		variable sign 	: real;
-		variable rand_val	: real;
 	begin
 		if (sign_val > 0.5) then
 			sign := -1.0;
@@ -235,6 +235,18 @@ package body tb_pkg is
 		end if;
 
 		return sign;
+	end function;
+
+	function rand_bin(rand_val : real) return real is
+		variable bin 	: real;
+	begin
+		if (rand_val > 0.5) then
+			bin := 0.0;
+		else
+			bin := 1.0;
+		end if;
+
+		return bin;
 	end function;
 
 	function std_logic_to_int(val : std_logic) return integer is
@@ -249,30 +261,30 @@ package body tb_pkg is
 		return val_conv;
 	end;
 
-	function alu_cmd_std_vect_to_txt(Cmd: std_logic_vector(ALU_CMD_L-1 downto 0)) return string is
+	function alu_cmd_std_vect_to_txt(Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string is
 		variable Cmd_txt : string(1 to 4);
 	begin
-		if (Cmd = CMD_USUM) then
+		if (Cmd = CMD_ALU_USUM) then
 			Cmd_txt := "USUM";
-		elsif (Cmd = CMD_SSUM) then
+		elsif (Cmd = CMD_ALU_SSUM) then
 			Cmd_txt := "SSUM";
-		elsif (Cmd = CMD_USUB) then
+		elsif (Cmd = CMD_ALU_USUB) then
 			Cmd_txt := "USUB";
-		elsif (Cmd = CMD_SSUB) then
+		elsif (Cmd = CMD_ALU_SSUB) then
 			Cmd_txt := "SSUB";
-		elsif (Cmd = CMD_UCMP) then
+		elsif (Cmd = CMD_ALU_UCMP) then
 			Cmd_txt := "UCMP";
-		elsif (Cmd = CMD_SCMP) then
+		elsif (Cmd = CMD_ALU_SCMP) then
 			Cmd_txt := "SCMP";
-		elsif (Cmd = CMD_AND) then
+		elsif (Cmd = CMD_ALU_AND) then
 			Cmd_txt := "BAND";
-		elsif (Cmd = CMD_OR) then
+		elsif (Cmd = CMD_ALU_OR) then
 			Cmd_txt := "B_OR";
-		elsif (Cmd = CMD_XOR) then
+		elsif (Cmd = CMD_ALU_XOR) then
 			Cmd_txt := "BXOR";
-		elsif (Cmd = CMD_NOT) then
+		elsif (Cmd = CMD_ALU_NOT) then
 			Cmd_txt := "BNOT";
-		elsif (Cmd = CMD_DISABLE) then
+		elsif (Cmd = CMD_ALU_DISABLE) then
 			Cmd_txt := "DISA";
 		else
 			Cmd_txt := "UCMD";
@@ -282,12 +294,12 @@ package body tb_pkg is
 
 	end;
 
-	function full_alu_cmd_std_vect_to_txt(Cmd: std_logic_vector(ALU_CMD_L-1 downto 0)) return string is
+	function full_alu_cmd_std_vect_to_txt(Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string is
 		variable Cmd_txt : string(1 to 4);
 	begin
-		if (Cmd = CMD_MUL) then
+		if (Cmd = CMD_ALU_MUL) then
 			Cmd_txt := "MULT";
-		elsif (Cmd = CMD_DIV) then
+		elsif (Cmd = CMD_ALU_DIV) then
 			Cmd_txt := "DIVI";
 		else
 			Cmd_txt := alu_cmd_std_vect_to_txt(Cmd);

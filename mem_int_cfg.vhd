@@ -1,6 +1,6 @@
-configuration config_mem_int of mem_int_tb is
-	for bench
-		for DUT: mem_int 
+configuration config_mem_int of execute_stage is
+	for rtl
+		for MEM_INT_I: mem_int 
 			use entity work.mem_int(dummy);
 		end for;
 	end for;

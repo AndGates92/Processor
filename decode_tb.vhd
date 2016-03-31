@@ -41,7 +41,7 @@ architecture bench of decode_stage_tb is
 
 	signal Done_tb		: std_logic;
 
-	signal CmdALU_tb	: std_logic_vector(ALU_CMD_L - 1 downto 0);
+	signal CmdALU_tb	: std_logic_vector(CMD_ALU_L - 1 downto 0);
 	signal Ctrl_tb		: std_logic_vector(CTRL_CMD_L - 1 downto 0);
 
 	signal PCOut_tb		: std_logic_vector(PC_L_TB - 1 downto 0);
@@ -102,7 +102,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure push_op(variable ALU_func : out std_logic_vector(ALU_CMD_L - 1 downto 0); variable Immediate_int : out integer; variable OpCode: out std_logic_vector(OP_CODE_L - 1 downto 0); variable AddressIn_int, AddressOut1_int, AddressOut2_int : out integer; variable PCIn_int : out integer; variable StatusReg: out std_logic_vector(STAT_REG_L_TB-1 downto 0); variable EnableRegFile_int: out integer; variable seed1, seed2: inout positive) is
+		procedure push_op(variable ALU_func : out std_logic_vector(CMD_ALU_L - 1 downto 0); variable Immediate_int : out integer; variable OpCode: out std_logic_vector(OP_CODE_L - 1 downto 0); variable AddressIn_int, AddressOut1_int, AddressOut2_int : out integer; variable PCIn_int : out integer; variable StatusReg: out std_logic_vector(STAT_REG_L_TB-1 downto 0); variable EnableRegFile_int: out integer; variable seed1, seed2: inout positive) is
 			variable Immediate_in, AddressIn_in, AddressOut1_in, AddressOut2_in, OpCode_in, ALU_func_in, PCIn_in, StatusReg_in	: integer;
 			variable rand_val	: real;
 			variable OpCode_vec	: std_logic_vector(OP_CODE_L - 1 downto 0);
@@ -111,7 +111,7 @@ begin
 			variable AddressOut1_vec	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
 			variable AddressOut2_vec	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
 			variable Instr_vec	: std_logic_vector(INSTR_L_TB - 1 downto 0);
-			variable ALU_func_vec	: std_logic_vector(ALU_CMD_L - 1 downto 0);
+			variable ALU_func_vec	: std_logic_vector(CMD_ALU_L - 1 downto 0);
 		begin
 			uniform(seed1, seed2, rand_val);
 			StatusReg_in := integer(rand_val*(2.0**(real(STAT_REG_L_TB)) - 1.0));
@@ -144,8 +144,8 @@ begin
 			AddressOut2_int := AddressOut2_in;
 
 			uniform(seed1, seed2, rand_val);
-			ALU_func_in := integer(rand_val*(2.0**(real(ALU_CMD_L))- 1.0));
-			ALU_func_vec := std_logic_vector(to_unsigned(ALU_func_in, ALU_CMD_L));
+			ALU_func_in := integer(rand_val*(2.0**(real(CMD_ALU_L))- 1.0));
+			ALU_func_vec := std_logic_vector(to_unsigned(ALU_func_in, CMD_ALU_L));
 			ALU_func := ALU_func_vec;
 
 			if ((OpCode_vec = OP_CODE_MOV_I) or (OpCode_vec = OP_CODE_RD_S) or (OpCode_vec = OP_CODE_RD_M)) then
@@ -156,7 +156,7 @@ begin
 				Instr_tb <= OpCode_vec & AddressIn_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - count_length(REG_NUM_TB) - 1) downto 0);
 				AddressOut1_int := 0;
 				AddressOut2_int := 0;
-				ALU_func := std_logic_vector(to_unsigned(0, ALU_CMD_L));
+				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 1;
 			elsif (OpCode_vec = OP_CODE_JUMP) or (OpCode_vec = OP_CODE_CALL) or (OpCode_vec = OP_CODE_BRE) or (OpCode_vec = OP_CODE_BRL) or (OpCode_vec = OP_CODE_BRG) or (OpCode_vec = OP_CODE_BRNE) then
 				uniform(seed1, seed2, rand_val);
@@ -167,7 +167,7 @@ begin
 				AddressIn_int := 0;
 				AddressOut1_int := 0;
 				AddressOut2_int := 0;
-				ALU_func := std_logic_vector(to_unsigned(0, ALU_CMD_L));
+				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 0;
 			elsif (OpCode_vec = OP_CODE_WR_S) or (OpCode_vec = OP_CODE_WR_M) then
 				uniform(seed1, seed2, rand_val);
@@ -177,14 +177,14 @@ begin
 				Instr_tb <= OpCode_vec & AddressOut1_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - count_length(REG_NUM_TB) - 1) downto 0);
 				AddressIn_int := 0;
 				AddressOut2_int := 0;
-				ALU_func := std_logic_vector(to_unsigned(0, ALU_CMD_L));
+				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 2;
 			elsif (OpCode_vec = OP_CODE_MOV_R) then
 				Immediate_in := 0;
 				Instr_tb <= OpCode_vec & AddressIn_vec & AddressOut1_vec & std_logic_vector(to_unsigned(Immediate_in, (INSTR_L_TB - OP_CODE_L - 2*count_length(REG_NUM_TB))));
 				Immediate_int := Immediate_in;
 				AddressOut2_int := 0;
-				ALU_func := std_logic_vector(to_unsigned(0, ALU_CMD_L));
+				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 2 + 1;
 			elsif (OpCode_vec = OP_CODE_SET) or (OpCode_vec = OP_CODE_CLR) then
 				Immediate_in := 0;
@@ -192,22 +192,22 @@ begin
 				Immediate_int := Immediate_in;
 				AddressOut1_int := 0;
 				AddressOut2_int := 0;
-				ALU_func := std_logic_vector(to_unsigned(0, ALU_CMD_L));
+				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 1;
 			elsif (OpCode_vec = OP_CODE_ALU_I) then
 				uniform(seed1, seed2, rand_val);
-				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L_TB - OP_CODE_L - 2*count_length(REG_NUM_TB) - ALU_CMD_L)) - 1.0));
+				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L_TB - OP_CODE_L - 2*count_length(REG_NUM_TB) - CMD_ALU_L)) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
 				Immediate_int := Immediate_in;
-				Instr_tb <= OpCode_vec & AddressIn_vec & AddressOut1_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - 2*count_length(REG_NUM_TB) -ALU_CMD_L - 1) downto 0) & ALU_func_vec;
+				Instr_tb <= OpCode_vec & AddressIn_vec & AddressOut1_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - 2*count_length(REG_NUM_TB) -CMD_ALU_L - 1) downto 0) & ALU_func_vec;
 				AddressOut2_int := 0;
 				EnableRegFile_int := 2 + 1;
 			elsif (OpCode_vec = OP_CODE_ALU_R) then
 				uniform(seed1, seed2, rand_val);
-				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L_TB - OP_CODE_L - 3*count_length(REG_NUM_TB) - ALU_CMD_L)) - 1.0));
+				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L_TB - OP_CODE_L - 3*count_length(REG_NUM_TB) - CMD_ALU_L)) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
 				Immediate_int := Immediate_in;
-				Instr_tb <= OpCode_vec & AddressIn_vec & AddressOut1_vec &  AddressOut2_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - 3*count_length(REG_NUM_TB) -ALU_CMD_L - 1) downto 0) & ALU_func_vec;
+				Instr_tb <= OpCode_vec & AddressIn_vec & AddressOut1_vec &  AddressOut2_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - 3*count_length(REG_NUM_TB) -CMD_ALU_L - 1) downto 0) & ALU_func_vec;
 				EnableRegFile_int := 4 + 2 + 1;
 			elsif (OpCode_vec = OP_CODE_RET) or (OpCode_vec = OP_CODE_NOP) then
 				Immediate_in := 0;
@@ -216,7 +216,7 @@ begin
 				AddressIn_int := 0;
 				AddressOut1_int := 0;
 				AddressOut2_int := 0;
-				ALU_func := std_logic_vector(to_unsigned(0, ALU_CMD_L));
+				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 0;
 			elsif (OpCode_vec = OP_CODE_EOP) then
 				Immediate_in := 0;
@@ -225,7 +225,7 @@ begin
 				AddressIn_int := 0;
 				AddressOut1_int := 0;
 				AddressOut2_int := 0;
-				ALU_func := std_logic_vector(to_unsigned(0, ALU_CMD_L));
+				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				Immediate_int := Immediate_in;
 				EnableRegFile_int := 0;
 			else
@@ -233,7 +233,7 @@ begin
 				AddressIn_int := 0;
 				AddressOut1_int := 0;
 				AddressOut2_int := 0;
-				ALU_func := std_logic_vector(to_unsigned(0, ALU_CMD_L));
+				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				Immediate_int := 0;
 				EnableRegFile_int := 0;
 			end if;
@@ -244,7 +244,7 @@ begin
 			NewInstr_tb <= '0';
 		end procedure push_op;
 
-		procedure verify(variable ALU_func_ideal, ALU_func_rtl : in std_logic_vector(ALU_CMD_L - 1 downto 0); variable Immediate_ideal, Immediate_rtl : in integer; variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable OpCode_str: in string; variable AddressIn_ideal, AddressOut1_ideal, AddressOut2_ideal : in integer; variable AddressIn_rtl, AddressOut1_rtl, AddressOut2_rtl : in integer; variable PCOut_ideal, PCOut_rtl : in integer; variable CtrlOut_ideal, CtrlOut_rtl : in integer; variable EnableRegFile_ideal, EnableRegFile_rtl : in integer; variable EndOfProg_ideal, EndOfPRog_rtl : in integer; variable PCIn: in integer; file file_pointer : text; variable pass : out integer) is
+		procedure verify(variable ALU_func_ideal, ALU_func_rtl : in std_logic_vector(CMD_ALU_L - 1 downto 0); variable Immediate_ideal, Immediate_rtl : in integer; variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable OpCode_str: in string; variable AddressIn_ideal, AddressOut1_ideal, AddressOut2_ideal : in integer; variable AddressIn_rtl, AddressOut1_rtl, AddressOut2_rtl : in integer; variable PCOut_ideal, PCOut_rtl : in integer; variable CtrlOut_ideal, CtrlOut_rtl : in integer; variable EnableRegFile_ideal, EnableRegFile_rtl : in integer; variable EndOfProg_ideal, EndOfPRog_rtl : in integer; variable PCIn: in integer; file file_pointer : text; variable pass : out integer) is
 			variable file_line	: line;
 		begin
 
@@ -300,12 +300,12 @@ begin
 		end procedure verify;
 
 		variable OpCode : std_logic_vector(OP_CODE_L - 1 downto 0);
-		variable ALU_func_ideal : std_logic_vector(ALU_CMD_L - 1 downto 0);
+		variable ALU_func_ideal : std_logic_vector(CMD_ALU_L - 1 downto 0);
 		variable StatusReg: std_logic_vector(STAT_REG_L_TB-1 downto 0);
 		variable Immediate_int_ideal, Immediate_int : integer;
 		variable AddressIn_int_ideal, AddressOut1_int_ideal, AddressOut2_int_ideal : integer;
 		variable Immediate_int_rtl : integer;
-		variable ALU_func_rtl : std_logic_vector(ALU_CMD_L - 1 downto 0);
+		variable ALU_func_rtl : std_logic_vector(CMD_ALU_L - 1 downto 0);
 		variable AddressIn_int_rtl, AddressOut1_int_rtl, AddressOut2_int_rtl : integer;
 		variable PCIn_int	: integer;
 		variable PCOut_int_ideal,PCOut_int_rtl	: integer;

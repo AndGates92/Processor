@@ -7,6 +7,8 @@ use work.execute_pkg.all;
 use work.alu_pkg.all;
 use work.decode_pkg.all;
 use work.ctrl_pkg.all;
+use work.reg_file_pkg.all;
+use work.mem_int_pkg.all;
 use work.proc_pkg.all;
 
 entity execute_stage is
@@ -34,7 +36,7 @@ port (
 	Immediate	: in std_logic_vector(REG_L - 1 downto 0);
 	EnableRegFile_In	: in std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
-	CmdALU_In	: in std_logic_vector(ALU_CMD_L - 1 downto 0);
+	CmdALU_In	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
 	CtrlCmd	: in std_logic_vector(CTRL_CMD_L - 1 downto 0);
 
 	StatusRegOut	: out std_logic_vector(STAT_REG_L - 1 downto 0);
@@ -51,15 +53,16 @@ architecture rtl of execute_stage is
 	signal Op1	: std_logic_vector(OP1_L - 1 downto 0);
 	signal Op2	: std_logic_vector(OP2_L - 1 downto 0);
 
-	signal StartALU, StartMul, StartDiv, EnableRegFile, EnableMemory	: std_logic; -- enable signals
+	signal EnableALU, EnableMul, EnableDiv, EnableMemory	: std_logic; -- enable signals
+	signal EnableRegFile	: std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 	signal DoneALU, DoneMul, DoneDiv, DoneRegFile, DoneMemory	: std_logic; -- done signals
 
-	signal CmdALU	: std_logic_vector(ALU_CMD_L - 1 downto 0);
+	signal CmdALU	: std_logic_vector(CMD_ALU_L - 1 downto 0);
 
 	-- Arithmetic and Logic operations
 	signal ResALU	: std_logic_vector(OP1_L-1 downto 0);
 	signal ResMul	: std_logic_vector(OP1_L+OP2_L-1 downto 0);
-	signal Quotient	: std_logic_vector(OP1_L - 1 downto 0);
+	signal ResDiv	: std_logic_vector(OP1_L - 1 downto 0);
 	signal Ovfl, Unfl	: std_logic;
 
 	-- Register File
@@ -90,8 +93,8 @@ begin
 
 	ResDbg <= ResDbgC;
 
-	StatusRegN <= 	ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & (not ResALU(REG_L - 1)) & Unfl & Ovfl & '1' when (DoneALU = '1') and (ResALU = ZERO_RES) else
-			ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & (not ResALU(REG_L - 1)) & Unfl & Ovfl & '0' when (DoneALU = '1') else
+	StatusRegN <= 	ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & (not ResALU(REG_L - 1)) & Unfl & Ovfl & "1" when (DoneALU = '1') and (ResALU = ZERO_RES) else
+			ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & (not ResALU(REG_L - 1)) & Unfl & Ovfl & "0" when (DoneALU = '1') else
 			StatusRegC;
 
 	StatusRegOut <= StatusRegC;
@@ -100,8 +103,8 @@ begin
 	begin
 		if (rst = '1') then
 
-			ResDbgC <= '0';
-			StatusRegC <= (others => '1');
+			ResDbgC <= (others => '0');
+			StatusRegC <= (others => '0');
 
 		elsif (rising_edge(clk)) then
 
@@ -121,8 +124,8 @@ begin
 		clk => clk,
 		Op1 => Op1,
 		Op2 => Op2,
-		Cmd => Cmd,
-		Start => StartALU,
+		Cmd => CmdALU,
+		Start => EnableALU,
 		Done => DoneALU,
 		Ovfl => Ovfl,
 		Unfl => Unfl,
@@ -139,7 +142,7 @@ begin
 		clk => clk,
 		Op1 => Op1,
 		Op2 => Op2,
-		Start => StartMul,
+		Start => EnableMul,
 		Done => DoneMul,
 		Res => ResMul
 	);
@@ -153,9 +156,9 @@ begin
 		clk => clk,
 		Dividend => Op1,
 		Divisor => Op2,
-		Start => StartDiv,
+		Start => EnableDiv,
 		Done => DoneDiv,
-		Quotient => QuotDiv,
+		Quotient => ResDiv,
 		Remainder => open
 	);
 
@@ -175,7 +178,7 @@ begin
 		AddressOut1 => AddressRegFileOut1,
 		AddressOut2 => AddressRegFileOut2,
 		Enable => EnableRegFile,
-		End_LS => DneRegFile,
+		End_LS => DoneRegFile,
 		Done => DoneReadStatus
 	);
 
@@ -214,7 +217,7 @@ begin
 
 		-- Decode stage
 		Immediate => Immediate,
-		EndDecoding => Enable,
+		EndDecoding => Start,
 		CtrlCmd => CtrlCmd,
 		CmdALU_In => CmdALU_In,
 		AddressRegFileIn_In => AddressRegFileIn_In,

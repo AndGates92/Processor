@@ -62,7 +62,7 @@ package decode_pkg is
 
 		Done		: out std_logic;
 
-		CmdALU		: out std_logic_vector(ALU_CMD_L - 1 downto 0);
+		CmdALU		: out std_logic_vector(CMD_ALU_L - 1 downto 0);
 		Ctrl	: out std_logic_vector(CTRL_CMD_L - 1 downto 0);
 
 		PCOut		: out std_logic_vector(PC_L - 1 downto 0);

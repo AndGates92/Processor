@@ -1,6 +1,6 @@
-configuration config_mul of mul_tb is
-	for bench
-		for DUT: mul
+configuration config_mul of execute_stage is
+	for rtl
+		for MUL_I: mul 
 			use entity work.mul(booth_radix4);
 		end for;
 	end for;

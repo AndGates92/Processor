@@ -23,7 +23,7 @@ architecture bench of alu_tb is
 
 	signal Op1_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
 	signal Op2_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
-	signal Cmd_tb	: std_logic_vector(ALU_CMD_L - 1 downto 0);
+	signal Cmd_tb	: std_logic_vector(CMD_ALU_L - 1 downto 0);
 
 	signal Ovfl_tb	: std_logic;
 	signal Unfl_tb	: std_logic;
@@ -70,19 +70,19 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure push_op(variable Op1_int : out integer; variable Op2_int: out integer; variable Cmd: out std_logic_vector(ALU_CMD_L-1 downto 0); variable seed1, seed2: inout positive) is
+		procedure push_op(variable Op1_int : out integer; variable Op2_int: out integer; variable Cmd: out std_logic_vector(CMD_ALU_L-1 downto 0); variable seed1, seed2: inout positive) is
 			variable Op1_in, Op2_in, Cmd_in	: integer;
 			variable rand_val, sign_val	: real;
-			variable Cmd_int: std_logic_vector(ALU_CMD_L-1 downto 0);
+			variable Cmd_int: std_logic_vector(CMD_ALU_L-1 downto 0);
 		begin
 			uniform(seed1, seed2, rand_val);
-			Cmd_in := integer(rand_val*(2.0**(real(ALU_CMD_L)) - 1.0));
+			Cmd_in := integer(rand_val*(2.0**(real(CMD_ALU_L)) - 1.0));
 
-			Cmd_tb <= std_logic_vector(to_unsigned(Cmd_in, ALU_CMD_L));
-			Cmd := std_logic_vector(to_unsigned(Cmd_in, ALU_CMD_L));
-			Cmd_int := std_logic_vector(to_unsigned(Cmd_in, ALU_CMD_L));
+			Cmd_tb <= std_logic_vector(to_unsigned(Cmd_in, CMD_ALU_L));
+			Cmd := std_logic_vector(to_unsigned(Cmd_in, CMD_ALU_L));
+			Cmd_int := std_logic_vector(to_unsigned(Cmd_in, CMD_ALU_L));
 
-			if (Cmd_int = CMD_SSUM) or (Cmd_int = CMD_SSUB) or (Cmd_int = CMD_SCMP) then
+			if (Cmd_int = CMD_ALU_SSUM) or (Cmd_int = CMD_ALU_SSUB) or (Cmd_int = CMD_ALU_SCMP) then
 				uniform(seed1, seed2, rand_val);
 				uniform(seed1, seed2, sign_val);
 				Op1_in := integer(rand_sign(sign_val)*rand_val*(2.0**(real(OP1_L_TB) - 1.0) - 1.0));
@@ -147,7 +147,7 @@ begin
 		variable Unfl_rtl, Unfl_ideal	: integer;
 		variable Op1_int, Op2_int	: integer;
 		variable seed1, seed2	: positive;
-		variable Cmd	: std_logic_vector(ALU_CMD_L-1 downto 0);
+		variable Cmd	: std_logic_vector(CMD_ALU_L-1 downto 0);
 		variable Cmd_txt	: string(1 to 4);
 		variable pass	: integer;
 		variable num_pass	: integer;
@@ -172,7 +172,7 @@ begin
 
 			wait on Done_tb;
 
-			if (Cmd = CMD_SSUM) or (Cmd = CMD_SSUB) or (Cmd = CMD_SCMP) then
+			if (Cmd = CMD_ALU_SSUM) or (Cmd = CMD_ALU_SSUB) or (Cmd = CMD_ALU_SCMP) then
 				Res_rtl := to_integer(signed(Res_tb));
 			else
 				Res_rtl := to_integer(unsigned(Res_tb));

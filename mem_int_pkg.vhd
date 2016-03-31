@@ -26,4 +26,4 @@ package mem_int_pkg is
 	);
 	end component;
 
-end package reg_file_pkg;
+end package mem_int_pkg;

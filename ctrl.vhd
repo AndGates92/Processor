@@ -31,7 +31,7 @@ port (
 	Immediate	: in std_logic_vector(REG_L - 1 downto 0);
 	EndDecoding	: in std_logic;
 	CtrlCmd	: in std_logic_vector(CTRL_CMD_L - 1 downto 0);
-	CmdALU_In	: in std_logic_vector(ALU_CMD_L - 1 downto 0);
+	CmdALU_In	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
 	AddressRegFileIn_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	AddressRegFileOut1_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
 	AddressRegFileOut2_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
@@ -44,7 +44,7 @@ port (
 	DoneALU	: in std_logic;
 	EnableALU	: out std_logic;
 	ResALU	: in std_logic_vector(OP1_L - 1 downto 0);
-	CmdALU	: out std_logic_vector(ALU_CMD_L - 1 downto 0);
+	CmdALU	: out std_logic_vector(CMD_ALU_L - 1 downto 0);
 
 	-- Multiplier
 	DoneMul	: in std_logic;
@@ -85,7 +85,7 @@ architecture rtl of ctrl is
 	signal CtrlCmdN, CtrlCmdC	: std_logic_vector(CTRL_CMD_L - 1 downto 0);
 
 	-- ALU
-	signal CmdALUN, CmdALUC		: std_logic_vector(ALU_CMD_L - 1 downto 0);
+	signal CmdALUN, CmdALUC		: std_logic_vector(CMD_ALU_L - 1 downto 0);
 
 	-- Register File
 	signal AddressRegFileInN, AddressRegFileInC	: std_logic_vector(count_length(REG_NUM) - 1 downto 0);
@@ -108,7 +108,7 @@ begin
 			CtrlCmdC <= (others => '0');
 
 			-- ALU
-			CmdALUC <= CMD_DISABLE;
+			CmdALUC <= CMD_ALU_DISABLE;
 
 			-- Register File
 			AddressRegFileInC <= (others => '0');
@@ -187,9 +187,9 @@ begin
 			end if;
 		elsif (StateC = REG_FILE_READ) then
 			if (CtrlCmdC = CTRL_CMD_ALU) then
-				if (CmdALUC = CMD_MUL) then
+				if (CmdALUC = CMD_ALU_MUL) then
 					State_tmp := MULTIPLICATION;
-				elsif (CmdALUC = CMD_DIV) then
+				elsif (CmdALUC = CMD_ALU_DIV) then
 					State_tmp := DIVISION;
 				else
 					State_tmp := ALU_OP;
