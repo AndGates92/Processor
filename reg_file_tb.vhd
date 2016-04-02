@@ -16,7 +16,7 @@ end entity reg_file_tb;
 architecture bench of reg_file_tb is
 
 	constant CLK_PERIOD	: time := 10 ns;
-	constant NUM_TEST	: integer := 1000;
+	constant NUM_TEST	: integer := 10000;
 
 	constant REG_L_TB	: positive := 16;
 	constant OUT_NUM_TB	: positive := 2;

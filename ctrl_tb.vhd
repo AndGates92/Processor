@@ -17,7 +17,7 @@ end entity ctrl_tb;
 architecture bench of ctrl_tb is
 
 	constant CLK_PERIOD	: time := 10 ns;
-	constant NUM_TEST	: integer := 1000;
+	constant NUM_TEST	: integer := 10000;
 
 	constant ADDR_L_TB	: positive := 16;
 	constant REG_L_TB	: positive := 16;

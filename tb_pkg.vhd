@@ -17,7 +17,7 @@ package tb_pkg is
 	constant INSTR_L_TB	: positive := 20;
 	constant STAT_REG_L_TB	: positive := 8;
 	constant EN_REG_FILE_L_TB	: positive := 3;
-	constant REG_NUM_TB	: positive := 16;
+	constant REG_NUM_TB	: positive := 8;
 	constant OP1_L_TB	: integer := 16;
 	constant OP2_L_TB	: integer := 16;
 	constant INCR_PC_TB	: positive := 4;

@@ -20,6 +20,7 @@ all:
 	make alu_all
 	make decode_stage_all
 	make ctrl_all
+	make execute_all
 
 clean:
 	rm -f ${LOG_FILE} ${SUMMARY_FILE}

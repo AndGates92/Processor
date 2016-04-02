@@ -15,7 +15,7 @@ end entity alu_tb;
 architecture bench of alu_tb is
 
 	constant CLK_PERIOD	: time := 10 ns;
-	constant NUM_TEST	: integer := 1000;
+	constant NUM_TEST	: integer := 10000;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;

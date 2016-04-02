@@ -18,14 +18,14 @@ end entity decode_stage_tb;
 architecture bench of decode_stage_tb is
 
 	constant CLK_PERIOD	: time := 10 ns;
-	constant NUM_TEST	: integer := 1000;
+	constant NUM_TEST	: integer := 10000;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
 
-	constant REG_L_TB		: positive := 28;
-	constant PC_L_TB		: positive := 28;
+	constant REG_L_TB		: positive := 20;
+	constant PC_L_TB		: positive := 30;
 
 	signal NewInstr_tb	: std_logic;
 	signal Instr_tb		: std_logic_vector(INSTR_L_TB - 1 downto 0);

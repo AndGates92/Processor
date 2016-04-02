@@ -24,15 +24,9 @@ architecture bench of execute_tb is
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
 
-	constant OP1_L_TB	: integer := 16;
-	constant OP2_L_TB	: integer := 16;
 	constant BASE_STACK_TB	: positive := 16#8000#;
-	constant INSTR_L_TB		: positive := 32;
-	constant REG_NUM_TB		: positive := 16;
 	constant REG_L_TB		: positive := 16;
 	constant ADDR_L_TB		: positive := 16;
-	constant STAT_REG_L_TB	: positive := 8;
-	constant EN_REG_FILE_L_TB	: positive := 3;
 	constant OUT_REG_FILE_NUM_TB	: positive := 2;
 
 	signal AddressRegFileIn_In_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
