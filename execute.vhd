@@ -52,6 +52,7 @@ architecture rtl of execute_stage is
 
 	signal Op1	: std_logic_vector(OP1_L - 1 downto 0);
 	signal Op2	: std_logic_vector(OP2_L - 1 downto 0);
+	signal NegBitALU	: std_logic;
 
 	signal EnableALU, EnableMul, EnableDiv, EnableMemory	: std_logic; -- enable signals
 	signal EnableRegFile	: std_logic_vector(EN_REG_FILE_L - 1 downto 0);
@@ -93,8 +94,14 @@ begin
 
 	ResDbg <= ResDbgC;
 
-	StatusRegN <= 	ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & ResALU(REG_L - 1) & Unfl & Ovfl & "1" when (DoneALU = '1') and (ResALU = ZERO_RES) else
-			ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & ResALU(REG_L - 1) & Unfl & Ovfl & "0" when (DoneALU = '1') else
+	NegBitALU <= ResALU(OP1_L - 1) when (CmdALU = CMD_ALU_SSUM) or (CmdALU = CMD_ALU_SSUB) or (CmdALU = CMD_ALU_SCMP) else '0';
+
+	StatusRegN <= 	ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & NegBitALU & Unfl & Ovfl & "1" when (DoneALU = '1') and (ResALU = ZERO_RES) else
+			ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & NegBitALU & Unfl & Ovfl & "0" when (DoneALU = '1') else
+			ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & ResMul(OP1_L - 1) & Unfl & Ovfl & "1" when (DoneMul = '1') and (ResMul(OP1_L - 1 downto 0) = ZERO_RES) else
+			ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & ResMul(OP1_L - 1) & Unfl & Ovfl & "0" when (DoneMul = '1') else
+			ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & ResDiv(OP1_L - 1) & Unfl & Ovfl & "1" when (DoneDiv = '1') and (ResDiv = ZERO_RES) else
+			ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & ResDiv(OP1_L - 1) & Unfl & Ovfl & "0" when (DoneDiv = '1') else
 			StatusRegC;
 
 	StatusRegOut <= StatusRegC;

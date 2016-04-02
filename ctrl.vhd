@@ -274,7 +274,7 @@ begin
 			ResALU when ((DoneALU = '1') and (StateC = ALU_OP)) else
 			ResMul(REG_L - 1 downto 0) when ((DoneMul = '1') and (StateC = MULTIPLICATION)) else
 			ResDiv when ((DoneDiv = '1') and (StateC = DIVISION)) else
-			DataRegOut1C when ((CtrlCmdC = CTRL_CMD_MOV) and (NextStateC = REG_FILE_WRITE)) else
+			DataRegOut1C when ((CtrlCmdC = CTRL_CMD_MOV) and (NextStateC = REG_FILE_WRITE) and (EnableRegFileC(1) = '1')) else
 			ImmediateC;
 
 	DataRegOut1N <= DataRegOut1;
