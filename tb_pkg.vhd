@@ -22,7 +22,7 @@ package tb_pkg is
 	constant OP2_L_TB	: integer := 16;
 	constant INCR_PC_TB	: positive := 4;
 
-	type reg_file_array is array(0 to REG_NUM_TB) of integer;
+	type reg_file_array is array(0 to REG_NUM_TB-1) of integer;
 
 	procedure decode_ref(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out integer);
 	procedure reg_file_ref(variable RegFileIn_int: in reg_file_array; variable DataIn_int : in integer; variable AddressIn_int: in integer; variable AddressOut1_int : in integer; variable AddressOut2_int: in integer; variable Enable_int: in integer; variable Done_int: out integer; variable DataOut1_int: out integer; variable DataOut2_int : out integer; variable RegFileOut_int: out reg_file_array);
@@ -103,10 +103,6 @@ package body tb_pkg is
 		RegFileOut_int := RegFileIn_int;
 		Enable_vec := std_logic_vector(to_unsigned(Enable_int,EN_REG_FILE_L_TB));
 
-		if (Enable_vec(0) = '1') then
-			RegFileOut_int(AddressIn_int) := DataIn_int;
-		end if;
-
 		if (Enable_vec(1) = '1') then
 			DataOut1_int := RegFileIn_int(AddressOut1_int);
 			Done_tmp := Done_tmp + 1;
@@ -119,6 +115,10 @@ package body tb_pkg is
 			Done_tmp := Done_tmp + 2;
 		else
 			DataOut2_int := 0;
+		end if;
+
+		if (Enable_vec(0) = '1') then
+			RegFileOut_int(AddressIn_int) := DataIn_int;
 		end if;
 
 		Done_int := Done_tmp;

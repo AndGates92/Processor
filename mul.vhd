@@ -105,6 +105,7 @@ begin
 		SubN <= SubC;
 		CountN <= CountC;
 		tmp <= (others => '0');
+		ProdLSB <= ProdC(1 downto 0);
 
 		if (StateC = IDLE) then
 			AddN(AddN'length-1 downto (AddN'length-OP1_L)) <= unsigned(Op1);
@@ -116,7 +117,6 @@ begin
 			CountN <= (others => '0');
 		elsif (StateC = COMPUTE) then
 			CountN <= CountC + 1;
-			ProdLSB <= ProdC(1 downto 0);
 			case ProdLSB is
 				when "00"|"11" =>
 					tmp <= ProdC;
@@ -228,6 +228,7 @@ begin
 		SubN <= SubC;
 		CountN <= CountC;
 		tmp <= (others => '0');
+		ProdLSB <= ProdC(2 downto 0);
 
 		if (StateC = IDLE) then
 			AddN <= unsigned(Op1);
@@ -237,7 +238,6 @@ begin
 			CountN <= (others => '0');
 		elsif (StateC = COMPUTE) then
 			CountN <= CountC + 1;
-			ProdLSB <= ProdC(2 downto 0);
 			case ProdLSB is
 				when "000"|"111" =>
 					tmp <= ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto 1);

@@ -18,7 +18,7 @@ end entity execute_tb;
 architecture bench of execute_tb is
 
 	constant CLK_PERIOD	: time := 10 ns;
-	constant NUM_TEST	: integer := 100;
+	constant NUM_TEST	: integer := 10000;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;
@@ -199,7 +199,19 @@ begin
 				if (CmdALU = CMD_ALU_MUL) then
 					ResOp := Op1_int * Op2_int;
 				elsif (CmdALU = CMD_ALU_DIV) then
-					ResOp := integer(Op1_int/Op2_int);
+					if (Op1_int /= 0) and (Op2_int /= 0) then
+						ResOp := integer(Op1_int/Op2_int);
+					elsif (Op1_int = 0) and (Op2_int = 0) then
+						ResOp := - 1;
+					elsif (Op2_int = 0) and (Op1_int > 0) then
+						ResOp := (2**(OP1_L_TB - 1)) - 1;
+					elsif (Op2_int = 0) and (Op1_int < 0) then
+						ResOp := -((2**(OP1_L_TB - 1)) - 1);
+					elsif (Op1_int = 0) then
+						ResOp := 0;
+					else
+						ResOp := 0;
+					end if;
 				else
 					alu_ref(Op1_int, Op2_int, CmdALU, ResOp, Ovfl_ideal, Unfl_ideal);
 				end if;
@@ -214,15 +226,19 @@ begin
 				end if;
 
 			else
-				Enable_int := to_integer(unsigned(std_logic_vector(EnableRegFile_vec(EN_REG_FILE_L_TB-1 downto 1) & "0")));
-				reg_file_ref(RegFileIn_int, Immediate_int, AddressIn_int, AddressOut1_int, AddressOut2_int, Enable_int, Done_int, DataOut1_int, DataOut2_int, RegFileOut_op1_int);
+				if (CtrlCmd = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) or (CtrlCmd = CTRL_CMD_MOV) then
+					Enable_int := to_integer(unsigned(std_logic_vector(EnableRegFile_vec(EN_REG_FILE_L_TB-1 downto 1) & "0")));
+					reg_file_ref(RegFileIn_int, Immediate_int, AddressIn_int, AddressOut1_int, AddressOut2_int, Enable_int, Done_int, DataOut1_int, DataOut2_int, RegFileOut_op1_int);
+				end if;
 				if (EnableRegFile_vec(EN_REG_FILE_L_TB-1) = '1') then
 					Op1_int := DataOut1_int;
 				else
 					Op1_int := Immediate_int;
 				end if;
- 				Enable_int := to_integer(unsigned(std_logic_vector("00" & EnableRegFile_vec(0 downto 0))));
-				reg_file_ref(RegFileIn_int, Op1_int, AddressIn_int, AddressOut1_int, AddressOut2_int, Enable_int, Done_int, DataOut1_int, DataOut2_int, RegFileOut_op1_int);
+				if (CtrlCmd = CTRL_CMD_RD_S) or (CtrlCmd = CTRL_CMD_RD_M) or (CtrlCmd = CTRL_CMD_MOV) then
+	 				Enable_int := to_integer(unsigned(std_logic_vector("00" & EnableRegFile_vec(0 downto 0))));
+					reg_file_ref(RegFileIn_int, Op1_int, AddressIn_int, AddressOut1_int, AddressOut2_int, Enable_int, Done_int, DataOut1_int, DataOut2_int, RegFileOut_op1_int);
+				end if;
 			end if;
 
 			if (ResOp = 0) then
