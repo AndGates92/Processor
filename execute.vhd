@@ -93,8 +93,8 @@ begin
 
 	ResDbg <= ResDbgC;
 
-	StatusRegN <= 	ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & (not ResALU(REG_L - 1)) & Unfl & Ovfl & "1" when (DoneALU = '1') and (ResALU = ZERO_RES) else
-			ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & (not ResALU(REG_L - 1)) & Unfl & Ovfl & "0" when (DoneALU = '1') else
+	StatusRegN <= 	ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & ResALU(REG_L - 1) & Unfl & Ovfl & "1" when (DoneALU = '1') and (ResALU = ZERO_RES) else
+			ZERO_STAT_REG(STAT_REG_L - 4 - 1 downto 0) & ResALU(REG_L - 1) & Unfl & Ovfl & "0" when (DoneALU = '1') else
 			StatusRegC;
 
 	StatusRegOut <= StatusRegC;

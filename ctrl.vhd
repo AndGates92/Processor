@@ -79,7 +79,9 @@ end entity ctrl;
 
 architecture rtl of ctrl is
 
-	signal BaseStackAddr	: std_logic_vector(REG_L - 1 downto 0) := std_logic_vector(to_unsigned(BASE_STACK, REG_L));
+	constant ZERO_OP	: std_logic_vector(REG_L - 1 downto 0) := (others => '0');
+
+	constant BaseStackAddr	: std_logic_vector(REG_L - 1 downto 0) := std_logic_vector(to_unsigned(BASE_STACK, REG_L));
 
 	signal ImmediateN, ImmediateC	: std_logic_vector(REG_L - 1 downto 0);
 	signal CtrlCmdN, CtrlCmdC	: std_logic_vector(CTRL_CMD_L - 1 downto 0);
@@ -152,8 +154,8 @@ begin
 					StateN <= REG_FILE_WRITE;
 					NextStateN <= REG_FILE_WRITE;
 				else
-					StateN <= StateC;
-					NextStateN <= NextStateC;
+					StateN <= UNKNOWN_COMMAND;
+					NextStateN <= UNKNOWN_COMMAND;
 				end if;
 			end if;
 		elsif (StateC = ALU_OP) then
@@ -223,12 +225,15 @@ begin
 				NextStateN <= State_tmp;
 				StateN <= StateC;
 			end if;
+		elsif (StateC = UNKNOWN_COMMAND) then
+			StateN <= IDLE;
 		else
 			StateN <= StateC;
 		end if;
 	end process state_det;
 
-	EndExecution <= '1' when ((StateC = REG_FILE_WRITE) and (DoneRegFile = '1')) or (((CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)) and (StateC = MEMORY_ACCESS) and (DoneMemory = '1')) else '0';
+
+	EndExecution <= '1' when (StateC = UNKNOWN_COMMAND) or ((StateC = REG_FILE_WRITE) and (DoneRegFile = '1')) or (((CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)) and (StateC = MEMORY_ACCESS) and (DoneMemory = '1')) else '0';
 
 	ImmediateN <= Immediate when (EndDecoding = '1') else ImmediateC;
 	CmdALUN <= CmdALU_In when (EndDecoding = '1') else CmdALUC;
@@ -266,7 +271,7 @@ begin
 			ImmediateC;
 
 	EnableRegFile <=	(EnableRegFileC(EN_REG_FILE_L - 1 downto 1) & "0") when (NextStateC = REG_FILE_READ) else -- read data
-				("00" & EnableRegFileC(0)) when (((DoneALU = '1') or (DoneMul = '1') or (DoneDiv = '1') or (DoneMemory = '1') or ((CtrlCmdC = CTRL_CMD_MOV) and (EnableRegFileC(0) = '1'))) and (NextStateC = REG_FILE_WRITE)) else -- store data (result of an operation or a memory access or an immediate to a register)
+				("00" & EnableRegFileC(0)) when (((DoneALU = '1') or (DoneMul = '1') or (DoneDiv = '1') or (DoneMemory = '1') or ((CtrlCmdC = CTRL_CMD_MOV) and (EnableRegFileC(0) = '1'))) and (NextStateC = REG_FILE_WRITE)) or ((DoneDiv = '1') and (StateC = DIVISION) and (DataRegOut1 = ZERO_OP)) else -- store data (result of an operation or a memory access or an immediate to a register)
 				(others => '0');
 
 	-- Memory access

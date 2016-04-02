@@ -14,7 +14,7 @@ package tb_pkg is
 	constant summary_file	: string := "summary";
 
 
-	constant INSTR_L_TB	: positive := 28;
+	constant INSTR_L_TB	: positive := 20;
 	constant STAT_REG_L_TB	: positive := 8;
 	constant EN_REG_FILE_L_TB	: positive := 3;
 	constant REG_NUM_TB	: positive := 16;
@@ -129,7 +129,6 @@ package body tb_pkg is
 		variable tmp_op1	: std_logic_vector(OP1_L_TB-1 downto 0);
 		variable tmp_op2	: std_logic_vector(OP2_L_TB-1 downto 0);
 		variable tmp_res	: std_logic_vector(OP1_L_TB-1 downto 0);
-		variable rand_val, sign_val	: real;
 		variable Res_tmp	: integer;
 	begin
 		Ovfl_ideal := 0;
@@ -185,28 +184,28 @@ package body tb_pkg is
 				Res_ideal := - 1;
 			end if;
 		elsif (Cmd = CMD_ALU_AND) then
-			tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
-			tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
+			tmp_op1 := std_logic_vector(to_signed(Op1_int, OP1_L_TB));
+			tmp_op2 := std_logic_vector(to_signed(Op2_int, OP2_L_TB));
 			for i in 0 to OP1_L_TB-1 loop
 				tmp_res(i) := tmp_op1(i) and tmp_op2(i);
 			end loop;
 			Res_ideal := to_integer(unsigned(tmp_res));
 		elsif (Cmd = CMD_ALU_OR) then
-			tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
-			tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
+			tmp_op1 := std_logic_vector(to_signed(Op1_int, OP1_L_TB));
+			tmp_op2 := std_logic_vector(to_signed(Op2_int, OP2_L_TB));
 			for i in 0 to OP1_L_TB-1 loop
 				tmp_res(i) := tmp_op1(i) or tmp_op2(i);
 			end loop;
 			Res_ideal := to_integer(unsigned(tmp_res));
 		elsif (Cmd = CMD_ALU_XOR) then
-			tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
-			tmp_op2 := std_logic_vector(to_unsigned(Op2_int, OP2_L_TB));
+			tmp_op1 := std_logic_vector(to_signed(Op1_int, OP1_L_TB));
+			tmp_op2 := std_logic_vector(to_signed(Op2_int, OP2_L_TB));
 			for i in 0 to OP1_L_TB-1 loop
 				tmp_res(i) := tmp_op1(i) xor tmp_op2(i);
 			end loop;
 			Res_ideal := to_integer(unsigned(tmp_res));
 		elsif (Cmd = CMD_ALU_NOT) then
-			tmp_op1 := std_logic_vector(to_unsigned(Op1_int, OP1_L_TB));
+			tmp_op1 := std_logic_vector(to_signed(Op1_int, OP1_L_TB));
 			for i in 0 to OP1_L_TB-1 loop
 				tmp_res(i) := not tmp_op1(i);
 			end loop;
@@ -284,6 +283,8 @@ package body tb_pkg is
 			Cmd_txt := "BXOR";
 		elsif (Cmd = CMD_ALU_NOT) then
 			Cmd_txt := "BNOT";
+		elsif (Cmd = CMD_ALU_SHIFT) then
+			Cmd_txt := "SHFT";
 		elsif (Cmd = CMD_ALU_DISABLE) then
 			Cmd_txt := "DISA";
 		else

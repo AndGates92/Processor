@@ -18,7 +18,7 @@ end entity execute_tb;
 architecture bench of execute_tb is
 
 	constant CLK_PERIOD	: time := 10 ns;
-	constant NUM_TEST	: integer := 1000;
+	constant NUM_TEST	: integer := 100;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;
@@ -86,7 +86,7 @@ begin
 
 	test: process
 
-		procedure reset(variable RegFileOut_int : out reg_file_array) is
+		procedure reset(variable RegFileOut_int : out reg_file_array; variable StatusRegOut_int : out integer) is
 		begin
 			rst_tb <= '0';
 			wait until rising_edge(clk_tb);
@@ -97,6 +97,7 @@ begin
 			Immediate_tb <= (others => '0');
 			EnableRegFile_In_tb <= (others => '0');
 			RegFileOut_int := (others => 0);
+			StatusRegOut_int := 0;
 			Start_tb <= '0';
 			wait until rising_edge(clk_tb);
 			rst_tb <= '0';
@@ -164,7 +165,7 @@ begin
 			Start_tb <= '0';
 		end procedure push_op;
 
-		procedure execute_ref(variable AddressIn_int, AddressOut1_int, AddressOut2_int : in integer; variable Immediate_int: in integer; variable CmdALU: in std_logic_vector(CMD_ALU_L-1 downto 0); variable CtrlCmd: in std_logic_vector(CTRL_CMD_L-1 downto 0); variable EnableRegFile_vec: in std_logic_vector(EN_REG_FILE_L_TB-1 downto 0); variable RegFileIn_int : in reg_file_array; variable RegFileOut_int : out reg_file_array; variable Op1, Op2 : out integer; variable StatusReg_int : out integer; variable ResOp_ideal: out integer) is
+		procedure execute_ref(variable AddressIn_int, AddressOut1_int, AddressOut2_int : in integer; variable Immediate_int: in integer; variable CmdALU: in std_logic_vector(CMD_ALU_L-1 downto 0); variable CtrlCmd: in std_logic_vector(CTRL_CMD_L-1 downto 0); variable EnableRegFile_vec: in std_logic_vector(EN_REG_FILE_L_TB-1 downto 0); variable RegFileIn_int : in reg_file_array; variable RegFileOut_int : out reg_file_array; variable Op1, Op2 : out integer; variable StatusRegIn_int : in integer; variable StatusRegOut_int : out integer; variable ResOp_ideal: out integer) is
 			variable Done_int	: integer;
 			variable Enable_int	: integer;
 			variable DataOut1_int, DataOut2_int	: integer;
@@ -173,11 +174,13 @@ begin
 			variable StatusReg_in	: integer;
 			variable RegFileOut_op1_int	: reg_file_array;
 		begin
-			ResOp_ideal := 0;
+			ResOp := 0;
 			Ovfl_ideal := 0;
 			Unfl_ideal := 0;
 			StatusReg_in := 0;
-			if (CmdALU = CTRL_CMD_ALU) then
+			Op1_int := 0;
+			Op2_int := 0;
+			if (CtrlCmd = CTRL_CMD_ALU) then
 				Enable_int := to_integer(unsigned(std_logic_vector(EnableRegFile_vec(EN_REG_FILE_L_TB-1 downto 1) & "0")));
 				reg_file_ref(RegFileIn_int, Immediate_int, AddressIn_int, AddressOut1_int, AddressOut2_int, Enable_int, Done_int, DataOut1_int, DataOut2_int, RegFileOut_op1_int);
 				Op1_int := DataOut1_int;
@@ -202,13 +205,6 @@ begin
 				end if;
 				Enable_int := to_integer(unsigned(std_logic_vector("00" & EnableRegFile_vec(0 downto 0))));
 				reg_file_ref(RegFileIn_int, ResOp, AddressIn_int, AddressOut1_int, AddressOut2_int, Enable_int, Done_int, DataOut1_int, DataOut2_int, RegFileOut_op1_int);
-				ResOp_ideal := ResOp;
-
-				if (ResOp = 0) then
-					StatusReg_in := StatusReg_in + 1;
-				else
-					StatusReg_in := StatusReg_in + integer(2.0**(3.0));
-				end if;
 
 				if (Unfl_ideal = 1) then
 					StatusReg_in := StatusReg_in + integer(2.0**(2.0));
@@ -217,7 +213,6 @@ begin
 					StatusReg_in := StatusReg_in + integer(2.0**(1.0));
 				end if;
 
-				StatusReg_int := StatusReg_in;
 			else
 				Enable_int := to_integer(unsigned(std_logic_vector(EnableRegFile_vec(EN_REG_FILE_L_TB-1 downto 1) & "0")));
 				reg_file_ref(RegFileIn_int, Immediate_int, AddressIn_int, AddressOut1_int, AddressOut2_int, Enable_int, Done_int, DataOut1_int, DataOut2_int, RegFileOut_op1_int);
@@ -228,19 +223,34 @@ begin
 				end if;
  				Enable_int := to_integer(unsigned(std_logic_vector("00" & EnableRegFile_vec(0 downto 0))));
 				reg_file_ref(RegFileIn_int, Op1_int, AddressIn_int, AddressOut1_int, AddressOut2_int, Enable_int, Done_int, DataOut1_int, DataOut2_int, RegFileOut_op1_int);
-				ResOp_ideal := ResOp;
 			end if;
+
+			if (ResOp = 0) then
+				StatusReg_in := StatusReg_in + 1;
+			elsif (ResOp < 0) or (ResOp > integer(2.0**(real(OP1_L_TB - 1)))) then
+				StatusReg_in := StatusReg_in + integer(2.0**(3.0));
+			end if;
+
+			if (CtrlCmd = CTRL_CMD_ALU) then
+				StatusRegOut_int := StatusReg_in;
+			else
+				StatusRegOut_int := StatusRegIn_int;
+			end if;
+
+			ResOp_ideal := ResOp;
+			Op1 := Op1_int;
+			Op2 := Op2_int;
 
 		end procedure execute_ref;
 
-		procedure verify (variable Op1_int, Op2_int: in integer; variable CtrlCmd : std_logic_vector(CTRL_CMD_L - 1 downto 0); variable CtrlCmd_str, ALUCmd_str : string; variable ResOp_ideal : in integer; variable StatusReg_ideal : in integer; variable ResOp_rtl : in integer; variable StatusReg_rtl : in integer; variable pass : out integer; file file_pointer : text) is
+		procedure verify (variable Op1_int, Op2_int: in integer; variable AddressIn_int, AddressOut1_int, AddressOut2_int : in integer; variable Immediate_int : in integer; variable EnRegFile_int : in integer; variable CtrlCmd : std_logic_vector(CTRL_CMD_L - 1 downto 0); variable CtrlCmd_str, ALUCmd_str : string; variable ResOp_ideal : in integer; variable StatusReg_ideal : in integer; variable ResOp_rtl : in integer; variable StatusReg_rtl : in integer; variable pass : out integer; file file_pointer : text) is
 			variable file_line	: line;
 		begin
 
 			if (CtrlCmd = CTRL_CMD_ALU) then
-				write(file_line, string'( "Ctrl cmd " & CtrlCmd_str & " and ALU cmd" & ALUCmd_str & " with operands " & integer'image(Op1_int) & " and " & integer'image(Op2_int) & " gives: RTL result " & integer'image(ResOp_rtl) & " Status Register " & integer'image(StatusReg_rtl) & " and reference Result " & integer'image(ResOp_ideal) & " Status Register " & integer'image(StatusReg_ideal)));
+				write(file_line, string'( "Ctrl cmd " & CtrlCmd_str & " and ALU cmd " & ALUCmd_str & " with operands " & integer'image(Op1_int) & " at address " & integer'image(AddressOut1_int) & " and " & integer'image(Op2_int) & " at address " & integer'image(AddressOut2_int) & " and result stored at address " & integer'image(AddressIn_int) & " and immediate value " & integer'image(Immediate_int) & " Register File access " & integer'image(EnRegFile_int) & " gives: RTL result " & integer'image(ResOp_rtl) & " Status Register " & integer'image(StatusReg_rtl) & " and reference Result " & integer'image(ResOp_ideal) & " Status Register " & integer'image(StatusReg_ideal)));
 			else
-				write(file_line, string'( "Ctrl cmd " & CtrlCmd_str & " gives: RTL result " & integer'image(ResOp_rtl) & " Status Register " & integer'image(StatusReg_rtl) & " and reference Result " & integer'image(ResOp_ideal) & " Status Register " & integer'image(StatusReg_ideal)));
+				write(file_line, string'( "Ctrl cmd " & CtrlCmd_str & " accessing address " & integer'image(AddressOut1_int) & " for reading out and " & integer'image(AddressIn_int) & " for storing and immediate value " & integer'image(Immediate_int) & " Register File access " & integer'image(EnRegFile_int) & " gives: RTL result " & integer'image(ResOp_rtl) & " Status Register " & integer'image(StatusReg_rtl) & " and reference Result " & integer'image(ResOp_ideal) & " Status Register " & integer'image(StatusReg_ideal)));
 			end if;
 			writeline(file_pointer, file_line);
 
@@ -266,9 +276,10 @@ begin
 		variable CmdALU		: std_logic_vector(CMD_ALU_L-1 downto 0);
 		variable CtrlCmd	: std_logic_vector(CTRL_CMD_L-1 downto 0);
 		variable EnableRegFile_vec	: std_logic_vector(EN_REG_FILE_L_TB-1 downto 0);
+		variable EnableRegFile_int	: integer;
 
 		variable Op1, Op2	: integer;
-		variable StatusReg_ideal, StatusReg_rtl : integer;
+		variable StatusReg_ideal, StatusReg_rtl, StatusRegIn_int : integer;
 		variable ResOp_ideal, ResOp_rtl	: integer;
 
 		variable seed1, seed2	: positive;
@@ -287,7 +298,7 @@ begin
 
 		num_pass := 0;
 
-		reset(RegFileIn_int);
+		reset(RegFileOut_int, StatusReg_ideal);
 		file_open(file_pointer, log_file, append_mode);
 
 		write(file_line, string'( "ALU Test"));
@@ -295,21 +306,27 @@ begin
 
 		for i in 0 to NUM_TEST-1 loop
 
+			RegFileIn_int := RegFileOut_int;
+			StatusRegIn_int := StatusReg_ideal;
+
 			push_op(AddressIn_int, AddressOut1_int, AddressOut2_int, Immediate_int, CmdALU, CtrlCmd, EnableRegFile_vec, seed1, seed2);
 
 			wait on Done_tb;
 
-			if (CmdALU = CMD_ALU_SSUM) or (CmdALU = CMD_ALU_SSUB) or (CmdALU = CMD_ALU_SCMP)  or (CmdALU = CMD_ALU_DIV) or (CmdALU = CMD_ALU_MUL)then
+			if ((CmdALU = CMD_ALU_SSUM) or (CmdALU = CMD_ALU_SSUB) or (CmdALU = CMD_ALU_SCMP)  or (CmdALU = CMD_ALU_DIV) or (CmdALU = CMD_ALU_MUL)) and (CtrlCmd = CTRL_CMD_ALU) then
 				ResOp_rtl := to_integer(signed(ResDbg_tb));
 			else
 				ResOp_rtl := to_integer(unsigned(ResDbg_tb));
 			end if;
 
-			execute_ref(AddressIn_int, AddressOut1_int, AddressOut2_int, Immediate_int, CmdALU, CtrlCmd, EnableRegFile_vec, RegFileIn_int, RegFileOut_int, Op1, Op2, StatusReg_ideal, ResOp_ideal);
+			StatusReg_rtl := to_integer(unsigned(StatusRegOut_tb));
 
-			verify (Op1, Op2, CtrlCmd, ctrl_cmd_std_vect_to_txt(CtrlCmd), alu_cmd_std_vect_to_txt(CmdALU), ResOp_ideal, StatusReg_ideal, ResOp_rtl, StatusReg_rtl, pass, file_pointer);
+			execute_ref(AddressIn_int, AddressOut1_int, AddressOut2_int, Immediate_int, CmdALU, CtrlCmd, EnableRegFile_vec, RegFileIn_int, RegFileOut_int, Op1, Op2, StatusRegIn_int, StatusReg_ideal, ResOp_ideal);
 
-			RegFileIn_int := RegFileOut_int;
+			EnableRegFile_int := to_integer(unsigned(EnableRegFile_vec));
+
+			verify (Op1, Op2, AddressIn_int, AddressOut1_int, AddressOut2_int, Immediate_int, EnableRegFile_int, CtrlCmd, ctrl_cmd_std_vect_to_txt(CtrlCmd), full_alu_cmd_std_vect_to_txt(CmdALU), ResOp_ideal, StatusReg_ideal, ResOp_rtl, StatusReg_rtl, pass, file_pointer);
+
 			num_pass := num_pass + pass;
 
 			wait until rising_edge(clk_tb);

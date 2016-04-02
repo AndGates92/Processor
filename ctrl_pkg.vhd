@@ -25,6 +25,7 @@ package ctrl_pkg is
 	constant REG_FILE_READ	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_L));
 	constant REG_FILE_WRITE	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_L));
 	constant MEMORY_ACCESS	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_L));
+	constant UNKNOWN_COMMAND	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_L));
 
 	component ctrl
 	generic (
