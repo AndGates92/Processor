@@ -8,7 +8,7 @@ use work.mem_int_pkg.all;
 entity mem_int is
 generic (
 	ADDR_L		: positive := 16;
-	REG_L		: positive := 32
+	DATA_L		: positive := 32
 );
 port (
 
@@ -19,9 +19,9 @@ port (
 	DoneMemory	: out std_logic;
 	ReadMem		: in std_logic;
 	EnableMemory	: in std_logic;
-	DataMemIn	: in std_logic_vector(REG_L - 1 downto 0);
+	DataMemIn	: in std_logic_vector(DATA_L - 1 downto 0);
 	AddressMem	: in std_logic_vector(ADDR_L - 1 downto 0);
-	DataMemOut	: out std_logic_vector(REG_L - 1 downto 0)
+	DataMemOut	: out std_logic_vector(DATA_L - 1 downto 0)
 
 );
 end entity mem_int;

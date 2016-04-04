@@ -7,6 +7,7 @@ library work;
 use work.alu_pkg.all;
 use work.ctrl_pkg.all;
 use work.decode_pkg.all;
+use work.proc_pkg.all;
 
 package tb_pkg is 
 
@@ -14,7 +15,6 @@ package tb_pkg is
 	constant summary_file	: string := "summary";
 
 
-	constant INSTR_L_TB	: positive := 20;
 	constant STAT_REG_L_TB	: positive := 8;
 	constant EN_REG_FILE_L_TB	: positive := 3;
 	constant REG_NUM_TB	: positive := 8;
@@ -45,7 +45,7 @@ package body tb_pkg is
 	procedure decode_ref(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out integer) is
 	begin
 		if (OpCode = OP_CODE_SET) then
-			ImmediateOut := integer(2.0**(real(INSTR_L_TB)) - 1.0);
+			ImmediateOut := integer(2.0**(real(INSTR_L)) - 1.0);
 		elsif (OpCode = OP_CODE_CLR) or (OpCode = OP_CODE_BRE) or  (OpCode = OP_CODE_BRNE) or  (OpCode = OP_CODE_BRG) or (OpCode = OP_CODE_BRL) or (OpCode = OP_CODE_JUMP) or (OpCode = OP_CODE_CALL) then 
 			ImmediateOut := 0;
 		else

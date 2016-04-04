@@ -16,7 +16,6 @@ generic (
 	BASE_STACK	: positive := 16#8000#;
 	OP1_L		: positive := 32;
 	OP2_L		: positive := 16;
-	INSTR_L		: positive := 32;
 	REG_NUM		: positive := 16;
 	REG_L		: positive := 32;
 	ADDR_L		: positive := 16;
@@ -30,9 +29,9 @@ port (
 
 	Start	: in std_logic;
 
-	AddressRegFileIn_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-	AddressRegFileOut1_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-	AddressRegFileOut2_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
+	AddressRegFileIn_In	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+	AddressRegFileOut1_In	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+	AddressRegFileOut2_In	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	Immediate	: in std_logic_vector(REG_L - 1 downto 0);
 	EnableRegFile_In	: in std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
@@ -68,9 +67,9 @@ architecture rtl of execute_stage is
 
 	-- Register File
 	signal DataRegFileIn	: std_logic_vector(REG_L - 1 downto 0);
-	signal AddressRegFileIn	: std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-	signal AddressRegFileOut1	: std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-	signal AddressRegFileOut2	: std_logic_vector(count_length(REG_NUM) - 1 downto 0);
+	signal AddressRegFileIn	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+	signal AddressRegFileOut1	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+	signal AddressRegFileOut2	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	signal DoneReadStatus		: std_logic_vector(OUT_REG_FILE_NUM-1 downto 0);
 	signal DataRegFileOut1	: std_logic_vector(REG_L-1 downto 0);
 	signal DataRegFileOut2	: std_logic_vector(REG_L-1 downto 0);
@@ -191,7 +190,7 @@ begin
 
 	MEM_INT_I: mem_int generic map(
 		ADDR_L => ADDR_L,
-		REG_L => REG_L
+		DATA_L => REG_L
 	)
 	port map (
 		rst => rst,

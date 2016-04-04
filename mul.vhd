@@ -42,7 +42,7 @@ architecture booth_radix2 of mul is
 
 	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
 
-	signal CountC, CountN: unsigned(count_length(OP2_L)-1 downto 0);
+	signal CountC, CountN: unsigned(int_to_bit_num(OP2_L)-1 downto 0);
 
 begin
 
@@ -165,7 +165,7 @@ architecture booth_radix4 of mul is
 
 	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
 
-	signal CountC, CountN: unsigned(count_length(OP2_L/2)-1 downto 0);
+	signal CountC, CountN: unsigned(int_to_bit_num(OP2_L/2)-1 downto 0);
 
 begin
 

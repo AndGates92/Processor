@@ -21,9 +21,9 @@ package reg_file_pkg is
 		rst		: in std_logic;
 		clk		: in std_logic;
 		DataIn		: in std_logic_vector(REG_L - 1 downto 0);
-		AddressIn	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-		AddressOut1	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-		AddressOut2	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
+		AddressIn	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+		AddressOut1	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+		AddressOut2	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 		Enable		: in std_logic_vector(3-1 downto 0);
 		Done		: out std_logic_vector(2-1 downto 0);
 		End_LS		: out std_logic;

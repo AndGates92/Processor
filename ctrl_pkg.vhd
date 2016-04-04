@@ -51,9 +51,9 @@ package ctrl_pkg is
 		EndDecoding	: in std_logic;
 		CtrlCmd	: in std_logic_vector(CTRL_CMD_L - 1 downto 0);
 		CmdALU_In	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
-		AddressRegFileIn_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-		AddressRegFileOut1_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-		AddressRegFileOut2_In	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
+		AddressRegFileIn_In	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+		AddressRegFileOut1_In	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+		AddressRegFileOut2_In	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 		EnableRegFile_In	: in std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
 		Op1	: out std_logic_vector(OP1_L - 1 downto 0);
@@ -89,9 +89,9 @@ package ctrl_pkg is
 		DataRegIn		: out std_logic_vector(REG_L - 1 downto 0);
 		DataRegOut1	: in std_logic_vector(REG_L - 1 downto 0);
 		DataRegOut2	: in std_logic_vector(REG_L - 1 downto 0);
-		AddressRegFileIn	: out std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-		AddressRegFileOut1	: out std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-		AddressRegFileOut2	: out std_logic_vector(count_length(REG_NUM) - 1 downto 0);
+		AddressRegFileIn	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+		AddressRegFileOut1	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+		AddressRegFileOut2	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 		EnableRegFile	: out std_logic_vector(EN_REG_FILE_L - 1 downto 0)
 	);
 	end component;

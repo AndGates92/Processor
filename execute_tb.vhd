@@ -29,9 +29,9 @@ architecture bench of execute_tb is
 	constant ADDR_L_TB		: positive := 16;
 	constant OUT_REG_FILE_NUM_TB	: positive := 2;
 
-	signal AddressRegFileIn_In_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
-	signal AddressRegFileOut1_In_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
-	signal AddressRegFileOut2_In_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
+	signal AddressRegFileIn_In_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
+	signal AddressRegFileOut1_In_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
+	signal AddressRegFileOut2_In_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal Immediate_tb	: std_logic_vector(REG_L_TB - 1 downto 0);
 	signal EnableRegFile_In_tb	: std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0);
 
@@ -49,7 +49,6 @@ begin
 		OP1_L => OP1_L_TB,
 		OP2_L => OP2_L_TB,
 		BASE_STACK => BASE_STACK_TB,
-		INSTR_L => INSTR_L_TB,
 		REG_NUM => REG_NUM_TB,
 		REG_L => REG_L_TB,
 		ADDR_L => ADDR_L_TB,
@@ -121,18 +120,18 @@ begin
 			Immediate_int := Immediate_in;
 
 			uniform(seed1, seed2, rand_val);
-			AddressIn_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
-			AddressRegFileIn_In_tb <= std_logic_vector(to_unsigned(AddressIn_in, count_length(REG_NUM_TB)));
+			AddressIn_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB))) - 1.0));
+			AddressRegFileIn_In_tb <= std_logic_vector(to_unsigned(AddressIn_in, int_to_bit_num(REG_NUM_TB)));
 			AddressIn_int := AddressIn_in;
 
 			uniform(seed1, seed2, rand_val);
-			AddressOut1_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
-			AddressRegFileOut1_In_tb <= std_logic_vector(to_unsigned(AddressOut1_in, count_length(REG_NUM_TB)));
+			AddressOut1_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB))) - 1.0));
+			AddressRegFileOut1_In_tb <= std_logic_vector(to_unsigned(AddressOut1_in, int_to_bit_num(REG_NUM_TB)));
 			AddressOut1_int := AddressOut1_in;
 
 			uniform(seed1, seed2, rand_val);
-			AddressOut2_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
-			AddressRegFileOut2_In_tb <= std_logic_vector(to_unsigned(AddressOut2_in, count_length(REG_NUM_TB)));
+			AddressOut2_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB))) - 1.0));
+			AddressRegFileOut2_In_tb <= std_logic_vector(to_unsigned(AddressOut2_in, int_to_bit_num(REG_NUM_TB)));
 			AddressOut2_int := AddressOut2_in;
 
 			if (CtrlCmd_in = to_integer(unsigned(CTRL_CMD_ALU))) then

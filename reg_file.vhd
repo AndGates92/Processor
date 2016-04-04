@@ -17,9 +17,9 @@ port (
 	rst		: in std_logic;
 	clk		: in std_logic;
 	DataIn		: in std_logic_vector(REG_L - 1 downto 0);
-	AddressIn	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-	AddressOut1	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-	AddressOut2	: in std_logic_vector(count_length(REG_NUM) - 1 downto 0);
+	AddressIn	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+	AddressOut1	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+	AddressOut2	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	Enable		: in std_logic_vector(EN_L-1 downto 0);
 	Done		: out std_logic_vector(OUT_NUM-1 downto 0);
 	End_LS		: out std_logic;
@@ -38,9 +38,9 @@ architecture rtl of reg_file is
 	signal DataInC, DataInN	: std_logic_vector(REG_L - 1 downto 0);
 	signal DataOut1C, DataOut1N	: std_logic_vector(REG_L - 1 downto 0);
 	signal DataOut2C, DataOut2N	: std_logic_vector(REG_L - 1 downto 0);
-	signal AddressOut1C, AddressOut1N	: std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-	signal AddressOut2C, AddressOut2N	: std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-	signal AddressInC, AddressInN	: std_logic_vector(count_length(REG_NUM) - 1 downto 0);
+	signal AddressOut1C, AddressOut1N	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+	signal AddressOut2C, AddressOut2N	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+	signal AddressInC, AddressInN	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 
 	signal StateC, StateN	: std_logic_vector(STATE_L - 1 downto 0);
 
@@ -88,7 +88,7 @@ begin
 	AddressOut2N <= AddressOut2 when StateC = IDLE else AddressOut2C;
 
 	UPDATE_REG_OUT: for i in 0 to REG_NUM-1 generate
-		RegFileN(i) <= DataInC when (EnableC(0) = '1') and (AddressInC = std_logic_vector(to_unsigned(i, count_length(REG_NUM)))) and (StateC = LOAD_STORE) else RegFileC(i);
+		RegFileN(i) <= DataInC when (EnableC(0) = '1') and (AddressInC = std_logic_vector(to_unsigned(i, int_to_bit_num(REG_NUM)))) and (StateC = LOAD_STORE) else RegFileC(i);
 	end generate;
 
 	DataOut1N <= RegFileC(to_integer(unsigned(AddressOut1C))) when (EnableC(1) = '1') and (StateC = LOAD_STORE) else (others => '0');

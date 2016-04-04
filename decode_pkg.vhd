@@ -36,7 +36,6 @@ package decode_pkg is
 
 	component decode_stage
 	generic (
-		INSTR_L		: positive := 32;
 		REG_NUM		: positive := 16;
 		REG_L		: positive := 32;
 		PC_L		: positive := 32;
@@ -54,9 +53,9 @@ package decode_pkg is
 		PCIn		: in std_logic_vector(PC_L - 1 downto 0);
 		StatusRegIn	: in std_logic_vector(STAT_REG_L - 1 downto 0);
 
-		AddressIn	: out std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-		AddressOut1	: out std_logic_vector(count_length(REG_NUM) - 1 downto 0);
-		AddressOut2	: out std_logic_vector(count_length(REG_NUM) - 1 downto 0);
+		AddressIn	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+		AddressOut1	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
+		AddressOut2	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 		Immediate	: out std_logic_vector(REG_L - 1 downto 0);
 		EnableRegFile	: out std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 

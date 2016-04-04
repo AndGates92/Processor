@@ -26,9 +26,9 @@ architecture bench of reg_file_tb is
 	signal clk_tb	: std_logic := '0';
 
 	signal DataIn_tb	: std_logic_vector(REG_L_TB - 1 downto 0);
-	signal AddressIn_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
-	signal AddressOut1_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
-	signal AddressOut2_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
+	signal AddressIn_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
+	signal AddressOut1_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
+	signal AddressOut2_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal Enable_tb	: std_logic_vector(EN_REG_FILE_L_TB-1 downto 0);
 	signal Done_tb		: std_logic_vector(OUT_NUM_TB-1 downto 0);
 	signal DataOut1_tb	: std_logic_vector(REG_L_TB-1 downto 0);
@@ -90,18 +90,18 @@ begin
 			DataIn_int := DataIn_in;
 
 			uniform(seed1, seed2, rand_val);
-			AddressIn_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
-			AddressIn_tb <= std_logic_vector(to_unsigned(AddressIn_in, count_length(REG_NUM_TB)));
+			AddressIn_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB))) - 1.0));
+			AddressIn_tb <= std_logic_vector(to_unsigned(AddressIn_in, int_to_bit_num(REG_NUM_TB)));
 			AddressIn_int := AddressIn_in;
 
 			uniform(seed1, seed2, rand_val);
-			AddressOut1_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
-			AddressOut1_tb <= std_logic_vector(to_unsigned(AddressOut1_in, count_length(REG_NUM_TB)));
+			AddressOut1_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB))) - 1.0));
+			AddressOut1_tb <= std_logic_vector(to_unsigned(AddressOut1_in, int_to_bit_num(REG_NUM_TB)));
 			AddressOut1_int := AddressOut1_in;
 
 			uniform(seed1, seed2, rand_val);
-			AddressOut2_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB))) - 1.0));
-			AddressOut2_tb <= std_logic_vector(to_unsigned(AddressOut2_in, count_length(REG_NUM_TB)));
+			AddressOut2_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB))) - 1.0));
+			AddressOut2_tb <= std_logic_vector(to_unsigned(AddressOut2_in, int_to_bit_num(REG_NUM_TB)));
 			AddressOut2_int := AddressOut2_in;
 
 			while (Enable_in = 0) loop

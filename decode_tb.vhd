@@ -24,18 +24,18 @@ architecture bench of decode_stage_tb is
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
 
-	constant REG_L_TB		: positive := 20;
-	constant PC_L_TB		: positive := 30;
+	constant REG_L_TB		: positive := 28;
+	constant PC_L_TB		: positive := 31;
 
 	signal NewInstr_tb	: std_logic;
-	signal Instr_tb		: std_logic_vector(INSTR_L_TB - 1 downto 0);
+	signal Instr_tb		: std_logic_vector(INSTR_L - 1 downto 0);
 
 	signal PCIn_tb		: std_logic_vector(PC_L_TB - 1 downto 0);
 	signal StatusRegIn_tb	: std_logic_vector(STAT_REG_L_TB - 1 downto 0);
 
-	signal AddressIn_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
-	signal AddressOut1_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
-	signal AddressOut2_tb	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
+	signal AddressIn_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
+	signal AddressOut1_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
+	signal AddressOut2_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal Immediate_tb	: std_logic_vector(REG_L_TB - 1 downto 0);
 	signal EnableRegFile_tb	: std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0);
 
@@ -51,7 +51,6 @@ architecture bench of decode_stage_tb is
 begin
 
 	DUT: decode_stage generic map (
-		INSTR_L => INSTR_L_TB,
 		REG_NUM => REG_NUM_TB,
 		REG_L => REG_L_TB,
 		PC_L => PC_L_TB,
@@ -107,10 +106,10 @@ begin
 			variable rand_val	: real;
 			variable OpCode_vec	: std_logic_vector(OP_CODE_L - 1 downto 0);
 			variable Immediate_vec	: std_logic_vector(REG_L_TB - 1 downto 0);
-			variable AddressIn_vec	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
-			variable AddressOut1_vec	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
-			variable AddressOut2_vec	: std_logic_vector(count_length(REG_NUM_TB) - 1 downto 0);
-			variable Instr_vec	: std_logic_vector(INSTR_L_TB - 1 downto 0);
+			variable AddressIn_vec	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
+			variable AddressOut1_vec	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
+			variable AddressOut2_vec	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
+			variable Instr_vec	: std_logic_vector(INSTR_L - 1 downto 0);
 			variable ALU_func_vec	: std_logic_vector(CMD_ALU_L - 1 downto 0);
 		begin
 			uniform(seed1, seed2, rand_val);
@@ -129,18 +128,18 @@ begin
 			OpCode := std_logic_vector(to_unsigned(OpCode_in, OP_CODE_L));
 
 			uniform(seed1, seed2, rand_val);
-			AddressIn_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB)))- 1.0));
-			AddressIn_vec := std_logic_vector(to_unsigned(AddressIn_in, count_length(REG_NUM_TB)));
+			AddressIn_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB)))- 1.0));
+			AddressIn_vec := std_logic_vector(to_unsigned(AddressIn_in, int_to_bit_num(REG_NUM_TB)));
 			AddressIn_int := AddressIn_in;
 
 			uniform(seed1, seed2, rand_val);
-			AddressOut1_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB)))- 1.0));
-			AddressOut1_vec := std_logic_vector(to_unsigned(AddressOut1_in, count_length(REG_NUM_TB)));
+			AddressOut1_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB)))- 1.0));
+			AddressOut1_vec := std_logic_vector(to_unsigned(AddressOut1_in, int_to_bit_num(REG_NUM_TB)));
 			AddressOut1_int := AddressOut1_in;
 
 			uniform(seed1, seed2, rand_val);
-			AddressOut2_in := integer(rand_val*(2.0**(real(count_length(REG_NUM_TB)))- 1.0));
-			AddressOut2_vec := std_logic_vector(to_unsigned(AddressOut2_in, count_length(REG_NUM_TB)));
+			AddressOut2_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB)))- 1.0));
+			AddressOut2_vec := std_logic_vector(to_unsigned(AddressOut2_in, int_to_bit_num(REG_NUM_TB)));
 			AddressOut2_int := AddressOut2_in;
 
 			uniform(seed1, seed2, rand_val);
@@ -150,20 +149,20 @@ begin
 
 			if ((OpCode_vec = OP_CODE_MOV_I) or (OpCode_vec = OP_CODE_RD_S) or (OpCode_vec = OP_CODE_RD_M)) then
 				uniform(seed1, seed2, rand_val);
-				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L_TB - OP_CODE_L - count_length(REG_NUM_TB))) - 1.0));
+				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L - OP_CODE_L - int_to_bit_num(REG_NUM_TB))) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
 				Immediate_int := Immediate_in;
-				Instr_tb <= OpCode_vec & AddressIn_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - count_length(REG_NUM_TB) - 1) downto 0);
+				Instr_tb <= OpCode_vec & AddressIn_vec & Immediate_vec((INSTR_L - OP_CODE_L - int_to_bit_num(REG_NUM_TB) - 1) downto 0);
 				AddressOut1_int := 0;
 				AddressOut2_int := 0;
 				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 1;
 			elsif (OpCode_vec = OP_CODE_JUMP) or (OpCode_vec = OP_CODE_CALL) or (OpCode_vec = OP_CODE_BRE) or (OpCode_vec = OP_CODE_BRL) or (OpCode_vec = OP_CODE_BRG) or (OpCode_vec = OP_CODE_BRNE) then
 				uniform(seed1, seed2, rand_val);
-				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L_TB - OP_CODE_L)) - 1.0));
+				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L - OP_CODE_L)) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
 				Immediate_int := Immediate_in;
-				Instr_tb <= OpCode_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - 1) downto 0);
+				Instr_tb <= OpCode_vec & Immediate_vec((INSTR_L - OP_CODE_L - 1) downto 0);
 				AddressIn_int := 0;
 				AddressOut1_int := 0;
 				AddressOut2_int := 0;
@@ -171,24 +170,24 @@ begin
 				EnableRegFile_int := 0;
 			elsif (OpCode_vec = OP_CODE_WR_S) or (OpCode_vec = OP_CODE_WR_M) then
 				uniform(seed1, seed2, rand_val);
-				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L_TB - OP_CODE_L - count_length(REG_NUM_TB))) - 1.0));
+				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L - OP_CODE_L - int_to_bit_num(REG_NUM_TB))) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
 				Immediate_int := Immediate_in;
-				Instr_tb <= OpCode_vec & AddressOut1_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - count_length(REG_NUM_TB) - 1) downto 0);
+				Instr_tb <= OpCode_vec & AddressOut1_vec & Immediate_vec((INSTR_L - OP_CODE_L - int_to_bit_num(REG_NUM_TB) - 1) downto 0);
 				AddressIn_int := 0;
 				AddressOut2_int := 0;
 				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 2;
 			elsif (OpCode_vec = OP_CODE_MOV_R) then
 				Immediate_in := 0;
-				Instr_tb <= OpCode_vec & AddressIn_vec & AddressOut1_vec & std_logic_vector(to_unsigned(Immediate_in, (INSTR_L_TB - OP_CODE_L - 2*count_length(REG_NUM_TB))));
+				Instr_tb <= OpCode_vec & AddressIn_vec & AddressOut1_vec & std_logic_vector(to_unsigned(Immediate_in, (INSTR_L - OP_CODE_L - 2*int_to_bit_num(REG_NUM_TB))));
 				Immediate_int := Immediate_in;
 				AddressOut2_int := 0;
 				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 2 + 1;
 			elsif (OpCode_vec = OP_CODE_SET) or (OpCode_vec = OP_CODE_CLR) then
 				Immediate_in := 0;
-				Instr_tb <= OpCode_vec & AddressIn_vec & std_logic_vector(to_unsigned(Immediate_in, (INSTR_L_TB - OP_CODE_L - count_length(REG_NUM_TB))));
+				Instr_tb <= OpCode_vec & AddressIn_vec & std_logic_vector(to_unsigned(Immediate_in, (INSTR_L - OP_CODE_L - int_to_bit_num(REG_NUM_TB))));
 				Immediate_int := Immediate_in;
 				AddressOut1_int := 0;
 				AddressOut2_int := 0;
@@ -196,22 +195,22 @@ begin
 				EnableRegFile_int := 1;
 			elsif (OpCode_vec = OP_CODE_ALU_I) then
 				uniform(seed1, seed2, rand_val);
-				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L_TB - OP_CODE_L - 2*count_length(REG_NUM_TB) - CMD_ALU_L)) - 1.0));
+				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L - OP_CODE_L - 2*int_to_bit_num(REG_NUM_TB) - CMD_ALU_L)) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
 				Immediate_int := Immediate_in;
-				Instr_tb <= OpCode_vec & AddressIn_vec & AddressOut1_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - 2*count_length(REG_NUM_TB) -CMD_ALU_L - 1) downto 0) & ALU_func_vec;
+				Instr_tb <= OpCode_vec & AddressIn_vec & AddressOut1_vec & Immediate_vec((INSTR_L - OP_CODE_L - 2*int_to_bit_num(REG_NUM_TB) -CMD_ALU_L - 1) downto 0) & ALU_func_vec;
 				AddressOut2_int := 0;
 				EnableRegFile_int := 2 + 1;
 			elsif (OpCode_vec = OP_CODE_ALU_R) then
 				uniform(seed1, seed2, rand_val);
-				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L_TB - OP_CODE_L - 3*count_length(REG_NUM_TB) - CMD_ALU_L)) - 1.0));
+				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L - OP_CODE_L - 3*int_to_bit_num(REG_NUM_TB) - CMD_ALU_L)) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
 				Immediate_int := Immediate_in;
-				Instr_tb <= OpCode_vec & AddressIn_vec & AddressOut1_vec &  AddressOut2_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - 3*count_length(REG_NUM_TB) -CMD_ALU_L - 1) downto 0) & ALU_func_vec;
+				Instr_tb <= OpCode_vec & AddressIn_vec & AddressOut1_vec &  AddressOut2_vec & Immediate_vec((INSTR_L - OP_CODE_L - 3*int_to_bit_num(REG_NUM_TB) -CMD_ALU_L - 1) downto 0) & ALU_func_vec;
 				EnableRegFile_int := 4 + 2 + 1;
 			elsif (OpCode_vec = OP_CODE_RET) or (OpCode_vec = OP_CODE_NOP) then
 				Immediate_in := 0;
-				Instr_tb <= OpCode_vec & std_logic_vector(to_unsigned(Immediate_in, (INSTR_L_TB - OP_CODE_L)));
+				Instr_tb <= OpCode_vec & std_logic_vector(to_unsigned(Immediate_in, (INSTR_L - OP_CODE_L)));
 				Immediate_int := Immediate_in;
 				AddressIn_int := 0;
 				AddressOut1_int := 0;
@@ -221,7 +220,7 @@ begin
 			elsif (OpCode_vec = OP_CODE_EOP) then
 				Immediate_in := 0;
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
-				Instr_tb <= OpCode_vec & Immediate_vec((INSTR_L_TB - OP_CODE_L - 1) downto 0);
+				Instr_tb <= OpCode_vec & Immediate_vec((INSTR_L - OP_CODE_L - 1) downto 0);
 				AddressIn_int := 0;
 				AddressOut1_int := 0;
 				AddressOut2_int := 0;
@@ -229,7 +228,7 @@ begin
 				Immediate_int := Immediate_in;
 				EnableRegFile_int := 0;
 			else
-				Instr_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(INSTR_L_TB)) - 1.0), INSTR_L_TB));
+				Instr_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(INSTR_L)) - 1.0), INSTR_L));
 				AddressIn_int := 0;
 				AddressOut1_int := 0;
 				AddressOut2_int := 0;
