@@ -31,17 +31,6 @@ package icache_pkg is
 		Instr		: out std_logic_vector(INSTR_L - 1 downto 0);
 		Address		: in std_logic_vector(ADDR_MEM_L - 1 downto 0);
 
-		-- BRAM
-		PortA_Address	: out std_logic_vector(ADDR_BRAM_L - 1 downto 0);
-		PortA_Write	: out std_logic;
-		PortA_DataIn	: out std_logic_vector(INSTR_L - 1 downto 0);
-		PortA_DataOut	: in std_logic_vector(INSTR_L - 1 downto 0);
-
-		PortB_Address	: out std_logic_vector(ADDR_BRAM_L - 1 downto 0);
-		PortB_Write	: out std_logic;
-		PortB_DataIn	: out std_logic_vector(INSTR_L - 1 downto 0);
-		PortB_DataOut	: in std_logic_vector(INSTR_L - 1 downto 0);
-
 		-- Memory access
 		DoneMemory	: in std_logic;
 		EnableMemory	: out std_logic;
