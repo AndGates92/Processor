@@ -9,9 +9,9 @@ use work.proc_pkg.all;
 package icache_pkg is 
 
 	constant VALID_L	: positive := 1;
-	constant CACHE_LINE	: positive := 128;
-	constant ADDR_BRAM_L	: positive := int_to_bit_num(CACHE_LINE);
-	constant CACHE_LINE_L	: positive := VALID_L + int_to_bit_num(PROGRAM_MEMORY) + INSTR_L;
+	constant ICACHE_LINE	: positive := 128;
+	constant ADDR_BRAM_L	: positive := int_to_bit_num(ICACHE_LINE);
+	constant ICACHE_LINE_L	: positive := VALID_L + int_to_bit_num(PROGRAM_MEMORY) + INSTR_L;
 
 	constant BRAM_FWD	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
 	constant WAIT_BRAM_DATA	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_L));
@@ -25,6 +25,11 @@ package icache_pkg is
 	port (
 		rst		: in std_logic;
 		clk		: in std_logic;
+
+		EndRst		: out std_logic;
+
+		-- debug
+		Hit		: out std_logic;
 
 		Start		: in std_logic;
 		Done		: out std_logic;

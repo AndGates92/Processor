@@ -14,6 +14,8 @@ port (
 	rst		: in std_logic;
 	clk		: in std_logic;
 
+	EndRst		: out std_logic;
+
 	-- debug
 	Hit		: out std_logic;
 
@@ -37,28 +39,33 @@ architecture rtl of icache is
 	signal InstrN, InstrC			: std_logic_vector(INSTR_L - 1 downto 0);
 	signal AddressN, AddressC		: std_logic_vector(ADDR_MEM_L - 1 downto 0);
 
+	signal EndRstC, EndRstN			: std_logic;
+
 	-- BRAM
 	signal PortA_AddressN, PortA_AddressC	: std_logic_vector(ADDR_BRAM_L - 1 downto 0);
-	signal PortA_DataInN, PortA_DataInC	: std_logic_vector(CACHE_LINE_L - 1 downto 0);
-	signal PortA_DataOutN, PortA_DataOutC	: std_logic_vector(CACHE_LINE_L - 1 downto 0);
+	signal PortA_DataInN, PortA_DataInC	: std_logic_vector(ICACHE_LINE_L - 1 downto 0);
+	signal PortA_DataOutN, PortA_DataOutC	: std_logic_vector(ICACHE_LINE_L - 1 downto 0);
 	signal PortA_WriteN, PortA_WriteC	: std_logic;
 
 	signal PortB_AddressN, PortB_AddressC	: std_logic_vector(ADDR_BRAM_L - 1 downto 0);
-	signal PortB_DataInN, PortB_DataInC	: std_logic_vector(CACHE_LINE_L - 1 downto 0);
-	signal PortB_DataOutN, PortB_DataOutC	: std_logic_vector(CACHE_LINE_L - 1 downto 0);
+	signal PortB_DataInN, PortB_DataInC	: std_logic_vector(ICACHE_LINE_L - 1 downto 0);
+	signal PortB_DataOutN, PortB_DataOutC	: std_logic_vector(ICACHE_LINE_L - 1 downto 0);
 	signal PortB_WriteN, PortB_WriteC	: std_logic;
+
+	signal DoneReset	: std_logic;
+	signal PortA_Address_rst, PortB_Address_rst	: std_logic_vector(ADDR_BRAM_L - 1 downto 0);
 
 	-- BRAM connections
 	signal PortA_Address	: std_logic_vector(ADDR_BRAM_L - 1 downto 0);
 	signal PortA_Write	: std_logic;
 	signal PortA_Enable	: std_logic;
-	signal PortA_DataIn	: std_logic_vector(CACHE_LINE_L - 1 downto 0);
-	signal PortA_DataOut	: std_logic_vector(CACHE_LINE_L - 1 downto 0);
+	signal PortA_DataIn	: std_logic_vector(ICACHE_LINE_L - 1 downto 0);
+	signal PortA_DataOut	: std_logic_vector(ICACHE_LINE_L - 1 downto 0);
 
 	signal PortB_Address	: std_logic_vector(ADDR_BRAM_L - 1 downto 0);
 	signal PortB_Write	: std_logic;
-	signal PortB_DataIn	: std_logic_vector(CACHE_LINE_L - 1 downto 0);
-	signal PortB_DataOut	: std_logic_vector(CACHE_LINE_L - 1 downto 0);
+	signal PortB_DataIn	: std_logic_vector(ICACHE_LINE_L - 1 downto 0);
+	signal PortB_DataOut	: std_logic_vector(ICACHE_LINE_L - 1 downto 0);
 
 
 
@@ -68,17 +75,25 @@ begin
 	begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = IDLE) then
-			if (Start = '0') then
+			if (res = '1') then
+				StateN <= RESET;
+			elsif (Start = '0') then
 				StateN <= IDLE;
 			else
 				StateN <= BRAM_FWD;
+			end if;
+		elsif (StateC = RESET) then
+			if (DoneReset = '1') then
+				StateN <= OUTPUT;
+			else
+				StateN <= StateC;
 			end if;
 		elsif (StateC = BRAM_FWD) then
 			StateN <= WAIT_BRAM_DATA;
 		elsif (StateC = WAIT_BRAM_DATA) then
 			StateN <= BRAM_RECV_DATA;
 		elsif (StateC = BRAM_RECV_DATA) then
-			if (PortA_DataOutC(CACHE_LINE_L - 1 downto CACHE_LINE_L - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) then
+			if (PortA_DataOutC(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) then
 				StateN <= OUTPUT;
 			else
 				StateN <= MEMORY_ACCESS;
@@ -105,6 +120,8 @@ begin
 			StateC <= IDLE;
 			AddressC <= (others => '0');
 
+			EndRstC <= '0';
+
 			PortA_AddressC <= (others => '0');
 			PortA_WriteC <= '0';
 			PortA_DataInC <= (others => '0');
@@ -122,6 +139,8 @@ begin
 			StateC <= StateN;
 			AddressC <= AddressN;
 
+			EndRstC <= EndRstN;
+
 			PortA_AddressC <= PortA_AddressN;
 			PortA_WriteC <= PortA_WriteN;
 			PortA_DataInC <= PortA_DataInN;
@@ -138,7 +157,7 @@ begin
 	AddressN <= Address when (StateC = IDLE) else AddressC;
 
 	HitN <=	'0' when (StateC = IDLE) else
-		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOutC(CACHE_LINE_L - 1 downto CACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & Address(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) else
+		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOutC(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & Address(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) else
 		HitC;
 
 	InstrN <=	(others => '0') when (StateC = IDLE) else
@@ -147,32 +166,37 @@ begin
 			InstrC;
 
 	PortA_DataInN <=	"1" & AddressC & InstrOut when (StateC = MEMORY_ACCESS) else
-				(others => '0') when (State = IDLE) else
+				(others => '0') when (State = IDLE) or (StateC = RESET) else
 				PortA_DataInC;
 
 	PortA_DataOutN <=	PortA_DataOut when (StateC = WAIT_BRAM_DATA) else
 				(others => '0') when (StateC = IDLE) else
 				PortA_DataOutC;
 
-	PortA_AddressN <=	AddressC(ADDR_BRAM_L - 1 downto 0) when (StateC = BRAM_FWD) or (StateC = MEMORY_ACCESS) else
+	PortA_AddressN <=	PortA_Address_rst when (StateC = RESET) else
+				AddressC(ADDR_BRAM_L - 1 downto 0) when (StateC = BRAM_FWD) or (StateC = MEMORY_ACCESS) else
 				(others => '0') when (StateC = IDLE) else
 				PortA_AddressC;
 
-	PortA_WriteN <=	'1' when (StateC = MEMORY_ACCESS) and (DoneMemory = '1') else
+	PortA_WriteN <=	'1' when ((StateC = MEMORY_ACCESS) and (DoneMemory = '1')) or (StateC = RESET) else
 			'0' when (StateC = IDLE) else
 			PortA_WriteC;
 
-	PortB_DataInN <=	(others => '0') when (State = IDLE) else
+	PortB_DataInN <=	(others => '0') when (State = IDLE) or (StateC = RESET) else
 				PortB_DataInC;
 
 	PortB_DataOutN <=	(others => '0') when (StateC = IDLE) else
 				PortB_DataOutC;
 
-	PortB_AddressN <=	(others => '0') when (StateC = IDLE) else
+	PortB_AddressN <=	PortB_Address_rst when (StateC = RESET) else
+				(others => '0') when (StateC = IDLE) else
 				PortB_AddressC;
 
-	PortB_WriteN <=	'0' when (StateC = IDLE) else
+	PortB_WriteN <=	'1' when (StateC = RESET) else
+			'0' when (StateC = IDLE) else
 			PortA_WriteC;
+
+	EndRstN <= '1' when (DoneRest = '1') else EndRstC;
 
 	PortA_DataIn <= PortA_DataInC;
 	PortA_Address <= PortA_AddressC;
@@ -187,11 +211,14 @@ begin
 	Instr <= InstrC when (StateC = OUTPUT) else (others => '0');
 	Done <= '1' when (StateC = OUTPUT) else '0';
 	Hit <= HitC;
+	EndRst <= EndRstC;
 
-	BRAM_I : bram port map (
-		PortA_rst => rst,
+	BRAM_I : bram generic map(
+		ADDR_BRAM_L => ADDR_BRAM_L,
+		DATA_L => ICACHE_LINE_L
+	)
+	 port map (
 		PortA_clk => clk,
-		PortB_rst => rst,
 		PortB_clk => clk,
 
 		-- BRAM
@@ -204,6 +231,21 @@ begin
 		PortB_Write => PortB_Write,
 		PortB_DataIn => PortB_DataIn,
 		PortB_DataOut => PortB_DataOut,
+	);
+
+	BRAM_RST_I : bram generic map(
+		ADDR_L => ADDR_BRAM_L
+	)
+	 port map (
+		rst => rst,
+		clk => clk,
+
+		Start => rst,
+		Done => DoneReset,
+
+		-- BRAM
+		PortA_Address => PortA_Address_rst,
+		PortB_Address => PortB_Address_rst
 	);
 
 end rtl;

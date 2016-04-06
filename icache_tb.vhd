@@ -24,6 +24,9 @@ architecture bench of decode_stage_tb is
 
 	constant ADDR_MEM_L_TB	: positive := 32;
 
+	signal Hit_tb	: std_logic;
+	signal EndRst_tb	: std_logic;
+
 	signal Start_tb		: std_logic;
 	signal Done_tb		: std_logic;
 	signal Instr_tb		: std_logic_vector(INSTR_L - 1 downto 0);
@@ -35,6 +38,8 @@ architecture bench of decode_stage_tb is
 	signal AddressMem_tb	: std_logic_vector(ADDR_MEM_L - 1 downto 0);
 	signal InstrOut_tb	: std_logic_vector(INSTR_L - 1 downto 0);
 
+	type icache_t is array (CACHE_LINE - 1 downto 0) of integer;
+
 begin
 
 	DUT: icache generic map(
@@ -43,6 +48,9 @@ begin
 	port map (
 		rst => rst_tb,
 		clk => clk_tb,
+
+		Hit => Hit_tb,
+		EndRst => EndRst_tb,
 
 		Start => Start_tb,
 		Done => Done_tb,
@@ -59,7 +67,7 @@ begin
 
 	test: process
 
-		procedure reset is
+		procedure reset(variable ICacheOut_mem : out icache_t) is
 		begin
 			rst_tb <= '0';
 			wait until rising_edge(clk_tb);
@@ -70,6 +78,7 @@ begin
 			Start_tb <= '0';
 			wait until rising_edge(clk_tb);
 			rst_tb <= '0';
+			wait on EndRst_tb;
 		end procedure reset;
 
 		procedure push_op(variable address_bram : out integer; variable seed1, seed2 : inout positive) is
@@ -90,9 +99,9 @@ begin
 			Start_tb <= '0';
 		end procedure push_op;
 
-		procedure icache_ref(variable address_bram : out integer; variable Hit : out integer; variable Instr_int : integer; variable ICacheIn_mem :in icahce_t; variable ICacheOut_mem : out icache_t;  variable seed1, seed2 : inout positive) is
+		procedure icache_ref(variable address : in integer; variable Hit : out integer; variable Instr_int : out integer; variable ICacheIn_mem :in icahce_t; variable ICacheOut_mem : out icache_t;  variable seed1, seed2 : inout positive) is
 		begin
-
+			
 
 		end procedure icache_ref;
 
