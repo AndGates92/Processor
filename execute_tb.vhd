@@ -173,10 +173,10 @@ begin
 				write(file_line, string'("PASS"));
 				pass := 1;
 			elsif (StatusReg_ideal = StatusReg_rtl) then
-				write(file_line, string'("FAIL (Wrong result)"));
+				write(file_line, string'("FAIL (Wrong status register)"));
 				pass := 0;
 			elsif (ResOp_rtl = ResOp_ideal) then
-				write(file_line, string'("FAIL (Wrong status register)"));
+				write(file_line, string'("FAIL (Wrong result)"));
 				pass := 0;
 			else
 				write(file_line, string'("FAIL (Wrong result and status register)"));
@@ -216,7 +216,7 @@ begin
 		reset(RegFileOut_int, StatusReg_ideal);
 		file_open(file_pointer, log_file, append_mode);
 
-		write(file_line, string'( "ALU Test"));
+		write(file_line, string'( "Execute stage Test"));
 		writeline(file_pointer, file_line);
 
 		for i in 0 to NUM_TEST-1 loop

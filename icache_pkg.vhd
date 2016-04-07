@@ -13,10 +13,11 @@ package icache_pkg is
 	constant ADDR_BRAM_L	: positive := int_to_bit_num(ICACHE_LINE);
 	constant ICACHE_LINE_L	: positive := VALID_L + int_to_bit_num(PROGRAM_MEMORY) + INSTR_L;
 
-	constant BRAM_FWD	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
-	constant WAIT_BRAM_DATA	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_L));
-	constant BRAM_RECV_DATA	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_L));
-	constant MEMORY_ACCESS	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_L));
+	constant RESET		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
+	constant BRAM_FWD	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_L));
+	constant WAIT_BRAM_DATA	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_L));
+	constant BRAM_RECV_DATA	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_L));
+	constant MEMORY_ACCESS	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_L));
 
 	component icache is
 	generic (

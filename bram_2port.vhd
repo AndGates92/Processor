@@ -6,10 +6,11 @@ library work;
 use work.icache_pkg.all;
 use work.proc_pkg.all;
 
-entity bram is
+entity bram_2port is
 generic(
 	ADDR_BRAM_L	: positive := 10;
-	DATA_L		: positive := 100;
+	DATA_L		: positive := 100
+);
 port (
 	-- Port A
 	PortA_clk   : in  std_logic;
@@ -25,11 +26,11 @@ port (
 	PortB_DataIn   : in  std_logic_vector(DATA_L-1 downto 0);
 	PortB_DataOut  : out std_logic_vector(DATA_L-1 downto 0)
 );
-end bram;
+end bram_2port;
  
-architecture rtl of bram is
-	type mem_type is array ( (2**ADDR_BRAM_L)-1 downto 0 ) of std_logic_vector(DATA_L-1 downto 0);
-	signal mem : mem_type;
+architecture rtl of bram_2port is
+	type cache_type is array ((ICACHE_LINE - 1) downto 0) of std_logic_vector(DATA_L-1 downto 0);
+	signal cache : cache_type;
 	signal PortA_DataOutC, PortA_DataOutN : std_logic_vector(DATA_L-1 downto 0);
 	signal PortB_DataOutC, PortB_DataOutN : std_logic_vector(DATA_L-1 downto 0);
 begin
@@ -37,16 +38,17 @@ begin
 	-- Port A
 	portA_reg: process(PortA_clk)
 	begin
+		
 		if (rising_edge(PortA_clk)) then
 			if (PortA_Write = '1') then
-				mem(to_integer(unsigned(PortA_Address))) <= PortA_DataIn;
+				cache(to_integer(unsigned(PortA_Address))) <= PortA_DataIn;
 			end if;
 
 			PortA_DataOutC <= PortA_DataOutN;
 		end if;
 	end process portA_reg;
 
-	PortA_DataOutN <= mem(to_integer(unsigned(PortA_Address)));
+	PortA_DataOutN <= cache(to_integer(unsigned(PortA_Address)));
 	PortA_DataOut <=  PortA_DataOutC;
 
 	-- Port B
@@ -54,14 +56,14 @@ begin
 	begin
 		if (rising_edge(PortB_clk)) then
 			if (PortB_Write = '1') then
-				mem(to_integer(unsigned(PortB_Address))) <= PortB_DataIn;
+				cache(to_integer(unsigned(PortB_Address))) <= PortB_DataIn;
 			end if;
 
 			PortB_DataOutC <= PortB_DataOutN;
 		end if;
 	end process portB_reg;
 
-	PortB_DataOutN <= mem(to_integer(unsigned(PortB_Address)));
+	PortB_DataOutN <= cache(to_integer(unsigned(PortB_Address)));
 	PortB_DataOut <=  PortB_DataOutC; 
 
 end rtl;

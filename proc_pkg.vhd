@@ -20,7 +20,7 @@ package proc_pkg is
 
 	function int_to_bit_num(op2_l : integer) return integer;
 
-	component bram_addr_generator is
+	component bram_rst is
 	generic (
 		ADDR_L	: positive := 32
 	);
@@ -35,25 +35,40 @@ package proc_pkg is
 	);
 	end component;
 
-	component bram is
+	component bram_1port is
 	generic(
 		ADDR_BRAM_L	: positive := 10;
 		DATA_L		: positive := 100
 	);
 	port (
 		-- Port A
-		PortA_clk   : in  std_logic;
-		PortA_Write    : in  std_logic;
-		PortA_Address  : in  std_logic_vector(ADDR_BRAM_L-1 downto 0);
-		PortA_DataIn   : in  std_logic_vector(DATA_L-1 downto 0);
-		PortA_DataOut  : out std_logic_vector(DATA_L-1 downto 0);
+		PortA_clk	: in  std_logic;
+		PortA_Write	: in  std_logic;
+		PortA_Address	: in  std_logic_vector(ADDR_BRAM_L-1 downto 0);
+		PortA_DataIn	: in  std_logic_vector(DATA_L-1 downto 0);
+		PortA_DataOut	: out std_logic_vector(DATA_L-1 downto 0)
+	);
+	end component;
+
+	component bram_2port is
+	generic(
+		ADDR_BRAM_L	: positive := 10;
+		DATA_L		: positive := 100
+	);
+	port (
+		-- Port A
+		PortA_clk	: in  std_logic;
+		PortA_Write	: in  std_logic;
+		PortA_Address	: in  std_logic_vector(ADDR_BRAM_L-1 downto 0);
+		PortA_DataIn	: in  std_logic_vector(DATA_L-1 downto 0);
+		PortA_DataOut	: out std_logic_vector(DATA_L-1 downto 0);
 
 		-- Port B
-		PortB_clk   : in  std_logic;
-		PortB_Write    : in  std_logic;
-		PortB_Address  : in  std_logic_vector(ADDR_BRAM_L-1 downto 0);
-		PortB_DataIn   : in  std_logic_vector(DATA_L-1 downto 0);
-		PortB_DataOut  : out std_logic_vector(DATA_L-1 downto 0)
+		PortB_clk	: in  std_logic;
+		PortB_Write	: in  std_logic;
+		PortB_Address	: in  std_logic_vector(ADDR_BRAM_L-1 downto 0);
+		PortB_DataIn	: in  std_logic_vector(DATA_L-1 downto 0);
+		PortB_DataOut	: out std_logic_vector(DATA_L-1 downto 0)
 	);
 	end component;
 
