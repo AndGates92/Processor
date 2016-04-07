@@ -38,7 +38,8 @@ package proc_pkg is
 	component bram is
 	generic(
 		ADDR_BRAM_L	: positive := 10;
-		DATA_L		: positive := 100;
+		DATA_L		: positive := 100
+	);
 	port (
 		-- Port A
 		PortA_clk   : in  std_logic;
