@@ -14,8 +14,6 @@ port (
 	rst		: in std_logic;
 	clk		: in std_logic;
 
-	EndRst		: out std_logic;
-
 	-- debug
 	Hit		: out std_logic;
 
@@ -41,7 +39,6 @@ architecture rtl_bram_2port of icache is
 	signal InstrN, InstrC			: std_logic_vector(INSTR_L - 1 downto 0);
 	signal AddressN, AddressC		: std_logic_vector(ADDR_MEM_L - 1 downto 0);
 
-	signal EndRstC, EndRstN			: std_logic;
 
 	-- BRAM
 	signal PortA_AddressN, PortA_AddressC	: std_logic_vector(ADDR_BRAM_L - 1 downto 0);
@@ -123,8 +120,6 @@ begin
 			StateC <= IDLE;
 			AddressC <= (others => '0');
 
-			EndRstC <= '0';
-
 			PortA_AddressC <= (others => '0');
 			PortA_WriteC <= '0';
 			PortA_DataInC <= (others => '0');
@@ -144,8 +139,6 @@ begin
 			StateC <= StateN;
 			AddressC <= AddressN;
 
-			EndRstC <= EndRstN;
-
 			PortA_AddressC <= PortA_AddressN;
 			PortA_WriteC <= PortA_WriteN;
 			PortA_DataInC <= PortA_DataInN;
@@ -164,7 +157,7 @@ begin
 	AddressN <= Address when (StateC = IDLE) else AddressC;
 
 	HitN <=	'0' when (StateC = IDLE) else
-		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOutC(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & Address(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) else
+		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOutC(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) else
 		HitC;
 
 	InstrN <=	(others => '0') when (StateC = IDLE) else
@@ -203,10 +196,6 @@ begin
 			'0' when (StateC = IDLE) else
 			PortB_WriteC;
 
-	EndRstN <=	'1' when (DoneReset = '1') else
-			'0' when (StateC = RESET) else
-			EndRstC;
-
 	PortA_DataIn <= PortA_DataInC;
 	PortA_Address <= PortA_AddressC;
 	PortA_Write <= PortA_WriteC;
@@ -220,8 +209,6 @@ begin
 	Instr <= InstrC when (StateC = OUTPUT) else (others => '0');
 	Done <= '1' when (StateC = OUTPUT) else '0';
 	Hit <= HitC;
-	EndRst <= EndRstC;
-
 	BRAM_2PORT_I : bram_2port generic map(
 		ADDR_BRAM_L => ADDR_BRAM_L,
 		DATA_L => ICACHE_LINE_L
@@ -267,8 +254,6 @@ architecture rtl_bram_1port of icache is
 	signal HitC, HitN			: std_logic;
 	signal InstrN, InstrC			: std_logic_vector(INSTR_L - 1 downto 0);
 	signal AddressN, AddressC		: std_logic_vector(ADDR_MEM_L - 1 downto 0);
-
-	signal EndRstC, EndRstN			: std_logic;
 
 	-- BRAM
 	signal PortA_AddressN, PortA_AddressC	: std_logic_vector(ADDR_BRAM_L - 1 downto 0);
@@ -338,8 +323,6 @@ begin
 			StateC <= IDLE;
 			AddressC <= (others => '0');
 
-			EndRstC <= '0';
-
 			PortA_AddressC <= (others => '0');
 			PortA_WriteC <= '0';
 			PortA_DataInC <= (others => '0');
@@ -353,8 +336,6 @@ begin
 			HitC <= HitN;
 			StateC <= StateN;
 			AddressC <= AddressN;
-
-			EndRstC <= EndRstN;
 
 			PortA_AddressC <= PortA_AddressN;
 			PortA_WriteC <= PortA_WriteN;
@@ -376,11 +357,11 @@ begin
 			InstrOut when (StateC = MEMORY_ACCESS) else
 			InstrC;
 
-	PortA_DataInN <=	"1" & AddressC & InstrOut when (StateC = MEMORY_ACCESS) else
+	PortA_DataInN <=	"1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0) & InstrOut when (StateC = MEMORY_ACCESS) else
 				(others => '0') when (StateC = IDLE) or (StateC = RESET) else
 				PortA_DataInC;
 
-	PortA_DataOutN <=	PortA_DataOut when (StateC = WAIT_BRAM_DATA) else
+	PortA_DataOutN <=	PortA_DataOut when (StateC = MEMORY_ACCESS) else
 				(others => '0') when (StateC = IDLE) else
 				PortA_DataOutC;
 
@@ -393,10 +374,6 @@ begin
 			'0' when (StateC = IDLE) else
 			PortA_WriteC;
 
-	EndRstN <=	'1' when (DoneReset = '1') else
-			'0' when (StateC = RESET) else
-			EndRstC;
-
 	PortA_DataIn <= PortA_DataInC;
 	PortA_Address <= PortA_AddressC;
 	PortA_Write <= PortA_WriteC;
@@ -406,7 +383,6 @@ begin
 	Instr <= InstrC when (StateC = OUTPUT) else (others => '0');
 	Done <= '1' when (StateC = OUTPUT) else '0';
 	Hit <= HitC;
-	EndRst <= EndRstC;
 
 	BRAM_1PORT_I : bram_1port generic map(
 		ADDR_BRAM_L => ADDR_BRAM_L,

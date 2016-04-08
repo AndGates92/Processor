@@ -22,10 +22,9 @@ architecture bench of icache_tb is
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
 
-	constant ADDR_MEM_L_TB	: positive := 30;
+	constant ADDR_MEM_L_TB	: positive := 20;
 
 	signal Hit_tb	: std_logic;
-	signal EndRst_tb	: std_logic;
 
 	signal Start_tb		: std_logic;
 	signal Done_tb		: std_logic;
@@ -50,7 +49,6 @@ begin
 		clk => clk_tb,
 
 		Hit => Hit_tb,
-		EndRst => EndRst_tb,
 
 		Start => Start_tb,
 		Done => Done_tb,
@@ -81,7 +79,10 @@ begin
 			Start_tb <= '0';
 			wait until rising_edge(clk_tb);
 			rst_tb <= '0';
-			wait on EndRst_tb;
+
+			wait on Done_tb;
+
+			wait until rising_edge(clk_tb);
 		end procedure reset;
 
 		procedure push_op(variable address_bram : out integer; variable address_int : out integer; variable seed1, seed2 : inout positive) is
@@ -195,11 +196,13 @@ begin
 		num_pass := 0;
 
 		reset(ICacheOut_mem, IAddrCacheOut_mem, IValidCacheOut_mem);
-		wait on EndRst_tb;
 
 		file_open(file_pointer, log_file, append_mode);
 
-		write(file_line, string'( "Insturction cache Test"));
+		write(file_line, string'( "Instruction cache Test"));
+		writeline(file_pointer, file_line);
+
+		write(file_line, string'( "Reset successfull"));
 		writeline(file_pointer, file_line);
 
 		for i in 0 to NUM_TEST-1 loop
@@ -228,7 +231,7 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "EXECUTE STAGE => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST)));
+		write(file_line, string'( "INSTRUCTION CACHE => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST)));
 		writeline(file_pointer, file_line);
 
 		file_close(file_pointer);

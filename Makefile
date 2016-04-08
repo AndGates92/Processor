@@ -21,6 +21,7 @@ all:
 	make decode_stage_all
 	make ctrl_all
 	make execute_all
+	make icache_all
 
 clean:
 	rm -f ${LOG_FILE} ${SUMMARY_FILE}
@@ -43,6 +44,8 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} decode_pkg.vhd
 	@echo "Analysing execute_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} execute_pkg.vhd
+	@echo "Analysing icache_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} icache_pkg.vhd
 	@echo "Analysing tb_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} tb_pkg.vhd
 
@@ -91,13 +94,13 @@ mul: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o
 	${GHDL} -a ${GHDL_ARGS} mul_tb.vhd
 	@echo "Analysing mul_cfg.vhd"
 	${GHDL} -a ${GHDL_ARGS} mul_cfg.vhd
-	@echo "Elaborating mul_tb"
-	${GHDL} -e ${GHDL_ARGS} mul_tb
-	rm -r e~mul_tb.o
-	mv mul_tb ${WORK_DIR}
+	@echo "Elaborating mul_cfg"
+	${GHDL} -e ${GHDL_ARGS} config_mul
+	rm -r e~config_mul.o
+	mv config_mul ${WORK_DIR}
 
 simulate_mul: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/mul.o ${WORK_DIR}/mul_cfg.o ${WORK_DIR}/mul_tb.o
-	cd ${WORK_DIR} && ${GHDL} -r mul_tb ${GHDL_RUN_ARGS}mul.vcd
+	cd ${WORK_DIR} && ${GHDL} -r config_mul ${GHDL_RUN_ARGS}mul.vcd
 
 mul_all:
 	make work_dir
@@ -113,13 +116,13 @@ div: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o
 	${GHDL} -a ${GHDL_ARGS} div_tb.vhd
 	@echo "Analysing div_cfg.vhd"
 	${GHDL} -a ${GHDL_ARGS} div_cfg.vhd
-	@echo "Elaborating div_tb"
-	${GHDL} -e ${GHDL_ARGS} div_tb
-	rm -r e~div_tb.o
-	mv div_tb ${WORK_DIR}
+	@echo "Elaborating div_cfg"
+	${GHDL} -e ${GHDL_ARGS} config_div
+	rm -r e~config_div.o
+	mv config_div ${WORK_DIR}
 
 simulate_div: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/div.o ${WORK_DIR}/div_cfg.o ${WORK_DIR}/div_tb.o
-	cd ${WORK_DIR} && ${GHDL} -r div_tb ${GHDL_RUN_ARGS}div.vcd
+	cd ${WORK_DIR} && ${GHDL} -r config_div ${GHDL_RUN_ARGS}div.vcd
 
 div_all:
 	make work_dir
@@ -180,22 +183,47 @@ execute: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WOR
 	${GHDL} -a ${GHDL_ARGS} ctrl.vhd
 	@echo "Analysing execute.vhd"
 	${GHDL} -a ${GHDL_ARGS} execute.vhd
-	@echo "Analysing mul_cfg_execute.vhd"
-	${GHDL} -a ${GHDL_ARGS} mul_cfg_execute.vhd
-	@echo "Analysing mem_int_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} mem_int_cfg.vhd
 	@echo "Analysing execute_tb.vhd"
 	${GHDL} -a ${GHDL_ARGS} execute_tb.vhd
-	@echo "Elaborating execute_tb"
-	${GHDL} -e ${GHDL_ARGS} execute_tb
-	rm -r e~execute_tb.o
-	mv execute_tb ${WORK_DIR}
+	@echo "Analysing execute_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} execute_cfg.vhd
+	@echo "Elaborating execute_cfg"
+	${GHDL} -e ${GHDL_ARGS} config_execute
+	rm -r e~config_execute.o
+	mv config_execute ${WORK_DIR}
 
 simulate_execute: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/mem_int_pkg.o ${WORK_DIR}/execute_pkg.o ${WORK_DIR}/execute.o  ${WORK_DIR}/execute_tb.o
-	cd ${WORK_DIR} && ${GHDL} -r execute_tb ${GHDL_RUN_ARGS}execute.vcd
+	cd ${WORK_DIR} && ${GHDL} -r config_execute ${GHDL_RUN_ARGS}execute.vcd
 
 execute_all:
 	make work_dir
 	make libraries
 	make execute
 	make simulate_execute
+
+icache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_int_pkg.o ${WORK_DIR}/execute_pkg.o
+	@echo "Analysing bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
+	@echo "Analysing bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_2port.vhd
+	@echo "Analysing bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_rst.vhd
+	@echo "Analysing icache.vhd"
+	${GHDL} -a ${GHDL_ARGS} icache.vhd
+	@echo "Analysing icache_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} icache_tb.vhd
+	@echo "Analysing icache_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} icache_cfg.vhd
+	@echo "Elaborating icache_cfg"
+	${GHDL} -e ${GHDL_ARGS} config_icache
+	rm -r e~config_icache.o
+	mv config_icache ${WORK_DIR}
+
+simulate_icache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/icache_pkg.o ${WORK_DIR}/icache.o  ${WORK_DIR}/icache_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r config_icache ${GHDL_RUN_ARGS}icache.vcd
+
+icache_all:
+	make work_dir
+	make libraries
+	make icache
+	make simulate_icache

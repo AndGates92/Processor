@@ -27,8 +27,6 @@ package icache_pkg is
 		rst		: in std_logic;
 		clk		: in std_logic;
 
-		EndRst		: out std_logic;
-
 		-- debug
 		Hit		: out std_logic;
 
