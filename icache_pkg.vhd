@@ -29,6 +29,7 @@ package icache_pkg is
 
 		-- debug
 		Hit		: out std_logic;
+		EndRst		: out std_logic;
 
 		Start		: in std_logic;
 		Done		: out std_logic;

@@ -25,6 +25,7 @@ architecture bench of icache_tb is
 	constant ADDR_MEM_L_TB	: positive := 20;
 
 	signal Hit_tb	: std_logic;
+	signal EnDRst_tb	: std_logic;
 
 	signal Start_tb		: std_logic;
 	signal Done_tb		: std_logic;
@@ -49,6 +50,7 @@ begin
 		clk => clk_tb,
 
 		Hit => Hit_tb,
+		EndRst => EndRst_tb,
 
 		Start => Start_tb,
 		Done => Done_tb,
@@ -80,7 +82,7 @@ begin
 			wait until rising_edge(clk_tb);
 			rst_tb <= '0';
 
-			wait on Done_tb;
+			wait on EndRst_tb;
 
 			wait until rising_edge(clk_tb);
 		end procedure reset;

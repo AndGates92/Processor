@@ -16,6 +16,7 @@ port (
 
 	-- debug
 	Hit		: out std_logic;
+	EndRst		: out std_logic;
 
 	Start		: in std_logic;
 	Done		: out std_logic;
@@ -33,6 +34,7 @@ end entity icache;
 architecture rtl_bram_2port of icache is
 
 	signal rstN, rstC			: std_logic;
+	signal EndRstN, EndRstC			: std_logic;
 
 	signal StateN, StateC			: std_logic_vector(STATE_L - 1 downto 0);
 	signal HitC, HitN			: std_logic;
@@ -114,6 +116,7 @@ begin
 		if (rst = '1') then
 
 			rstC <= '1';
+			EndRstC <= '0';
 
 			InstrC <= (others => '0');
 			HitC <= '0';
@@ -133,6 +136,7 @@ begin
 		elsif (rising_edge(clk)) then
 
 			rstC <= rstN;
+			EndRstC <= EndRstN;
 
 			InstrC <= InstrN;
 			HitC <= HitN;
@@ -153,6 +157,11 @@ begin
 	end process reg;
 
 	rstN <= rst;
+	EndRstN <=	'0' when (StateC = RESET) else
+			'1' when (StateC = OUTPUT) else
+			EndRstC;
+
+	EndRst <= EndRstC;
 
 	AddressN <= Address when (StateC = IDLE) else AddressC;
 
@@ -249,6 +258,7 @@ end rtl_bram_2port;
 architecture rtl_bram_1port of icache is
 
 	signal rstN, rstC			: std_logic;
+	signal EndRstN, EndRstC			: std_logic;
 
 	signal StateN, StateC			: std_logic_vector(STATE_L - 1 downto 0);
 	signal HitC, HitN			: std_logic;
@@ -317,6 +327,7 @@ begin
 		if (rst = '1') then
 
 			rstC <= '1';
+			EndRstC <= '0';
 
 			InstrC <= (others => '0');
 			HitC <= '0';
@@ -331,6 +342,7 @@ begin
 		elsif (rising_edge(clk)) then
 
 			rstC <= rstN;
+			EndRstC <= EndRstN;
 
 			InstrC <= InstrN;
 			HitC <= HitN;
@@ -345,6 +357,11 @@ begin
 	end process reg;
 
 	rstN <= rst;
+	EndRstN <=	'0' when (StateC = RESET) else
+			'1' when (StateC = OUTPUT) else
+			EndRstC;
+
+	EndRst <= EndRstC;
 
 	AddressN <= Address when (StateC = IDLE) else AddressC;
 
