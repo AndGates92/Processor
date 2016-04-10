@@ -214,7 +214,7 @@ begin
 	PortB_Address <= PortB_AddressC;
 	PortB_Write <= PortB_WriteC;
 
-	EnableMemory <= not HitC when (StateC = MEMORY_ACCESS) else '0';
+	EnableMemory <= '1' when (StateC = MEMORY_ACCESS) else '0';
 	AddressMem <= AddressC;
 	Instr <= InstrC when (StateC = OUTPUT) else (others => '0');
 	Done <= '1' when (StateC = OUTPUT) else '0';
@@ -305,7 +305,7 @@ begin
 		elsif (StateC = WAIT_BRAM_DATA) then
 			StateN <= BRAM_RECV_DATA;
 		elsif (StateC = BRAM_RECV_DATA) then
-			if (PortA_DataOutC(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) then
+			if (PortA_DataOutC(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) then
 				StateN <= OUTPUT;
 			else
 				StateN <= MEMORY_ACCESS;
@@ -396,7 +396,7 @@ begin
 	PortA_Address <= PortA_AddressC;
 	PortA_Write <= PortA_WriteC;
 
-	EnableMemory <= not HitC when (StateC = MEMORY_ACCESS) else '0';
+	EnableMemory <= '1' when (StateC = MEMORY_ACCESS) else '0';
 	AddressMem <= AddressC;
 	Instr <= InstrC when (StateC = OUTPUT) else (others => '0');
 	Done <= '1' when (StateC = OUTPUT) else '0';

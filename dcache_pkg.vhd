@@ -12,13 +12,15 @@ package dcache_pkg is
 	constant DIRTY_BIT_L	: positive := 1;
 	constant DCACHE_LINE	: positive := 128;
 	constant ADDR_BRAM_L	: positive := int_to_bit_num(DCACHE_LINE);
-	constant DCACHE_LINE_L	: positive := VALID_L + DIRTY_BIT + int_to_bit_num(DATA_MEMORY) + INSTR_L;
+	constant DCACHE_LINE_L	: positive := DIRTY_BIT + VALID_L + int_to_bit_num(DATA_MEMORY) + INSTR_L;
 
 	constant RESET		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
 	constant BRAM_FWD	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_L));
 	constant WAIT_BRAM_DATA	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_L));
 	constant BRAM_RECV_DATA	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_L));
 	constant MEMORY_ACCESS	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_L));
+	constant WRITE_BRAM	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_L));
+
 
 	component dcache is
 	generic (
