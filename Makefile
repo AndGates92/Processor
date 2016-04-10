@@ -229,3 +229,30 @@ icache_all:
 	make libraries
 	make icache
 	make simulate_icache
+
+dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_int_pkg.o ${WORK_DIR}/execute_pkg.o
+	@echo "Analysing bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
+	@echo "Analysing bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_2port.vhd
+	@echo "Analysing bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_rst.vhd
+	@echo "Analysing dcache.vhd"
+	${GHDL} -a ${GHDL_ARGS} dcache.vhd
+	@echo "Analysing dcache_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} dcache_tb.vhd
+	@echo "Analysing dcache_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} dcache_cfg.vhd
+	@echo "Elaborating dcache_cfg"
+	${GHDL} -e ${GHDL_ARGS} config_dcache
+	rm -r e~config_dcache.o
+	mv config_dcache ${WORK_DIR}
+
+simulate_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/dcache_pkg.o ${WORK_DIR}/dcache.o  ${WORK_DIR}/dcache_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r config_dcache ${GHDL_RUN_ARGS}dcache.vcd
+
+dcache_all:
+	make work_dir
+	make libraries
+	make dcache
+	make simulate_dcache

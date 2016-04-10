@@ -10,10 +10,11 @@ package proc_pkg is
 	constant DATA_MEMORY_MB	: positive := 1; -- 1 MB
 	constant DATA_MEMORY	: positive := DATA_MEMORY_MB*(integer(2.0**(3.0) * 2.0**(10.0)));
 
-	constant PROGRAM_MEMORY_MB	: real := 0.5; -- 256 kB
+	constant PROGRAM_MEMORY_MB	: real := 0.5; -- 512 kB
 	constant PROGRAM_MEMORY	: positive := integer(PROGRAM_MEMORY_MB*(2.0**(3.0) * 2.0**(10.0)));
 
 	constant INSTR_L	: positive := 28;
+	constant DATA_L		: positive := 16;
 
 	constant STATE_L	: positive := 3;
 

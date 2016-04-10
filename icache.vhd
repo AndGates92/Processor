@@ -28,7 +28,7 @@ port (
 	DoneMemory	: in std_logic;
 	EnableMemory	: out std_logic;
 	AddressMem	: out std_logic_vector(ADDR_MEM_L - 1 downto 0);
-	InstrOut	: in std_logic_vector(INSTR_L - 1 downto 0)
+	InstrMemOut	: in std_logic_vector(INSTR_L - 1 downto 0)
 );
 end entity icache;
 
@@ -172,10 +172,10 @@ begin
 
 	InstrN <=	(others => '0') when (StateC = IDLE) else
 			PortA_DataOut(INSTR_L - 1 downto 0) when (StateC = WAIT_BRAM_DATA) else
-			InstrOut when (StateC = MEMORY_ACCESS) else
+			InstrMemOut when (StateC = MEMORY_ACCESS) else
 			InstrC;
 
-	PortA_DataInN <=	"1" & AddressC & InstrOut when (StateC = MEMORY_ACCESS) else
+	PortA_DataInN <=	"1" & AddressC & InstrMemOut when (StateC = MEMORY_ACCESS) else
 				(others => '0') when (StateC = IDLE) or (StateC = RESET) else
 				PortA_DataInC;
 
@@ -368,15 +368,15 @@ begin
 	AddressN <= Address when (StateC = IDLE) else AddressC;
 
 	HitN <=	'0' when (StateC = IDLE) else
-		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOutC(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & Address(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) else
+		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOutC(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) else
 		HitC;
 
 	InstrN <=	(others => '0') when (StateC = IDLE) else
 			PortA_DataOut(INSTR_L - 1 downto 0) when (StateC = WAIT_BRAM_DATA) else
-			InstrOut when (StateC = MEMORY_ACCESS) else
+			InstrMemOut when (StateC = MEMORY_ACCESS) else
 			InstrC;
 
-	PortA_DataInN <=	"1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0) & InstrOut when (StateC = MEMORY_ACCESS) else
+	PortA_DataInN <=	"1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0) & InstrMemOut when (StateC = MEMORY_ACCESS) else
 				(others => '0') when (StateC = IDLE) or (StateC = RESET) else
 				PortA_DataInC;
 

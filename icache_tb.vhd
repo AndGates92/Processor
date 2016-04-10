@@ -37,7 +37,7 @@ architecture bench of icache_tb is
 	signal DoneMemory_tb	: std_logic;
 	signal EnableMemory_tb	: std_logic;
 	signal AddressMem_tb	: std_logic_vector(ADDR_MEM_L_TB - 1 downto 0);
-	signal InstrOut_tb	: std_logic_vector(INSTR_L - 1 downto 0);
+	signal InstrMemOut_tb	: std_logic_vector(INSTR_L - 1 downto 0);
 
 	type icache_t is array (ICACHE_LINE - 1 downto 0) of integer;
 
@@ -62,7 +62,7 @@ begin
 		DoneMemory => DoneMemory_tb,
 		EnableMemory => EnableMemory_tb,
 		AddressMem => AddressMem_tb,
-		InstrOut => InstrOut_tb
+		InstrMemOut => InstrMemOut_tb
 	);
 
 	clk_tb <= not clk_tb after CLK_PERIOD/2 when not stop;
@@ -75,7 +75,7 @@ begin
 			wait until rising_edge(clk_tb);
 			rst_tb <= '1';
 			Address_tb <= (others => '0');
-			InstrOut_tb <= (others => '0');
+			InstrMemOut_tb <= (others => '0');
 			DoneMemory_tb <= '0';
 			ICacheOut_mem := (others => 0);
 			IAddrCacheOut_mem := (others => 0);
@@ -105,7 +105,7 @@ begin
 			address_bram := to_integer(unsigned(address_bram_vec));
 
 			DoneMemory_tb <= '0';
-			InstrOut_tb <= (others => '0');
+			InstrMemOut_tb <= (others => '0');
 
 			Start_tb <= '1';
 
@@ -135,7 +135,7 @@ begin
 				wait on EnableMemory_tb;
 				InstrMem := integer(rand_val*(2.0**(real(INSTR_L)) - 1.0));
 				Instr_int := InstrMem;
-				InstrOut_tb <= std_logic_vector(to_unsigned(InstrMem, INSTR_L));
+				InstrMemOut_tb <= std_logic_vector(to_unsigned(InstrMem, INSTR_L));
 				DoneMemory_tb <= '1';
 				wait until rising_edge(clk_tb);
 				DoneMemory_tb <= '0';
@@ -223,7 +223,7 @@ begin
 
 			Hit_rtl := std_logic_to_int(Hit_tb);
 
-			Instr_rtl := to_integer(unsigned(InstrOut_tb));
+			Instr_rtl := to_integer(unsigned(InstrMemOut_tb));
 
 			verify (address_int, address_bram, Hit_ideal, Hit_rtl, Instr_ideal, Instr_rtl, file_pointer, pass);
 

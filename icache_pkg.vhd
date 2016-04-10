@@ -41,7 +41,7 @@ package icache_pkg is
 		DoneMemory	: in std_logic;
 		EnableMemory	: out std_logic;
 		AddressMem	: out std_logic_vector(ADDR_MEM_L - 1 downto 0);
-		InstrOut	: in std_logic_vector(INSTR_L - 1 downto 0)
+		InstrMemOut	: in std_logic_vector(INSTR_L - 1 downto 0)
 	);
 	end component;
 
