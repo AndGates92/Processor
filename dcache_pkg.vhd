@@ -6,12 +6,13 @@ use ieee.numeric_std.all;
 library work;
 use work.proc_pkg.all;
 
-package icache_pkg is 
+package dcache_pkg is 
 
 	constant VALID_L	: positive := 1;
-	constant ICACHE_LINE	: positive := 128;
-	constant ADDR_BRAM_L	: positive := int_to_bit_num(ICACHE_LINE);
-	constant ICACHE_LINE_L	: positive := VALID_L + int_to_bit_num(PROGRAM_MEMORY) + INSTR_L;
+	constant DIRTY_BIT_L	: positive := 1;
+	constant DCACHE_LINE	: positive := 128;
+	constant ADDR_BRAM_L	: positive := int_to_bit_num(DCACHE_LINE);
+	constant DCACHE_LINE_L	: positive := VALID_L + DIRTY_BIT + int_to_bit_num(DATA_MEMORY) + INSTR_L;
 
 	constant RESET		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
 	constant BRAM_FWD	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_L));
@@ -19,7 +20,7 @@ package icache_pkg is
 	constant BRAM_RECV_DATA	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_L));
 	constant MEMORY_ACCESS	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_L));
 
-	component icache is
+	component dcache is
 	generic (
 		ADDR_MEM_L	: positive := 32;
 		INCR_PC_L	: positive := 2
@@ -45,4 +46,4 @@ package icache_pkg is
 	);
 	end component;
 
-end package icache_pkg;
+end package dcache_pkg;
