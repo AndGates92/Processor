@@ -33,6 +33,7 @@ package tb_pkg is
 	function rand_bin(rand_val : real) return real;
 	function rand_sign(sign_val : real) return real;
 	function std_logic_to_int(val : std_logic) return integer;
+	function int_to_std_logic(val : integer) return std_logic;
 	function alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string;
 	function full_alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string;
 	function ctrl_cmd_std_vect_to_txt(Cmd: std_logic_vector(CTRL_CMD_L-1 downto 0)) return string;
@@ -334,7 +335,6 @@ package body tb_pkg is
 		end if;
 	end procedure alu_ref;
 
-
 	function rand_num return real is
 		variable seed1, seed2	: positive;
 		variable rand_val	: real;
@@ -374,6 +374,18 @@ package body tb_pkg is
 			val_conv := 1;
 		else
 			val_conv := 0;
+		end if;
+
+		return val_conv;
+	end;
+
+	function int_to_std_logic(val : integer) return std_logic is
+		variable val_conv	: std_logic;
+	begin
+		if val = 1 then
+			val_conv := '1';
+		else
+			val_conv := '0';
 		end if;
 
 		return val_conv;

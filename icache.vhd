@@ -221,6 +221,7 @@ begin
 	Hit <= HitC;
 	BRAM_2PORT_I : bram_2port generic map(
 		ADDR_BRAM_L => ADDR_BRAM_L,
+		BRAM_LINE => ICACHE_LINE,
 		DATA_L => ICACHE_LINE_L
 	)
 	 port map (
@@ -404,6 +405,7 @@ begin
 
 	BRAM_1PORT_I : bram_1port generic map(
 		ADDR_BRAM_L => ADDR_BRAM_L,
+		BRAM_LINE => ICACHE_LINE,
 		DATA_L => ICACHE_LINE_L
 	)
 	 port map (

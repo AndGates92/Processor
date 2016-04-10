@@ -176,7 +176,8 @@ begin
 	Done <= '1' when (StateC = OUTPUT) else '0';
 	Hit <= HitC;
 
-	PortA_DataInN <=	"11" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0) & DataInC when (StateC = MEMORY_ACCESS) or (StateC = WRITE_BRAM) else
+	PortA_DataInN <=	"11" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0) & DataInC when (StateC = WRITE_BRAM) else
+				"01" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0) & DataInC when (StateC = MEMORY_ACCESS) else
 				(others => '0') when (StateC = IDLE) or (StateC = RESET) else
 				PortA_DataInC;
 
@@ -199,6 +200,7 @@ begin
 
 	BRAM_1PORT_I : bram_1port generic map(
 		ADDR_BRAM_L => ADDR_BRAM_L,
+		BRAM_LINE => DCACHE_LINE,
 		DATA_L => DCACHE_LINE_L
 	)
 	 port map (
@@ -418,6 +420,7 @@ begin
 
 	BRAM_2PORT_I : bram_2port generic map(
 		ADDR_BRAM_L => ADDR_BRAM_L,
+		BRAM_LINE => DCACHE_LINE,
 		DATA_L => DCACHE_LINE_L
 	)
 	 port map (

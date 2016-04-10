@@ -46,6 +46,8 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} execute_pkg.vhd
 	@echo "Analysing icache_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} icache_pkg.vhd
+	@echo "Analysing dcache_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} dcache_pkg.vhd
 	@echo "Analysing tb_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} tb_pkg.vhd
 

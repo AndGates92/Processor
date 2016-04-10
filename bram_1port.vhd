@@ -9,7 +9,9 @@ use work.proc_pkg.all;
 entity bram_1port is
 generic(
 	ADDR_BRAM_L	: positive := 10;
+	BRAM_LINE	: positive := 128;
 	DATA_L		: positive := 100
+
 );
 port (
 	-- Port A
@@ -22,7 +24,7 @@ port (
 end bram_1port;
 
 architecture rtl of bram_1port is
-	type cache_type is array ((ICACHE_LINE - 1) downto 0) of std_logic_vector(DATA_L-1 downto 0);
+	type cache_type is array ((BRAM_LINE - 1) downto 0) of std_logic_vector(DATA_L-1 downto 0);
 	signal cache : cache_type;
 	signal PortA_DataOutC, PortA_DataOutN : std_logic_vector(DATA_L-1 downto 0);
 begin

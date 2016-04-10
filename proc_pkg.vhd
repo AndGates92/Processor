@@ -38,6 +38,7 @@ package proc_pkg is
 	component bram_1port is
 	generic(
 		ADDR_BRAM_L	: positive := 10;
+		BRAM_LINE	: positive := 128;
 		DATA_L		: positive := 100
 	);
 	port (
@@ -53,6 +54,7 @@ package proc_pkg is
 	component bram_2port is
 	generic(
 		ADDR_BRAM_L	: positive := 10;
+		BRAM_LINE	: positive := 128;
 		DATA_L		: positive := 100
 	);
 	port (
