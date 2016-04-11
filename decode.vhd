@@ -11,7 +11,6 @@ use work.proc_pkg.all;
 entity decode_stage is
 generic (
 	REG_NUM		: positive := 16;
-	REG_L		: positive := 32;
 	PC_L		: positive := 32;
 	STAT_REG_L	: positive := 8;
 	INCR_PC		: positive := 4;
@@ -30,7 +29,7 @@ port (
 	AddressIn	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	AddressOut1	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	AddressOut2	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
-	Immediate	: out std_logic_vector(REG_L - 1 downto 0);
+	Immediate	: out std_logic_vector(DATA_L - 1 downto 0);
 	EnableRegFile	: out std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
 	Done	: out std_logic;
@@ -46,7 +45,7 @@ end entity decode_stage;
 
 architecture rtl of decode_stage is
 
-	constant ZERO_VEC	: std_logic_vector(REG_L - 1 downto 0) := (others => '0');
+	constant ZERO_VEC	: std_logic_vector(DATA_L - 1 downto 0) := (others => '0');
 
 	signal StateC, StateN	: std_logic_vector(STATE_L - 1 downto 0);
 
@@ -55,9 +54,9 @@ architecture rtl of decode_stage is
 	signal AddressOut1C, AddressOut1N	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	signal AddressOut2C, AddressOut2N	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	signal AddressInC, AddressInN		: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
-	signal DataInC, DataInN			: std_logic_vector(REG_L - 1 downto 0);
+	signal DataInC, DataInN			: std_logic_vector(DATA_L - 1 downto 0);
 
-	signal ImmediateC, ImmediateN	: std_logic_vector(REG_L - 1 downto 0);
+	signal ImmediateC, ImmediateN	: std_logic_vector(DATA_L - 1 downto 0);
 	signal CmdALUC, CmdALUN		: std_logic_vector(CMD_ALU_L - 1 downto 0);
 
 	signal PCC, PCN		: unsigned(PC_L - 1 downto 0);

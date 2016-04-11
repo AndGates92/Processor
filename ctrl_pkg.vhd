@@ -33,7 +33,6 @@ package ctrl_pkg is
 		OP2_L		: positive := 32;
 		REG_NUM		: positive := 16;
 		ADDR_L		: positive := 16;
-		REG_L		: positive := 32;
 		STAT_REG_L	: positive := 8;
 		EN_REG_FILE_L	: positive := 3;
 		BASE_STACK	: positive := 16#8000#;
@@ -47,7 +46,7 @@ package ctrl_pkg is
 		EndExecution	: out std_logic;
 
 		-- Decode stage
-		Immediate	: in std_logic_vector(REG_L - 1 downto 0);
+		Immediate	: in std_logic_vector(DATA_L - 1 downto 0);
 		EndDecoding	: in std_logic;
 		CtrlCmd	: in std_logic_vector(CTRL_CMD_L - 1 downto 0);
 		CmdALU_In	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
@@ -79,16 +78,16 @@ package ctrl_pkg is
 		DoneMemory	: in std_logic;
 		ReadMem		: out std_logic;
 		EnableMemory	: out std_logic;
-		DataMemIn	: out std_logic_vector(REG_L - 1 downto 0);
+		DataMemIn	: out std_logic_vector(DATA_L - 1 downto 0);
 		AddressMem	: out std_logic_vector(ADDR_L - 1 downto 0);
-		DataMemOut	: in std_logic_vector(REG_L - 1 downto 0);
+		DataMemOut	: in std_logic_vector(DATA_L - 1 downto 0);
 
 		-- Register File
 		DoneRegFile	: in std_logic;
 		DoneReadStatus	: in std_logic_vector(OUT_NUM - 1 downto 0);
-		DataRegIn		: out std_logic_vector(REG_L - 1 downto 0);
-		DataRegOut1	: in std_logic_vector(REG_L - 1 downto 0);
-		DataRegOut2	: in std_logic_vector(REG_L - 1 downto 0);
+		DataRegIn		: out std_logic_vector(DATA_L - 1 downto 0);
+		DataRegOut1	: in std_logic_vector(DATA_L - 1 downto 0);
+		DataRegOut2	: in std_logic_vector(DATA_L - 1 downto 0);
 		AddressRegFileIn	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 		AddressRegFileOut1	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 		AddressRegFileOut2	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);

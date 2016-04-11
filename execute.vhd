@@ -17,7 +17,6 @@ generic (
 	OP1_L		: positive := 32;
 	OP2_L		: positive := 16;
 	REG_NUM		: positive := 16;
-	REG_L		: positive := 32;
 	ADDR_L		: positive := 16;
 	STAT_REG_L	: positive := 8;
 	EN_REG_FILE_L	: positive := 3;
@@ -32,7 +31,7 @@ port (
 	AddressRegFileIn_In	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	AddressRegFileOut1_In	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	AddressRegFileOut2_In	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
-	Immediate	: in std_logic_vector(REG_L - 1 downto 0);
+	Immediate	: in std_logic_vector(DATA_L - 1 downto 0);
 	EnableRegFile_In	: in std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
 	CmdALU_In	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
@@ -47,7 +46,7 @@ end entity execute_stage;
 architecture rtl of execute_stage is
 
 	constant ZERO_STAT_REG	: std_logic_vector(STAT_REG_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STAT_REG_L));
-	constant ZERO_RES	: std_logic_vector(REG_L - 1 downto 0) := std_logic_vector(to_unsigned(0, REG_L));
+	constant ZERO_RES	: std_logic_vector(DATA_L - 1 downto 0) := std_logic_vector(to_unsigned(0, DATA_L));
 
 	signal Op1	: std_logic_vector(OP1_L - 1 downto 0);
 	signal Op2	: std_logic_vector(OP2_L - 1 downto 0);
@@ -66,27 +65,27 @@ architecture rtl of execute_stage is
 	signal Ovfl, Unfl	: std_logic;
 
 	-- Register File
-	signal DataRegFileIn	: std_logic_vector(REG_L - 1 downto 0);
+	signal DataRegFileIn	: std_logic_vector(DATA_L - 1 downto 0);
 	signal AddressRegFileIn	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	signal AddressRegFileOut1	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	signal AddressRegFileOut2	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	signal DoneReadStatus		: std_logic_vector(OUT_REG_FILE_NUM-1 downto 0);
-	signal DataRegFileOut1	: std_logic_vector(REG_L-1 downto 0);
-	signal DataRegFileOut2	: std_logic_vector(REG_L-1 downto 0);
+	signal DataRegFileOut1	: std_logic_vector(DATA_L-1 downto 0);
+	signal DataRegFileOut2	: std_logic_vector(DATA_L-1 downto 0);
 
 	-- Memory Access
 	signal ReadMem		: std_logic;
-	signal DataMemIn	: std_logic_vector(REG_L - 1 downto 0);
+	signal DataMemIn	: std_logic_vector(DATA_L - 1 downto 0);
 	signal AddressMem	: std_logic_vector(ADDR_L - 1 downto 0);
-	signal DataMemOut	: std_logic_vector(REG_L - 1 downto 0);
+	signal DataMemOut	: std_logic_vector(DATA_L - 1 downto 0);
 
-	signal ResDbgN, ResDbgC	: std_logic_vector(REG_L - 1 downto 0);
+	signal ResDbgN, ResDbgC	: std_logic_vector(DATA_L - 1 downto 0);
 	signal StatusRegN, StatusRegC	: std_logic_vector(STAT_REG_L - 1 downto 0);
 
 begin
 
 	ResDbgN <=	ResALU when DoneALU = '1' else
-			ResMul(REG_L - 1 downto 0) when DoneMul = '1' else
+			ResMul(DATA_L - 1 downto 0) when DoneMul = '1' else
 			ResDiv when DoneDiv = '1' else
 			(others => '0') when Start = '1' else
 			ResDbgC;
@@ -169,7 +168,6 @@ begin
 	);
 
 	REG_FILE_I: reg_file generic map(
-		REG_L => REG_L,
 		REG_NUM => REG_NUM,
 		EN_L => EN_REG_FILE_L,
 		OUT_NUM => OUT_REG_FILE_NUM
@@ -190,7 +188,7 @@ begin
 
 	MEM_INT_I: mem_int generic map(
 		ADDR_L => ADDR_L,
-		DATA_L => REG_L
+		DATA_L => DATA_L
 	)
 	port map (
 		rst => rst,
@@ -209,7 +207,6 @@ begin
 		OP2_L => OP2_L,
 		REG_NUM => REG_NUM,
 		ADDR_L => ADDR_L,
-		REG_L => REG_L,
 		STAT_REG_L => STAT_REG_L,
 		EN_REG_FILE_L => EN_REG_FILE_L,
 		BASE_STACK => BASE_STACK,

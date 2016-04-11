@@ -18,28 +18,26 @@ architecture bench of reg_file_tb is
 	constant CLK_PERIOD	: time := 10 ns;
 	constant NUM_TEST	: integer := 10000;
 
-	constant REG_L_TB	: positive := 16;
 	constant OUT_NUM_TB	: positive := 2;
 
 	signal rst_tb	: std_logic;
 	signal stop	: boolean := false;
 	signal clk_tb	: std_logic := '0';
 
-	signal DataIn_tb	: std_logic_vector(REG_L_TB - 1 downto 0);
+	signal DataIn_tb	: std_logic_vector(DATA_L - 1 downto 0);
 	signal AddressIn_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal AddressOut1_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal AddressOut2_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal Enable_tb	: std_logic_vector(EN_REG_FILE_L_TB-1 downto 0);
 	signal Done_tb		: std_logic_vector(OUT_NUM_TB-1 downto 0);
-	signal DataOut1_tb	: std_logic_vector(REG_L_TB-1 downto 0);
-	signal DataOut2_tb	: std_logic_vector(REG_L_TB-1 downto 0);
+	signal DataOut1_tb	: std_logic_vector(DATA_L-1 downto 0);
+	signal DataOut2_tb	: std_logic_vector(DATA_L-1 downto 0);
 	signal End_LS_tb	: std_logic;
 
 
 begin
 
 	DUT: reg_file generic map(
-		REG_L => REG_L_TB,
 		REG_NUM => REG_NUM_TB,
 		EN_L => EN_REG_FILE_L_TB,
 		OUT_NUM => OUT_NUM_TB
@@ -85,8 +83,8 @@ begin
 			Enable_in := 0;
 
 			uniform(seed1, seed2, rand_val);
-			DataIn_in := integer(rand_val*(2.0**(real(REG_L_TB)) - 1.0));
-			DataIn_tb <= std_logic_vector(to_unsigned(DataIn_in, REG_L_TB));
+			DataIn_in := integer(rand_val*(2.0**(real(DATA_L)) - 1.0));
+			DataIn_tb <= std_logic_vector(to_unsigned(DataIn_in, DATA_L));
 			DataIn_int := DataIn_in;
 
 			uniform(seed1, seed2, rand_val);

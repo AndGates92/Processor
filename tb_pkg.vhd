@@ -18,8 +18,8 @@ package tb_pkg is
 	constant STAT_REG_L_TB	: positive := 8;
 	constant EN_REG_FILE_L_TB	: positive := 3;
 	constant REG_NUM_TB	: positive := 4;
-	constant OP1_L_TB	: integer := 16;
-	constant OP2_L_TB	: integer := 16;
+	constant OP1_L_TB	: integer := DATA_L;
+	constant OP2_L_TB	: integer := DATA_L;
 	constant INCR_PC_TB	: positive := 4;
 
 	type reg_file_array is array(0 to REG_NUM_TB-1) of integer;

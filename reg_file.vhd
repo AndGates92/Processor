@@ -8,7 +8,6 @@ use work.reg_file_pkg.all;
 
 entity reg_file is
 generic (
-	REG_L	: positive := 16;
 	REG_NUM	: positive := 16;
 	OUT_NUM	: positive := 2;
 	EN_L	: positive := 3
@@ -16,15 +15,15 @@ generic (
 port (
 	rst		: in std_logic;
 	clk		: in std_logic;
-	DataIn		: in std_logic_vector(REG_L - 1 downto 0);
+	DataIn		: in std_logic_vector(DATA_L - 1 downto 0);
 	AddressIn	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	AddressOut1	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	AddressOut2	: in std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	Enable		: in std_logic_vector(EN_L-1 downto 0);
 	Done		: out std_logic_vector(OUT_NUM-1 downto 0);
 	End_LS		: out std_logic;
-	DataOut1	: out std_logic_vector(REG_L-1 downto 0);
-	DataOut2	: out std_logic_vector(REG_L-1 downto 0)
+	DataOut1	: out std_logic_vector(DATA_L-1 downto 0);
+	DataOut2	: out std_logic_vector(DATA_L-1 downto 0)
 );
 end entity reg_file;
 
@@ -32,12 +31,12 @@ architecture rtl of reg_file is
 
 	constant ZeroEnable	: std_logic_vector(EN_L - 1 downto 0) := (others => '0');
 
-	type register_file is array(0 to REG_NUM-1) of std_logic_vector(REG_L-1 downto 0);
+	type register_file is array(0 to REG_NUM-1) of std_logic_vector(DATA_L-1 downto 0);
 	signal RegFileN, RegFileC	: register_file;
 
-	signal DataInC, DataInN	: std_logic_vector(REG_L - 1 downto 0);
-	signal DataOut1C, DataOut1N	: std_logic_vector(REG_L - 1 downto 0);
-	signal DataOut2C, DataOut2N	: std_logic_vector(REG_L - 1 downto 0);
+	signal DataInC, DataInN	: std_logic_vector(DATA_L - 1 downto 0);
+	signal DataOut1C, DataOut1N	: std_logic_vector(DATA_L - 1 downto 0);
+	signal DataOut2C, DataOut2N	: std_logic_vector(DATA_L - 1 downto 0);
 	signal AddressOut1C, AddressOut1N	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	signal AddressOut2C, AddressOut2N	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	signal AddressInC, AddressInN	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);

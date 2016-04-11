@@ -14,7 +14,7 @@ package proc_pkg is
 	constant PROGRAM_MEMORY	: positive := integer(PROGRAM_MEMORY_MB*(2.0**(3.0) * 2.0**(10.0)));
 
 	constant INSTR_L	: positive := 28;
-	constant DATA_L		: positive := 16;
+	constant DATA_L		: positive := 28;
 
 	constant STATE_L	: positive := 3;
 

@@ -14,7 +14,6 @@ generic (
 	OP2_L		: positive := 32;
 	REG_NUM		: positive := 16;
 	ADDR_L		: positive := 16;
-	REG_L		: positive := 32;
 	STAT_REG_L	: positive := 8;
 	EN_REG_FILE_L	: positive := 3;
 	BASE_STACK	: positive := 16#8000#;
@@ -28,7 +27,7 @@ port (
 	EndExecution	: out std_logic;
 
 	-- Decode Stage
-	Immediate	: in std_logic_vector(REG_L - 1 downto 0);
+	Immediate	: in std_logic_vector(DATA_L - 1 downto 0);
 	EndDecoding	: in std_logic;
 	CtrlCmd	: in std_logic_vector(CTRL_CMD_L - 1 downto 0);
 	CmdALU_In	: in std_logic_vector(CMD_ALU_L - 1 downto 0);
@@ -60,16 +59,16 @@ port (
 	DoneMemory	: in std_logic;
 	ReadMem		: out std_logic;
 	EnableMemory	: out std_logic;
-	DataMemIn	: out std_logic_vector(REG_L - 1 downto 0);
+	DataMemIn	: out std_logic_vector(DATA_L - 1 downto 0);
 	AddressMem	: out std_logic_vector(ADDR_L - 1 downto 0);
-	DataMemOut	: in std_logic_vector(REG_L - 1 downto 0);
+	DataMemOut	: in std_logic_vector(DATA_L - 1 downto 0);
 
 	-- Register File
 	DoneRegFile	: in std_logic;
 	DoneReadStatus	: in std_logic_vector(OUT_NUM - 1 downto 0);
-	DataRegIn	: out std_logic_vector(REG_L - 1 downto 0);
-	DataRegOut1	: in std_logic_vector(REG_L - 1 downto 0);
-	DataRegOut2	: in std_logic_vector(REG_L - 1 downto 0);
+	DataRegIn	: out std_logic_vector(DATA_L - 1 downto 0);
+	DataRegOut1	: in std_logic_vector(DATA_L - 1 downto 0);
+	DataRegOut2	: in std_logic_vector(DATA_L - 1 downto 0);
 	AddressRegFileIn	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	AddressRegFileOut1	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	AddressRegFileOut2	: out std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
@@ -79,13 +78,15 @@ end entity ctrl;
 
 architecture rtl of ctrl is
 
-	constant ZERO_OP	: std_logic_vector(REG_L - 1 downto 0) := (others => '0');
+	constant ZERO_OP	: std_logic_vector(DATA_L - 1 downto 0) := (others => '0');
 
-	constant BaseStackAddr	: std_logic_vector(REG_L - 1 downto 0) := std_logic_vector(to_unsigned(BASE_STACK, REG_L));
+	constant BaseStackAddr	: std_logic_vector(DATA_L - 1 downto 0) := std_logic_vector(to_unsigned(BASE_STACK, DATA_L));
 
-	signal DataRegOut1N, DataRegOut1C	: std_logic_vector(REG_L - 1 downto 0);
-	signal ImmediateN, ImmediateC	: std_logic_vector(REG_L - 1 downto 0);
+	signal DataRegOut1N, DataRegOut1C	: std_logic_vector(DATA_L - 1 downto 0);
+	signal ImmediateN, ImmediateC	: std_logic_vector(DATA_L - 1 downto 0);
 	signal CtrlCmdN, CtrlCmdC	: std_logic_vector(CTRL_CMD_L - 1 downto 0);
+
+	signal AddressMemFull	: std_logic_vector(DATA_L - 1 downto 0);
 
 	-- ALU
 	signal Op2Internal	: std_logic_vector(OP2_L - 1 downto 0);
@@ -272,7 +273,7 @@ begin
 	AddressRegFileIn <= AddressRegFileInC;
 	DataRegIn <=	DataMemOut when ((DoneMemory = '1') and (StateC = MEMORY_ACCESS)) else
 			ResALU when ((DoneALU = '1') and (StateC = ALU_OP)) else
-			ResMul(REG_L - 1 downto 0) when ((DoneMul = '1') and (StateC = MULTIPLICATION)) else
+			ResMul(DATA_L - 1 downto 0) when ((DoneMul = '1') and (StateC = MULTIPLICATION)) else
 			ResDiv when ((DoneDiv = '1') and (StateC = DIVISION)) else
 			DataRegOut1C when ((CtrlCmdC = CTRL_CMD_MOV) and (NextStateC = REG_FILE_WRITE) and (EnableRegFileC(1) = '1')) else
 			ImmediateC;
@@ -285,7 +286,8 @@ begin
 
 	-- Memory access
 	DataMemIn <= DataRegOut1;
-	AddressMem <= std_logic_vector(unsigned(ImmediateC) + unsigned(BaseStackAddr)) when ((CtrlCmdC = CTRL_CMD_RD_S) or (CtrlCmdC = CTRL_CMD_WR_S)) else ImmediateC;
+	AddressMemFull <= std_logic_vector(unsigned(ImmediateC) + unsigned(BaseStackAddr)) when ((CtrlCmdC = CTRL_CMD_RD_S) or (CtrlCmdC = CTRL_CMD_WR_S)) else ImmediateC;
+	AddressMem <= AddressMemFull(ADDR_L - 1 downto 0);
 	ReadMem <= '1' when ((CtrlCmdC = CTRL_CMD_RD_S) or (CtrlCmdC = CTRL_CMD_RD_M)) else '0';
 	EnableMemory <= '1' when (((CtrlCmdC = CTRL_CMD_RD_S) or (CtrlCmdC = CTRL_CMD_RD_M) or (DoneRegFile = '1')) and (NextStateC = MEMORY_ACCESS)) else '0';
 

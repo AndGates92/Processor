@@ -20,7 +20,6 @@ architecture bench of ctrl_tb is
 	constant NUM_TEST	: integer := 10000;
 
 	constant ADDR_L_TB	: positive := 16;
-	constant REG_L_TB	: positive := 16;
 	constant OUT_NUM_TB	: positive := 2;
 	constant BASE_STACK_TB	: positive := 16#8000#;
 
@@ -31,7 +30,7 @@ architecture bench of ctrl_tb is
 	signal EndExecution_tb	: std_logic;
 
 	-- Decode stage
-	signal Immediate_tb	: std_logic_vector(REG_L_TB - 1 downto 0);
+	signal Immediate_tb	: std_logic_vector(DATA_L - 1 downto 0);
 	signal EndDecoding_tb	: std_logic;
 	signal CtrlCmd_tb	: std_logic_vector(CTRL_CMD_L - 1 downto 0);
 	signal CmdALU_In_tb	: std_logic_vector(CMD_ALU_L - 1 downto 0);
@@ -63,16 +62,16 @@ architecture bench of ctrl_tb is
 	signal DoneMemory_tb	: std_logic;
 	signal ReadMem_tb	: std_logic;
 	signal EnableMemory_tb	: std_logic;
-	signal DataMemIn_tb	: std_logic_vector(REG_L_TB - 1 downto 0);
+	signal DataMemIn_tb	: std_logic_vector(DATA_L - 1 downto 0);
 	signal AddressMem_tb	: std_logic_vector(ADDR_L_TB - 1 downto 0);
-	signal DataMemOut_tb	: std_logic_vector(REG_L_TB - 1 downto 0);
+	signal DataMemOut_tb	: std_logic_vector(DATA_L - 1 downto 0);
 
 	-- Register File
 	signal DoneRegFile_tb		: std_logic;
 	signal DoneReadStatus_tb	: std_logic_vector(OUT_NUM_TB - 1 downto 0);
-	signal DataRegIn_tb		: std_logic_vector(REG_L_TB - 1 downto 0);
-	signal DataRegOut1_tb		: std_logic_vector(REG_L_TB - 1 downto 0);
-	signal DataRegOut2_tb		: std_logic_vector(REG_L_TB - 1 downto 0);
+	signal DataRegIn_tb		: std_logic_vector(DATA_L - 1 downto 0);
+	signal DataRegOut1_tb		: std_logic_vector(DATA_L - 1 downto 0);
+	signal DataRegOut2_tb		: std_logic_vector(DATA_L - 1 downto 0);
 	signal AddressRegFileIn_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal AddressRegFileOut1_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal AddressRegFileOut2_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
@@ -85,7 +84,6 @@ begin
 		OP2_L => OP2_L_TB,
 		REG_NUM => REG_NUM_TB,
 		ADDR_L => ADDR_L_TB,
-		REG_L => REG_L_TB,
 		STAT_REG_L => STAT_REG_L_TB,
 		EN_REG_FILE_L => EN_REG_FILE_L_TB,
 		BASE_STACK => BASE_STACK_TB,
@@ -207,8 +205,8 @@ begin
 			CmdALU_vec := std_logic_vector(to_unsigned(CmdALU_in, CMD_ALU_L));
 
 			uniform(seed1, seed2, rand_val);
-			Immediate_in := integer(rand_val*(2.0**(real(REG_L_TB)) - 1.0));
-			Immediate_tb <= std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
+			Immediate_in := integer(rand_val*(2.0**(real(DATA_L)) - 1.0));
+			Immediate_tb <= std_logic_vector(to_unsigned(Immediate_in, DATA_L));
 
 			uniform(seed1, seed2, rand_val);
 			AddressRegFileIn_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB))) - 1.0));

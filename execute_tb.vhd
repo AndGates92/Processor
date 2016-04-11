@@ -32,7 +32,7 @@ architecture bench of execute_tb is
 	signal AddressRegFileIn_In_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal AddressRegFileOut1_In_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal AddressRegFileOut2_In_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
-	signal Immediate_tb	: std_logic_vector(REG_L_TB - 1 downto 0);
+	signal Immediate_tb	: std_logic_vector(DATA_L - 1 downto 0);
 	signal EnableRegFile_In_tb	: std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0);
 
 	signal CmdALU_In_tb	: std_logic_vector(CMD_ALU_L - 1 downto 0);
@@ -50,7 +50,6 @@ begin
 		OP2_L => OP2_L_TB,
 		BASE_STACK => BASE_STACK_TB,
 		REG_NUM => REG_NUM_TB,
-		REG_L => REG_L_TB,
 		ADDR_L => ADDR_L_TB,
 		STAT_REG_L => STAT_REG_L_TB,
 		EN_REG_FILE_L => EN_REG_FILE_L_TB,
@@ -115,8 +114,8 @@ begin
 			CtrlCmd_int := std_logic_vector(to_unsigned(CtrlCmd_in, CTRL_CMD_L));
 
 			uniform(seed1, seed2, rand_val);
-			Immediate_in := integer(rand_val*(2.0**(real(REG_L_TB)) - 1.0));
-			Immediate_tb <= std_logic_vector(to_unsigned(Immediate_in, REG_L_TB));
+			Immediate_in := integer(rand_val*(2.0**(real(DATA_L)) - 1.0));
+			Immediate_tb <= std_logic_vector(to_unsigned(Immediate_in, DATA_L));
 			Immediate_int := Immediate_in;
 
 			uniform(seed1, seed2, rand_val);
