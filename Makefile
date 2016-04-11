@@ -22,6 +22,7 @@ all:
 	make ctrl_all
 	make execute_all
 	make icache_all
+	make dcache_all
 
 clean:
 	rm -f ${LOG_FILE} ${SUMMARY_FILE}

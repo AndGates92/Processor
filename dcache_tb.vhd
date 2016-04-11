@@ -23,7 +23,6 @@ architecture bench of dcache_tb is
 	signal rst_tb	: std_logic;
 
 	constant ADDR_MEM_L_TB	: positive := 20;
-	constant DATA_L_TB	: positive := 30;
 	constant INCR_PC_L_TB	: positive := 2;
 
 	signal Hit_tb		: std_logic;
@@ -31,8 +30,8 @@ architecture bench of dcache_tb is
 
 	signal Start_tb		: std_logic;
 	signal Done_tb		: std_logic;
-	signal DataOut_tb	: std_logic_vector(DATA_L_TB - 1 downto 0);
-	signal DataIn_tb	: std_logic_vector(DATA_L_TB - 1 downto 0);
+	signal DataOut_tb	: std_logic_vector(DATA_L - 1 downto 0);
+	signal DataIn_tb	: std_logic_vector(DATA_L - 1 downto 0);
 	signal Read_tb		: std_logic;
 	signal Address_tb	: std_logic_vector(ADDR_MEM_L_TB - 1 downto 0);
 
@@ -40,8 +39,8 @@ architecture bench of dcache_tb is
 	signal DoneMemory_tb	: std_logic;
 	signal EnableMemory_tb	: std_logic;
 	signal AddressMem_tb	: std_logic_vector(ADDR_MEM_L_TB - 1 downto 0);
-	signal DataMemOut_tb	: std_logic_vector(DATA_L_TB - 1 downto 0);
-	signal DataMemIn_tb	: std_logic_vector(DATA_L_TB - 1 downto 0);
+	signal DataMemOut_tb	: std_logic_vector(DATA_L - 1 downto 0);
+	signal DataMemIn_tb	: std_logic_vector(DATA_L - 1 downto 0);
 	signal ReadMem_tb	: std_logic;
 
 	type dcache_t is array (DCACHE_LINE - 1 downto 0) of integer;
@@ -50,7 +49,6 @@ begin
 
 	DUT: dcache generic map(
 		ADDR_MEM_L => ADDR_MEM_L_TB,
-		DATA_L => DATA_L_TB,
 		INCR_PC_L => INCR_PC_L_TB
 	)
 	port map (
@@ -88,6 +86,7 @@ begin
 			Address_tb <= (others => '0');
 			DataIn_tb <= (others => '0');
 			Read_tb <= '0';
+			ReadMem_tb <= '0';
 			DataMemOut_tb <= (others => '0');
 			DoneMemory_tb <= '0';
 			DCacheOut_mem := (others => 0);
@@ -121,15 +120,16 @@ begin
 			address_bram := to_integer(unsigned(address_bram_vec));
 
 			uniform(seed1, seed2, rand_val);
-			data_in_in := integer(rand_val*(2.0**(real(DATA_L_TB)) - 1.0));
+			data_in_in := integer(rand_val*(2.0**(real(DATA_L)) - 1.0));
 			data_in_int := data_in_in;
-			DataIn_tb <= std_logic_vector(to_unsigned(data_in_in, DATA_L_TB));
+			DataIn_tb <= std_logic_vector(to_unsigned(data_in_in, DATA_L));
 
 			uniform(seed1, seed2, rand_val);
 			read_in := integer(rand_bin(rand_val));
 			read_int := read_in;
 			Read_tb <= int_to_std_logic(read_in);
 
+			ReadMem_tb <= '0';
 			DoneMemory_tb <= '0';
 			DataMemOut_tb <= (others => '0');
 
@@ -162,9 +162,9 @@ begin
 					Hit := 1;
 				else
 					wait on EnableMemory_tb;
-					DataMem := integer(rand_val*(2.0**(real(DATA_L_TB)) - 1.0));
+					DataMem := integer(rand_val*(2.0**(real(DATA_L)) - 1.0));
 					Data_int := DataMem;
-					DataMemOut_tb <= std_logic_vector(to_unsigned(DataMem, DATA_L_TB));
+					DataMemOut_tb <= std_logic_vector(to_unsigned(DataMem, DATA_L));
 					DoneMemory_tb <= '1';
 					wait until rising_edge(clk_tb);
 					DoneMemory_tb <= '0';
@@ -175,12 +175,14 @@ begin
 					DDirtyCacheOut_mem(address_bram) := 0;
 				end if;
 			else
+				Data_int := 0;
 				DDirtyCacheOut_mem(address_bram) := 1;
 				DValidCacheOut_mem(address_bram) := 1;
 				DAddrCacheOut_mem(address_bram) := address_full;
 				DCacheOut_mem(address_bram) := DataIn_int;
-				if (ValidBit = 1) and (AddressFullBRAM /= address_full) then
-					DataMemOut_tb <= std_logic_vector(to_unsigned(0, DATA_L_TB));
+				if (AddressFullBRAM /= address_full) then
+					wait on EnableMemory_tb;
+					DataMemOut_tb <= std_logic_vector(to_unsigned(0, DATA_L));
 					DoneMemory_tb <= '1';
 					wait until rising_edge(clk_tb);
 					DoneMemory_tb <= '0';
@@ -202,16 +204,16 @@ begin
 			writeline(file_pointer, file_line);
 
 			if (Hit_rtl = Hit_ideal) and (Data_ideal = Data_rtl) then
-				write(file_line, string'("PASS Instruction " & integer'image(Data_ideal) & " Hit " & integer'image(Hit_ideal)));
+				write(file_line, string'("PASS Data " & integer'image(Data_ideal) & " Hit " & integer'image(Hit_ideal)));
 				pass := 1;
 			elsif (Data_ideal /= Data_rtl) and (Hit_rtl = Hit_ideal) then
-				write(file_line, string'("FAIL (Wrong Instruction) Ideal " & integer'image(Data_ideal) & " and RTL " & integer'image(Data_rtl)));
+				write(file_line, string'("FAIL (Wrong Data) Ideal " & integer'image(Data_ideal) & " and RTL " & integer'image(Data_rtl)));
 				pass := 0;
 			elsif (Hit_rtl /= Hit_ideal) and (Data_ideal = Data_rtl) then
 				write(file_line, string'("FAIL (Wrong hit) Ideal " & integer'image(Hit_ideal) & " and RTL " & integer'image(Hit_rtl)));
 				pass := 0;
 			else
-				write(file_line, string'("FAIL (Wrong hit and instruction) Instruction => Ideal " & integer'image(Data_ideal) & " and RTL " & integer'image(Data_rtl) & " Hit => Ideal " & integer'image(Hit_ideal) & " and RTL " & integer'image(Hit_rtl)));
+				write(file_line, string'("FAIL (Wrong hit and data) Data => Ideal " & integer'image(Data_ideal) & " and RTL " & integer'image(Data_rtl) & " Hit => Ideal " & integer'image(Hit_ideal) & " and RTL " & integer'image(Hit_rtl)));
 				pass := 0;
 			end if;
 			writeline(file_pointer, file_line);

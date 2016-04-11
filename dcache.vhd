@@ -9,7 +9,6 @@ use work.proc_pkg.all;
 entity dcache is
 generic (
 	ADDR_MEM_L	: positive := 32;
-	DATA_L		: positive := 32;
 	INCR_PC_L	: positive := 2
 );
 port (
@@ -169,7 +168,7 @@ begin
 	EnableMemory <= '1' when (StateC = MEMORY_ACCESS) else '0';
 
 	AddressMem <= AddressC;
-	DataMemIn <= PortA_DataOutC;
+	DataMemIn <= PortA_DataOutC(DATA_L - 1 downto 0);
 	DataOut <= DataOutC when (StateC = OUTPUT) else (others => '0');
 	Done <= '1' when (StateC = OUTPUT) else '0';
 	Hit <= HitC;

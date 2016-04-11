@@ -25,7 +25,6 @@ package dcache_pkg is
 	component dcache is
 	generic (
 		ADDR_MEM_L	: positive := 32;
-		DATA_L		: positive := 32;
 		INCR_PC_L	: positive := 2
 	);
 	port (
