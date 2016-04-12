@@ -22,8 +22,9 @@ architecture bench of dcache_tb is
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
 
-	constant ADDR_MEM_L_TB	: positive := 20;
+--	constant ADDR_MEM_L_TB	: positive := 20;
 	constant INCR_PC_L_TB	: positive := 2;
+	constant ADDR_MEM_L_TB	: positive := int_to_bit_num(PROGRAM_MEMORY)+INCR_PC_L_TB;
 
 	signal Hit_tb		: std_logic;
 	signal EnDRst_tb	: std_logic;
@@ -113,9 +114,9 @@ begin
 
 			uniform(seed1, seed2, rand_val);
 			address_full := integer(rand_val*(2.0**(real(ADDR_MEM_L_TB)) - 1.0));
-			address_int := address_full;
 			address_full_vec := std_logic_vector(to_unsigned(address_full, ADDR_MEM_L_TB));
 			Address_tb <= std_logic_vector(to_unsigned(address_full, ADDR_MEM_L_TB));
+			address_int := to_integer(unsigned(address_full_vec(int_to_bit_num(DATA_MEMORY) - 1 downto 0)));
 			address_bram_vec := address_full_vec(ADDR_BRAM_L + INCR_PC_L_TB - 1 downto INCR_PC_L_TB);
 			address_bram := to_integer(unsigned(address_bram_vec));
 
@@ -156,10 +157,15 @@ begin
 			AddressFullBRAM := DAddrCacheIn_mem(address_bram);
 			DataBRAM := DCacheIn_mem(address_bram);
 
+			if (ValidBit = 1) and (AddressFullBRAM = address_full) then
+				Hit := 1;
+			else
+				Hit := 0;
+			end if;
+
 			if (Read_int = 1) then
 				if (ValidBit = 1) and (AddressFullBRAM = address_full) then
 					Data_int := DataBRAM;
-					Hit := 1;
 				else
 					wait on EnableMemory_tb;
 					DataMem := integer(rand_val*(2.0**(real(DATA_L)) - 1.0));
@@ -168,7 +174,6 @@ begin
 					DoneMemory_tb <= '1';
 					wait until rising_edge(clk_tb);
 					DoneMemory_tb <= '0';
-					Hit := 0;
 					DCacheOut_mem(address_bram) := DataMem;
 					DAddrCacheOut_mem(address_bram) := address_full;
 					DValidCacheOut_mem(address_bram) := 1;
@@ -180,7 +185,7 @@ begin
 				DValidCacheOut_mem(address_bram) := 1;
 				DAddrCacheOut_mem(address_bram) := address_full;
 				DCacheOut_mem(address_bram) := DataIn_int;
-				if (AddressFullBRAM /= address_full) then
+				if (AddressFullBRAM /= address_full) or ((AddressFullBRAM = address_full) and (DirtyBit = 1)) then
 					wait on EnableMemory_tb;
 					DataMemOut_tb <= std_logic_vector(to_unsigned(0, DATA_L));
 					DoneMemory_tb <= '1';
@@ -188,11 +193,6 @@ begin
 					DoneMemory_tb <= '0';
 				end if;
 
-				if (ValidBit = 1) and (AddressFullBRAM = address_full) then
-					Hit := 1;
-				else
-					Hit := 0;
-				end if;
 			end if;
 		end procedure dcache_ref;
 
@@ -280,7 +280,7 @@ begin
 
 			Hit_rtl := std_logic_to_int(Hit_tb);
 
-			Data_rtl := to_integer(unsigned(DataMemOut_tb));
+			Data_rtl := to_integer(unsigned(DataOut_tb));
 
 			verify (Read_int, address_int, address_bram, Hit_ideal, Hit_rtl, Data_ideal, Data_rtl, file_pointer, pass);
 

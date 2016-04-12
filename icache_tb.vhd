@@ -22,8 +22,9 @@ architecture bench of icache_tb is
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
 
-	constant ADDR_MEM_L_TB	: positive := 20;
+--	constant ADDR_MEM_L_TB	: positive := 20;
 	constant INCR_PC_L_TB	: positive := 2;
+	constant ADDR_MEM_L_TB	: positive := int_to_bit_num(PROGRAM_MEMORY)+INCR_PC_L_TB;
 
 	signal Hit_tb	: std_logic;
 	signal EnDRst_tb	: std_logic;
@@ -98,9 +99,9 @@ begin
 
 			uniform(seed1, seed2, rand_val);
 			address_full := integer(rand_val*(2.0**(real(ADDR_MEM_L_TB)) - 1.0));
-			address_int := address_full;
 			address_full_vec := std_logic_vector(to_unsigned(address_full, ADDR_MEM_L_TB));
 			Address_tb <= std_logic_vector(to_unsigned(address_full, ADDR_MEM_L_TB));
+			address_int := to_integer(unsigned(address_full_vec(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0)));
 			address_bram_vec := address_full_vec(ADDR_BRAM_L + INCR_PC_L_TB - 1 downto INCR_PC_L_TB);
 			address_bram := to_integer(unsigned(address_bram_vec));
 
@@ -108,7 +109,6 @@ begin
 			InstrMemOut_tb <= (others => '0');
 
 			Start_tb <= '1';
-
 			wait until rising_edge(clk_tb);
 			Start_tb <= '0';
 		end procedure push_op;
@@ -223,7 +223,7 @@ begin
 
 			Hit_rtl := std_logic_to_int(Hit_tb);
 
-			Instr_rtl := to_integer(unsigned(InstrMemOut_tb));
+			Instr_rtl := to_integer(unsigned(Instr_tb));
 
 			verify (address_int, address_bram, Hit_ideal, Hit_rtl, Instr_ideal, Instr_rtl, file_pointer, pass);
 

@@ -25,7 +25,6 @@ architecture bench of execute_tb is
 	signal rst_tb	: std_logic;
 
 	constant BASE_STACK_TB	: positive := 16#8000#;
-	constant REG_L_TB		: positive := 16;
 	constant ADDR_L_TB		: positive := 16;
 	constant OUT_REG_FILE_NUM_TB	: positive := 2;
 

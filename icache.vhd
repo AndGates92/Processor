@@ -167,19 +167,19 @@ begin
 	AddressN <= Address when (StateC = IDLE) else AddressC;
 
 	HitN <=	'0' when (StateC = IDLE) else
-		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOutC(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) else
+		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOut(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) else
 		HitC;
 
 	InstrN <=	(others => '0') when (StateC = IDLE) else
-			PortA_DataOut(INSTR_L - 1 downto 0) when (StateC = WAIT_BRAM_DATA) else
+			PortA_DataOut(INSTR_L - 1 downto 0) when (StateC = BRAM_RECV_DATA) else
 			InstrMemOut when (StateC = MEMORY_ACCESS) else
 			InstrC;
 
-	PortA_DataInN <=	"1" & AddressC & InstrMemOut when (StateC = MEMORY_ACCESS) else
+	PortA_DataInN <=	"1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0) & InstrMemOut when (StateC = MEMORY_ACCESS) else
 				(others => '0') when (StateC = IDLE) or (StateC = RESET) else
 				PortA_DataInC;
 
-	PortA_DataOutN <=	PortA_DataOut when (StateC = WAIT_BRAM_DATA) else
+	PortA_DataOutN <=	PortA_DataOut when (StateC = BRAM_RECV_DATA) else
 				(others => '0') when (StateC = IDLE) else
 				PortA_DataOutC;
 
@@ -191,6 +191,16 @@ begin
 	PortA_WriteN <=	'1' when ((StateC = MEMORY_ACCESS) and (DoneMemory = '1')) or (StateC = RESET) else
 			'0' when (StateC = IDLE) else
 			PortA_WriteC;
+
+	PortA_DataIn <= PortA_DataInC;
+	PortA_Address <= PortA_AddressC;
+	PortA_Write <= '0' when (StateC = IDLE) else PortA_WriteC;
+
+	EnableMemory <= '1' when (StateC = MEMORY_ACCESS) else '0';
+	AddressMem <= AddressC;
+	Instr <= InstrC when (StateC = OUTPUT) else (others => '0');
+	Done <= '1' when (StateC = OUTPUT) else '0';
+	Hit <= '0' when (StateC = IDLE) else HitC;
 
 	PortB_DataInN <=	(others => '0') when (StateC = IDLE) or (StateC = RESET) else
 				PortB_DataInC;
@@ -306,7 +316,7 @@ begin
 		elsif (StateC = WAIT_BRAM_DATA) then
 			StateN <= BRAM_RECV_DATA;
 		elsif (StateC = BRAM_RECV_DATA) then
-			if (PortA_DataOutC(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) then
+			if (PortA_DataOut(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) then
 				StateN <= OUTPUT;
 			else
 				StateN <= MEMORY_ACCESS;
@@ -368,11 +378,11 @@ begin
 	AddressN <= Address when (StateC = IDLE) else AddressC;
 
 	HitN <=	'0' when (StateC = IDLE) else
-		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOutC(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) else
+		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOut(ICACHE_LINE_L - 1 downto ICACHE_LINE_L - 1 - int_to_bit_num(PROGRAM_MEMORY)) = ("1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0))) else
 		HitC;
 
 	InstrN <=	(others => '0') when (StateC = IDLE) else
-			PortA_DataOut(INSTR_L - 1 downto 0) when (StateC = WAIT_BRAM_DATA) else
+			PortA_DataOut(INSTR_L - 1 downto 0) when (StateC = BRAM_RECV_DATA) else
 			InstrMemOut when (StateC = MEMORY_ACCESS) else
 			InstrC;
 
@@ -380,12 +390,12 @@ begin
 				(others => '0') when (StateC = IDLE) or (StateC = RESET) else
 				PortA_DataInC;
 
-	PortA_DataOutN <=	PortA_DataOut when (StateC = MEMORY_ACCESS) else
+	PortA_DataOutN <=	PortA_DataOut when (StateC = BRAM_RECV_DATA) else
 				(others => '0') when (StateC = IDLE) else
 				PortA_DataOutC;
 
 	PortA_AddressN <=	PortA_Address_rst when (StateC = RESET) else
-				AddressC(ADDR_BRAM_L - 1 downto 0) when (StateC = BRAM_FWD) or (StateC = MEMORY_ACCESS) else
+				AddressC(ADDR_BRAM_L + INCR_PC_L - 1 downto INCR_PC_L) when (StateC = BRAM_FWD) or (StateC = MEMORY_ACCESS) else
 				(others => '0') when (StateC = IDLE) else
 				PortA_AddressC;
 
@@ -395,13 +405,13 @@ begin
 
 	PortA_DataIn <= PortA_DataInC;
 	PortA_Address <= PortA_AddressC;
-	PortA_Write <= PortA_WriteC;
+	PortA_Write <= '0' when (StateC = IDLE) else PortA_WriteC;
 
 	EnableMemory <= '1' when (StateC = MEMORY_ACCESS) else '0';
 	AddressMem <= AddressC;
 	Instr <= InstrC when (StateC = OUTPUT) else (others => '0');
 	Done <= '1' when (StateC = OUTPUT) else '0';
-	Hit <= HitC;
+	Hit <= '0' when (StateC = IDLE) else HitC;
 
 	BRAM_1PORT_I : bram_1port generic map(
 		ADDR_BRAM_L => ADDR_BRAM_L,
