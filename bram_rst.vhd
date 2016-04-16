@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
+use work.bram_pkg.all;
 use work.proc_pkg.all;
 
 entity bram_rst is

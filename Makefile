@@ -20,9 +20,10 @@ all:
 	make alu_all
 	make decode_stage_all
 	make ctrl_all
-	make execute_all
 	make icache_all
 	make dcache_all
+	make execute_all
+	make execute_dcache_all
 
 clean:
 	rm -f ${LOG_FILE} ${SUMMARY_FILE}
@@ -33,6 +34,8 @@ work_dir:
 libraries: 
 	@echo "Analysing proc_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} proc_pkg.vhd
+	@echo "Analysing bram_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_pkg.vhd
 	@echo "Analysing mem_int_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} mem_int_pkg.vhd
 	@echo "Analysing alu_pkg.vhd"
@@ -43,6 +46,8 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} reg_file_pkg.vhd
 	@echo "Analysing decode_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} decode_pkg.vhd
+	@echo "Analysing execute_dcache_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} execute_dcache_pkg.vhd
 	@echo "Analysing execute_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} execute_pkg.vhd
 	@echo "Analysing icache_pkg.vhd"
@@ -257,3 +262,44 @@ dcache_all:
 	make libraries
 	make dcache
 	make simulate_dcache
+
+execute_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_int_pkg.o ${WORK_DIR}/execute_dcache_pkg.o
+	@echo "Analysing alu.vhd"
+	${GHDL} -a ${GHDL_ARGS} alu.vhd
+	@echo "Analysing mul.vhd"
+	${GHDL} -a ${GHDL_ARGS} mul.vhd
+	@echo "Analysing div.vhd"
+	${GHDL} -a ${GHDL_ARGS} div.vhd
+	@echo "Analysing reg_file.vhd"
+	${GHDL} -a ${GHDL_ARGS} reg_file.vhd
+	@echo "Analysing bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_rst.vhd
+	@echo "Analysing bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
+	@echo "Analysing bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_2port.vhd
+	@echo "Analysing dcache.vhd"
+	${GHDL} -a ${GHDL_ARGS} dcache.vhd
+	@echo "Analysing mem_int.vhd"
+	${GHDL} -a ${GHDL_ARGS} mem_int.vhd
+	@echo "Analysing ctrl.vhd"
+	${GHDL} -a ${GHDL_ARGS} ctrl.vhd
+	@echo "Analysing execute_dcache.vhd"
+	${GHDL} -a ${GHDL_ARGS} execute_dcache.vhd
+	@echo "Analysing execute_dcache_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} execute_dcache_tb.vhd
+	@echo "Analysing execute_dcache_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} execute_dcache_cfg.vhd
+	@echo "Elaborating execute_dcache_cfg"
+	${GHDL} -e ${GHDL_ARGS} config_execute_dcache
+	rm -r e~config_execute_dcache.o
+	mv config_execute_dcache ${WORK_DIR}
+
+simulate_execute_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/mem_int_pkg.o ${WORK_DIR}/execute_dcache_pkg.o ${WORK_DIR}/execute_dcache.o  ${WORK_DIR}/execute_dcache_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r config_execute_dcache ${GHDL_RUN_ARGS}execute_dcache.vcd
+
+execute_dcache_all:
+	make work_dir
+	make libraries
+	make execute_dcache
+	make simulate_execute_dcache

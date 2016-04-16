@@ -1,3 +1,6 @@
+library work;
+use work.bram_pkg.all;
+
 configuration config_icache of icache_tb is
 	for bench
 		for DUT: icache

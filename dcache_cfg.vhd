@@ -1,3 +1,6 @@
+library work;
+use work.bram_pkg.all;
+
 configuration config_dcache of dcache_tb is
 	for bench
 		for DUT: dcache
