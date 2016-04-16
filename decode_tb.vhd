@@ -53,7 +53,6 @@ begin
 		REG_NUM => REG_NUM_TB,
 		PC_L => PC_L_TB,
 		STAT_REG_L => STAT_REG_L_TB,
-		INCR_PC => INCR_PC_TB,
 		EN_REG_FILE_L => EN_REG_FILE_L_TB
 	)
 	port map (

@@ -13,7 +13,6 @@ generic (
 	REG_NUM		: positive := 16;
 	PC_L		: positive := 32;
 	STAT_REG_L	: positive := 8;
-	INCR_PC		: positive := 4;
 	EN_REG_FILE_L	: positive := 3
 );
 port (
