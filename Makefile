@@ -36,8 +36,8 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} proc_pkg.vhd
 	@echo "Analysing bram_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} bram_pkg.vhd
-	@echo "Analysing mem_int_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} mem_int_pkg.vhd
+	@echo "Analysing mem_model_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} mem_model_pkg.vhd
 	@echo "Analysing alu_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} alu_pkg.vhd
 	@echo "Analysing ctrl_pkg.vhd"
@@ -176,7 +176,7 @@ ctrl_all:
 	make ctrl
 	make simulate_ctrl
 
-execute: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_int_pkg.o ${WORK_DIR}/execute_pkg.o
+execute: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_pkg.o
 	@echo "Analysing alu.vhd"
 	${GHDL} -a ${GHDL_ARGS} alu.vhd
 	@echo "Analysing mul.vhd"
@@ -185,8 +185,8 @@ execute: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WOR
 	${GHDL} -a ${GHDL_ARGS} div.vhd
 	@echo "Analysing reg_file.vhd"
 	${GHDL} -a ${GHDL_ARGS} reg_file.vhd
-	@echo "Analysing mem_int.vhd"
-	${GHDL} -a ${GHDL_ARGS} mem_int.vhd
+	@echo "Analysing mem_model.vhd"
+	${GHDL} -a ${GHDL_ARGS} mem_model.vhd
 	@echo "Analysing ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ctrl.vhd
 	@echo "Analysing execute.vhd"
@@ -200,7 +200,7 @@ execute: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WOR
 	rm -r e~config_execute.o
 	mv config_execute ${WORK_DIR}
 
-simulate_execute: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/mem_int_pkg.o ${WORK_DIR}/execute_pkg.o ${WORK_DIR}/execute.o  ${WORK_DIR}/execute_tb.o
+simulate_execute: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_pkg.o ${WORK_DIR}/execute.o  ${WORK_DIR}/execute_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r config_execute ${GHDL_RUN_ARGS}execute.vcd
 
 execute_all:
@@ -209,7 +209,7 @@ execute_all:
 	make execute
 	make simulate_execute
 
-icache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_int_pkg.o ${WORK_DIR}/execute_pkg.o
+icache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_pkg.o
 	@echo "Analysing bram_1port.vhd"
 	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
 	@echo "Analysing bram_2port.vhd"
@@ -236,7 +236,7 @@ icache_all:
 	make icache
 	make simulate_icache
 
-dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_int_pkg.o ${WORK_DIR}/execute_pkg.o
+dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_pkg.o
 	@echo "Analysing bram_1port.vhd"
 	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
 	@echo "Analysing bram_2port.vhd"
@@ -263,7 +263,7 @@ dcache_all:
 	make dcache
 	make simulate_dcache
 
-execute_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_int_pkg.o ${WORK_DIR}/execute_dcache_pkg.o
+execute_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_dcache_pkg.o
 	@echo "Analysing alu.vhd"
 	${GHDL} -a ${GHDL_ARGS} alu.vhd
 	@echo "Analysing mul.vhd"
@@ -280,8 +280,8 @@ execute_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.
 	${GHDL} -a ${GHDL_ARGS} bram_2port.vhd
 	@echo "Analysing dcache.vhd"
 	${GHDL} -a ${GHDL_ARGS} dcache.vhd
-	@echo "Analysing mem_int.vhd"
-	${GHDL} -a ${GHDL_ARGS} mem_int.vhd
+	@echo "Analysing mem_model.vhd"
+	${GHDL} -a ${GHDL_ARGS} mem_model.vhd
 	@echo "Analysing ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ctrl.vhd
 	@echo "Analysing execute_dcache.vhd"
@@ -295,7 +295,7 @@ execute_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.
 	rm -r e~config_execute_dcache.o
 	mv config_execute_dcache ${WORK_DIR}
 
-simulate_execute_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/mem_int_pkg.o ${WORK_DIR}/execute_dcache_pkg.o ${WORK_DIR}/execute_dcache.o  ${WORK_DIR}/execute_dcache_tb.o
+simulate_execute_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_dcache_pkg.o ${WORK_DIR}/execute_dcache.o  ${WORK_DIR}/execute_dcache_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r config_execute_dcache ${GHDL_RUN_ARGS}execute_dcache.vcd
 
 execute_dcache_all:

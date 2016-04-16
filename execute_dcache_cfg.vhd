@@ -1,6 +1,6 @@
 library work;
 use work.bram_pkg.all;
-use work.mem_int_pkg.all;
+use work.mem_model_pkg.all;
 use work.dcache_pkg.all;
 
 configuration config_execute_dcache of execute_dcache_tb is
@@ -11,8 +11,8 @@ configuration config_execute_dcache of execute_dcache_tb is
 				for MUL_I: mul
 					use entity work.mul(booth_radix4);
 				end for;
-				for MEM_INT_I: mem_int
-					use entity work.mem_int(dummy);
+				for MEM_INT_I: mem_model
+					use entity work.mem_model(dummy);
 				end for;
 				for DCACHE_I: dcache
 					use entity work.dcache(rtl_bram_1port);

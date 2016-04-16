@@ -8,7 +8,7 @@ use work.alu_pkg.all;
 use work.decode_pkg.all;
 use work.ctrl_pkg.all;
 use work.reg_file_pkg.all;
-use work.mem_int_pkg.all;
+use work.mem_model_pkg.all;
 use work.proc_pkg.all;
 
 entity execute_stage is
@@ -186,7 +186,7 @@ begin
 		Done => DoneReadStatus
 	);
 
-	MEM_INT_I: mem_int generic map(
+	MEM_INT_I: mem_model generic map(
 		ADDR_L => ADDR_L,
 		DATA_L => DATA_L
 	)
