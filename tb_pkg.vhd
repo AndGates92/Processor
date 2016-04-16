@@ -20,7 +20,6 @@ package tb_pkg is
 	constant REG_NUM_TB	: positive := 4;
 	constant OP1_L_TB	: integer := DATA_L;
 	constant OP2_L_TB	: integer := DATA_L;
-	constant INCR_PC_TB	: positive := 4;
 
 	type reg_file_array is array(0 to REG_NUM_TB-1) of integer;
 
@@ -183,7 +182,7 @@ package body tb_pkg is
 		end if;
 
 		if (OpCode = OP_CODE_CALL) then
-			PCCallOut := PCIn + INCR_PC_TB;
+			PCCallOut := PCIn + INCR_PC;
 		elsif (OpCode = OP_CODE_RET) then
 			PCCallOut := 0;
 		else
