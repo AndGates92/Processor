@@ -52,12 +52,20 @@ end entity mem_int;
 architecture rtl of mem_int is
 
 	signal StateC, StateN		: std_logic_vector(STATE_MEM_L - 1 downto 0);
-	signal CommandC, Command	: std_logic_vector(CMD_MEM_INT_L - 1 downto 0);
+	signal CommandC, CommandN	: std_logic_vector(CMD_MEM_INT_L - 1 downto 0);
+	signal CommandDelC, CommandDelN	: std_logic_vector(CMD_MEM_INT_L - 1 downto 0);
 
 	signal CountC, CountN		: std_logic_vector(COUNTER_L - 1 downto 0);
 
 	signal ColC, ColN		: std_logic_vector(COL_L - 1 downto 0);
 	signal RowC, RowN		: std_logic_vector(ROW_L - 1 downto 0);
+
+	signal InitSecPrechargeC, InitSecPrechargeN	std_logic;
+
+	signal ModeRegC, ModeRegN			: std_logic_vector(ADDR_MEM_L - 1 downto 0);
+	signal ExtModeReg1C, ExtModeReg1N		: std_logic_vector(ADDR_MEM_L - 1 downto 0);
+	signal ExtModeReg2C, ExtModeReg2N		: std_logic_vector(ADDR_MEM_L - 1 downto 0);
+	signal ExtModeReg3C, ExtModeReg3N		: std_logic_vector(ADDR_MEM_L - 1 downto 0);
 
 	signal AddressMemC, AddressMemN			: std_logic_vector(ADDR_MEM_L - 1 downto 0);
 	signal BankSelMemC, BankSelMemN			: std_logic_vector(BANK_L - 1 downto 0);
@@ -82,6 +90,9 @@ architecture rtl of mem_int is
 	signal LowWriteDataMaskC, LowWriteDataMaskN	: std_logic;
 	signal OnDieTerminationC, OnDieTerminationN	: std_logic;
 
+	signal LastCmdRstC, LastCmdRstN			: std_logic;
+	signal LastCmdRstC, LastCmdRstN			: std_logic;
+
 begin
 
 	reg: process(rst, clk)
@@ -89,9 +100,20 @@ begin
 		if (rst = '1') then
 
 			StateC <= IDLE;
-			CommandC <= CMD_IDLE;
+			CommandC <= CMD_ALL_BANKS_PRECHARGE;
+			CommandDelC <= CMD_ALL_BANKS_PRECHARGE;
+
+			ColC <= (others => '0');
+			RowC <= (others => '0');
+
+			ModeRegC <= (others => '0');
+			ExtModeReg1C <= (others => '0');
+			ExtModeReg2C <= (others => '0');
+			ExtModeReg3C <= (others => '0');
 
 			CountC <= (others => '0');
+
+			LastCmdRstC <= '0';
 
 			AddressMemC <= (others => '0');
 			BankSelMemC <= (others => '0');
@@ -116,12 +138,25 @@ begin
 			LowWriteDataMaskC <= '0';
 			OnDieTerminationC <= '0';
 
+			InitSecPrechargeC <= '0';
+
 		elsif (rising_edge(clk)) then
 
 			StateC <= StateN;
 			CommandC <= CommandN;
+			CommandDelC <= CommandDelN;
+
+			RowC <= RowN;
+			ColC <= ColN;
+
+			ModeRegC <= ModeRegN;
+			ExtModeReg1C <= ExtModeReg1N;
+			ExtModeReg2C <= ExtModeReg2N;
+			ExtModeReg3C <= ExtModeReg3N;
 
 			CountC <= CountN;
+
+			LastCmdRstC <= LastCmdRstN;
 
 			AddressMemC <= AddressMemN;
 			BankSelMemC <= BankSelMemN;
@@ -146,6 +181,8 @@ begin
 			LowWriteDataMaskC <= LowWriteDataMaskN;
 			OnDieTerminationC <= OnDieTerminationN;
 
+			InitSecPrechargeC <= InitSecPrechargeN;
+
 		end if;
 	end process reg;
 
@@ -167,7 +204,11 @@ begin
 				StateN <= StateC;
 			end if;
 		elsif (StateC = RESET) then
-			StateN <= OUTPUT;
+			if (LastCmdRstC = '1') and (CMD_ALL_BANKS_PRECHARGE) then
+				StateN <= SET_REG;
+			else
+				StateN <= StateC;
+			end if;
 		elsif (StateC = WRITE) then
 			StateN <= OUTPUT;
 		elsif (StateC = READ) then
@@ -180,11 +221,8 @@ begin
 			StateN <= IDLE;
 		elsif (StateC = AUTO_REFRESH) then
 			StateN <= IDLE;
-		elsif (StateC = MRS) then
-			StateN <= IDLE;
-		elsif (StateC = EMRS_1) then
-			StateN <= IDLE;
-		elsif (StateC = EMRS_2) then
+		elsif (StateC = SET_REG) then
+			if (
 			StateN <= IDLE;
 		elsif (StateC = OUTPUT) then
 			StateN <= IDLE;
@@ -196,40 +234,88 @@ begin
 	cmd_det: process(CmmandC, EnableMemoryInt, Precharge, ReadMem, rst)
 	begin
 		CommandN <= CommandC; -- avoid latches
-		if (CommandC = CMD_IDLE) then
+		if (CommandC = CMD_ALL_BANKS_PRECHARGE) then
 			if (rst = '1') then
 				CommandN <= CMD_POWER_UP;
+			elsif (StateC = RESET) and (CountPrechargeAllC = PRECHARGE_TIME - 1) and (InitSecPrechargeC = '0') then
+				CommandN <= CMD_DESEL;
+			elsif (StateC = RESET) and (CountPrechargeAllC = PRECHARGE_TIME - 1) then
+				CommandN <= CMD_AUTO_REF;
 			elsif (EnableMemoryInt = '1') then
 				CommandN <= CMD_BANK_ACTIV;
 			else
 				CommandN <= CommandC;
 			end if;
 		elsif (CommandC = CMD_POWER_UP) then
-			CommandN <= CMD_IDLE;
+			if (CountC = INIT_CLK - 1) then
+				CommandN <= CMD_NOP;
+			else
+				CommandN <= CommandC;
+			end if;
 		elsif (CommandC = CMD_NOP) then
-			CommandN <= CMD_IDLE;
+			if ((StateC = RESET) and (CountC = INIT_NOP - 1)) or (StateC /= RESET) then
+				CommandN <= CMD_ALL_BANKS_PRECHARGE;
+			else
+				CommandN <= CommandC;
+			end if;
 		elsif (CommandC = CMD_DESEL) then
-			CommandN <= CMD_IDLE;
+			if (StateC = RESET) and (CountC = INIT_NOP - 1) then
+				CommandN <= CMD_EXT_MODE_REG_SET_2;
+			elsif (StateC /= RESET) then
+				CommandN <= CMD_ALL_BANKS_PRECHARGE;
+			else
+				CommandN <= CommandC;
+			end if;
 		elsif (CommandC = CMD_MODE_REG_SET) then
-			CoomandN <= CMD_IDLE;
+			if ((StateC = RESET) and (CountC = REG_TIME - 1) and (InitSecPrechargeC = '1')) or (StateC /= RESET) then
+				CommandN <= CMD_EXT_MODE_REG_SET_1;
+			elsif (CountC = REG_TIME - 1) then
+				CommandN <= CMD_ALL_BANKS_PRECHARGE;
+			else
+				CommandN <= CommandC;
+			end if;
 		elsif (CommandC = CMD_EXT_MODE_REG_SET_1) then
-			CoomandN <= CMD_IDLE;
+			if (StateC = RESET) and (CountC = REG_TIME - 1) and (InitSecPrechargeC = '0') then
+				CommandC <= CMD_MODE_REG_SET;
+			elsif (StateC = RESET) and (CountC = 2*REG_TIME - 1) then
+				CommandN <= CMD_ALL_BANKS_PRECHARGE;
+			elsif (StateC /= RESET) and (CountC = REG_TIME - 1) then
+				CommandN <= CMD_EXT_MODE_REG_SET_2;
+			else
+				CommandN <= CommandC;
+			end if;
 		elsif (CommandC = CMD_EXT_MODE_REG_SET_2) then
-			CoomandN <= CMD_IDLE;
+			if (CountC = REG_TIME - 1) then
+				CommandC <= CMD_EXT_MODE_REG_SET_3;
+			else
+				CommandN <= CommandC;
+			end if;
+		elsif (CommandC = CMD_EXT_MODE_REG_SET_3) then
+			if (StateC = RESET) and (CountC = REG_TIME - 1) then
+				CommandC <= CMD_EXT_MODE_REG_SET_1;
+			elsif (CountC = REG_TIME - 1) then
+				CommandN <= CMD_ALL_BANKS_PRECHARGE;
+			else
+				CommandN <= CommandC;
+			end if;
 		elsif (CommandC = CMD_AUTO_REF) then
-			CommandN <= CMD_IDLE;
+			if (StateC = RESET) and (CountC = INIT_AUTO_REF - 1) then
+				CommandN <= CMD_MODE_REG_SET;
+			elsif (CountC = AUTO_REF_TIME - 1) then
+				CommandN <= CMD_ALL_BANKS_PRECHARGE;
+			else
+				CommandN <= CommandC;
+			end if;
 		elsif (CommandC = CMD_SELF_REF_ENTRY_1) then
-			CommandN <= CMD_IDLE;
+			CommandN <= CMD_ALL_BANKS_PRECHARGE;
 		elsif (CommandC = CMD_SELF_REF_ENTRY_2) then
-			CommandN <= CMD_IDLE;
+			CommandN <= CMD_ALL_BANKS_PRECHARGE;
 		elsif (CommandC = CMD_SELF_REF_EXIT_1) then
-			CommandN <= CMD_IDLE;
+			CommandN <= CMD_ALL_BANKS_PRECHARGE;
 		elsif (CommandC = CMD_SELF_REF_EXIT_2) then
-			CommandN <= CMD_IDLE;
+			CommandN <= CMD_ALL_BANKS_PRECHARGE;
 		elsif (CommandC = CMD_BANK_PRECHARGE) then
-			CommandN <= CMD_IDLE;
-		elsif (CommandC = CMD_ALL_BANKS_PRECHARGE) then
-			CommandN <= CMD_IDLE;
+			CommandN <= CMD_ALL_BANKS_PRECHARGE;
 		elsif (CommandC = CMD_BANK_ACTIV) then
 			if (ClkEnableC = '0') then
 				CommandN <= CMD_POWER_DOWN_ENTRY_1;
@@ -300,7 +386,7 @@ begin
 			CommandN <= CMD_POWER_DOWN_EXIT_1;
 		elsif (CommandC = CMD_POWER_DOWN_EXIT_2) then
 			if (ClkEnableC = '1') and (StateC = PRECHARGE_POWER_DOWN) then
-				CommandN <= CMD_IDLE;
+				CommandN <= CMD_ALL_BANKS_PRECHARGE;
 			elsif (ClkEnableC = '1') and ((StateC = WRITE) or (StateC = READ) or (StateC = READ_PRECHARGE) or (StateC = WRITE_PRECHARGE)) then
 				CommandN <= CMD_BANK_PRECHARGE;
 			else
@@ -311,7 +397,9 @@ begin
 		end if;
 	end process cmd_det;
 
-	ClkEnableN <= '0' when (CommandC = CMD_SELF_REF_EXIT_1) or (CommandC = CMD_SELF_REF_ENTRY_2) or (CommandC = CMD_POWER_DOWN_EXIT_1) or (CommandC = CMD_POWER_DOWN_ENTRY_2) else '1';
+	CommandDelN <= CommandC;
+
+	ClkEnableN <= '0' when (CommandC = CMD_POWER_UP) or (CommandC = CMD_SELF_REF_EXIT_1) or (CommandC = CMD_SELF_REF_ENTRY_2) or (CommandC = CMD_POWER_DOWN_EXIT_1) or (CommandC = CMD_POWER_DOWN_ENTRY_2) else '1';
 
 	nChipSelectN <= '1' when (CommandC = CMD_DESEL) else '0';
 
@@ -322,15 +410,40 @@ begin
 	nWriteEnableN <= '0' when (CommandC = CMD_MODE_REG_SET) or (CommandC = CMD_EXT_MODE_REG_SET_1) or (CommandC = CMD_EXT_MODE_REG_SET_2) or (CommandC = CMD_BANK_PRECHARGE) or (CommandC = CMD_ALL_BANKS_PRECHARGE) or (CommandC = CMD_WRITE) or (CommandC = CMD_WRITE_PRECHARGE) else '1';
 
 	BankSelMemN <=	(others => '0') when (CommandC = CMD_MODE_REG_SET) else
-			(1 => '1', others => '0') when (CommandC = CMD_EXT_MODE_REG_SET_1) else
-			(2 => '1', others => '0') when (CommandC = CMD_EXT_MODE_REG_SET_2) else
-			AddressMemInt(ADDR_L - 1 downto ADDR_L - BANK_L) when (CommandC = CMD_IDLE) else
+			(0 => '1', others => '0') when (CommandC = CMD_EXT_MODE_REG_SET_1) else
+			(1 => '1', others => '0') when (CommandC = CMD_EXT_MODE_REG_SET_2) else
+			((1 downto 0) => "11", others => '0') when (CommandC = CMD_EXT_MODE_REG_SET_3) else
+			AddressMemInt(ADDR_L - 1 downto ADDR_L - BANK_L) when (CommandC = CMD_ALL_BANKS_PRECHARGE) else
 			BankSelMemC;
 
 	AddressMemN <=	(10 => '1', others => '0') when (CommandC = CMD_ALL_BANKS_PRECHARGE) else
 			RowC when (CommandC = CMD_BANK_ACTIV) else
 			((PrechargeC & ColC) => (COL_L downto 0), others => '0') when (CommandC = CMD_WRITE) or (CommandC = CMD_WRITE_PRECHARGE) or (CommandC = CMD_READ) or (CommandC = CMD_READ_PRECHARGE) else
-			(others => '0') when (CommandC = CMD_IDLE) or (CommandC = CMD_BANK_PRECHARGE) else
+			(others => '0') when (CommandC = CMD_BANK_PRECHARGE) else
+			ModeReg when (CommandC = CMD_MODE_REG_SET) else
+			ExtModeReg1N when (CommandC = CMD_EXT_MODE_REG_SET_1) else
+			ExtModeReg2 when (CommandC = CMD_EXT_MODE_REG_SET_2) else
+			ExtModeReg3 when (CommandC = CMD_EXT_MODE_REG_SET_3) else
 			AddressMemC;
 
-	
+	ModeReg <=	(others => '0') when (StateC = RESET) and  (InitSecPrechargeC = '0') else
+			((11 downto 9) => "101", others => '0') when (StateC = RESET) and  (InitSecPrechargeC = '1') else
+			PowerExitSlow & WriteRec & DDLRes & '0' & nCASLatency & BurtsType & BurstLength;
+
+	ExtModeReg1N <=	((9 downto 7) => "111", others => '0') when (StateC = RESET) and (CountC = ZERO_COUNT) and (InitSecPrechargeC = '1') else
+			(others => '0') when (StateC = RESET) and (((CountC = REG_TIME - 1) and (InitSecPrechargeC = '1')) or ((CountC = ZERO_COUNT) and (InitSecPrechargeC = '0'))) else
+			OutBuffEn & RDQSEn & nDQSEn & "000" & ODTEn(1) & AddLatency & ODTEn(0) & DriverCtrl & DDLEn when (StateC /= RESET) else
+			ExtModeReg1C;
+
+	ExtModeReg2 <= (others => '0') when (StateC = RESET) else (7 => HighTempSelfRefresh, others => '0');
+	ExtModeReg3 <= (others => '0');
+
+	CountN <= (others => '0') when (CommandC /= CommandDelC) else CountC + 1;
+
+	InitSecPrechargeN <=	'1' when (StateC = RESET) and (CommandC = CMD_ALL_BANKS_PRECHARGE) else
+				'0' when (rst = '1') else
+				InitSecPrechargeC;
+
+	LastCmdRstN <=	'1' when (AddressMemC(9 downto 7) = "111") else
+			'0' when (rst = '1') else
+			LastCmdRstC;

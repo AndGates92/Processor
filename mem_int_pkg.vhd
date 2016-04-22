@@ -8,6 +8,8 @@ use work.proc_pkg.all;
 
 package mem_int_pkg is 
 
+	constant INIT_CLK	 :positive := 1; -- 200 us
+
 	constant BANK_NUM	: positive := 8;
 	constant BANK_L		: positive := positive(int_to_bit_num(BANK_NUM));
 
@@ -30,19 +32,17 @@ package mem_int_pkg is
 	constant READ_PRECHARGE		: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_MEM_L));
 	constant SELF_REFRESH		: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_MEM_L));
 	constant AUTO_REFRESH		: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(8, STATE_MEM_L));
-	constant MRS			: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(9, STATE_MEM_L));
-	constant EMRS_1			: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(10, STATE_MEM_L));
-	constant EMRS_2			: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(11, STATE_MEM_L));
+	constant SET_REG		: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(9, STATE_MEM_L));
 
 	constant CMD_MEM_INT_L	: positive := 5;
 
-	constant CMD_IDLE			: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(0, CMD_MEM_INT_L));
-	constant CMD_POWER_UP			: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(1, CMD_MEM_INT_L));
-	constant CMD_NOP			: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(2, CMD_MEM_INT_L));
-	constant CMD_DESEL			: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(3, CMD_MEM_INT_L));
-	constant CMD_MODE_REG_SET		: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(4, CMD_MEM_INT_L));
-	constant CMD_EXT_MODE_REG_SET_1		: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(5, CMD_MEM_INT_L));
-	constant CMD_EXT_MODE_REG_SET_2		: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(6, CMD_MEM_INT_L));
+	constant CMD_POWER_UP			: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(0, CMD_MEM_INT_L));
+	constant CMD_NOP			: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(1, CMD_MEM_INT_L));
+	constant CMD_DESEL			: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(2, CMD_MEM_INT_L));
+	constant CMD_MODE_REG_SET		: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(3, CMD_MEM_INT_L));
+	constant CMD_EXT_MODE_REG_SET_1		: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(4, CMD_MEM_INT_L));
+	constant CMD_EXT_MODE_REG_SET_2		: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(5, CMD_MEM_INT_L));
+	constant CMD_EXT_MODE_REG_SET_3		: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(6, CMD_MEM_INT_L));
 	constant CMD_AUTO_REF			: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(7, CMD_MEM_INT_L));
 	constant CMD_SELF_REF_ENTRY_1		: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(8, CMD_MEM_INT_L));
 	constant CMD_SELF_REF_ENTRY_2		: std_logic_vector(CMD_MEM_INT_L - 1 downto 0) := std_logic_vector(to_unsigned(9, CMD_MEM_INT_L));
