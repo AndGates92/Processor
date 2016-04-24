@@ -82,7 +82,7 @@ begin
 		procedure reset(variable RegFileOut_int : out reg_file_array; variable StatusRegOut_int : out integer) is
 		begin
 			rst_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '1';
 			AddressRegFileIn_In_tb <= (others => '0');
 			AddressRegFileOut1_In_tb <= (others => '0');
@@ -92,12 +92,12 @@ begin
 			RegFileOut_int := (others => 0);
 			StatusRegOut_int := 0;
 			Start_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '0';
 
 			wait on EndRst_tb;
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end procedure reset;
 
 		procedure push_op(variable AddressIn_int, AddressOut1_int, AddressOut2_int : out integer; variable Immediate_int: out integer; variable CmdALU: out std_logic_vector(CMD_ALU_L-1 downto 0); variable CtrlCmd: out std_logic_vector(CTRL_CMD_L-1 downto 0); variable EnableRegFile_vec: out std_logic_vector(EN_REG_FILE_L_TB-1 downto 0); variable seed1, seed2: inout positive) is
@@ -158,7 +158,7 @@ begin
 
 			Start_tb <= '1';
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			Start_tb <= '0';
 		end procedure push_op;
 
@@ -244,7 +244,7 @@ begin
 
 			num_pass := num_pass + pass;
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end loop;
 
 		file_close(file_pointer);

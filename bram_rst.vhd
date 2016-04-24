@@ -38,7 +38,7 @@ begin
 			StateC <= IDLE;
 			PortA_AddressC <= (others => '0');
 
-		elsif (rising_edge(clk)) then
+		elsif ((clk'event) and (clk = '1')) then
 
 			StateC <= StateN;
 			PortA_AddressC <= PortA_AddressN;
@@ -96,7 +96,7 @@ begin
 			PortA_AddressC <= (others => '0');
 			PortB_AddressC <= to_unsigned(1, ADDR_L);
 
-		elsif (rising_edge(clk)) then
+		elsif ((clk'event) and (clk = '1')) then
 
 			StateC <= StateN;
 			PortA_AddressC <= PortA_AddressN;

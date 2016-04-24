@@ -80,7 +80,7 @@ begin
 		procedure reset(variable DCacheOut_mem, DAddrCacheOut_mem, DValidCacheOut_mem, DDirtyCacheOut_mem : out dcache_t) is
 		begin
 			rst_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '1';
 			Address_tb <= (others => '0');
 			DataIn_tb <= (others => '0');
@@ -93,12 +93,12 @@ begin
 			DAddrCacheOut_mem := (others => 0);
 			DValidCacheOut_mem := (others => 0);
 			Start_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '0';
 
 			wait on EndRst_tb;
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end procedure reset;
 
 		procedure push_op(variable address_bram : out integer; variable address_int : out integer; variable Read_int : out integer; variable data_in_int : out integer; variable seed1, seed2 : inout positive) is
@@ -134,7 +134,7 @@ begin
 
 			Start_tb <= '1';
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			Start_tb <= '0';
 		end procedure push_op;
 
@@ -170,7 +170,7 @@ begin
 					Data_int := DataMem;
 					DataMemOut_tb <= std_logic_vector(to_unsigned(DataMem, DATA_L));
 					DoneMemory_tb <= '1';
-					wait until rising_edge(clk_tb);
+					wait until ((clk_tb'event) and (clk_tb = '1'));
 					DoneMemory_tb <= '0';
 					DCacheOut_mem(address_bram) := DataMem;
 					DAddrCacheOut_mem(address_bram) := address_full;
@@ -187,7 +187,7 @@ begin
 					wait on EnableMemory_tb;
 					DataMemOut_tb <= std_logic_vector(to_unsigned(0, DATA_L));
 					DoneMemory_tb <= '1';
-					wait until rising_edge(clk_tb);
+					wait until ((clk_tb'event) and (clk_tb = '1'));
 					DoneMemory_tb <= '0';
 				end if;
 
@@ -284,7 +284,7 @@ begin
 
 			num_pass := num_pass + pass;
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end loop;
 
 		file_close(file_pointer);

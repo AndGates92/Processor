@@ -61,12 +61,12 @@ begin
 		procedure reset is
 		begin
 			rst_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '1';
 			Op1_tb <= (others => '0');
 			Op2_tb <= (others => '0');
 			Start_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '0';
 		end procedure reset;
 
@@ -107,7 +107,7 @@ begin
 
 			Start_tb <= '1';
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			Start_tb <= '0';
 		end procedure push_op;
 
@@ -187,7 +187,7 @@ begin
 
 			num_pass := num_pass + pass;
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end loop;
 
 		file_close(file_pointer);

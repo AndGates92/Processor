@@ -67,7 +67,7 @@ begin
 			UnCmdC <= '0';
 			ResC <= (others => '0');
 			StateC <= IDLE;
-		elsif (rising_edge(clk)) then
+		elsif (clk'event) and (clk = '1') then
 			Op1C <= Op1N;
 			Op2C <= Op2N;
 			CmdC <= CmdN;

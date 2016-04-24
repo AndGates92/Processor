@@ -135,7 +135,7 @@ begin
 			PortB_DataInC <= (others => '0');
 			PortB_DataOutC <= (others => '0');
 
-		elsif (rising_edge(clk)) then
+		elsif (clk'event) and (clk = '1') then
 
 			rstC <= rstN;
 			EndRstC <= EndRstN;
@@ -352,7 +352,7 @@ begin
 			PortA_DataInC <= (others => '0');
 			PortA_DataOutC <= (others => '0');
 
-		elsif (rising_edge(clk)) then
+		elsif (clk'event) and (clk = '1') then
 
 			rstC <= rstN;
 			EndRstC <= EndRstN;

@@ -38,7 +38,7 @@ begin
 
 			DoneMemoryC <= '0';
 
-		elsif (rising_edge(clk)) then
+		elsif (clk'event) and (clk = '1') then
 
 			DoneMemoryC <= DoneMemoryN;
 

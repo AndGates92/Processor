@@ -62,7 +62,7 @@ begin
 		procedure reset(variable RegFileOut_int : out reg_file_array) is
 		begin
 			rst_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '1';
 			DataIn_tb <= (others => '0');
 			AddressIn_tb <= (others => '0');
@@ -70,7 +70,7 @@ begin
 			AddressOut2_tb <= (others => '0');
 			Enable_tb <= (others => '0');
 			RegFileOut_int := (others => 0);
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '0';
 		end procedure reset;
 
@@ -110,7 +110,7 @@ begin
 			Enable_tb <= std_logic_vector(to_unsigned(Enable_in, EN_REG_FILE_L_TB));
 			Enable_int := Enable_in;
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 
 			Enable_tb <= (others => '0');
 
@@ -187,7 +187,7 @@ begin
 
 			num_pass := num_pass + pass;
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end loop;
 
 		file_close(file_pointer);

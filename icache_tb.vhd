@@ -73,7 +73,7 @@ begin
 		procedure reset(variable ICacheOut_mem, IAddrCacheOut_mem, IValidCacheOut_mem : out icache_t) is
 		begin
 			rst_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '1';
 			Address_tb <= (others => '0');
 			InstrMemOut_tb <= (others => '0');
@@ -82,12 +82,12 @@ begin
 			IAddrCacheOut_mem := (others => 0);
 			IValidCacheOut_mem := (others => 0);
 			Start_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '0';
 
 			wait on EndRst_tb;
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end procedure reset;
 
 		procedure push_op(variable address_bram : out integer; variable address_int : out integer; variable seed1, seed2 : inout positive) is
@@ -109,7 +109,7 @@ begin
 			InstrMemOut_tb <= (others => '0');
 
 			Start_tb <= '1';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			Start_tb <= '0';
 		end procedure push_op;
 
@@ -137,7 +137,7 @@ begin
 				Instr_int := InstrMem;
 				InstrMemOut_tb <= std_logic_vector(to_unsigned(InstrMem, INSTR_L));
 				DoneMemory_tb <= '1';
-				wait until rising_edge(clk_tb);
+				wait until ((clk_tb'event) and (clk_tb = '1'));
 				DoneMemory_tb <= '0';
 				Hit := 0;
 				ICacheOut_mem(address_bram) := InstrMem;
@@ -229,7 +229,7 @@ begin
 
 			num_pass := num_pass + pass;
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end loop;
 
 		file_close(file_pointer);

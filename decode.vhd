@@ -179,7 +179,7 @@ begin
 			PCC <= (others => '0');
 			PCCallC <= (others => '0');
 			EndOfProgC <= '0';
-		elsif (rising_edge(clk)) then
+		elsif ((clk'event) and (clk = '1')) then
 			AddressInC <= AddressInN;
 			AddressOut1C <= AddressOut1N;
 			AddressOut2C <= AddressOut2N;

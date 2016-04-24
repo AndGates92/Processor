@@ -111,7 +111,7 @@ begin
 			ResDbgC <= (others => '0');
 			StatusRegC <= (others => '0');
 
-		elsif (rising_edge(clk)) then
+		elsif ((clk'event) and (clk = '1')) then
 
 			ResDbgC <= ResDbgN;
 			StatusRegC <= StatusRegN;

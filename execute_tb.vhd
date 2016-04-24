@@ -80,7 +80,7 @@ begin
 		procedure reset(variable RegFileOut_int : out reg_file_array; variable StatusRegOut_int : out integer) is
 		begin
 			rst_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '1';
 			AddressRegFileIn_In_tb <= (others => '0');
 			AddressRegFileOut1_In_tb <= (others => '0');
@@ -90,7 +90,7 @@ begin
 			RegFileOut_int := (others => 0);
 			StatusRegOut_int := 0;
 			Start_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '0';
 		end procedure reset;
 
@@ -152,7 +152,7 @@ begin
 
 			Start_tb <= '1';
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			Start_tb <= '0';
 		end procedure push_op;
 
@@ -238,7 +238,7 @@ begin
 
 			num_pass := num_pass + pass;
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end loop;
 
 		file_close(file_pointer);

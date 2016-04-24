@@ -54,7 +54,7 @@ begin
 			ProdC <= (others => '0');
 			CountC <= (others => '0');
 			StateC <= IDLE;
-		elsif (rising_edge(clk)) then
+		elsif (clk'event) and (clk = '1') then
 			AddC <= AddN;
 			SubC <= SubN;
 			ProdC <= ProdN;
@@ -177,7 +177,7 @@ begin
 			ProdC <= (others => '0');
 			CountC <= (others => '0');
 			StateC <= IDLE;
-		elsif (rising_edge(clk)) then
+		elsif (clk'event) and (clk = '1') then
 			AddC <= AddN;
 			SubC <= SubN;
 			ProdC <= ProdN;

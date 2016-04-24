@@ -121,7 +121,7 @@ begin
 			AddressRegFileOut2C <= (others => '0');
 			EnableRegFileC <= (others => '0');
 
-		elsif (rising_edge(clk)) then
+		elsif (clk'event) and (clk = '1') then
 			StateC <= StateN;
 			NextStateC <= NextStateN;
 

@@ -41,7 +41,7 @@ begin
 	portA_reg: process(PortA_clk)
 	begin
 		
-		if (rising_edge(PortA_clk)) then
+		if (PortA_clk'event) and (PortA_clk = '1') then
 			if (PortA_Write = '1') then
 				cache(to_integer(unsigned(PortA_Address))) <= PortA_DataIn;
 			end if;
@@ -56,7 +56,7 @@ begin
 	-- Port B
 	portB_reg: process(PortB_clk)
 	begin
-		if (rising_edge(PortB_clk)) then
+		if (PortB_clk'event) and (PortB_clk = '1') then
 			if (PortB_Write = '1') then
 				cache(to_integer(unsigned(PortB_Address))) <= PortB_DataIn;
 			end if;

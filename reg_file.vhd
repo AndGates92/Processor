@@ -61,7 +61,7 @@ begin
 			RegFileC <= (others => (others => '0'));
 			EnableC <= (others => '0');
 			DoneC <= (others => '0');
-		elsif (rising_edge(clk)) then
+		elsif ((clk'event) and (clk = '1')) then
 			DataInC <= DataInN;
 			DataOut1C <= DataOut1N;
 			DataOut2C <= DataOut2N;

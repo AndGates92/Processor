@@ -152,7 +152,7 @@ begin
 		procedure reset is
 		begin
 			rst_tb <= '0';
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '1';
 
 			ResALU_tb <= (others => '0');
@@ -180,7 +180,7 @@ begin
 			AddressRegFileOut2_In_tb <= (others => '0');
 			Immediate_tb <= (others => '0');
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '0';
 		end procedure reset;
 
@@ -238,7 +238,7 @@ begin
 
 			EndDecoding_tb <= '1';
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 			EndDecoding_tb <= '0';
 		end procedure push_op;
 
@@ -283,14 +283,14 @@ begin
 					MemAccess := 1;
 				end if;
 			elsif (CtrlCmd_vec = CTRL_CMD_ALU) then
-				wait until rising_edge(clk_tb);
+				wait until ((clk_tb'event) and (clk_tb = '1'));
 				if (EnableRegFile_tb = (EnableRegFile_vec(EN_REG_FILE_L_TB - 1 downto 1) & "0")) then
 					ReadRegFile := 1;
 				else
 					ReadRegFile := 0;
 				end if;
 				for clk_cycle in 0 to 2 loop
-					wait until rising_edge(clk_tb);
+					wait until ((clk_tb'event) and (clk_tb = '1'));
 				end loop;
 				DoneRegFile_tb <= '1';
 				if (CmdALU_vec = CMD_ALU_MUL) then
@@ -301,7 +301,7 @@ begin
 						Mul := 0;
 					end if;
 					for clk_cycle in 0 to 15 loop
-						wait until rising_edge(clk_tb);
+						wait until ((clk_tb'event) and (clk_tb = '1'));
 						DoneRegFile_tb <= '0';
 					end loop;
 					DoneMul_tb <= '1';
@@ -313,7 +313,7 @@ begin
 						Div := 0;
 					end if;
 					for clk_cycle in 0 to 31 loop
-						wait until rising_edge(clk_tb);
+						wait until ((clk_tb'event) and (clk_tb = '1'));
 						DoneRegFile_tb <= '0';
 					end loop;
 					DoneDiv_tb <= '1';
@@ -325,97 +325,97 @@ begin
 						ALUOp := 0;
 					end if;
 					for clk_cycle in 0 to 3 loop
-						wait until rising_edge(clk_tb);
+						wait until ((clk_tb'event) and (clk_tb = '1'));
 						DoneRegFile_tb <= '0';
 					end loop;
 					DoneALU_tb <= '1';
 				end if;
-				wait until rising_edge(clk_tb);
+				wait until ((clk_tb'event) and (clk_tb = '1'));
 				if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 					WriteRegFile := 1;
 				else
 					WriteRegFile := 0;
 				end if;
 				for clk_cycle in 0 to 2 loop
-					wait until rising_edge(clk_tb);
+					wait until ((clk_tb'event) and (clk_tb = '1'));
 					DoneALU_tb <= '0';
 				end loop;
 				DoneRegFile_tb <= '1';
 			elsif (CtrlCmd_vec = CTRL_CMD_WR_M) or (CtrlCmd_vec = CTRL_CMD_WR_S) then
-				wait until rising_edge(clk_tb);
+				wait until ((clk_tb'event) and (clk_tb = '1'));
 				if (EnableRegFile_tb = (EnableRegFile_vec(EN_REG_FILE_L_TB - 1 downto 1) & "0")) then
 					ReadRegFile := 1;
 				else
 					ReadRegFile := 0;
 				end if;
 				for clk_cycle in 0 to 2 loop
-					wait until rising_edge(clk_tb);
+					wait until ((clk_tb'event) and (clk_tb = '1'));
 				end loop;
 				DoneRegFile_tb <= '1';
-				wait until rising_edge(clk_tb);
+				wait until ((clk_tb'event) and (clk_tb = '1'));
 				if (EnableMemory_tb = '1') then
 					MemAccess := 1;
 				else
 					MemAccess := 0;
 				end if;
 				for clk_cycle in 0 to 7 loop
-					wait until rising_edge(clk_tb);
+					wait until ((clk_tb'event) and (clk_tb = '1'));
 					DoneRegFile_tb <= '0';
 				end loop;
 				DoneMemory_tb <= '1';
 			elsif (CtrlCmd_vec = CTRL_CMD_RD_M) or (CtrlCmd_vec = CTRL_CMD_RD_S) then
-				wait until rising_edge(clk_tb);
+				wait until ((clk_tb'event) and (clk_tb = '1'));
 				if (EnableMemory_tb = '1') then
 					MemAccess := 1;
 				else
 					MemAccess := 0;
 				end if;
 				for clk_cycle in 0 to 7 loop
-					wait until rising_edge(clk_tb);
+					wait until ((clk_tb'event) and (clk_tb = '1'));
 				end loop;
 				DoneMemory_tb <= '1';
-				wait until rising_edge(clk_tb);
+				wait until ((clk_tb'event) and (clk_tb = '1'));
 				if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 					WriteRegFile := 1;
 				else
 					WriteRegFile := 0;
 				end if;
 				for clk_cycle in 0 to 2 loop
-					wait until rising_edge(clk_tb);
+					wait until ((clk_tb'event) and (clk_tb = '1'));
 					DoneMemory_tb <= '0';
 				end loop;
 				DoneRegFile_tb <= '1';
 			elsif (CtrlCmd_vec = CTRL_CMD_MOV) then
 				if (EnableRegFile_vec(1) = '0') then
-					wait until rising_edge(clk_tb);
+					wait until ((clk_tb'event) and (clk_tb = '1'));
 					if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 						WriteRegFile := 1;
 					else
 						WriteRegFile := 0;
 					end if;
 					for clk_cycle in 0 to 2 loop
-						wait until rising_edge(clk_tb);
+						wait until ((clk_tb'event) and (clk_tb = '1'));
 					end loop;
 					DoneRegFile_tb <= '1';
 				else
-					wait until rising_edge(clk_tb);
+					wait until ((clk_tb'event) and (clk_tb = '1'));
 					if (EnableRegFile_tb = (EnableRegFile_vec(EN_REG_FILE_L_TB - 1 downto 1) & "0")) then
 						ReadRegFile := 1;
 					else
 						ReadRegFile := 0;
 					end if;
 					for clk_cycle in 0 to 2 loop
-						wait until rising_edge(clk_tb);
+						wait until ((clk_tb'event) and (clk_tb = '1'));
 					end loop;
 					DoneRegFile_tb <= '1';
-					wait until rising_edge(clk_tb);
+					wait until ((clk_tb'event) and (clk_tb = '1'));
 					if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 						WriteRegFile := 1;
 					else
 						WriteRegFile := 0;
 					end if;
 					for clk_cycle in 0 to 2 loop
-						wait until rising_edge(clk_tb);
+						wait until ((clk_tb'event) and (clk_tb = '1'));
 						DoneRegFile_tb <= '0';
 					end loop;
 					DoneRegFile_tb <= '1';
@@ -495,7 +495,7 @@ begin
 
 			num_pass := num_pass + pass;
 
-			wait until rising_edge(clk_tb);
+			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end loop;
 
 		file_close(file_pointer);
