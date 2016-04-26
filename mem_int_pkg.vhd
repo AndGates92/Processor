@@ -23,8 +23,8 @@ package mem_int_pkg is
 
 	constant STATE_MEM_L	: positive := 4;
 
-	constant IDLE			: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_MEM_L));
-	constant OUTPUT			: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_MEM_L));
+	constant IDLE_MEM		: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_MEM_L));
+	constant OUTPUT_MEM		: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_MEM_L));
 	constant RESET			: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_MEM_L));
 	constant WRITE			: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_MEM_L));
 	constant READ			: std_logic_vector(STATE_MEM_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_MEM_L));

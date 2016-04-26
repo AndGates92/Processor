@@ -60,6 +60,11 @@ architecture rtl of mem_int is
 	signal ColC, ColN		: std_logic_vector(COL_L - 1 downto 0);
 	signal RowC, RowN		: std_logic_vector(ROW_L - 1 downto 0);
 
+	signal PrechargeC, PrechargeN		: std_logic;
+	signal ReadC, ReadN			: std_logic;
+	signal NewBankC, NewBankN, NewBank	: std_logic;
+	signal ValidC, ValidN			: std_logic;
+
 	signal InitSecPrechargeC, InitSecPrechargeN	std_logic;
 
 	signal ModeRegC, ModeRegN			: std_logic_vector(ADDR_MEM_L - 1 downto 0);
@@ -113,6 +118,11 @@ begin
 
 			CountC <= (others => '0');
 
+			ReadC <= '0';
+			NewBankC <= '0';
+			ValidC <= '0';
+			PrechargeC <= '0';
+
 			LastCmdRstC <= '0';
 
 			AddressMemC <= (others => '0');
@@ -140,7 +150,7 @@ begin
 
 			InitSecPrechargeC <= '0';
 
-		elsif (rising_edge(clk)) then
+		elsif ((clk'event) and (clk = '1')) then
 
 			StateC <= StateN;
 			CommandC <= CommandN;
@@ -155,6 +165,11 @@ begin
 			ExtModeReg3C <= ExtModeReg3N;
 
 			CountC <= CountN;
+
+			ReadC <= ReadN;
+			NewBankC <= NewBankN;
+			ValidC <= ValidN;
+			PrechargeC <= PrechargeN;
 
 			LastCmdRstC <= LastCmdRstN;
 
@@ -192,38 +207,89 @@ begin
 		if (StateC = IDLE) then
 			if (rst = '1') then
 				StateN <= RESET;
-			elsif (EnableMemoryInt = '1') and (Precharge = '1') and (ReadMem = '1') then
+			elsif (EnableMemoryInt = '1') and (PrechargeC = '1') and (ReadMemC = '1') then
 				StateN <= READ_PRECHARGE;
-			elsif (EnableMemoryInt = '1') and (Precharge = '0') and (ReadMem = '1') then
+			elsif (EnableMemoryInt = '1') and (PrechargeC = '0') and (ReadMemC = '1') then
 				StateN <= READ;
-			elsif (EnableMemoryInt = '1') and (Precharge = '1') and (ReadMem = '0') then
+			elsif (EnableMemoryInt = '1') and (PrechargeC = '1') and (ReadMemC = '0') then
 				StateN <= WRITE_PRECHARGE;
-			elsif (EnableMemoryInt = '1') and (Precharge = '0') and (ReadMem = '0') then
+			elsif (EnableMemoryInt = '1') and (PrechargeC = '0') and (ReadMemC = '0') then
 				StateN <= WRITE;
 			else
 				StateN <= StateC;
 			end if;
 		elsif (StateC = RESET) then
-			if (LastCmdRstC = '1') and (CMD_ALL_BANKS_PRECHARGE) then
+			if (LastCmdRstC = '1') and (CommandC = CMD_ALL_BANKS_PRECHARGE) then
 				StateN <= SET_REG;
 			else
 				StateN <= StateC;
 			end if;
 		elsif (StateC = WRITE) then
-			StateN <= OUTPUT;
+			if (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '1') and (ReadMemC = '1') and (ValidC = '1') then
+				StateN <= READ_PRECHARGE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '0') and (ReadMemC = '1') and (ValidC = '1') then
+				StateN <= READ;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '1') and (ReadMemC = '0') and (ValidC = '1') then
+				StateN <= WRITE_PRECHARGE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '0') and (ReadMemC = '0') and (ValidC = '1') then
+				StateN <= WRITE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (ValidC = '0') then
+				StateN <= OUTPUT_MEM;
+			else
+				StateN <= StateC;
+			end if;
 		elsif (StateC = READ) then
-			StateN <= OUTPUT;
+			if (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '1') and (ReadMemC = '1') and (ValidC = '1') then
+				StateN <= READ_PRECHARGE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '0') and (ReadMemC = '1') and (ValidC = '1') then
+				StateN <= READ;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '1') and (ReadMemC = '0') and (ValidC = '1') then
+				StateN <= WRITE_PRECHARGE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '0') and (ReadMemC = '0') and (ValidC = '1') then
+				StateN <= WRITE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (ValidC = '0') then
+				StateN <= OUTPUT_MEM;
+			else
+				StateN <= StateC;
+			end if;
 		elsif (StateC = WRITE_PRECHARGE) then
-			StateN <= OUTPUT;
+			if (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '1') and (ReadMemC = '1') and (ValidC = '1') then
+				StateN <= READ_PRECHARGE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '0') and (ReadMemC = '1') and (ValidC = '1') then
+				StateN <= READ;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '1') and (ReadMemC = '0') and (ValidC = '1') then
+				StateN <= WRITE_PRECHARGE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '0') and (ReadMemC = '0') and (ValidC = '1') then
+				StateN <= WRITE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (ValidC = '0') then
+				StateN <= OUTPUT_MEM;
+			else
+				StateN <= StateC;
+			end if;
 		elsif (StateC = READ_PRECHARGE) then
-			StateN <= OUTPUT;
+			if (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '1') and (ReadMemC = '1') and (ValidC = '1') then
+				StateN <= READ_PRECHARGE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '0') and (ReadMemC = '1') and (ValidC = '1') then
+				StateN <= READ;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '1') and (ReadMemC = '0') and (ValidC = '1') then
+				StateN <= WRITE_PRECHARGE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (PrechargeC = '0') and (ReadMemC = '0') and (ValidC = '1') then
+				StateN <= WRITE;
+			elsif (CountC = READ_WRITE_LATENCY - 1) and (ValidC = '0') then
+				StateN <= OUTPUT_MEM;
+			else
+				StateN <= StateC;
+			end if;
 		elsif (StateC = SELF_REFRESH) then
 			StateN <= IDLE;
 		elsif (StateC = AUTO_REFRESH) then
 			StateN <= IDLE;
 		elsif (StateC = SET_REG) then
-			if (
-			StateN <= IDLE;
+			if (CommandC = CMD_EXT_MODE_REG_SET_3) then
+				StateN <= OUTPUT;
+			else
+				StateN <= StateC;
+			end if;
 		elsif (StateC = OUTPUT) then
 			StateN <= IDLE;
 		else
@@ -237,11 +303,13 @@ begin
 		if (CommandC = CMD_ALL_BANKS_PRECHARGE) then
 			if (rst = '1') then
 				CommandN <= CMD_POWER_UP;
-			elsif (StateC = RESET) and (CountPrechargeAllC = PRECHARGE_TIME - 1) and (InitSecPrechargeC = '0') then
+			elsif (StateC = RESET) and (CountC = PRECHARGE_TIME - 1) and (InitSecPrechargeC = '0') then
 				CommandN <= CMD_DESEL;
-			elsif (StateC = RESET) and (CountPrechargeAllC = PRECHARGE_TIME - 1) then
+			elsif (StateC = RESET) and (CountC = PRECHARGE_TIME - 1) then
 				CommandN <= CMD_AUTO_REF;
-			elsif (EnableMemoryInt = '1') then
+			elsif (StateC = SET_REG) then
+				CommandN <= CMD_MODE_REG_SET;
+			elsif (StateC = WRITE) or (StateC = WRITE_PRECHARGE) or (StateC = READ) or (StateC = READ_PRECHARGE) then
 				CommandN <= CMD_BANK_ACTIV;
 			else
 				CommandN <= CommandC;
@@ -253,8 +321,18 @@ begin
 				CommandN <= CommandC;
 			end if;
 		elsif (CommandC = CMD_NOP) then
-			if ((StateC = RESET) and (CountC = INIT_NOP - 1)) or (StateC /= RESET) then
+			if ((StateC = RESET) and (CountC = INIT_NOP - 1)) or (StateC = OUTPUT_MEM) then
 				CommandN <= CMD_ALL_BANKS_PRECHARGE;
+			elsif (NewBankC = '1') and (CountC = READ_WRITE_LATENCY) then
+				CommandN <= CMD_BANK_PRECHARGE;
+			elsif (StateC = WRITE) and (CountC = READ_WRITE_LATENCY) then
+				CommandN <= CMD_WRITE;
+			elsif (StateC = WRITE_PRECHARGE) and (CountC = READ_WRITE_LATENCY) then
+				CommandN <= CMD_WRITE_PRECHARGE;
+			elsif (StateC = READ) and (CountC = READ_WRITE_LATENCY) then
+				CommandN <= CMD_READ;
+			elsif (StateC = WRITE_PRECHARGE) and (CountC = READ_WRITE_LATENCY) then
+				CommandN <= CMD_READ_PRECHARGE;
 			else
 				CommandN <= CommandC;
 			end if;
@@ -267,7 +345,7 @@ begin
 				CommandN <= CommandC;
 			end if;
 		elsif (CommandC = CMD_MODE_REG_SET) then
-			if ((StateC = RESET) and (CountC = REG_TIME - 1) and (InitSecPrechargeC = '1')) or (StateC /= RESET) then
+			if i(((StateC = RESET) and (InitSecPrechargeC = '1')) or (StateC = SET_REG)) and (CountC = REG_TIME - 1) then
 				CommandN <= CMD_EXT_MODE_REG_SET_1;
 			elsif (CountC = REG_TIME - 1) then
 				CommandN <= CMD_ALL_BANKS_PRECHARGE;
@@ -279,7 +357,7 @@ begin
 				CommandC <= CMD_MODE_REG_SET;
 			elsif (StateC = RESET) and (CountC = 2*REG_TIME - 1) then
 				CommandN <= CMD_ALL_BANKS_PRECHARGE;
-			elsif (StateC /= RESET) and (CountC = REG_TIME - 1) then
+			elsif (StateC = SET_REG) and (CountC = REG_TIME - 1) then
 				CommandN <= CMD_EXT_MODE_REG_SET_2;
 			else
 				CommandN <= CommandC;
@@ -315,7 +393,17 @@ begin
 		elsif (CommandC = CMD_SELF_REF_EXIT_2) then
 			CommandN <= CMD_ALL_BANKS_PRECHARGE;
 		elsif (CommandC = CMD_BANK_PRECHARGE) then
-			CommandN <= CMD_ALL_BANKS_PRECHARGE;
+			if (StateC = WRITE) and (CountC = PRECHARGE_TIME - 1) then
+				CommandN <= CMD_WRITE;
+			elsif (StateC = WRITE_PRECHARGE) and (CountC = PRECHARGE_TIME - 1) then
+				CommandN <= CMD_WRITE_PRECHARGE;
+			elsif (StateC = READ) and (CountC = PRECHARGE_TIME - 1) then
+				CommandN <= CMD_READ;
+			elsif (StateC = WRITE_PRECHARGE) and (CountC = PRECHARGE_TIME - 1) then
+				CommandN <= CMD_READ_PRECHARGE;
+			else
+				CommandN <= CommandC;
+			end if;
 		elsif (CommandC = CMD_BANK_ACTIV) then
 			if (ClkEnableC = '0') then
 				CommandN <= CMD_POWER_DOWN_ENTRY_1;
@@ -331,55 +419,39 @@ begin
 				CommandN <= CommandC;
 			end if;
 		elsif (CommandC = CMD_WRITE) then
-			if (StateC = WRITE_PRECHARGE) then
-				CommandN <= CMD_WRITE_PRECHARGE;
-			elsif (StateC = READ) then
-				CommandN <= CMD_READ;
-			elsif (StateC = READ_PRECHARGE) then
-				CommandN <= CMD_READ_PRECHARGE;
+			if (StateC = WRITE) then
+				CommandN <= CMD_NOP;
 			elsif (StateC = OUTPUT) then
 				CommandN <= CMD_ALL_BANKS_PRECHARGE;
 			else
 				CommandN <= CommandC;
 			end if;
 		elsif (CommandC = CMD_READ) then
-			if (StateC = WRITE) then
-				CommandN <= CMD_WRITE;
-			elsif (StateC = WRITE_PRECHARGE) then
-				CommandN <= CMD_WRITE_PRECHARGE;
-			elsif (StateC = READ_PRECHARGE) then
-				CommandN <= CMD_READ_PRECHARGE;
+			if (StateC = READ) then
+				CommandN <= CMD_NOP;
 			elsif (StateC = OUTPUT) then
 				CommandN <= CMD_ALL_BANKS_PRECHARGE;
 			else
 				CommandN <= CommandC;
 			end if;
 		elsif (CommandC = CMD_WRITE_PRECHARGE) then
-			if (StateC = WRITE) then
-				CommandN <= CMD_WRITE;
-			elsif (StateC = READ) then
-				CommandN <= CMD_READ;
-			elsif (StateC = READ_PRECHARGE) then
-				CommandN <= CMD_READ_PRECHARGE;
+			if (StateC = WRITE_PRECHARGE) then
+				CommandN <= CMD_NOP;
 			elsif (StateC = OUTPUT) then
 				CommandN <= CMD_ALL_BANKS_PRECHARGE;
 			else
 				CommandN <= CommandC;
 			end if;
 		elsif (CommandC = CMD_READ_PRECHARGE) then
-			if (StateC = WRITE) then
-				CommandN <= CMD_WRITE;
-			elsif (StateC = WRITE_PRECHARGE) then
+			if (StateC = READ_PRECHARGE) then
 				CommandN <= CMD_WRITE_PRECHARGE;
-			elsif (StateC = READ) then
-				CommandN <= CMD_READ;
 			elsif (StateC = OUTPUT) then
 				CommandN <= CMD_ALL_BANKS_PRECHARGE;
 			else
 				CommandN <= CommandC;
 			end if;
 		elsif (CommandC = CMD_POWER_DOWN_ENTRY_1) then
-			CommandN <= CMD_POWER_DOWN_ENtRY_2;
+			CommandN <= CMD_POWER_DOWN_ENTRY_2;
 		elsif (CommandC = CMD_POWER_DOWN_EXIT_1) then
 			CommandN <= CMD_POWER_DOWN_;
 		elsif (CommandC = CMD_POWER_DOWN_ENTRY_2) then
@@ -413,7 +485,7 @@ begin
 			(0 => '1', others => '0') when (CommandC = CMD_EXT_MODE_REG_SET_1) else
 			(1 => '1', others => '0') when (CommandC = CMD_EXT_MODE_REG_SET_2) else
 			((1 downto 0) => "11", others => '0') when (CommandC = CMD_EXT_MODE_REG_SET_3) else
-			AddressMemInt(ADDR_L - 1 downto ADDR_L - BANK_L) when (CommandC = CMD_ALL_BANKS_PRECHARGE) else
+			AddressMemInt(ADDR_L - 1 downto ADDR_L - BANK_L) when (EnableMemoryInt = '1') else
 			BankSelMemC;
 
 	AddressMemN <=	(10 => '1', others => '0') when (CommandC = CMD_ALL_BANKS_PRECHARGE) else
@@ -432,13 +504,25 @@ begin
 
 	ExtModeReg1N <=	((9 downto 7) => "111", others => '0') when (StateC = RESET) and (CountC = ZERO_COUNT) and (InitSecPrechargeC = '1') else
 			(others => '0') when (StateC = RESET) and (((CountC = REG_TIME - 1) and (InitSecPrechargeC = '1')) or ((CountC = ZERO_COUNT) and (InitSecPrechargeC = '0'))) else
-			OutBuffEn & RDQSEn & nDQSEn & "000" & ODTEn(1) & AddLatency & ODTEn(0) & DriverCtrl & DDLEn when (StateC /= RESET) else
+			OutBuffEn & RDQSEn & nDQSEn & "000" & ODTEn(1) & AddLatency & ODTEn(0) & DriverCtrl & DDLEn when (StateC = SET_REG) else
 			ExtModeReg1C;
 
 	ExtModeReg2 <= (others => '0') when (StateC = RESET) else (7 => HighTempSelfRefresh, others => '0');
 	ExtModeReg3 <= (others => '0');
 
 	CountN <= (others => '0') when (CommandC /= CommandDelC) else CountC + 1;
+
+	-- FIFO signals
+	PrechargeN <=	Precharge when (EnableMemoryInt = '1') else PrechargeC;
+	ReadN <=	ReadMem when (EnableMemoryInt = '1') else ReadC;
+
+	ValidN <=	'1' when (EnableMemoryInt = '1') else
+			'0' when (CommandC = CMD_WRITE) or (CommandC = CMD_WRITE_PRECHARGE) or (CommandC = CMD_READ) or (CommandC = CMD_READ_PRECHARGE) else
+			ValidC;
+
+	NewBank <=	'1' when (AddressMemInt(ADDR_L - 1 downto ADDR_L - BANK_L) /= BankSelMemC) and (EnableMemoryInt = '1') else
+			'0';
+	-- end of FIFO signals
 
 	InitSecPrechargeN <=	'1' when (StateC = RESET) and (CommandC = CMD_ALL_BANKS_PRECHARGE) else
 				'0' when (rst = '1') else

@@ -63,7 +63,7 @@ begin
 			RemC <= (others => '0');
 			ZeroDvsC <= '0';
 			ZeroDvdC <= '0';
-		elsif (rising_edge(clk)) then
+		elsif ((clk'event) and (clk = '1')) then
 			DivisorC <= DivisorN;
 			SignC <= SignN;
 			StateC <= StateN;
