@@ -98,6 +98,11 @@ architecture rtl of mem_int is
 	signal LastCmdRstC, LastCmdRstN			: std_logic;
 	signal LastCmdRstC, LastCmdRstN			: std_logic;
 
+	signal ActiveTransC, ActiveTransN		: std_logic_vector(int_to_bit_num(MAX_TRANS_NUM) - 1 downto 0);
+	signal CountTransC, CountTransN			: array(0 to MAX_TRANS_NUM - 1) of unsigned(R_W_COUNT_L - 1 downto 0);
+	signal ValidTransC, ValidTransN			: std_logic_vector(MAX_TRANS_NUM - 1 downto 0);
+	signal ReadTransVecC, ReadTransVecN		: std_logic_vector(MAX_TRANS_NUM - 1 downto 0);
+
 begin
 
 	reg: process(rst, clk)
@@ -107,6 +112,11 @@ begin
 			StateC <= IDLE;
 			CommandC <= CMD_ALL_BANKS_PRECHARGE;
 			CommandDelC <= CMD_ALL_BANKS_PRECHARGE;
+
+			ActiveTransC <= (others => '0');
+			ValidTransC <= (others => '0');
+			ReadTransC <= (others => '0');
+			CountTransC <= (others => (others => '0'));
 
 			ColC <= (others => '0');
 			RowC <= (others => '0');
@@ -155,6 +165,11 @@ begin
 			StateC <= StateN;
 			CommandC <= CommandN;
 			CommandDelC <= CommandDelN;
+
+			ActiveTransC <= ActivetransN;
+			ValidTransC <= ValidTransN;
+			ReadTransC <= ReadTransN;
+			CountTransC <= CountTransN;
 
 			RowC <= RowN;
 			ColC <= ColN;
@@ -531,3 +546,8 @@ begin
 	LastCmdRstN <=	'1' when (AddressMemC(9 downto 7) = "111") else
 			'0' when (rst = '1') else
 			LastCmdRstC;
+
+	COUNTER_TRANSACTION_GEN: for i in 0 to (MAX_TRANS_NUM - 1) generate
+			CountTransN(i) <= CountTransC(i) + 1 when (ValidTransC(i) = '1') else (others => '0');
+	end generate COUNTER_TRANSACTION_GEN;
+
