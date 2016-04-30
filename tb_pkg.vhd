@@ -29,10 +29,11 @@ package tb_pkg is
 	procedure alu_ref(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_ALU_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer);
 
 	function rand_num return real;
-	function rand_bin(rand_val : real) return real;
+	function rand_bool(rand_val : real) return boolean;
 	function rand_sign(sign_val : real) return real;
 	function std_logic_to_int(val : std_logic) return integer;
-	function int_to_std_logic(val : integer) return std_logic;
+	function bool_to_std_logic(val : boolean) return std_logic;
+	function bool_to_str(val : boolean) return string;
 	function alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string;
 	function full_alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string;
 	function ctrl_cmd_std_vect_to_txt(Cmd: std_logic_vector(CTRL_CMD_L-1 downto 0)) return string;
@@ -354,22 +355,22 @@ package body tb_pkg is
 		return sign;
 	end function;
 
-	function rand_bin(rand_val : real) return real is
-		variable bin 	: real;
+	function rand_bool(rand_val : real) return boolean is
+		variable bool 	: boolean;
 	begin
 		if (rand_val > 0.5) then
-			bin := 0.0;
+			bool := False;
 		else
-			bin := 1.0;
+			bool := True;
 		end if;
 
-		return bin;
+		return bool;
 	end function;
 
 	function std_logic_to_int(val : std_logic) return integer is
 		variable val_conv	: integer;
 	begin
-		if val = '1' then
+		if (val = '1') then
 			val_conv := 1;
 		else
 			val_conv := 0;
@@ -378,13 +379,25 @@ package body tb_pkg is
 		return val_conv;
 	end;
 
-	function int_to_std_logic(val : integer) return std_logic is
+	function bool_to_std_logic(val : boolean) return std_logic is
 		variable val_conv	: std_logic;
 	begin
-		if val = 1 then
+		if (val = True) then
 			val_conv := '1';
 		else
 			val_conv := '0';
+		end if;
+
+		return val_conv;
+	end;
+
+	function bool_to_str(val : boolean) return string is
+		variable val_conv	: string(1 to 5);
+	begin
+		if (val = True) then
+			val_conv := "True ";
+		else
+			val_conv := "False";
 		end if;
 
 		return val_conv;

@@ -101,12 +101,12 @@ begin
 			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end procedure reset;
 
-		procedure push_op(variable address_bram : out integer; variable address_int : out integer; variable Read_int : out integer; variable data_in_int : out integer; variable seed1, seed2 : inout positive) is
+		procedure push_op(variable address_bram : out integer; variable address_int : out integer; variable read_bool : out boolean; variable data_in_int : out integer; variable seed1, seed2 : inout positive) is
 			variable address_full		: integer;
 			variable address_full_vec	: std_logic_vector(ADDR_MEM_L_TB - 1 downto 0);
 			variable address_bram_vec	: std_logic_vector(ADDR_BRAM_L - 1 downto 0);
 			variable data_in_in		: integer;
-			variable read_in		: integer;
+			variable read_in		: boolean;
 			variable rand_val	: real;
 		begin
 
@@ -124,9 +124,9 @@ begin
 			DataIn_tb <= std_logic_vector(to_unsigned(data_in_in, DATA_L));
 
 			uniform(seed1, seed2, rand_val);
-			read_in := integer(rand_bin(rand_val));
-			read_int := read_in;
-			Read_tb <= int_to_std_logic(read_in);
+			read_in := rand_bool(rand_val);
+			read_bool := read_in;
+			Read_tb <= bool_to_std_logic(read_in);
 
 			ReadMem_tb <= '0';
 			DoneMemory_tb <= '0';
@@ -138,7 +138,7 @@ begin
 			Start_tb <= '0';
 		end procedure push_op;
 
-		procedure dcache_ref(variable Read_int, DataIn_int : in integer; variable address_bram, address_full : in integer; variable Hit : out integer; variable Data_int : out integer; variable DCacheIn_mem : in dcache_t; variable DCacheOut_mem : out dcache_t; variable DDirtyCacheIn_mem : in dcache_t; variable DDirtyCacheOut_mem : out dcache_t; variable DAddrCacheIn_mem : in dcache_t; variable DAddrCacheOut_mem : out dcache_t;  variable DValidCacheIn_mem : in dcache_t; variable DValidCacheOut_mem : out dcache_t; variable seed1, seed2 : inout positive) is
+		procedure dcache_ref(variable read_bool : in boolean; variable DataIn_int : in integer; variable address_bram, address_full : in integer; variable Hit : out integer; variable Data_int : out integer; variable DCacheIn_mem : in dcache_t; variable DCacheOut_mem : out dcache_t; variable DDirtyCacheIn_mem : in dcache_t; variable DDirtyCacheOut_mem : out dcache_t; variable DAddrCacheIn_mem : in dcache_t; variable DAddrCacheOut_mem : out dcache_t;  variable DValidCacheIn_mem : in dcache_t; variable DValidCacheOut_mem : out dcache_t; variable seed1, seed2 : inout positive) is
 			variable DirtyBit, ValidBit, AddressFullBRAM, DataBRAM : integer;
 			variable DataMem	: integer;
 			variable rand_val	: real;
@@ -161,7 +161,7 @@ begin
 				Hit := 0;
 			end if;
 
-			if (Read_int = 1) then
+			if (read_bool = True) then
 				if (ValidBit = 1) and (AddressFullBRAM = address_full) then
 					Data_int := DataBRAM;
 				else
@@ -194,11 +194,11 @@ begin
 			end if;
 		end procedure dcache_ref;
 
-		procedure verify(variable read_int, address_int, address_bram, Hit_ideal, Hit_rtl, Data_ideal, Data_rtl : integer; file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable read_bool : in boolean; variable address_int, address_bram, Hit_ideal, Hit_rtl, Data_ideal, Data_rtl : integer; file file_pointer : text; variable pass: out integer) is
 			variable file_line	: line;
 		begin
 
-			write(file_line, string'( "Data Cache: address requested " & integer'image(address_int) & " and accessing cache at " & integer'image(address_bram) & " Read Operation " & integer'image(read_int)));
+			write(file_line, string'( "Data Cache: address requested " & integer'image(address_int) & " and accessing cache at " & integer'image(address_bram) & " Read Operation " & bool_to_str(read_bool)));
 			writeline(file_pointer, file_line);
 
 			if (Hit_rtl = Hit_ideal) and (Data_ideal = Data_rtl) then
@@ -241,7 +241,7 @@ begin
 		variable pass			: integer;
 		variable num_pass		: integer;
 
-		variable Read_int		: integer;
+		variable read_int		: boolean;
 		variable DataIn_int		: integer;
 
 		file file_pointer		: text;
@@ -270,9 +270,9 @@ begin
 			DDirtyCacheIn_mem := DDirtyCacheOut_mem;
 			DCacheIn_mem := DCacheOut_mem;
 
-			push_op(address_bram, address_int, Read_int, DataIn_int, seed1, seed2);
+			push_op(address_bram, address_int, read_int, DataIn_int, seed1, seed2);
 
-			dcache_ref(Read_int, DataIn_int, address_bram, address_int, Hit_ideal, Data_ideal, DCacheIn_mem, DCacheOut_mem, DDirtyCacheIn_mem, DDirtyCacheOut_mem, DAddrCacheIn_mem, DAddrCacheOut_mem, DValidCacheIn_mem, DValidCacheOut_mem, seed1, seed2);
+			dcache_ref(read_int, DataIn_int, address_bram, address_int, Hit_ideal, Data_ideal, DCacheIn_mem, DCacheOut_mem, DDirtyCacheIn_mem, DDirtyCacheOut_mem, DAddrCacheIn_mem, DAddrCacheOut_mem, DValidCacheIn_mem, DValidCacheOut_mem, seed1, seed2);
 
 			wait on Done_tb;
 
@@ -280,7 +280,7 @@ begin
 
 			Data_rtl := to_integer(unsigned(DataOut_tb));
 
-			verify (Read_int, address_int, address_bram, Hit_ideal, Hit_rtl, Data_ideal, Data_rtl, file_pointer, pass);
+			verify (read_int, address_int, address_bram, Hit_ideal, Hit_rtl, Data_ideal, Data_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 

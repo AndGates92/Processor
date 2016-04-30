@@ -95,7 +95,8 @@ begin
 		end procedure reset;
 
 		procedure push_op(variable AddressIn_int, AddressOut1_int, AddressOut2_int : out integer; variable Immediate_int: out integer; variable CmdALU: out std_logic_vector(CMD_ALU_L-1 downto 0); variable CtrlCmd: out std_logic_vector(CTRL_CMD_L-1 downto 0); variable EnableRegFile_vec: out std_logic_vector(EN_REG_FILE_L_TB-1 downto 0); variable seed1, seed2: inout positive) is
-			variable AddressIn_in, AddressOut1_in, AddressOut2_in, CmdALU_in, CtrlCmd_in, EnableRegFile_in, Immediate_in	: integer;
+			variable AddressIn_in, AddressOut1_in, AddressOut2_in, CmdALU_in, CtrlCmd_in, Immediate_in, EnableRegFile2_in	: integer;
+			variable EnableRegFile_in	: boolean;
 			variable rand_val, sign_val	: real;
 			variable CmdALU_int: std_logic_vector(CMD_ALU_L-1 downto 0);
 			variable CtrlCmd_int: std_logic_vector(CTRL_CMD_L-1 downto 0);
@@ -134,14 +135,16 @@ begin
 
 			if (CtrlCmd_in = to_integer(unsigned(CTRL_CMD_ALU))) then
 				uniform(seed1, seed2, rand_val);
-				EnableRegFile_in := integer(rand_bin(rand_val));
-				EnableRegFile_vec := std_logic_vector(to_unsigned(EnableRegFile_in,1)) & "11";
-				EnableRegFile_In_tb <= std_logic_vector(to_unsigned(EnableRegFile_in,1)) & "11";
+				EnableRegFile_in := rand_bool(rand_val);
+				EnableRegFile_vec(2) := bool_to_std_logic(EnableRegFile_in);
+				EnableRegFile_vec(1 downto 0) := "11";
+				EnableRegFile_In_tb(2) <= bool_to_std_logic(EnableRegFile_in);
+				EnableRegFile_In_tb(1 downto 0) <= "11";
 			elsif (CtrlCmd_in = to_integer(unsigned(CTRL_CMD_MOV))) then
  				uniform(seed1, seed2, rand_val);
-				EnableRegFile_in := integer(rand_val*(2.0**(real(OUT_REG_FILE_NUM_TB)) - 1.0));
-				EnableRegFile_In_tb <= std_logic_vector(to_unsigned(EnableRegFile_in, OUT_REG_FILE_NUM_TB)) & "1";
-				EnableRegFile_vec := std_logic_vector(to_unsigned(EnableRegFile_in, OUT_REG_FILE_NUM_TB)) & "1";
+				EnableRegFile2_in := integer(rand_val*(2.0**(real(OUT_REG_FILE_NUM_TB)) - 1.0));
+				EnableRegFile_In_tb <= std_logic_vector(to_unsigned(EnableRegFile2_in, OUT_REG_FILE_NUM_TB)) & "1";
+				EnableRegFile_vec := std_logic_vector(to_unsigned(EnableRegFile2_in, OUT_REG_FILE_NUM_TB)) & "1";
 			elsif (CtrlCmd_in = to_integer(unsigned(CTRL_CMD_WR_M))) or (CtrlCmd_in = to_integer(unsigned(CTRL_CMD_WR_S))) then
 				EnableRegFile_In_tb <= "010";
 				EnableRegFile_vec := "010";
