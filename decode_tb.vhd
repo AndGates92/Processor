@@ -240,21 +240,21 @@ begin
 			NewInstr_tb <= '0';
 		end procedure push_op;
 
-		procedure verify(variable ALU_func_ideal, ALU_func_rtl : in std_logic_vector(CMD_ALU_L - 1 downto 0); variable Immediate_ideal, Immediate_rtl : in integer; variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable OpCode_str: in string; variable AddressIn_ideal, AddressOut1_ideal, AddressOut2_ideal : in integer; variable AddressIn_rtl, AddressOut1_rtl, AddressOut2_rtl : in integer; variable PCOut_ideal, PCOut_rtl : in integer; variable CtrlOut_ideal, CtrlOut_rtl : in integer; variable EnableRegFile_ideal, EnableRegFile_rtl : in integer; variable EndOfProg_ideal, EndOfPRog_rtl : in integer; variable PCIn: in integer; file file_pointer : text; variable pass : out integer) is
+		procedure verify(variable ALU_func_ideal, ALU_func_rtl : in std_logic_vector(CMD_ALU_L - 1 downto 0); variable Immediate_ideal, Immediate_rtl : in integer; variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable OpCode_str: in string; variable AddressIn_ideal, AddressOut1_ideal, AddressOut2_ideal : in integer; variable AddressIn_rtl, AddressOut1_rtl, AddressOut2_rtl : in integer; variable PCOut_ideal, PCOut_rtl : in integer; variable CtrlOut_ideal, CtrlOut_rtl : in integer; variable EnableRegFile_ideal, EnableRegFile_rtl : in integer; variable EndOfProg_ideal, EndOfPRog_rtl : in boolean; variable PCIn: in integer; file file_pointer : text; variable pass : out integer) is
 			variable file_line	: line;
 		begin
 
 			write(file_line, "DECODE STAGE: Op code " & OpCode_str & " PC Input " & integer'image(PCIn)  &" decoding:");
 			writeline(file_pointer, file_line);
 			if (OpCode = OP_CODE_ALU_R) or (OpCode = OP_CODE_ALU_I) then
-				write(file_line, "RTL => Immediate " & integer'image(Immediate_rtl) & " ALU function " & alu_cmd_std_vect_to_txt(ALU_func_rtl) & " AddressIn " & integer'image(AddressIn_rtl) & " AddressOut1 " & integer'image(AddressOut1_rtl) & " AddressOut2 " & integer'image(AddressOut2_rtl) & " PCOut " & integer'image(PCOut_rtl) &  " Ctrl " & integer'image(CtrlOut_rtl) & " Enable Reg File " & integer'image(EnableRegFile_rtl) & " End of program " & integer'image(EndOfProg_rtl));
+				write(file_line, "RTL => Immediate " & integer'image(Immediate_rtl) & " ALU function " & alu_cmd_std_vect_to_txt(ALU_func_rtl) & " AddressIn " & integer'image(AddressIn_rtl) & " AddressOut1 " & integer'image(AddressOut1_rtl) & " AddressOut2 " & integer'image(AddressOut2_rtl) & " PCOut " & integer'image(PCOut_rtl) &  " Ctrl " & integer'image(CtrlOut_rtl) & " Enable Reg File " & integer'image(EnableRegFile_rtl) & " End of program " & bool_to_str(EndOfProg_rtl));
 				writeline(file_pointer, file_line);
-				write(file_line, "Reference => Immediate " & integer'image(Immediate_ideal) & " ALU function " & alu_cmd_std_vect_to_txt(ALU_func_ideal) & " AddressIn " & integer'image(AddressIn_ideal) & " AddressOut1 " & integer'image(AddressOut1_ideal) & " AddressOut2 " & integer'image(AddressOut2_ideal) & " PCOut " & integer'image(PCOut_ideal) & " Ctrl " & integer'image(CtrlOut_ideal) & " Enable Reg File " & integer'image(EnableRegFile_ideal) & " End of program " & integer'image(EndOfProg_ideal));
+				write(file_line, "Reference => Immediate " & integer'image(Immediate_ideal) & " ALU function " & alu_cmd_std_vect_to_txt(ALU_func_ideal) & " AddressIn " & integer'image(AddressIn_ideal) & " AddressOut1 " & integer'image(AddressOut1_ideal) & " AddressOut2 " & integer'image(AddressOut2_ideal) & " PCOut " & integer'image(PCOut_ideal) & " Ctrl " & integer'image(CtrlOut_ideal) & " Enable Reg File " & integer'image(EnableRegFile_ideal) & " End of program " & bool_to_str(EndOfProg_ideal));
 				writeline(file_pointer, file_line);
 			else
-				write(file_line, "RTL => Immediate " & integer'image(Immediate_rtl) & " ALU function " & integer'image(to_integer(unsigned(ALU_func_rtl))) & " AddressIn " & integer'image(AddressIn_rtl) & " AddressOut1 " & integer'image(AddressOut1_rtl) & " AddressOut2 " & integer'image(AddressOut2_rtl) & " PCOut " & integer'image(PCOut_rtl) & " Ctrl " & integer'image(CtrlOut_rtl) & " Enable Reg File " & integer'image(EnableRegFile_rtl) & " End of program " & integer'image(EndOfProg_ideal));
+				write(file_line, "RTL => Immediate " & integer'image(Immediate_rtl) & " ALU function " & integer'image(to_integer(unsigned(ALU_func_rtl))) & " AddressIn " & integer'image(AddressIn_rtl) & " AddressOut1 " & integer'image(AddressOut1_rtl) & " AddressOut2 " & integer'image(AddressOut2_rtl) & " PCOut " & integer'image(PCOut_rtl) & " Ctrl " & integer'image(CtrlOut_rtl) & " Enable Reg File " & integer'image(EnableRegFile_rtl) & " End of program " & bool_to_str(EndOfProg_ideal));
 				writeline(file_pointer, file_line);
-				write(file_line, "Reference => Immediate " & integer'image(Immediate_ideal) & " ALU function " & integer'image(to_integer(unsigned(ALU_func_ideal))) & " AddressIn " & integer'image(AddressIn_ideal) & " AddressOut1 " & integer'image(AddressOut1_ideal) & " AddressOut2 " & integer'image(AddressOut2_ideal) & " PCOut " & integer'image(PCOut_ideal) & " Ctrl " & integer'image(CtrlOut_ideal) & " Enable Reg File " & integer'image(EnableRegFile_ideal) & " End of program " & integer'image(EndOfProg_ideal));
+				write(file_line, "Reference => Immediate " & integer'image(Immediate_ideal) & " ALU function " & integer'image(to_integer(unsigned(ALU_func_ideal))) & " AddressIn " & integer'image(AddressIn_ideal) & " AddressOut1 " & integer'image(AddressOut1_ideal) & " AddressOut2 " & integer'image(AddressOut2_ideal) & " PCOut " & integer'image(PCOut_ideal) & " Ctrl " & integer'image(CtrlOut_ideal) & " Enable Reg File " & integer'image(EnableRegFile_ideal) & " End of program " & bool_to_str(EndOfProg_ideal));
 				writeline(file_pointer, file_line);
 			end if;
 
@@ -308,7 +308,7 @@ begin
 		variable CtrlOut_ideal,CtrlOut_rtl	: integer;
 		variable PCCallIn,PCCallOut	: integer;
 		variable EnRegFile_int_rtl, EnRegFile_int_ideal	: integer;
-		variable EndOfProg_ideal,EndOfProg_rtl	: integer;
+		variable EndOfProg_ideal,EndOfProg_rtl	: boolean;
 		variable seed1, seed2	: positive;
 		variable pass	: integer;
 		variable num_pass	: integer;
@@ -343,7 +343,7 @@ begin
 			EnRegFile_int_rtl := to_integer(unsigned(EnableRegFile_tb));
 			PCOut_int_rtl := to_integer(unsigned(PCOut_tb));
 			CtrlOut_rtl := to_integer(unsigned(Ctrl_tb));
-			EndOfProg_rtl := std_logic_to_int(EndOfProg_tb);
+			EndOfProg_rtl := std_logic_to_bool(EndOfProg_tb);
 
 			decode_ref(OpCode, Immediate_int, PCIn_int, PCCallIn, StatusReg, Immediate_int_ideal, PCOut_int_ideal, PCCallOut, CtrlOut_ideal, EndOfProg_ideal);
 

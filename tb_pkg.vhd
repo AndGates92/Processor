@@ -24,14 +24,14 @@ package tb_pkg is
 	type reg_file_array is array(0 to REG_NUM_TB-1) of integer;
 
 	procedure execute_ref(variable AddressIn_int, AddressOut1_int, AddressOut2_int : in integer; variable Immediate_int: in integer; variable CmdALU: in std_logic_vector(CMD_ALU_L-1 downto 0); variable CtrlCmd: in std_logic_vector(CTRL_CMD_L-1 downto 0); variable EnableRegFile_vec: in std_logic_vector(EN_REG_FILE_L_TB-1 downto 0); variable RegFileIn_int : in reg_file_array; variable RegFileOut_int : out reg_file_array; variable Op1, Op2 : out integer; variable StatusRegIn_int : in integer; variable StatusRegOut_int : out integer; variable ResOp_ideal: out integer);
-	procedure decode_ref(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out integer);
+	procedure decode_ref(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out boolean);
 	procedure reg_file_ref(variable RegFileIn_int: in reg_file_array; variable DataIn_int : in integer; variable AddressIn_int: in integer; variable AddressOut1_int : in integer; variable AddressOut2_int: in integer; variable Enable_int: in integer; variable Done_int: out integer; variable DataOut1_int: out integer; variable DataOut2_int : out integer; variable RegFileOut_int: out reg_file_array);
-	procedure alu_ref(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_ALU_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer);
+	procedure alu_ref(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_ALU_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out boolean; variable Unfl_ideal : out boolean);
 
 	function rand_num return real;
 	function rand_bool(rand_val : real) return boolean;
 	function rand_sign(sign_val : real) return real;
-	function std_logic_to_int(val : std_logic) return integer;
+	function std_logic_to_bool(val : std_logic) return boolean;
 	function bool_to_std_logic(val : boolean) return std_logic;
 	function bool_to_str(val : boolean) return string;
 	function alu_cmd_std_vect_to_txt (Cmd: std_logic_vector(CMD_ALU_L-1 downto 0)) return string;
@@ -48,14 +48,14 @@ package body tb_pkg is
 		variable Enable_int	: integer;
 		variable DataOut1_int, DataOut2_int	: integer;
 		variable Op1_int, Op2_int, ResOp	: integer;
-		variable Ovfl_ideal, Unfl_ideal	: integer;
+		variable Ovfl_ideal, Unfl_ideal	: boolean;
 		variable StatusReg_in	: integer;
 		variable RegFileOut_op1_int	: reg_file_array;
 		variable ResOp_vec	: std_logic_vector(OP1_L_TB + OP2_L_TB - 1 downto 0);
 	begin
 		ResOp := 0;
-		Ovfl_ideal := 0;
-		Unfl_ideal := 0;
+		Ovfl_ideal := False;
+		Unfl_ideal := False;
 		StatusReg_in := 0;
 		Op1_int := 0;
 		Op2_int := 0;
@@ -112,10 +112,10 @@ package body tb_pkg is
 			Enable_int := to_integer(unsigned(std_logic_vector("00" & EnableRegFile_vec(0 downto 0))));
 			reg_file_ref(RegFileOut_op1_int, ResOp, AddressIn_int, AddressOut1_int, AddressOut2_int, Enable_int, Done_int, DataOut1_int, DataOut2_int, RegFileOut_int);
 
-			if (Unfl_ideal = 1) then
+			if (Unfl_ideal = True) then
 				StatusReg_in := StatusReg_in + integer(2.0**(2.0));
 			end if;
-			if (Ovfl_ideal = 1) then
+			if (Ovfl_ideal = True) then
 				StatusReg_in := StatusReg_in + integer(2.0**(1.0));
 			end if;
 
@@ -162,7 +162,7 @@ package body tb_pkg is
 
 	end procedure execute_ref;
 
-	procedure decode_ref(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out integer) is
+	procedure decode_ref(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out boolean) is
 	begin
 		if (OpCode = OP_CODE_SET) then
 			ImmediateOut := integer(2.0**(real(INSTR_L)) - 1.0);
@@ -207,9 +207,9 @@ package body tb_pkg is
 		end if;
 
 		if (OpCode = OP_CODE_EOP) then
-			EndOfProg := 1;
+			EndOfProg := True;
 		else
-			EndOfProg := 0;
+			EndOfProg := False;
 		end if;
 
 	end procedure decode_ref;
@@ -245,46 +245,46 @@ package body tb_pkg is
 
 	end procedure reg_file_ref;
 
-	procedure alu_ref(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_ALU_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out integer; variable Unfl_ideal : out integer) is
+	procedure alu_ref(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_ALU_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out boolean; variable Unfl_ideal : out boolean) is
 		variable tmp_op1	: std_logic_vector(OP1_L_TB-1 downto 0);
 		variable tmp_op2	: std_logic_vector(OP2_L_TB-1 downto 0);
 		variable tmp_res	: std_logic_vector(OP1_L_TB-1 downto 0);
 		variable Res_tmp	: integer;
 	begin
-		Ovfl_ideal := 0;
-		Unfl_ideal := 0;
+		Ovfl_ideal := False;
+		Unfl_ideal := False;
 		if (Cmd = CMD_ALU_USUM) then
 			Res_tmp := Op1_int + Op2_int;
 			Res_ideal := Res_tmp;
 			if (Res_tmp > (2**(OP1_L_TB) - 1)) then
-				Ovfl_ideal := 1;
+				Ovfl_ideal := True;
 				Res_ideal := Res_tmp - 2**(OP1_L_TB);
 			end if;
 		elsif (Cmd = CMD_ALU_SSUM) then
 			Res_tmp := Op1_int + Op2_int;
 			Res_ideal := Res_tmp;
 			if (Res_tmp > (2**(OP1_L_TB-1) - 1)) then
-				Ovfl_ideal := 1;
+				Ovfl_ideal := True;
 				Res_ideal := -2*(2**(OP1_L_TB-1)) + Res_tmp;
 			elsif (Res_tmp < (-(2**(OP1_L_TB-1)))) then
-				Unfl_ideal := 1;
+				Unfl_ideal := True;
 				Res_ideal := 2*(2**(OP1_L_TB-1)) + Res_tmp;
 			end if;
 		elsif (Cmd = CMD_ALU_USUB) then
 			Res_tmp := Op1_int - Op2_int;
 			Res_ideal := Res_tmp;
 			if (Res_tmp < 0) then
-				Unfl_ideal := 1;
+				Unfl_ideal := True;
 				Res_ideal := 2**(OP1_L_TB) + Res_tmp;
 			end if;
 		elsif (Cmd = CMD_ALU_SSUB) then
 			Res_tmp := Op1_int - Op2_int;
 			Res_ideal := Res_tmp;
 			if (Res_tmp > (2**(OP1_L_TB-1) - 1)) then
-				Ovfl_ideal := 1;
+				Ovfl_ideal := True;
 				Res_ideal := -2*(2**(OP1_L_TB-1)) + Res_tmp;
 			elsif (Res_tmp < (-(2**(OP1_L_TB-1)))) then
-				Unfl_ideal := 1;
+				Unfl_ideal := True;
 				Res_ideal := 2*(2**(OP1_L_TB-1)) + Res_tmp;
 			end if;
 		elsif (Cmd = CMD_ALU_UCMP) then
@@ -367,13 +367,13 @@ package body tb_pkg is
 		return bool;
 	end function;
 
-	function std_logic_to_int(val : std_logic) return integer is
-		variable val_conv	: integer;
+	function std_logic_to_bool(val : std_logic) return boolean is
+		variable val_conv	: boolean;
 	begin
 		if (val = '1') then
-			val_conv := 1;
+			val_conv := True;
 		else
-			val_conv := 0;
+			val_conv := False;
 		end if;
 
 		return val_conv;

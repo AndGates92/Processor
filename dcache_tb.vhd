@@ -138,7 +138,7 @@ begin
 			Start_tb <= '0';
 		end procedure push_op;
 
-		procedure dcache_ref(variable read_bool : in boolean; variable DataIn_int : in integer; variable address_bram, address_full : in integer; variable Hit : out integer; variable Data_int : out integer; variable DCacheIn_mem : in dcache_t; variable DCacheOut_mem : out dcache_t; variable DDirtyCacheIn_mem : in dcache_t; variable DDirtyCacheOut_mem : out dcache_t; variable DAddrCacheIn_mem : in dcache_t; variable DAddrCacheOut_mem : out dcache_t;  variable DValidCacheIn_mem : in dcache_t; variable DValidCacheOut_mem : out dcache_t; variable seed1, seed2 : inout positive) is
+		procedure dcache_ref(variable read_bool : in boolean; variable DataIn_int : in integer; variable address_bram, address_full : in integer; variable Hit : out boolean; variable Data_int : out integer; variable DCacheIn_mem : in dcache_t; variable DCacheOut_mem : out dcache_t; variable DDirtyCacheIn_mem : in dcache_t; variable DDirtyCacheOut_mem : out dcache_t; variable DAddrCacheIn_mem : in dcache_t; variable DAddrCacheOut_mem : out dcache_t;  variable DValidCacheIn_mem : in dcache_t; variable DValidCacheOut_mem : out dcache_t; variable seed1, seed2 : inout positive) is
 			variable DirtyBit, ValidBit, AddressFullBRAM, DataBRAM : integer;
 			variable DataMem	: integer;
 			variable rand_val	: real;
@@ -156,9 +156,9 @@ begin
 			DataBRAM := DCacheIn_mem(address_bram);
 
 			if (ValidBit = 1) and (AddressFullBRAM = address_full) then
-				Hit := 1;
+				Hit := True;
 			else
-				Hit := 0;
+				Hit := False;
 			end if;
 
 			if (read_bool = True) then
@@ -194,7 +194,7 @@ begin
 			end if;
 		end procedure dcache_ref;
 
-		procedure verify(variable read_bool : in boolean; variable address_int, address_bram, Hit_ideal, Hit_rtl, Data_ideal, Data_rtl : integer; file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable Hit_ideal, Hit_rtl, read_bool : in boolean; variable address_int, address_bram, Data_ideal, Data_rtl : integer; file file_pointer : text; variable pass: out integer) is
 			variable file_line	: line;
 		begin
 
@@ -202,16 +202,16 @@ begin
 			writeline(file_pointer, file_line);
 
 			if (Hit_rtl = Hit_ideal) and (Data_ideal = Data_rtl) then
-				write(file_line, string'("PASS Data " & integer'image(Data_ideal) & " Hit " & integer'image(Hit_ideal)));
+				write(file_line, string'("PASS Data " & integer'image(Data_ideal) & " Hit " & bool_to_str(Hit_ideal)));
 				pass := 1;
 			elsif (Data_ideal /= Data_rtl) and (Hit_rtl = Hit_ideal) then
 				write(file_line, string'("FAIL (Wrong Data) Ideal " & integer'image(Data_ideal) & " and RTL " & integer'image(Data_rtl)));
 				pass := 0;
 			elsif (Hit_rtl /= Hit_ideal) and (Data_ideal = Data_rtl) then
-				write(file_line, string'("FAIL (Wrong hit) Ideal " & integer'image(Hit_ideal) & " and RTL " & integer'image(Hit_rtl)));
+				write(file_line, string'("FAIL (Wrong hit) Ideal " & bool_to_str(Hit_ideal) & " and RTL " & bool_to_str(Hit_rtl)));
 				pass := 0;
 			else
-				write(file_line, string'("FAIL (Wrong hit and data) Data => Ideal " & integer'image(Data_ideal) & " and RTL " & integer'image(Data_rtl) & " Hit => Ideal " & integer'image(Hit_ideal) & " and RTL " & integer'image(Hit_rtl)));
+				write(file_line, string'("FAIL (Wrong hit and data) Data => Ideal " & integer'image(Data_ideal) & " and RTL " & integer'image(Data_rtl) & " Hit => Ideal " & bool_to_str(Hit_ideal) & " and RTL " & bool_to_str(Hit_rtl)));
 				pass := 0;
 			end if;
 			writeline(file_pointer, file_line);
@@ -234,7 +234,7 @@ begin
 		variable address_int		: integer;
 
 		variable Data_rtl, Data_ideal	: integer;
-		variable Hit_rtl, Hit_ideal	: integer;
+		variable Hit_rtl, Hit_ideal	: boolean;
 
 		variable seed1, seed2		: positive;
 
@@ -276,11 +276,11 @@ begin
 
 			wait on Done_tb;
 
-			Hit_rtl := std_logic_to_int(Hit_tb);
+			Hit_rtl := std_logic_to_bool(Hit_tb);
 
 			Data_rtl := to_integer(unsigned(DataOut_tb));
 
-			verify (read_int, address_int, address_bram, Hit_ideal, Hit_rtl, Data_ideal, Data_rtl, file_pointer, pass);
+			verify (Hit_ideal, Hit_rtl, read_int, address_int, address_bram, Data_ideal, Data_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
