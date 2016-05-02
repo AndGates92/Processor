@@ -3,7 +3,6 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.icache_pkg.all;
 use work.bram_pkg.all;
 use work.proc_pkg.all;
 
@@ -31,8 +30,8 @@ port (
 end bram_2port;
  
 architecture rtl of bram_2port is
-	type cache_type is array ((BRAM_LINE - 1) downto 0) of std_logic_vector(DATA_L-1 downto 0);
-	signal cache : cache_type;
+	type bram_type is array ((BRAM_LINE - 1) downto 0) of std_logic_vector(DATA_L-1 downto 0);
+	signal bram_mem : bram_type;
 	signal PortA_DataOutC, PortA_DataOutN : std_logic_vector(DATA_L-1 downto 0);
 	signal PortB_DataOutC, PortB_DataOutN : std_logic_vector(DATA_L-1 downto 0);
 begin
@@ -43,14 +42,14 @@ begin
 		
 		if (PortA_clk'event) and (PortA_clk = '1') then
 			if (PortA_Write = '1') then
-				cache(to_integer(unsigned(PortA_Address))) <= PortA_DataIn;
+				bram_mem(to_integer(unsigned(PortA_Address))) <= PortA_DataIn;
 			end if;
 
 			PortA_DataOutC <= PortA_DataOutN;
 		end if;
 	end process portA_reg;
 
-	PortA_DataOutN <= cache(to_integer(unsigned(PortA_Address)));
+	PortA_DataOutN <= bram_mem(to_integer(unsigned(PortA_Address)));
 	PortA_DataOut <=  PortA_DataOutC;
 
 	-- Port B
@@ -58,14 +57,14 @@ begin
 	begin
 		if (PortB_clk'event) and (PortB_clk = '1') then
 			if (PortB_Write = '1') then
-				cache(to_integer(unsigned(PortB_Address))) <= PortB_DataIn;
+				bram_mem(to_integer(unsigned(PortB_Address))) <= PortB_DataIn;
 			end if;
 
 			PortB_DataOutC <= PortB_DataOutN;
 		end if;
 	end process portB_reg;
 
-	PortB_DataOutN <= cache(to_integer(unsigned(PortB_Address)));
+	PortB_DataOutN <= bram_mem(to_integer(unsigned(PortB_Address)));
 	PortB_DataOut <=  PortB_DataOutC; 
 
 end rtl;
