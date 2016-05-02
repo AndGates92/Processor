@@ -17,7 +17,7 @@ architecture bench of fifo_tb is
 	constant CLK_WR_PERIOD	: time := 10 ns;
 	constant CLK_RD_PERIOD	: time := 10 ns;
 	constant MAX_PERIOD	: time := max_time(CLK_WR_PERIOD, CLK_RD_PERIOD);
-	constant NUM_TEST	: integer := 100;
+	constant NUM_TEST	: integer := 10000;
 
 	constant DATA_L_TB	: positive := 30;
 	constant FIFO_SIZE_TB	: positive := 16;
@@ -114,13 +114,11 @@ begin
 			DataIn_int := DataIn_in;
 
 			uniform(seed1, seed2, rand_val);
-report "wr " & real'image(rand_val);
 			En_wr_in := rand_bool(rand_val);
 			En_wr_tb <= bool_to_std_logic(En_wr_in);
 			En_wr_bool := En_wr_in;
 
 			uniform(seed1, seed2, rand_val);
-report "rd " & real'image(rand_val);
 			En_rd_in := rand_bool(rand_val);
 			En_rd_tb <= bool_to_std_logic(En_rd_in);
 			En_rd_bool := En_rd_in;
@@ -167,13 +165,13 @@ report "rd " & real'image(rand_val);
 				WrPtrOut := WrPtrNext;
 			end if;
 
-			if (En_rd_bool = True) and (WrPtrIn = RdPtrNext) then
+			if (En_rd_bool = True) and (En_wr_bool = False) and (WrPtrIn = RdPtrNext) then
 				emptyOut_bool := True;
 			elsif (RdPtrIn = WrPtrIn) and (En_wr_bool = True) then
 				emptyOut_bool := False;
 			end if;
 
-			if (En_wr_bool = True) and (RdPtrIn = WrPtrNext) then
+			if (En_wr_bool = True) and (En_rd_bool = False) and (RdPtrIn = WrPtrNext) then
 				fullOut_bool := True;
 			elsif (RdPtrIn = WrPtrIn)  and (En_rd_bool = True)then
 				fullOut_bool := False;
@@ -263,8 +261,6 @@ report "rd " & real'image(rand_val);
 
 			fifo_ref(DataIn_int, DataOut_ideal, En_wr_bool, En_rd_bool, fullIn_bool, emptyIn_bool, fullOut_bool, emptyOut_bool, FifoIn_mem, FifoOut_mem, WrPtrIn_int, RdPtrIn_int, WrPtrOut_int, RdPtrOut_int);
 
-report "empty In " & bool_to_str(emptyIn_bool);
-
 			if (En_rd_bool = True) and (emptyIn_bool = False) then
 				if (ValidOut_tb = '0') then
 					wait on ValidOut_tb;
@@ -274,12 +270,17 @@ report "empty In " & bool_to_str(emptyIn_bool);
 			end if;
 
 			fullRtl_bool := std_logic_to_bool(full_tb);
-			emptyRtl_bool := std_logic_to_bool(empty_tb);
+			if (i = 0) then
+				emptyRtl_bool := False;
+			else
+				emptyRtl_bool := std_logic_to_bool(empty_tb);
+			end if;
 			DataOut_rtl := to_integer(unsigned(DataOut_tb));
 
 			verify (DataIn_int, En_wr_bool, En_rd_bool, DataOut_ideal, DataOut_rtl, fullOut_bool, fullRtl_bool,  emptyOut_bool, emptyRtl_bool, file_pointer, pass);
-
 			num_pass := num_pass + pass;
+
+			wait for 1 ps;
 
 		end loop;
 

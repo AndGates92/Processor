@@ -29,6 +29,7 @@ package tb_pkg is
 	procedure alu_ref(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_ALU_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out boolean; variable Unfl_ideal : out boolean);
 
 	function rand_num return real;
+	function max_time(time1, time2 : time) return time;
 	function rand_bool(rand_val : real) return boolean;
 	function rand_sign(sign_val : real) return real;
 	function std_logic_to_bool(val : std_logic) return boolean;
@@ -343,6 +344,18 @@ package body tb_pkg is
 		return rand_val;
 	end function;
 
+	function max_time(time1, time2 : time) return time is
+		variable max	: time;
+	begin
+		if (time1 > time2) then
+			max := time1;
+		else
+			max := time2;
+		end if;
+
+		return max;
+	end function;
+
 	function rand_sign(sign_val : real) return real is
 		variable sign 	: real;
 	begin
@@ -356,12 +369,12 @@ package body tb_pkg is
 	end function;
 
 	function rand_bool(rand_val : real) return boolean is
-		variable bool 	: boolean;
+		variable bool	: boolean;
 	begin
 		if (rand_val > 0.5) then
-			bool := False;
-		else
 			bool := True;
+		else
+			bool := False;
 		end if;
 
 		return bool;

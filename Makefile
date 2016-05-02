@@ -24,6 +24,7 @@ all:
 	make dcache_all
 	make execute_all
 	make execute_dcache_all
+	make fifo_all
 
 clean:
 	rm -f ${LOG_FILE} ${SUMMARY_FILE}

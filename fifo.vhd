@@ -65,11 +65,13 @@ begin
 			WrPtrC <= (others => '0');
 			WrPtrNextC <= (others => '0');
 			EndRstC <= '0';
+			rst_wrC <= '1';
 		elsif ((clk_wr'event) and (clk_wr = '1')) then
 			fullC <= fullN;
 			WrPtrC <= WrPtrN;
 			WrPtrNextC <= WrPtrNextN;
 			EndRstC <= EndRstN;
+			rst_wrC <= rst_wrN;
 		end if;
 	end process reg_wr;
 
@@ -81,13 +83,11 @@ begin
 			RdPtrC <= (others => '0');
 			RdPtrNextC <= (others => '0');
 			ValidOutC <= '0';
-			rst_wrC <= '0';
 		elsif ((clk_rd'event) and (clk_rd = '1')) then
 			emptyC <= emptyN;
 			RdPtrC <= RdPtrN;
 			RdPtrNextC <= RdPtrNextN;
 			ValidOutC <= ValidOutN;
-			rst_wrC <= rst_wrN;
 		end if;
 	end process reg_rd;
 
@@ -98,40 +98,37 @@ begin
 	EndRst <= EndRstC;
 
 	WrPtrN <=	unsigned(AddressRst) when (EndRstC = '0') else
-			(others => '0') when (WrPtrC = to_unsigned(FIFO_SIZE - 1, int_to_bit_num(FIFO_SIZE))) and (En_wr = '1') and (fullC = '0') else
-			WrPtrC + 1 when (En_wr = '1') and (fullC = '0') else
-			WrPtrC;
+			WrPtrC when (fullC = '1') or (En_wr = '0') else
+			WrPtrNextN;
 
 	WrPtrNextN <= (others => '0') when (WrPtrC = to_unsigned(FIFO_SIZE - 1, int_to_bit_num(FIFO_SIZE))) else WrPtrC + 1;
 
-	RdPtrN <=	(others => '0') when ((WrPtrC /= RdPtrC) and (emptyC = '0')) and (En_rd = '1') and (RdPtrC = to_unsigned(FIFO_SIZE - 1, int_to_bit_num(FIFO_SIZE))) else
-			RdPtrC + 1 when ((WrPtrC /= RdPtrC) and (emptyC = '0')) and (En_rd = '1') else
-			RdPtrC;
+	RdPtrN <= RdPtrC when (emptyC = '1') or (En_rd = '0') else RdPtrNextN;
 
 	RdPtrNextN <= (others => '0') when (RdPtrC = to_unsigned(FIFO_SIZE - 1, int_to_bit_num(FIFO_SIZE))) else RdPtrC + 1;
 
-	fullN <=	'1' when (RdPtrC = WrPtrNextC) and (En_wr = '1') and (En_rd = '0') and (EndRstC = '1') else
+	fullN <=	'1' when (RdPtrC = WrPtrNextN) and (En_wr = '1') and (En_rd = '0') and (EndRstC = '1') else
 			'0' when (RdPtrC = WrPtrC) and (En_rd = '1') else
 			fullC;
 
-	emptyN <=	'1' when ((WrPtrC = RdPtrNextC) and (En_rd = '1') and (En_wr = '0')) or (EndRstC = '0') or ((En_wr = '0') and (ValidOutC = '1') and (WrPtrC = RdPtrC)) else
+	emptyN <=	'1' when ((WrPtrC = RdPtrNextN) and (En_rd = '1') and (En_wr = '0')) or (EndRstC = '0') else -- or ((En_wr = '0') and (ValidOutC = '1') and (WrPtrC = RdPtrC)) else
 			'0' when (RdPtrC = WrPtrC) and (En_wr = '1') else
 			emptyC;
 
-	PortB_Write <=	'1';
+	PortB_Write <=	En_wr when (fullC = '0') else '0';
 	PortA_Write <=	'0';
 
 	DataIn_fifo <= DataIn when (EndRstC = '1') else (others => '0');
 
-	ValidOutN <= En_rd when (emptyC = '0') or (WrPtrC /= RdPtrC) else '0';
+	ValidOutN <= En_rd when (emptyC = '0') else '0';
 	ValidOut <= ValidOutC;
 
 	DataOut <= DataOut_fifo when (ValidOutC = '1') else (others => '0');
 
 	rst_wrN <= rst_wr;
 
-	full <= fullN;
-	empty <= emptyN;
+	full <= fullC;
+	empty <= emptyC;
 
 	FIFO_2PORT_I : bram_2port generic map(
 		ADDR_BRAM_L => int_to_bit_num(FIFO_SIZE),

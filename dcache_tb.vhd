@@ -260,7 +260,7 @@ begin
 		write(file_line, string'( "Data cache Test"));
 		writeline(file_pointer, file_line);
 
-		write(file_line, string'( "Reset successfull"));
+		write(file_line, string'( "Reset successful"));
 		writeline(file_pointer, file_line);
 
 		for i in 0 to NUM_TEST-1 loop
