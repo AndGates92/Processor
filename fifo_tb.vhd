@@ -235,10 +235,11 @@ begin
 
 		file_open(file_pointer, log_file, append_mode);
 
+		reset_rd(RdPtrOut_int, emptyOut_bool);
+
 		write(file_line, string'( "FIFO Test"));
 		writeline(file_pointer, file_line);
 
-		reset_rd(RdPtrOut_int, emptyOut_bool);
 		write(file_line, string'( "Read reset successful"));
 		writeline(file_pointer, file_line);
 
