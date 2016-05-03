@@ -24,7 +24,7 @@ all:
 	make dcache_all
 	make execute_all
 	make execute_dcache_all
-	make fifo_all
+	make fifo_1clk_all
 
 clean:
 	rm -f ${LOG_FILE} ${SUMMARY_FILE}
@@ -55,8 +55,8 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} icache_pkg.vhd
 	@echo "Analysing dcache_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} dcache_pkg.vhd
-	@echo "Analysing fifo_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_pkg.vhd
+	@echo "Analysing fifo_1clk_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} fifo_1clk_pkg.vhd
 	@echo "Analysing tb_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} tb_pkg.vhd
 
@@ -307,31 +307,31 @@ execute_dcache_all:
 	make execute_dcache
 	make simulate_execute_dcache
 
-fifo: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_pkg.o
+fifo_1clk: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o
 	@echo "Analysing bram_1port.vhd"
 	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
 	@echo "Analysing bram_2port.vhd"
 	${GHDL} -a ${GHDL_ARGS} bram_2port_sim.vhd
 	@echo "Analysing bram_rst.vhd"
 	${GHDL} -a ${GHDL_ARGS} bram_rst.vhd
-	@echo "Analysing fifo.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo.vhd
-	@echo "Analysing fifo_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_tb.vhd
-	@echo "Analysing fifo_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_cfg.vhd
-	@echo "Elaborating fifo_cfg"
-	${GHDL} -e ${GHDL_ARGS} config_fifo
-	rm -r e~config_fifo.o
-	mv config_fifo ${WORK_DIR}
+	@echo "Analysing fifo_1clk.vhd"
+	${GHDL} -a ${GHDL_ARGS} fifo_1clk.vhd
+	@echo "Analysing fifo_1pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} fifo_1clk_tb.vhd
+	@echo "Analysing fifo_1clk_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} fifo_1clk_cfg.vhd
+	@echo "Elaborating fifo_1clk_cfg"
+	${GHDL} -e ${GHDL_ARGS} config_fifo_1clk
+	rm -r e~config_fifo_1clk.o
+	mv config_fifo_1clk ${WORK_DIR}
 
-simulate_fifo: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/fifo_pkg.o ${WORK_DIR}/fifo.o  ${WORK_DIR}/fifo_tb.o
-	cd ${WORK_DIR} && ${GHDL} -r config_fifo ${GHDL_RUN_ARGS}fifo.vcd
+simulate_fifo_1clk: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o ${WORK_DIR}/fifo_1clk.o  ${WORK_DIR}/fifo_1clk_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r config_fifo_1clk ${GHDL_RUN_ARGS}fifo_1clk.vcd
 
-fifo_all:
+fifo_1clk_all:
 	make work_dir
 	make libraries
-	make fifo
-	make simulate_fifo
+	make fifo_1clk
+	make simulate_fifo_1clk
 
 
