@@ -57,6 +57,8 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} dcache_pkg.vhd
 	@echo "Analysing fifo_1clk_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} fifo_1clk_pkg.vhd
+	@echo "Analysing fifo_2clk_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} fifo_2clk_pkg.vhd
 	@echo "Analysing tb_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} tb_pkg.vhd
 
@@ -334,4 +336,30 @@ fifo_1clk_all:
 	make fifo_1clk
 	make simulate_fifo_1clk
 
+fifo_2clk: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o
+	@echo "Analysing bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
+	@echo "Analysing bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_2port_sim.vhd
+	@echo "Analysing bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} bram_rst.vhd
+	@echo "Analysing fifo_2clk.vhd"
+	${GHDL} -a ${GHDL_ARGS} fifo_2clk.vhd
+	@echo "Analysing fifo_2pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} fifo_2clk_tb.vhd
+	@echo "Analysing fifo_2clk_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} fifo_2clk_cfg.vhd
+	@echo "Elaborating fifo_2clk_cfg"
+	${GHDL} -e ${GHDL_ARGS} config_fifo_2clk
+	rm -r e~config_fifo_2clk.o
+	mv config_fifo_2clk ${WORK_DIR}
+
+simulate_fifo_2clk: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o ${WORK_DIR}/fifo_2clk.o  ${WORK_DIR}/fifo_2clk_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r config_fifo_2clk ${GHDL_RUN_ARGS}fifo_2clk.vcd
+
+fifo_2clk_all:
+	make work_dir
+	make libraries
+	make fifo_2clk
+	make simulate_fifo_2clk
 
