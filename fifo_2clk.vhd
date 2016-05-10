@@ -151,42 +151,34 @@ begin
 --			'0' when (R_RdPtrC(NUM_STAGES - 1) = R_WrPtrC(NUM_STAGES - 1)) and (R_En_wrC(NUM_STAGES - 1) = '1') else
 --			R_emptyC;
 
-	W_fullN <=	'1' when (W_RdPtr1C = W_WrPtrNext0C) and (W_En_wrC(NUM_STAGES - 2) = '1') and (W_En_rdC(NUM_STAGES - 2) = '0') and (EndRstC(NUM_STAGES - 1) = '1') else
-			'0' when (W_RdPtr1C = W_WrPtr1C) and (W_En_rdC(NUM_STAGES - 2) = '1') else
+	W_fullN <=	'1' when (W_RdPtr1C = W_WrPtrNext0N) and (W_En_wrC(NUM_STAGES - 1) = '1') and (W_En_rdC(NUM_STAGES - 1) = '0') and (EndRstC(NUM_STAGES - 1) = '1') else
+			'0' when (W_RdPtr1C = W_WrPtr1C) and (W_En_rdC(NUM_STAGES - 1) = '1') else
 			W_fullC;
 
-	R_emptyN <=	'1' when ((R_WrPtr1C = R_RdPtrNext0C) and (R_En_rdC(0) = '1') and (R_En_wrC(NUM_STAGES - 2) = '0')) or (EndRstC(NUM_STAGES - 1) = '0') else
-			'0' when (R_RdPtr1C = R_WrPtr1C) and (R_En_wrC(NUM_STAGES - 2) = '1') else
+	R_emptyN <=	'0' when (R_RdPtr1C = R_WrPtr1C) and (R_En_wrC(NUM_STAGES - 1) = '1') else
+			'1' when ((R_WrPtr1C = R_RdPtr0N) and (R_En_wrC(NUM_STAGES - 1) = '0')) or (EndRstC(NUM_STAGES - 1) = '0') else
 			R_emptyC;
 
 	full <= W_fullC;
-	empty <= R_emptyC;
-
-	EnReadN <=	'1' when (R_emptyC = '1') and (En_wr = '1') else
-			'0' when (R_emptyC = '0') else
-			EnReadC;
-
-	EnWriteN <=	'1' when (W_fullC = '1') and (En_rd = '1') else
-			'0' when (W_fullC = '0') else
-			EnWriteC;
+	empty <= R_emptyN;
 
 --	WrPtr <=	unsigned(AddressRst) when (EndRstC = '0') else
---			W_WrPtrC(0) when ((W_fullC = '1') and (EnWriteC = '0')) or (W_En_wrC(NUM_STAGES - 1) = '0') else
+--			W_WrPtrC(0) when (W_fullC = '1') or (W_En_wrC(NUM_STAGES - 1) = '0') else
 --			W_WrPtrNextC(0);
 --	WrPtrNext <= (others => '0') when (W_WrPtrC(0) = to_unsigned(FIFO_SIZE - 1, int_to_bit_num(FIFO_SIZE))) else W_WrPtrC(0) + 1;
---	RdPtr <= R_RdPtrC(0) when ((R_emptyC = '1') and (EnReadC = '0')) or (R_En_rdC(NUM_STAGES - 1) = '0') else R_RdPtrNextC(0);
+--	RdPtr <= R_RdPtrC(0) when (R_emptyC = '1') or (R_En_rdC(NUM_STAGES - 1) = '0') else R_RdPtrNextC(0);
 --	RdPtrNext <= (others => '0') when (R_RdPtrC(0) = to_unsigned(FIFO_SIZE - 1, int_to_bit_num(FIFO_SIZE))) else R_RdPtrC(0) + 1;
 	WrPtr <=	unsigned(AddressRst) when (EndRstC(NUM_STAGES - 1) = '0') else
-			W_WrPtr0C when ((W_fullC = '1') and (EnWriteC = '0')) or (En_wr = '0') else
+			W_WrPtr0C when (W_fullC = '1') or (W_En_wrC(0) = '0') else
 			W_WrPtrNext0C;
-	WrPtrNext <= (others => '0') when (W_WrPtr0C = to_unsigned(FIFO_SIZE - 1, int_to_bit_num(FIFO_SIZE))) else W_WrPtr0C + 1;
-	RdPtr <= R_RdPtr0C when ((R_emptyC = '1') and (EnReadC = '0')) or (En_rd = '0') else R_RdPtrNext0N;
-	RdPtrNext <= (others => '0') when (R_RdPtr0C = to_unsigned(FIFO_SIZE - 1, int_to_bit_num(FIFO_SIZE))) else R_RdPtr0C + 1;
+	WrPtrNext <= (others => '0') when (W_WrPtr0C = to_unsigned(FIFO_SIZE - 1, int_to_bit_num(FIFO_SIZE))) else W_WrPtr0N + 1;
+	RdPtr <= R_RdPtr0C when (R_emptyC = '1') or (R_En_rdC(0) = '0') else R_RdPtrNext0C;
+	RdPtrNext <= (others => '0') when (R_RdPtr0C = to_unsigned(FIFO_SIZE - 1, int_to_bit_num(FIFO_SIZE))) else R_RdPtr0N + 1;
 
 --	En_rdN <= '0' when (R_emptyC = '1') and (R_WrPtrC(NUM_STAGES - 1) = R_RdPtrC(NUM_STAGES - 1)) else En_rd;
 --	En_wrN <= '0' when (W_fullC = '1') and (W_WrPtrC(NUM_STAGES - 1) = W_RdPtrC(NUM_STAGES - 1)) else En_wr;
-	En_rdN <= '0' when (R_emptyC = '1') and (EnReadC = '0') else En_rd;
-	En_wrN <= '0' when (W_fullC = '1') and (EnWriteC = '0') else En_wr;
+	En_rdN <= '0' when (R_emptyN = '1') else En_rd;
+	En_wrN <= '0' when (W_fullC = '1') else En_wr;
 
 	DataInN <=DataIn when (EndRstC(NUM_STAGES - 1) = '1') else (others => '0');
 
@@ -417,7 +409,7 @@ begin
 		PortB_Address => open
 	);
 
--- /*  Array of unsigned not supported 
+--	Array of unsigned not supported 
 --	PIPELINE: for i in 0 to (NUM_STAGES - 1) generate
 --		FIRST_STAGE: if (i = 0) generate
 --			W_DataInN(i) <= DataInN;

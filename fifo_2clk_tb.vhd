@@ -17,7 +17,8 @@ architecture bench of fifo_2clk_tb is
 	constant CLK_WR_PERIOD	: time := 10 ns;
 	constant CLK_RD_PERIOD	: time := 10 ns;
 	constant MAX_PERIOD	: time := max_time(CLK_WR_PERIOD, CLK_RD_PERIOD);
-	constant NUM_TEST	: integer := 10000;
+	constant WAIT_TIME	: time := 10 ps;
+	constant NUM_TEST	: integer := 100;
 
 	constant DATA_L_TB	: positive := 30;
 	constant FIFO_SIZE_TB	: positive := 16;
@@ -40,7 +41,9 @@ architecture bench of fifo_2clk_tb is
 	signal ValidOut_tb	: std_logic;
 	signal EndRst_tb	: std_logic;
 
-	type fifo_t is array (FIFO_SIZE_TB - 1 downto 0) of integer;
+	type fifo_t is array (0 to FIFO_SIZE_TB - 1) of integer;
+	type bool_del_t is array (0 to NUM_STAGES - 1) of boolean;
+	type int_del_t is array (0 to NUM_STAGES - 1) of integer;
 
 begin
 
@@ -71,25 +74,27 @@ begin
 
 	test: process
 
-		procedure reset_rd (variable RdPtrOut : out integer; variable emptyOut_bool : out boolean) is
+		procedure reset_rd (variable RdPtrOut : out integer; variable emptyOut_bool : out boolean; variable En_rd_bool : out bool_del_t) is
 		begin
 			rst_rd_tb <= '0';
 			wait until ((clk_rd_tb'event) and (clk_rd_tb = '1'));
 			rst_rd_tb <= '1';
 			emptyOut_bool := True;
+			En_rd_bool := (others => False);
 			RdPtrOut := 0;
 			En_rd_tb <= '0';
 			wait until ((clk_rd_tb'event) and (clk_rd_tb = '1'));
 			rst_rd_tb <= '0';
 		end procedure reset_rd;
 
-		procedure reset_wr(variable FifoOut_mem : out fifo_t; variable WrPtrOut : out integer; variable fullOut_bool : out boolean) is
+		procedure reset_wr(variable FifoOut_mem : out fifo_t; variable WrPtrOut : out integer; variable fullOut_bool : out boolean; variable DataIn_int : out int_del_t; En_wr_bool : out bool_del_t) is
 		begin
 			rst_wr_tb <= '0';
 			wait until ((clk_wr_tb'event) and (clk_wr_tb = '1'));
 			rst_wr_tb <= '1';
 			DataIn_tb <= (others => '0');
 			FifoOut_mem := (others => 0);
+			DataIn_int := (others => 0);
 			fullOut_bool := False;
 			WrPtrOut := 0;
 			En_wr_tb <= '0';
@@ -113,32 +118,85 @@ begin
 			DataIn_tb <= std_logic_vector(to_unsigned(DataIn_in, DATA_L_TB));
 			DataIn_int := DataIn_in;
 
-			uniform(seed1, seed2, rand_val);
-			En_wr_in := rand_bool(rand_val);
-			En_wr_tb <= bool_to_std_logic(En_wr_in), '0' after CLK_WR_PERIOD;
-			En_wr_bool := En_wr_in;
+			if (full_tb = '0') then
+				uniform(seed1, seed2, rand_val);
+				En_wr_in := rand_bool(rand_val);
+				En_wr_tb <= bool_to_std_logic(En_wr_in), '0' after CLK_WR_PERIOD;
+				En_wr_bool := En_wr_in;
+			else
+				En_wr_bool := False;
+				En_wr_tb <= '0';
+			end if;
 
-			uniform(seed1, seed2, rand_val);
-			En_rd_in := rand_bool(rand_val);
-			En_rd_tb <= bool_to_std_logic(En_rd_in), '0' after CLK_RD_PERIOD;
-			En_rd_bool := En_rd_in;
+			if (empty_tb = '0') then
+				uniform(seed1, seed2, rand_val);
+				En_rd_in := rand_bool(rand_val);
+				En_rd_tb <= bool_to_std_logic(En_rd_in), '0' after CLK_RD_PERIOD;
+				En_rd_bool := En_rd_in;
+			else
+				En_rd_bool := False;
+				En_rd_tb <= '0';
+			end if;
 
 			wait for MAX_PERIOD;
 
 		end procedure push_op;
 
-		procedure fifo_ref(variable DataIn_int : in integer; variable DataOut_int : out integer; variable En_wr_bool, En_rd_bool : in boolean; variable fullIn_bool, emptyIn_bool : in boolean; variable fullOut_bool, emptyOut_bool : out boolean; variable FifoIn_mem : in fifo_t; variable FifoOut_mem : out fifo_t; variable WrPtrIn, RdPtrIn : in integer; variable WrPtrOut, RdPtrOut : out integer) is
+		procedure fifo_ref(variable DataIn_int : in integer; variable En_wr_bool, En_rd_bool : in boolean; variable DataInIn_int : in int_del_t; variable DataInOut_int : out int_del_t; variable DataOut_int : out integer; variable En_wrIn_bool, En_rdIn_bool : in bool_del_t; variable En_wrOut_bool, En_rdOut_bool : out bool_del_t; variable fullIn_bool, emptyIn_bool : in boolean; variable fullOut_bool, emptyOut_bool : out boolean; variable FifoIn_mem : in fifo_t; variable FifoOut_mem : out fifo_t; variable WrPtrIn, RdPtrIn : in integer; variable WrPtrOut, RdPtrOut : out integer) is
 
 			variable WrPtrNext, RdPtrNext	: integer;
+			variable full_tmp, empty_tmp	: boolean;
 
 		begin
-			FifoOut_mem := FifoIn_mem;
+
+			for i in 1 to (NUM_STAGES - 1) loop
+				En_wrOut_bool(i) := En_wrIn_bool(i-1);
+				En_rdOut_bool(i) := En_rdIn_bool(i-1);
+
+				DataInOut_int(i) := DataInIn_int(i-1);
+
+			end loop;
+
 			WrPtrOut := WrPtrIn;
 			RdPtrOut := RdPtrIn;
 
-			fullOut_bool := fullIn_bool;
-			emptyOut_bool := emptyIn_bool;
+			if (En_rd_bool = True) and (En_wr_bool = False) and (WrPtrIn = RdPtrNext) then
+				empty_tmp := True;
+			elsif (RdPtrIn = WrPtrIn) and (En_wrIn_bool(NUM_STAGES - 1) = True) then
+				empty_tmp := False;
+			else
+				empty_tmp := emptyIn_bool;
+			end if;
 
+			emptyOut_bool := empty_tmp;
+
+			if (En_wrIn_bool(NUM_STAGES - 1) = True) and (En_rdIn_bool(NUM_STAGES - 1) = False) and (RdPtrIn = WrPtrNext) then
+				full_tmp := True;
+			elsif (RdPtrIn = WrPtrIn)  and (En_rdIn_bool(NUM_STAGES - 1) = True)then
+				full_tmp := False;
+			else
+				full_tmp := fullIn_bool;
+			end if;
+
+			fullOut_bool := full_tmp;
+
+			if (full_tmp = False) then
+				En_wrOut_bool(0) := En_wr_bool;
+			else
+				En_wrOut_bool(0) := False;
+			end if;
+
+			if (empty_tmp = False) then
+				En_rdOut_bool(0) := En_rd_bool;
+			else
+				En_rdOut_bool(0) := False;
+			end if;
+
+			DataInOut_int(0) := DataIn_int;
+
+			FifoOut_mem := FifoIn_mem;
+
+			-- next address generation
 			if (WrPtrIn = FIFO_SIZE_TB - 1) then
 				WrPtrNext := 0;
 			else
@@ -151,28 +209,19 @@ begin
 				RdPtrNext := RdPtrIn + 1;
 			end if;
 
-			if (En_rd_bool = True) and (emptyIn_bool = False) then
+			if (En_rdIn_bool(NUM_STAGES - 2) = True) then
 				RdPtrOut := RdPtrNext;
 				DataOut_int := FifoIn_mem(RdPtrIn);
 			else
+				RdPtrOut := RdPtrIn;
 				DataOut_int := 0;
 			end if;
 
-			if (En_wr_bool = True) and (fullIn_bool = False) then
-				FifoOut_mem(WrPtrIn) := DataIn_int;
+			if (En_wrIn_bool(NUM_STAGES - 1) = True) and (fullIn_bool = False) then
+				FifoOut_mem(WrPtrIn) := DataInIn_int(NUM_STAGES - 1);
 				WrPtrOut := WrPtrNext;
-			end if;
-
-			if (En_rd_bool = True) and (En_wr_bool = False) and (WrPtrIn = RdPtrNext) then
-				emptyOut_bool := True;
-			elsif (RdPtrIn = WrPtrIn) and (En_wr_bool = True) then
-				emptyOut_bool := False;
-			end if;
-
-			if (En_wr_bool = True) and (En_rd_bool = False) and (RdPtrIn = WrPtrNext) then
-				fullOut_bool := True;
-			elsif (RdPtrIn = WrPtrIn)  and (En_rd_bool = True)then
-				fullOut_bool := False;
+			else
+				WrPtrOut := WrPtrIn;
 			end if;
 		end procedure fifo_ref;
 
@@ -211,10 +260,14 @@ begin
 		variable En_wr_bool			: boolean;
 		variable En_rd_bool			: boolean;
 
+		variable En_wrOut_array, En_wrIn_array	: bool_del_t;
+		variable En_rdOut_array, En_rdIn_array	: bool_del_t;
+
 		variable WrPtrOut_int, WrPtrIn_int	: integer;
 		variable RdPtrOut_int, RdPtrIn_int	: integer;
 
 		variable DataOut_rtl, DataOut_ideal	: integer;
+		variable DataInIn_int, DataInOut_int	: int_del_t;
 		variable DataIn_int			: integer;
 
 		variable seed1, seed2			: positive;
@@ -233,7 +286,7 @@ begin
 
 		file_open(file_pointer, log_file, append_mode);
 
-		reset_rd(RdPtrOut_int, emptyOut_bool);
+		reset_rd(RdPtrOut_int, emptyOut_bool, En_rdOut_array);
 
 		write(file_line, string'( "FIFO Test"));
 		writeline(file_pointer, file_line);
@@ -241,7 +294,7 @@ begin
 		write(file_line, string'( "Read reset successful"));
 		writeline(file_pointer, file_line);
 
-		reset_wr(FifoOut_mem, WrPtrOut_int, fullOut_bool);
+		reset_wr(FifoOut_mem, WrPtrOut_int, fullOut_bool, DataInOut_int, En_wrOut_array);
 		write(file_line, string'( "Write reset successful"));
 		writeline(file_pointer, file_line);
 
@@ -256,11 +309,19 @@ begin
 			fullIn_bool := fullOut_bool;
 			emptyIn_bool := emptyOut_bool;
 
+			En_wrIn_array := En_wrOut_array;
+			En_rdIn_array := En_rdOut_array;
+
+			DataInIn_int := DataInOut_int;
+
 			push_op(DataIn_int, En_wr_bool, En_rd_bool, seed1, seed2);
 
-			fifo_ref(DataIn_int, DataOut_ideal, En_wr_bool, En_rd_bool, fullIn_bool, emptyIn_bool, fullOut_bool, emptyOut_bool, FifoIn_mem, FifoOut_mem, WrPtrIn_int, RdPtrIn_int, WrPtrOut_int, RdPtrOut_int);
+			fifo_ref(DataIn_int, En_wr_bool, En_rd_bool, DataInIn_int, DataInOut_int, DataOut_ideal, En_wrIn_array, En_rdIn_array, En_wrOut_array, En_rdOut_array, fullIn_bool, emptyIn_bool, fullOut_bool, emptyOut_bool, FifoIn_mem, FifoOut_mem, WrPtrIn_int, RdPtrIn_int, WrPtrOut_int, RdPtrOut_int);
 
-			if (En_rd_bool = True) and (emptyIn_bool = False) then
+			En_wr_bool := En_wrOut_array(NUM_STAGES - 1);
+			En_rd_bool := En_rdOut_array(NUM_STAGES - 1);
+
+			if (En_rd_bool = True) and (emptyOut_bool = False) then
 				if (ValidOut_tb = '0') then
 					wait on ValidOut_tb;
 				else
@@ -269,17 +330,14 @@ begin
 			end if;
 
 			fullRtl_bool := std_logic_to_bool(full_tb);
-			if (i = 0) then
-				emptyRtl_bool := False;
-			else
-				emptyRtl_bool := std_logic_to_bool(empty_tb);
-			end if;
+			emptyRtl_bool := std_logic_to_bool(empty_tb);
+
 			DataOut_rtl := to_integer(unsigned(DataOut_tb));
 
 			verify (DataIn_int, En_wr_bool, En_rd_bool, DataOut_ideal, DataOut_rtl, fullOut_bool, fullRtl_bool,  emptyOut_bool, emptyRtl_bool, file_pointer, pass);
 			num_pass := num_pass + pass;
 
-			wait for 1 ps;
+--			wait for WAIT_TIME;
 
 		end loop;
 
