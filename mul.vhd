@@ -24,27 +24,45 @@ end entity mul;
 
 architecture booth_radix2 of mul is
 
-	constant multiplicand : integer :=  sel_multiplicand(OP1_L, OP2_L);
-	constant multiplier : integer := calc_length_multiplier(OP1_L, OP2_L, 2, multiplicand);
+	constant MULTD_L : integer :=  sel_multiplicand(OP1_L, OP2_L);
+	constant MULTR_L : integer := calc_length_multiplier(OP1_L, OP2_L, 2, MULTD_L);
 
-	constant zero_op1 : unsigned(OP1_L-1 downto 0) := (others => '0');
-	constant zero_op2 : unsigned(OP2_L-1 downto 0) := (others => '0');
+	constant zero_multd : unsigned(MULTD_L-1 downto 0) := (others => '0');
+	constant zero_multr : unsigned(MULTR_L-1 downto 0) := (others => '0');
 
-	signal AddN, AddC, SubN, SubC, ProdN, ProdC	: unsigned(OP1_L+OP2_L+1 - 1 downto 0);
-	signal Sum, Diff, Sum_Shift, Diff_Shift		: unsigned(OP1_L+OP2_L+1 - 1 downto 0);
-	signal tmp 					: unsigned(OP1_L+OP2_L+1 - 1 downto 0);
+	signal AddN, AddC, SubN, SubC, ProdN, ProdC	: unsigned(MULTD_L+MULTR_L+1 - 1 downto 0);
+	signal Sum, Diff, Sum_Shift, Diff_Shift		: unsigned(MULTD_L+MULTR_L+1 - 1 downto 0);
+	signal tmp 					: unsigned(MULTD_L+MULTR_L+1 - 1 downto 0);
 
 	signal ProdLSB		: unsigned(1 downto 0);
 
-	signal Op1_2comp	: unsigned(OP1_L - 1 downto 0);
+	signal multd_2comp	: unsigned(MULTD_L - 1 downto 0);
 
-	signal ProdLowIdle	: unsigned(OP2_L - 1 downto 0);
+	signal ProdLowIdle	: unsigned(MULTR_L - 1 downto 0);
 
 	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
 
-	signal CountC, CountN: unsigned(int_to_bit_num(OP2_L)-1 downto 0);
+	signal CountC, CountN: unsigned(int_to_bit_num(MULTR_L)-1 downto 0);
+
+	signal multiplicand	: unsigned(MULTD_L - 1 downto 0);
+
+	signal multiplier	: unsigned(MULTR_L - 1 downto 0);
 
 begin
+
+	op1_multd : if (OP1_L <=  OP2_L) generate
+		multiplicand(OP1_L-2 downto 0) <= unsigned(Op1(OP1_L-2 downto 0));
+		multiplicand(MULTD_L-1 downto OP1_L-1) <= (others => Op1(OP1_L-1));
+		multiplier(OP2_L-2 downto 0) <= unsigned(Op2(OP2_L-2 downto 0));
+		multiplier(MULTR_L-1 downto OP2_L-1) <= (others => Op2(OP2_L-1));
+	end generate op1_multd;
+
+	op2_multd : if (OP1_L > OP2_L) generate
+		multiplicand(OP2_L-2 downto 0) <= unsigned(Op2(OP2_L-2 downto 0));
+		multiplicand(MULTD_L-1 downto OP2_L-1) <= (others => Op2(OP2_L-1));
+		multiplier(OP1_L-2 downto 0) <= unsigned(Op1(OP1_L-2 downto 0));
+		multiplier(MULTR_L-1 downto OP1_L-1) <= (others => Op1(OP1_L-1));
+	end generate op2_multd;
 
 	reg: process(rst, clk)
 	begin
@@ -63,19 +81,19 @@ begin
 		end if;
 	end process reg;
 
-	state_det: process(StateC, Start, CountC)
+	state_det: process(StateC, Start, CountC, multiplicand, multiplier)
 	begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = IDLE) then
 			if (Start = '1') then
-				if (unsigned(Op1) = zero_op1) or (unsigned(Op2) = zero_op2) then -- fast track in case of zero input
+				if (multiplicand = zero_multd) or (multiplier = zero_multr) then -- fast track in case of zero input
 					StateN <= OUTPUT;
 				else
 					StateN <= COMPUTE;
 				end if;
 			end if;
 		elsif (StateC = COMPUTE) then
-			if CountC = to_unsigned(OP2_L - 1, CountC'length) then
+			if CountC = to_unsigned(MULTR_L - 1, CountC'length) then
 				StateN <= OUTPUT;
 			else
 				StateN <= COMPUTE;
@@ -87,7 +105,7 @@ begin
 		end if;
 	end process state_det;
 
-	Op1_2comp <= (not unsigned(Op1)) + 1;
+	multd_2comp <= (not unsigned(multiplicand)) + 1;
 
 	Sum <= ProdC + AddC;
 	Sum_Shift <= ProdC + (AddC(AddC'length-2 downto 0) & "0");
@@ -95,9 +113,9 @@ begin
 	Diff <= ProdC + SubC;
 	Diff_Shift <= ProdC + (SubC(SubC'length-2 downto 0) & "0");
 
-	ProdLowIdle <= (others => '0') when (unsigned(Op1) = zero_op1) else unsigned(Op2);
+	ProdLowIdle <= (others => '0') when (unsigned(multiplicand) = zero_multd) else unsigned(multiplier);
 
-	data: process(ProdC, StateC, CountC, Op1, Op2, tmp, ProdLowIdle)
+	data: process(ProdC, StateC, CountC, multiplicand, multiplier, tmp, multd_2comp, ProdLowIdle, Sum, Diff)
 	begin
 		-- avoid latches
 		ProdN <= ProdC;
@@ -108,12 +126,12 @@ begin
 		ProdLSB <= ProdC(1 downto 0);
 
 		if (StateC = IDLE) then
-			AddN(AddN'length-1 downto (AddN'length-OP1_L)) <= unsigned(Op1);
-			AddN((AddN'length-OP1_L-1) downto 0) <= to_unsigned(0, AddN'length-OP1_L);
-			SubN(SubN'length-1 downto (SubN'length-OP1_L)) <= Op1_2comp;
-			SubN((SubN'length-OP1_L-1) downto 0) <= to_unsigned(0, SubN'length-OP1_L);
-			ProdN(OP2_L downto 0) <= ProdLowIdle & "0";
-			ProdN(ProdN'length-1 downto OP2_L + 1) <= to_unsigned(0,OP1_L);
+			AddN(AddN'length-1 downto (AddN'length-MULTD_L)) <= unsigned(multiplicand);
+			AddN((AddN'length-MULTD_L-1) downto 0) <= to_unsigned(0, AddN'length-MULTD_L);
+			SubN(SubN'length-1 downto (SubN'length-MULTD_L)) <= multd_2comp;
+			SubN((SubN'length-MULTD_L-1) downto 0) <= to_unsigned(0, SubN'length-MULTD_L);
+			ProdN(MULTR_L downto 0) <= ProdLowIdle & "0";
+			ProdN(ProdN'length-1 downto MULTR_L + 1) <= to_unsigned(0,MULTD_L);
 			CountN <= (others => '0');
 		elsif (StateC = COMPUTE) then
 			CountN <= CountC + 1;
@@ -127,11 +145,9 @@ begin
 				when others =>
 					tmp <= ProdC;
 			end case;
-			if tmp(tmp'length-1) = '0' then
-				ProdN <= "0" & tmp(tmp'length-1 downto 1);
-			else
-				ProdN <= "1" & tmp(tmp'length-1 downto 1);
-			end if;
+
+			ProdN <= tmp(tmp'length-1 downto tmp'length-1) & tmp(tmp'length-1 downto 1);
+
 		elsif (StateC = OUTPUT) then
 			ProdN <= ProdC;
 		else
@@ -140,34 +156,52 @@ begin
 	end process data;
 
 	Done <= '1' when StateC = OUTPUT else '0';
-	Res <= std_logic_vector(ProdC(ProdC'length-1 downto 1)) when StateC = OUTPUT else (others => '0');
+	Res <= std_logic_vector(ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(OP1_L+OP2_L-1 downto 1)) when StateC = OUTPUT else (others => '0');
 
 end booth_radix2;
 
 architecture booth_radix4 of mul is
 
-	constant multiplicand : integer :=  sel_multiplicand(OP1_L, OP2_L);
-	constant multiplier : integer := calc_length_multiplier(OP1_L, OP2_L, 2, multiplicand);
+	constant MULTD_L : integer :=  sel_multiplicand(OP1_L, OP2_L);
+	constant MULTR_L : integer := calc_length_multiplier(OP1_L, OP2_L, 2, MULTD_L);
 
-	constant zero_op1 : unsigned(OP1_L-1 downto 0) := (others => '0');
-	constant zero_op2 : unsigned(OP2_L-1 downto 0) := (others => '0');
+	constant zero_multd : unsigned(MULTD_L-1 downto 0) := (others => '0');
+	constant zero_multr : unsigned(MULTR_L-1 downto 0) := (others => '0');
 
-	signal ProdN, ProdC	: unsigned(OP1_L+OP2_L+1 - 1 downto 0);
-	signal AddN, AddC, SubN, SubC	: unsigned(OP1_L - 1 downto 0);
-	signal Sum, Diff, Sum_Shift, Diff_Shift		: unsigned(OP1_L downto 0);
-	signal tmp 					: unsigned(OP1_L+OP2_L+1 - 1 downto 0);
+	signal ProdN, ProdC	: unsigned(MULTD_L+MULTR_L+1 - 1 downto 0);
+	signal AddN, AddC, SubN, SubC	: unsigned(MULTD_L - 1 downto 0);
+	signal Sum, Diff, Sum_Shift, Diff_Shift		: unsigned(MULTD_L downto 0);
+	signal tmp 					: unsigned(MULTD_L+MULTR_L+1 - 1 downto 0);
 
 	signal ProdLSB		: unsigned(2 downto 0);
 
-	signal ProdLowIdle	: unsigned(OP2_L - 1 downto 0);
+	signal ProdLowIdle	: unsigned(MULTR_L - 1 downto 0);
 
-	signal Op1_2comp	: unsigned(OP1_L - 1 downto 0);
+	signal multd_2comp	: unsigned(MULTD_L - 1 downto 0);
 
 	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
 
-	signal CountC, CountN: unsigned(int_to_bit_num(OP2_L/2)-1 downto 0);
+	signal CountC, CountN: unsigned(int_to_bit_num(MULTR_L/2)-1 downto 0);
+
+	signal multiplicand	: unsigned(MULTD_L - 1 downto 0);
+
+	signal multiplier	: unsigned(MULTR_L - 1 downto 0);
 
 begin
+
+	op1_multd : if (OP1_L <=  OP2_L) generate
+		multiplicand(OP1_L-2 downto 0) <= unsigned(Op1(OP1_L-2 downto 0));
+		multiplicand(MULTD_L-1 downto OP1_L-1) <= (others => Op1(OP1_L-1));
+		multiplier(OP2_L-2 downto 0) <= unsigned(Op2(OP2_L-2 downto 0));
+		multiplier(MULTR_L-1 downto OP2_L-1) <= (others => Op2(OP2_L-1));
+	end generate op1_multd;
+
+	op2_multd : if (OP1_L > OP2_L) generate
+		multiplicand(OP2_L-2 downto 0) <= unsigned(Op2(OP2_L-2 downto 0));
+		multiplicand(MULTD_L-1 downto OP2_L-1) <= (others => Op2(OP2_L-1));
+		multiplier(OP1_L-2 downto 0) <= unsigned(Op1(OP1_L-2 downto 0));
+		multiplier(MULTR_L-1 downto OP1_L-1) <= (others => Op1(OP1_L-1));
+	end generate op2_multd;
 
 	reg: process(rst, clk)
 	begin
@@ -186,19 +220,19 @@ begin
 		end if;
 	end process reg;
 
-	state_det: process(StateC, Start, CountC, Op1, Op2)
+	state_det: process(StateC, Start, CountC, multiplicand, multiplier)
 	begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = IDLE) then
 			if (Start = '1') then
-				if (unsigned(Op1) = zero_op1) or (unsigned(Op2) = zero_op2) then -- fast track in case of zero input
+				if (unsigned(multiplicand) = zero_multd) or (unsigned(multiplier) = zero_multr) then -- fast track in case of zero input
 					StateN <= OUTPUT;
 				else
 					StateN <= COMPUTE;
 				end if;
 			end if;
 		elsif (StateC = COMPUTE) then
-			if CountC = to_unsigned(OP2_L/2 - 1, CountC'length) then
+			if CountC = to_unsigned(MULTR_L/2 - 1, CountC'length) then
 				StateN <= OUTPUT;
 			else
 				StateN <= COMPUTE;
@@ -210,17 +244,17 @@ begin
 		end if;
 	end process state_det;
 
-	Op1_2comp <= (not unsigned(Op1)) + 1;
+	multd_2comp <= (not unsigned(multiplicand)) + 1;
 
-	Sum <= (ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto ((ProdC'length-1)/2)+1))+ (AddC(AddC'length-1 downto AddC'length-1) & AddC);
-	Sum_Shift <= (ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto ((ProdC'length-1)/2)+1)) + (AddC & "0");
+	Sum <= (ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto (ProdC'length-MULTD_L)))+ (AddC(AddC'length-1 downto AddC'length-1) & AddC);
+	Sum_Shift <= (ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto (ProdC'length-MULTD_L))) + (AddC & "0");
 
-	Diff <= (ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto ((ProdC'length-1)/2)+1)) + (SubC(SubC'length-1 downto SubC'length-1) & SubC);
-	Diff_Shift <= (ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto ((ProdC'length-1)/2)+1)) + (SubC & "0");
+	Diff <= (ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto (ProdC'length-MULTD_L))) + (SubC(SubC'length-1 downto SubC'length-1) & SubC);
+	Diff_Shift <= (ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto (ProdC'length-MULTD_L))) + (SubC & "0");
 
-	ProdLowIdle <= (others => '0') when (unsigned(Op1) = zero_op1) else unsigned(Op2);
+	ProdLowIdle <= (others => '0') when (unsigned(multiplicand) = zero_multd) else unsigned(multiplier);
 
-	data: process(ProdC, StateC, CountC, Op1, Op2, tmp, AddC, SubC, Sum, Sum_Shift, Diff, Diff_shift, Op1_2comp, ProdLowIdle)
+	data: process(ProdC, StateC, CountC, multiplicand, multiplier, tmp, AddC, SubC, Sum, Sum_Shift, Diff, Diff_shift, multd_2comp, ProdLowIdle)
 	begin
 		-- avoid latches
 		ProdN <= ProdC;
@@ -231,10 +265,10 @@ begin
 		ProdLSB <= ProdC(2 downto 0);
 
 		if (StateC = IDLE) then
-			AddN <= unsigned(Op1);
-			SubN <= Op1_2comp;
-			ProdN(OP2_L downto 0) <= ProdLowIdle & "0";
-			ProdN(ProdN'length-1 downto OP2_L + 1) <= to_unsigned(0,OP1_L);
+			AddN <= unsigned(multiplicand);
+			SubN <= multd_2comp;
+			ProdN(MULTR_L downto 0) <= ProdLowIdle & "0";
+			ProdN(ProdN'length-1 downto MULTR_L + 1) <= to_unsigned(0,MULTD_L);
 			CountN <= (others => '0');
 		elsif (StateC = COMPUTE) then
 			CountN <= CountC + 1;
@@ -242,13 +276,13 @@ begin
 				when "000"|"111" =>
 					tmp <= ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto 1);
 				when "001"|"010" =>
-					tmp <= Sum & ProdC(((ProdC'length-1)/2) downto 1);
+					tmp <= Sum & ProdC(MULTR_L downto 1);
 				when "011" =>
-					tmp <= Sum_Shift & ProdC(((ProdC'length-1)/2) downto 1);
+					tmp <= Sum_Shift & ProdC(MULTR_L downto 1);
 				when "100" =>
-					tmp <= Diff_Shift & ProdC(((ProdC'length-1)/2) downto 1);
+					tmp <= Diff_Shift & ProdC(MULTR_L downto 1);
 				when "101"|"110" =>
-					tmp <= Diff & ProdC(((ProdC'length-1)/2) downto 1);
+					tmp <= Diff & ProdC(MULTR_L downto 1);
 				when others =>
 					tmp <= ProdC;
 			end case;
@@ -261,6 +295,6 @@ begin
 	end process data;
 
 	Done <= '1' when StateC = OUTPUT else '0';
-	Res <= std_logic_vector(ProdC(ProdC'length-1 downto 1)) when StateC = OUTPUT else (others => '0');
+	Res <= std_logic_vector(ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(OP1_L+OP2_L-1 downto 1)) when StateC = OUTPUT else (others => '0');
 
 end booth_radix4;

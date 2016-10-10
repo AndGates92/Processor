@@ -105,13 +105,13 @@ package body alu_pkg is
 
 		rem_multiplier := (multiplier mod base);
 
-		assert rem_multiplier = 0 report ("op length must be a multiple of " & integer'image(base) & ". It is " & integer'image(multiplier) & ". Input will be extended") severity warning;
-
 		if (rem_multiplier = 0) then
 			length_op := multiplier;
 		else
 			length_op := multiplier - rem_multiplier + base;
 		end if;
+
+		assert rem_multiplier = 0 report ("op width must be a multiple of " & integer'image(base) & ". It is " & integer'image(multiplier) & ". Input will be extended to " & integer'image(length_op)) severity warning;
 
 		return length_op;
 
