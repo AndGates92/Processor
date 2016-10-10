@@ -34,26 +34,26 @@ architecture bench of div_tb is
 
 	component div
 	generic (
-		OP1_L	: positive := 16;
-		OP2_L	: positive := 16
+		DIVD_L	: positive := 16;
+		DIVR_L	: positive := 16
 	);
 	port (
 		rst		: in std_logic;
 		clk		: in std_logic;
-		Dividend	: in std_logic_vector(OP1_L - 1 downto 0);
-		Divisor		: in std_logic_vector(OP2_L - 1 downto 0);
+		Dividend	: in std_logic_vector(DIVD_L - 1 downto 0);
+		Divisor		: in std_logic_vector(DIVR_L - 1 downto 0);
 		Start		: in std_logic;
 		Done		: out std_logic;
-		Quotient	: out std_logic_vector(OP1_L-1 downto 0);
-		Remainder	: out std_logic_vector(OP2_L - 1 downto 0)
+		Quotient	: out std_logic_vector(DIVD_L-1 downto 0);
+		Remainder	: out std_logic_vector(DIVR_L - 1 downto 0)
 	);
 	end component;
 
 begin
 
 	DUT: div generic map(
-		OP1_L => OP1_L_TB,
-		OP2_L => OP2_L_TB
+		DIVD_L => OP1_L_TB,
+		DIVR_L => OP2_L_TB
 	)
 	port map (
 		rst => rst_tb,
