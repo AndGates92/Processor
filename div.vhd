@@ -25,31 +25,48 @@ end entity div;
 
 architecture non_restoring of div is
 
-	constant zero_divd : unsigned(DIVD_L-1 downto 0) := (others => '0');
-	constant zero_divr : unsigned(DIVR_L-1 downto 0) := (others => '0');
+	constant OP_L : integer := find_max(DIVD_L, DIVR_L);
+	constant zero_divd : unsigned(OP_L-1 downto 0) := (others => '0');
+	constant zero_divr : unsigned(OP_L-1 downto 0) := (others => '0');
 
-	signal DivisorN, DivisorC	: unsigned(DIVR_L-1 - 1 downto 0);
+	signal DivisorN, DivisorC	: unsigned(OP_L-1 - 1 downto 0);
 	signal SignC, SignN, Sign	: std_logic;
 	signal SignDvdC, SignDvdN	: std_logic;
-	signal QuotC, QuotN		: unsigned(DIVD_L-1 - 1 downto 0);
-	signal RemN, RemC, RemProp	: signed(DIVR_L - 1 downto 0);
---	signal QuotOut			: unsigned(DIVD_L - 1 downto 0);
---	signal RemOut			: unsigned(DIVR_L - 1 downto 0);
+	signal QuotC, QuotN		: unsigned(OP_L-1 - 1 downto 0);
+	signal RemN, RemC, RemProp	: signed(OP_L - 1 downto 0);
+--	signal QuotOut			: unsigned(OP_L - 1 downto 0);
+--	signal RemOut			: unsigned(OP_L - 1 downto 0);
 
-	signal Dividend_2comp	: unsigned(DIVD_L-1 - 1 downto 0);
-	signal Divisor_2comp	: unsigned(DIVR_L-1 - 1 downto 0);
+	signal Dividend_2comp	: unsigned(OP_L-1 - 1 downto 0);
+	signal Divisor_2comp	: unsigned(OP_L-1 - 1 downto 0);
 
-	signal DividendProp	: unsigned(DIVD_L-1 - 1 downto 0);
-	signal DivisorProp	: unsigned(DIVR_L-1 - 1 downto 0);
+	signal DividendProp	: unsigned(OP_L-1 - 1 downto 0);
+	signal DivisorProp	: unsigned(OP_L-1 - 1 downto 0);
+
+	signal ext_divr		: unsigned(OP_L - 1 downto 0);
+	signal ext_divd		: unsigned(OP_L - 1 downto 0);
 
 	signal ZeroDvdN, ZeroDvdC, ZeroDvd	: std_logic;
 	signal ZeroDvsN, ZeroDvsC, ZeroDvs	: std_logic;
 
 	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
 
-	signal CountC, CountN: unsigned(int_to_bit_num(DIVR_L-2)-1 downto 0);
+	signal CountC, CountN: unsigned(int_to_bit_num(OP_L-2)-1 downto 0);
 
 begin
+
+	ext_dividend : if (DIVD_L <=  DIVR_L) generate
+		ext_divd(DIVD_L-2 downto 0) <= unsigned(Dividend(DIVD_L-2 downto 0));
+		ext_divd(OP_L-1 downto DIVD_L-1) <= (others => Dividend(DIVD_L-1));
+		ext_divr <= unsigned(Divisor);
+	end generate ext_dividend;
+
+	ext_divisor : if (DIVD_L > DIVR_L) generate
+		ext_divr(DIVR_L-2 downto 0) <= unsigned(Divisor(DIVR_L-2 downto 0));
+		ext_divr(OP_L-1 downto DIVR_L-1) <= (others => Divisor(DIVR_L-1));
+		ext_divd <= unsigned(Dividend);
+	end generate ext_divisor;
+
 
 	reg: process(rst, clk)
 	begin
@@ -76,12 +93,12 @@ begin
 		end if;
 	end process reg;
 
-	state_det: process(StateC, Start, CountC, Dividend, Divisor)
+	state_det: process(StateC, Start, CountC, ext_divd, ext_divr)
 	begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = IDLE) then
 			if (Start = '1') then
-				if (unsigned(Dividend) = zero_divd) or (unsigned(Divisor) = zero_divr) then -- fast track in case of zero input
+				if (ext_divd = zero_divd) or (ext_divr = zero_divr) then -- fast track in case of zero input
 					StateN <= OUTPUT;
 				else
 					StateN <= COMPUTE_FIRST;
@@ -90,7 +107,7 @@ begin
 		elsif (StateC = COMPUTE_FIRST) then
 			StateN <= COMPUTE;
 		elsif (StateC = COMPUTE) then
-			if CountC = to_unsigned(DIVR_L - 3, CountC'length) then
+			if CountC = to_unsigned(OP_L - 3, CountC'length) then
 				StateN <= COMPUTE_LAST;
 			else
 				StateN <= COMPUTE;
@@ -104,28 +121,29 @@ begin
 		end if;
 	end process state_det;
 
-	ZeroDvd <=	'1' when unsigned(Dividend) = zero_divd else
+	ZeroDvd <=	'1' when ext_divd = zero_divd else
 			'0';
 
-	ZeroDvs <=	'1' when unsigned(Divisor) = zero_divr else
+	ZeroDvs <=	'1' when ext_divr = zero_divr else
 			'0';
 
-	Dividend_2comp <= 	(not unsigned(Dividend(DIVD_L-1 - 1 downto 0)) + 1);
+	Dividend_2comp <= 	(not unsigned(ext_divd(OP_L-1 - 1 downto 0)) + 1);
 
-	DividendProp <= 	unsigned(Dividend(DIVD_L-1 -1 downto 0)) when Dividend(DIVD_L - 1) = '0' else
+
+	DividendProp <= 	unsigned(ext_divd(OP_L-1 -1 downto 0)) when ext_divd(OP_L - 1) = '0' else
 				Dividend_2comp;
 
-	Divisor_2comp <= 	(not unsigned(Divisor(DIVR_L-1 - 1 downto 0)) + 1);
+	Divisor_2comp <= 	(not unsigned(ext_divr(OP_L-1 - 1 downto 0)) + 1);
 
-	DivisorProp <= 	unsigned(Divisor(DIVR_L-1 -1 downto 0)) when Divisor(DIVR_L - 1) = '0' else
+	DivisorProp <= 	unsigned(ext_divr(OP_L-1 -1 downto 0)) when ext_divr(OP_L - 1) = '0' else
 			Divisor_2comp;
 
 	RemProp <=	(RemC(RemC'length-1 - 1 downto 0) & signed(QuotC(QuotC'length - 1 downto QuotC'length - 1))) + signed("0" & DivisorC) when RemC(RemC'length - 1) = '1' else
 			(RemC(RemC'length-1 - 1 downto 0) & signed(QuotC(QuotC'length - 1 downto QuotC'length - 1))) - signed("0" & DivisorC);
 
-	Sign <=  Dividend(DIVD_L - 1) xor Divisor(DIVR_L - 1);
+	Sign <=  ext_divd(OP_L - 1) xor ext_divr(OP_L - 1);
 
-	data: process(QuotC, RemC, SignC, SignDvdC, StateC, CountC, DivisorC, RemProp, DivisorProp, DividendProp, Sign, Dividend, ZeroDvdC, ZeroDvsC, ZeroDvd, ZeroDvs)
+	data: process(QuotC, RemC, SignC, SignDvdC, StateC, CountC, DivisorC, RemProp, DivisorProp, DividendProp, Sign, ext_divd, ZeroDvdC, ZeroDvsC, ZeroDvd, ZeroDvs)
 	begin
 		-- avoid latches
 		DivisorN <= DivisorC;
@@ -142,7 +160,7 @@ begin
 			QuotN <= DividendProp(DividendProp'length -1 downto 0);
 			RemN <= (others => '0');
 			SignN <= Sign;
-			SignDvdN <= Dividend(DIVD_L - 1);
+			SignDvdN <= ext_divd(OP_L - 1);
 			CountN <= (others => '0');
 			ZeroDvdN <= ZeroDvd;
 			ZeroDvsN <= ZeroDvs;
@@ -190,11 +208,11 @@ begin
 	Quotient <=	(others => '1')									when StateC = OUTPUT and ZeroDvsC = '1' and ZeroDvdC = '1' else 
 			std_logic_vector(to_unsigned((2**(Quotient'length-1)-1), Quotient'length)) 	when StateC = OUTPUT and ZeroDvsC = '1' and SignC = '0' else
 			std_logic_vector(to_signed(-(2**(Quotient'length-1)-1), Quotient'length)) 	when StateC = OUTPUT and ZeroDvsC = '1' and SignC = '1' else
-			std_logic_vector("0" & QuotC) 							when StateC = OUTPUT and SignC = '0' and ZeroDvdC = '0' and ZeroDvsC = '0' else
-			std_logic_vector(("1" & not QuotC) + 1)						when StateC = OUTPUT and SignC = '1' and ZeroDvdC = '0' and ZeroDvsC = '0' else
+			std_logic_vector("0" & QuotC(DIVD_L-1 - 1 downto 0)) 							when StateC = OUTPUT and SignC = '0' and ZeroDvdC = '0' and ZeroDvsC = '0' else
+			std_logic_vector(("1" & not QuotC(DIVD_L-1 - 1 downto 0)) + 1)						when StateC = OUTPUT and SignC = '1' and ZeroDvdC = '0' and ZeroDvsC = '0' else
 			(others => '0');
 
-	Remainder <= 	std_logic_vector((not unsigned(RemC)) + 1)	when StateC = OUTPUT and SignDvdC = '1' and ZeroDvdC = '0' and ZeroDvsC = '0' else
-			std_logic_vector(RemC) 				when StateC = OUTPUT and SignDvdC = '0' and ZeroDvdC = '0' and ZeroDvsC = '0' else
+	Remainder <= 	std_logic_vector((not unsigned(RemC(DIVR_L-1 downto 0))) + 1)	when StateC = OUTPUT and SignDvdC = '1' and ZeroDvdC = '0' and ZeroDvsC = '0' else
+			std_logic_vector(RemC(DIVR_L-1 downto 0)) 				when StateC = OUTPUT and SignDvdC = '0' and ZeroDvdC = '0' and ZeroDvsC = '0' else
 			(others => '0');
 end non_restoring;

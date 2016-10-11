@@ -153,8 +153,8 @@ begin
 	);
 
 	DIV_I: div generic map(
-		OP1_L => OP1_L,
-		OP2_L => OP2_L
+		DIVD_L => OP1_L,
+		DIVR_L => OP2_L
 	)
 	port map (
 		rst => rst,

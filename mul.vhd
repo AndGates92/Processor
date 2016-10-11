@@ -24,7 +24,7 @@ end entity mul;
 
 architecture booth_radix2 of mul is
 
-	constant MULTD_L : integer :=  sel_multiplicand(OP1_L, OP2_L);
+	constant MULTD_L : integer := find_min(OP1_L, OP2_L);
 	constant MULTR_L : integer := calc_length_multiplier(OP1_L, OP2_L, 2, MULTD_L);
 
 	constant zero_multd : unsigned(MULTD_L-1 downto 0) := (others => '0');
@@ -162,7 +162,7 @@ end booth_radix2;
 
 architecture booth_radix4 of mul is
 
-	constant MULTD_L : integer :=  sel_multiplicand(OP1_L, OP2_L);
+	constant MULTD_L : integer := find_min(OP1_L, OP2_L);
 	constant MULTR_L : integer := calc_length_multiplier(OP1_L, OP2_L, 2, MULTD_L);
 
 	constant zero_multd : unsigned(MULTD_L-1 downto 0) := (others => '0');

@@ -31,7 +31,8 @@ package alu_pkg is
 	constant COMPUTE_LAST	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_L));
 
 	function calc_length_multiplier (op1_l, op2_l, base : integer; multiplicand : integer) return integer;
-	function sel_multiplicand (op1_l, op2_l : integer) return integer;
+	function find_min (op1_l, op2_l : integer) return integer;
+	function find_max (op1_l, op2_l : integer) return integer;
 
 	component mul
 	generic (
@@ -51,18 +52,18 @@ package alu_pkg is
 
 	component div
 	generic (
-		OP1_L	: positive := 16;
-		OP2_L	: positive := 16
+		DIVD_L	: positive := 16;
+		DIVR_L	: positive := 16
 	);
 	port (
 		rst		: in std_logic;
 		clk		: in std_logic;
-		Dividend	: in std_logic_vector(OP1_L - 1 downto 0);
-		Divisor		: in std_logic_vector(OP2_L - 1 downto 0);
+		Dividend	: in std_logic_vector(DIVD_L - 1 downto 0);
+		Divisor		: in std_logic_vector(DIVR_L - 1 downto 0);
 		Start		: in std_logic;
 		Done		: out std_logic;
-		Quotient	: out std_logic_vector(OP1_L-1 downto 0);
-		Remainder	: out std_logic_vector(OP2_L - 1 downto 0)
+		Quotient	: out std_logic_vector(DIVD_L-1 downto 0);
+		Remainder	: out std_logic_vector(DIVR_L - 1 downto 0)
 	);
 	end component;
 
@@ -117,17 +118,30 @@ package body alu_pkg is
 
 	end;
 
-	function sel_multiplicand (op1_l, op2_l : integer) return integer is
+	function find_min (op1_l, op2_l : integer) return integer is
 		variable rem_op	: integer;
-		variable multiplicand	: integer;
+		variable min	: integer;
 	begin
 		if (op1_l <= op2_l) then
-			multiplicand := op1_l;
+			min := op1_l;
 		else
-			multiplicand := op2_l;
+			min := op2_l;
 		end if;
 
-		return multiplicand;
+		return min;
+	end;
+
+	function find_max (op1_l, op2_l : integer) return integer is
+		variable rem_op	: integer;
+		variable max	: integer;
+	begin
+		if (op1_l >= op2_l) then
+			max := op1_l;
+		else
+			max := op2_l;
+		end if;
+
+		return max;
 	end;
 
 end package body alu_pkg;
