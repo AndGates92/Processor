@@ -343,6 +343,10 @@ fifo_2clk: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${
 	${GHDL} -a ${GHDL_ARGS} bram_2port_sim.vhd
 	@echo "Analysing bram_rst.vhd"
 	${GHDL} -a ${GHDL_ARGS} bram_rst.vhd
+	@echo "Analysing gray_cnt.vhd"
+	${GHDL} -a ${GHDL_ARGS} gray_cnt.vhd
+	@echo "Analysing fifo_ctrl.vhd"
+	${GHDL} -a ${GHDL_ARGS} fifo_ctrl.vhd
 	@echo "Analysing fifo_2clk.vhd"
 	${GHDL} -a ${GHDL_ARGS} fifo_2clk.vhd
 	@echo "Analysing fifo_2pkg_tb.vhd"
