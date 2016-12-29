@@ -15,6 +15,8 @@ port (
 	sync_rst	: in std_logic;
 	clk		: in std_logic;
 
+	En		: in std_logic;
+
 	gray_cnt_out	: out std_logic_vector(DATA_L - 1 downto 0);
 
 	bin_rst_flag	: out std_logic
@@ -24,7 +26,7 @@ end entity gray_cnt;
 
 architecture rtl of gray_cnt is
 
-	constant GRAY_RST_VAL : positive := bin_to_gray((BIN_RST_VAL+1), DATA_L);
+	constant GRAY_RST_VAL : natural := bin_to_gray(BIN_RST_VAL, DATA_L);
 
 	signal bin_cnt, bin_cnt_next : unsigned(DATA_L - 1 downto 0);
 	signal gray_cnt, gray_cnt_next : unsigned(DATA_L - 1 downto 0);
@@ -48,9 +50,9 @@ begin
 		end if;
 	end process reg;
 
-	bin_cnt_next <= bin_cnt + 1;
+	bin_cnt_next <= (bin_cnt + 1) when En = '1' else bin_cnt;
 
-	bin_to_gray_gen: for i in 0 to DATA_L generate
+	bin_to_gray_gen: for i in 0 to (DATA_L-1) generate
 		LAST_BIT : if (i = (DATA_L - 1)) generate
 			gray_cnt_next(i) <= bin_cnt(DATA_L-1);
 		end generate LAST_BIT;

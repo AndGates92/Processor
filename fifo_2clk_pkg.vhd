@@ -19,13 +19,11 @@ package fifo_2clk_pkg is
 		DataOut		: out std_logic_vector(DATA_L - 1 downto 0);
 		En_rd		: in std_logic;
 		empty		: out std_logic;
-
 		rst_wr		: in std_logic;
 		clk_wr		: in std_logic;
 		DataIn		: in std_logic_vector(DATA_L - 1 downto 0);
 		En_wr		: in std_logic;
 		full		: out std_logic;
-
 		ValidOut	: out std_logic;
 		EndRst		: out std_logic
 
@@ -42,6 +40,8 @@ package fifo_2clk_pkg is
 		sync_rst	: in std_logic;
 		clk		: in std_logic;
 
+		En		: in std_logic;
+
 		gray_cnt_out	: out std_logic_vector(DATA_L - 1 downto 0);
 
 		bin_rst_flag	: out std_logic
@@ -57,13 +57,10 @@ package fifo_2clk_pkg is
 	port (
 		rst	: in std_logic;
 		clk	: in std_logic;
-
 		Ptr	: in std_logic_vector(ADDR_L - 1 downto 0);
 		PtrP1	: in std_logic_vector(ADDR_L - 1 downto 0);
 		Ptr2	: in std_logic_vector(ADDR_L - 1 downto 0);
-
 		En	: in std_logic;
-
 		flag	: out std_logic;
 		nflag	: out std_logic
 

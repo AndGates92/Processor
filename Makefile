@@ -27,7 +27,7 @@ all:
 	make fifo_1clk_all
 
 clean:
-	rm -f ${LOG_FILE} ${SUMMARY_FILE}
+	rm -rf ${LOG_FILE} ${SUMMARY_FILE} ${WORK_DIR}
 
 work_dir:
 	mkdir -p ${WORK_DIR}

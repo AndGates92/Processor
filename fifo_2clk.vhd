@@ -41,11 +41,11 @@ architecture rtl of fifo_2clk is
 
 	type addr_array is array (0 to NUM_STAGES - 1) of unsigned(ADDR_L - 1 downto 0);
 
-	signal WrPtrC	: unsigned(ADDR_L - 1 downto 0);
-	signal RdPtrC	: unsigned(ADDR_L - 1 downto 0);
+	signal WrPtrC	: std_logic_vector(ADDR_L - 1 downto 0);
+	signal RdPtrC	: std_logic_vector(ADDR_L - 1 downto 0);
 
-	signal WrPtrP1C, WrPtrP2C	: unsigned(ADDR_L - 1 downto 0);
-	signal RdPtrP1C			: unsigned(ADDR_L - 1 downto 0);
+	signal WrPtrP1C, WrPtrP2C	: std_logic_vector(ADDR_L - 1 downto 0);
+	signal RdPtrP1C			: std_logic_vector(ADDR_L - 1 downto 0);
 
 	signal wr_cnt_rst_flag	: std_logic;
 	signal rd_cnt_rst_flag	: std_logic;
@@ -79,10 +79,11 @@ begin
 		sync_rst => '0',
 		clk => clk_wr,
 
+		En => En_wr,
+
 		gray_cnt_out => WrPtrC,
 
 		bin_rst_flag => wr_cnt_rst_flag
-
 	);
 
 	WR_CNT_P1 : gray_cnt generic map (
@@ -93,6 +94,8 @@ begin
 		rst => rst_wr,
 		sync_rst => wr_cnt_rst_flag,
 		clk => clk_wr,
+
+		En => En_wr,
 
 		gray_cnt_out => WrPtrP1C,
 
@@ -109,6 +112,8 @@ begin
 		sync_rst => wr_cnt_rst_flag,
 		clk => clk_wr,
 
+		En => En_wr,
+
 		gray_cnt_out => WrPtrP2C,
 
 		bin_rst_flag => open
@@ -124,6 +129,8 @@ begin
 		sync_rst => '0',
 		clk => clk_rd,
 
+		En => En_rd,
+
 		gray_cnt_out => RdPtrC,
 
 		bin_rst_flag => rd_cnt_rst_flag
@@ -138,6 +145,8 @@ begin
 		rst => rst_rd,
 		sync_rst => rd_cnt_rst_flag,
 		clk => clk_rd,
+
+		En => En_rd,
 
 		gray_cnt_out => RdPtrP1C,
 
@@ -155,8 +164,8 @@ begin
 
 	register_stages : for i in 0 to (NUM_STAGES - 1) generate
 		first_stage : if (i = 0) generate
-			R_WrPtrN(0) <= WrPtrC;
-			W_RdPtrN(0) <= RdPtrC;
+			R_WrPtrN(0) <= unsigned(WrPtrC);
+			W_RdPtrN(0) <= unsigned(RdPtrC);
 		end generate first_stage;
 
 		other_stages : if (i /= 0) generate
@@ -166,7 +175,7 @@ begin
 
 		wr_reg : process(rst_wr, clk_wr) begin
 			if (rst_wr = '1') then
-				W_RdPtrC(i) <= to_unsigned(GRAY_RST_VAL, DATA_L);
+				W_RdPtrC(i) <= to_unsigned(GRAY_RST_VAL, ADDR_L);
 			elsif ((clk_wr'event) and (clk_wr = '1')) then
 				W_RdPtrC(i) <= W_RdPtrN(i);
 			end if;
@@ -174,7 +183,7 @@ begin
 
 		rd_reg : process(rst_rd, clk_rd) begin
 			if (rst_rd = '1') then
-				R_WrPtrC(i) <= to_unsigned(GRAY_RST_VAL, DATA_L);
+				R_WrPtrC(i) <= to_unsigned(GRAY_RST_VAL, ADDR_L);
 			elsif ((clk_rd'event) and (clk_rd = '1')) then
 				R_WrPtrC(i) <= R_WrPtrN(i);
 			end if;
@@ -189,9 +198,9 @@ begin
 		rst => rst_rd,
 		clk => clk_rd,
 
-		Ptr => RdPtrC,
-		PtrP1 => RdPtrP1C,
-		Ptr2 => R_WrPtrC(NUM_STAGES-1),
+		Ptr => std_logic_vector(RdPtrC),
+		PtrP1 => std_logic_vector(RdPtrP1C),
+		Ptr2 => std_logic_vector(R_WrPtrC(NUM_STAGES-1)),
 
 		En => En_rd,
 
@@ -207,9 +216,9 @@ begin
 		rst => rst_wr,
 		clk => clk_wr,
 
-		Ptr => WrPtrC,
-		PtrP1 => WrPtrP1C,
-		Ptr2 => W_RdPtrC(NUM_STAGES-1),
+		Ptr => std_logic_vector(WrPtrC),
+		PtrP1 => std_logic_vector(WrPtrP1C),
+		Ptr2 => std_logic_vector(W_RdPtrC(NUM_STAGES-1)),
 
 		En => En_wr,
 
@@ -223,16 +232,16 @@ begin
 		DATA_L => DATA_L
 	)
 	port map (
-		PortA_clk => clk,
-		PortB_clk => clk,
+		PortA_clk => clk_rd,
+		PortB_clk => clk_wr,
 
 		-- BRAM
-		PortA_Address => std_logic_vector(RdPtrC),
+		PortA_Address => RdPtrC,
 		PortA_Write => PortA_Write,
 		PortA_DataIn => (others => '0'),
 		PortA_DataOut => DataOut_fifo,
 
-		PortB_Address => std_logic_vector(WrPtrC),
+		PortB_Address => WrPtrC,
 		PortB_Write => PortB_Write,
 		PortB_DataIn => DataIn_fifo,
 		PortB_DataOut => open
@@ -243,7 +252,7 @@ begin
 	)
 	 port map (
 		rst => rst_wr,
-		clk => clk,
+		clk => clk_wr,
 
 		Start => rst_wrC,
 		Done => DoneReset,

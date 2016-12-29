@@ -16,6 +16,8 @@ architecture bench of fifo_2clk_tb is
 
 	constant CLK_WR_PERIOD	: time := 10 ns;
 	constant CLK_RD_PERIOD	: time := 10 ns;
+	constant CLK_WR_PHASE	: time := 0 ns;
+	constant CLK_RD_PHASE	: time := 0 ns;
 	constant MAX_PERIOD	: time := max_time(CLK_WR_PERIOD, CLK_RD_PERIOD);
 	constant WAIT_TIME	: time := 10 ps;
 	constant NUM_TEST	: integer := 100;
@@ -69,8 +71,33 @@ begin
 
 	);
 
-	clk_wr_tb <= not clk_wr_tb after CLK_WR_PERIOD/2 when not stop;
-	clk_rd_tb <= not clk_rd_tb after CLK_RD_PERIOD/2 when not stop;
+	WR_CLK: process begin
+		if stop = false then
+			clk_wr_tb <= not clk_wr_tb after CLK_WR_PHASE;
+		else
+			clk_wr_tb <= '0';
+		end if;
+		WR_CLK_PER: if (CLK_WR_PERIOD/2 > 0 ns) then
+			wait for CLK_WR_PERIOD/2;
+		end if WR_CLK_PER;
+	end process WR_CLK;
+
+	ONE_CLK: if ((CLK_WR_PERIOD = CLK_RD_PERIOD) and (CLK_WR_PHASE = CLK_RD_PHASE)) generate
+		clk_rd_tb <= clk_wr_tb;
+	end generate ONE_CLK;
+
+	RD_CLK_GEN: if ((CLK_WR_PERIOD /= CLK_RD_PERIOD) or (CLK_WR_PHASE /= CLK_RD_PHASE)) generate
+		RD_CLK : process begin
+			if stop = false then
+				clk_rd_tb <= not clk_rd_tb after CLK_RD_PHASE;
+			else
+				clk_rd_tb <= '0';
+			end if;
+			RD_CLK_PER: if (CLK_RD_PERIOD/2 > 0 ns) then
+				wait for CLK_RD_PERIOD/2;
+			end if RD_CLK_PER;
+		end process RD_CLK;
+	end generate RD_CLK_GEN;
 
 	test: process
 
@@ -279,18 +306,17 @@ begin
 		variable file_line			: line;
 
 	begin
+		file_open(file_pointer, log_file, append_mode);
+
+		write(file_line, string'( "FIFO Test"));
+		writeline(file_pointer, file_line);
+
 
 		wait for 1 ns;
 
 		num_pass := 0;
 
-		file_open(file_pointer, log_file, append_mode);
-
 		reset_rd(RdPtrOut_int, emptyOut_bool, En_rdOut_array);
-
-		write(file_line, string'( "FIFO Test"));
-		writeline(file_pointer, file_line);
-
 		write(file_line, string'( "Read reset successful"));
 		writeline(file_pointer, file_line);
 
