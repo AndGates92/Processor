@@ -23,6 +23,7 @@ package tb_pkg is
 
 	type reg_file_array is array(0 to REG_NUM_TB-1) of integer;
 
+	procedure clk_gen (constant PERIOD : in time; constant PHASE : in time; signal stop : in boolean; signal clk : out std_logic);
 	procedure execute_ref(variable AddressIn_int, AddressOut1_int, AddressOut2_int : in integer; variable Immediate_int: in integer; variable CmdALU: in std_logic_vector(CMD_ALU_L-1 downto 0); variable CtrlCmd: in std_logic_vector(CTRL_CMD_L-1 downto 0); variable EnableRegFile_vec: in std_logic_vector(EN_REG_FILE_L_TB-1 downto 0); variable RegFileIn_int : in reg_file_array; variable RegFileOut_int : out reg_file_array; variable Op1, Op2 : out integer; variable StatusRegIn_int : in integer; variable StatusRegOut_int : out integer; variable ResOp_ideal: out integer);
 	procedure decode_ref(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out boolean);
 	procedure reg_file_ref(variable RegFileIn_int: in reg_file_array; variable DataIn_int : in integer; variable AddressIn_int: in integer; variable AddressOut1_int : in integer; variable AddressOut2_int: in integer; variable Enable_int: in integer; variable Done_int: out integer; variable DataOut1_int: out integer; variable DataOut2_int : out integer; variable RegFileOut_int: out reg_file_array);
@@ -43,6 +44,23 @@ package tb_pkg is
 end package tb_pkg;
 
 package body tb_pkg is
+
+	procedure clk_gen (constant PERIOD : in time; constant PHASE : in time; signal stop : in boolean; signal clk : out std_logic) is
+		variable clk_tmp	: std_logic;
+	begin
+		assert (PERIOD > 0 fs) report "zero clock period" severity FAILURE;
+
+		clk <= '0';
+		clk_tmp := '0';
+		wait for PHASE;
+
+		while not stop loop
+			clk <= not clk_tmp;
+			clk_tmp := not clk_tmp;
+			wait for (PERIOD/2);
+		end loop;
+
+	end procedure clk_gen;
 
 	procedure execute_ref(variable AddressIn_int, AddressOut1_int, AddressOut2_int : in integer; variable Immediate_int: in integer; variable CmdALU: in std_logic_vector(CMD_ALU_L-1 downto 0); variable CtrlCmd: in std_logic_vector(CTRL_CMD_L-1 downto 0); variable EnableRegFile_vec: in std_logic_vector(EN_REG_FILE_L_TB-1 downto 0); variable RegFileIn_int : in reg_file_array; variable RegFileOut_int : out reg_file_array; variable Op1, Op2 : out integer; variable StatusRegIn_int : in integer; variable StatusRegOut_int : out integer; variable ResOp_ideal: out integer) is
 		variable Done_int	: integer;

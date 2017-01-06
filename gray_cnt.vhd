@@ -37,7 +37,7 @@ begin
 	reg: process(rst, clk)
 	begin
 		if (rst = '1') then
-			bin_cnt <= to_unsigned(BIN_RST_VAL, DATA_L);
+			bin_cnt <= to_unsigned(BIN_RST_VAL+1, DATA_L);
 			gray_cnt <= to_unsigned(GRAY_RST_VAL, DATA_L);
 		elsif ((clk'event) and (clk = '1')) then
 			if (sync_rst = '1') then
@@ -58,7 +58,13 @@ begin
 		end generate LAST_BIT;
 
 		OTHER_BITS : if (i /= (DATA_L - 1)) generate
-			gray_cnt_next(i) <= bin_cnt(i) xor bin_cnt(i+1);
+			gray_next: process (En, bin_cnt, gray_cnt) begin
+				if (En = '1') then
+					gray_cnt_next(i) <= bin_cnt(i) xor bin_cnt(i+1);
+				else
+					gray_cnt_next(i) <= gray_cnt(i);
+				end if;
+			end process gray_next;
 		end generate OTHER_BITS;
 	end generate bin_to_gray_gen;
 

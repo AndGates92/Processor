@@ -81,7 +81,7 @@ begin
 		EndOfProg => EndOfProg_tb
 	);
 
-	clk_tb <= not clk_tb after CLK_PERIOD/2 when not stop;
+	clk_gen(CLK_PERIOD, 0 ns, stop, clk_tb);
 
 	test: process
 

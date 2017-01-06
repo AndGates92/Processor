@@ -17,13 +17,15 @@ architecture bench of fifo_2clk_tb is
 	constant CLK_WR_PERIOD	: time := 10 ns;
 	constant CLK_RD_PERIOD	: time := 10 ns;
 	constant CLK_WR_PHASE	: time := 0 ns;
-	constant CLK_RD_PHASE	: time := 0 ns;
+	constant CLK_RD_PHASE	: time := 1 ns;
 	constant MAX_PERIOD	: time := max_time(CLK_WR_PERIOD, CLK_RD_PERIOD);
 	constant WAIT_TIME	: time := 10 ps;
 	constant NUM_TEST	: integer := 100;
 
 	constant DATA_L_TB	: positive := 30;
 	constant FIFO_SIZE_TB	: positive := 16;
+
+	constant CDC		: boolean := ((CLK_WR_PERIOD /= CLK_RD_PERIOD) or (CLK_WR_PHASE /= CLK_RD_PHASE));
 
 	signal clk_wr_tb	: std_logic := '0';
 	signal rst_wr_tb	: std_logic;
@@ -71,67 +73,70 @@ begin
 
 	);
 
-	WR_CLK: process begin
-		if stop = false then
-			clk_wr_tb <= not clk_wr_tb after CLK_WR_PHASE;
-		else
-			clk_wr_tb <= '0';
-		end if;
-		WR_CLK_PER: if (CLK_WR_PERIOD/2 > 0 ns) then
-			wait for CLK_WR_PERIOD/2;
-		end if WR_CLK_PER;
-	end process WR_CLK;
+	clk_gen(CLK_WR_PERIOD, CLK_WR_PHASE, stop, clk_wr_tb);
 
-	ONE_CLK: if ((CLK_WR_PERIOD = CLK_RD_PERIOD) and (CLK_WR_PHASE = CLK_RD_PHASE)) generate
+	ONE_CLK: if (not CDC) generate
 		clk_rd_tb <= clk_wr_tb;
 	end generate ONE_CLK;
 
-	RD_CLK_GEN: if ((CLK_WR_PERIOD /= CLK_RD_PERIOD) or (CLK_WR_PHASE /= CLK_RD_PHASE)) generate
-		RD_CLK : process begin
-			if stop = false then
-				clk_rd_tb <= not clk_rd_tb after CLK_RD_PHASE;
-			else
-				clk_rd_tb <= '0';
-			end if;
-			RD_CLK_PER: if (CLK_RD_PERIOD/2 > 0 ns) then
-				wait for CLK_RD_PERIOD/2;
-			end if RD_CLK_PER;
-		end process RD_CLK;
+	RD_CLK_GEN: if (CDC) generate
+		clk_gen(CLK_RD_PERIOD, CLK_RD_PHASE, stop, clk_rd_tb);
 	end generate RD_CLK_GEN;
 
 	test: process
 
-		procedure reset_rd (variable RdPtrOut : out integer; variable emptyOut_bool : out boolean; variable En_rd_bool : out bool_del_t) is
+		procedure reset (variable RdPtrOut : out integer; variable emptyOut_bool : out boolean; variable En_rd_bool : out bool_del_t; variable FifoOut_mem : out fifo_t; variable WrPtrOut : out integer; variable fullOut_bool : out boolean; variable DataIn_int : out int_del_t; En_wr_bool : out bool_del_t) is
 		begin
 			rst_rd_tb <= '0';
-			wait until ((clk_rd_tb'event) and (clk_rd_tb = '1'));
-			rst_rd_tb <= '1';
-			emptyOut_bool := True;
-			En_rd_bool := (others => False);
-			RdPtrOut := 0;
-			En_rd_tb <= '0';
-			wait until ((clk_rd_tb'event) and (clk_rd_tb = '1'));
-			rst_rd_tb <= '0';
-		end procedure reset_rd;
-
-		procedure reset_wr(variable FifoOut_mem : out fifo_t; variable WrPtrOut : out integer; variable fullOut_bool : out boolean; variable DataIn_int : out int_del_t; En_wr_bool : out bool_del_t) is
-		begin
-			rst_wr_tb <= '0';
-			wait until ((clk_wr_tb'event) and (clk_wr_tb = '1'));
-			rst_wr_tb <= '1';
-			DataIn_tb <= (others => '0');
-			FifoOut_mem := (others => 0);
-			DataIn_int := (others => 0);
-			fullOut_bool := False;
-			WrPtrOut := 0;
-			En_wr_tb <= '0';
-			wait until ((clk_wr_tb'event) and (clk_wr_tb = '1'));
 			rst_wr_tb <= '0';
 
-			wait on EndRst_tb;
-			wait until ((clk_wr_tb'event) and (clk_wr_tb = '1'));
+			if (not CDC) then -- no clock domain crossing
+				wait until ((clk_wr_tb'event) and (clk_wr_tb = '1'));
+				rst_rd_tb <= '1';
+				emptyOut_bool := True;
+				En_rd_bool := (others => False);
+				RdPtrOut := 0;
+				En_rd_tb <= '0';
 
-		end procedure reset_wr;
+				rst_wr_tb <= '1';
+				DataIn_tb <= (others => '0');
+				FifoOut_mem := (others => 0);
+				DataIn_int := (others => 0);
+				fullOut_bool := False;
+				WrPtrOut := 0;
+				En_wr_tb <= '0';
+
+				wait until ((clk_wr_tb'event) and (clk_wr_tb = '1'));
+				rst_wr_tb <= '0';
+				rst_rd_tb <= '0';
+
+				wait on EndRst_tb;
+				wait until ((clk_wr_tb'event) and (clk_wr_tb = '1'));
+			else
+				wait until ((clk_rd_tb'event) and (clk_rd_tb = '1'));
+				rst_rd_tb <= '1';
+				emptyOut_bool := True;
+				En_rd_bool := (others => False);
+				RdPtrOut := 0;
+				En_rd_tb <= '0';
+
+				wait until ((clk_wr_tb'event) and (clk_wr_tb = '1'));
+				rst_wr_tb <= '1';
+				DataIn_tb <= (others => '0');
+				FifoOut_mem := (others => 0);
+				DataIn_int := (others => 0);
+				fullOut_bool := False;
+				WrPtrOut := 0;
+				En_wr_tb <= '0';
+
+				wait until ((clk_rd_tb'event) and (clk_rd_tb = '1'));
+				rst_wr_tb <= '0';
+				rst_rd_tb <= '0';
+
+				wait on EndRst_tb;
+				wait until ((clk_wr_tb'event) and (clk_wr_tb = '1'));
+			end if;
+		end procedure reset;
 
 		procedure push_op(variable DataIn_int : out integer; variable En_wr_bool, En_rd_bool : out boolean; variable seed1, seed2 : inout positive) is
 			variable DataIn_in	: integer;
@@ -306,21 +311,20 @@ begin
 		variable file_line			: line;
 
 	begin
-		file_open(file_pointer, log_file, append_mode);
-
-		write(file_line, string'( "FIFO Test"));
-		writeline(file_pointer, file_line);
-
 
 		wait for 1 ns;
 
 		num_pass := 0;
 
-		reset_rd(RdPtrOut_int, emptyOut_bool, En_rdOut_array);
+		file_open(file_pointer, log_file, append_mode);
+
+		write(file_line, string'( "FIFO 2 clocks Test"));
+		writeline(file_pointer, file_line);
+
+		reset(RdPtrOut_int, emptyOut_bool, En_rdOut_array, FifoOut_mem, WrPtrOut_int, fullOut_bool, DataInOut_int, En_wrOut_array);
 		write(file_line, string'( "Read reset successful"));
 		writeline(file_pointer, file_line);
 
-		reset_wr(FifoOut_mem, WrPtrOut_int, fullOut_bool, DataInOut_int, En_wrOut_array);
 		write(file_line, string'( "Write reset successful"));
 		writeline(file_pointer, file_line);
 
