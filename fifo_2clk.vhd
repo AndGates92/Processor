@@ -66,12 +66,11 @@ architecture rtl of fifo_2clk is
 	signal En_wr_incr	: std_logic;
 	signal En_rd_incr	: std_logic;
 
-	signal ValidOutC, ValidOutN	: std_logic;
-
 	signal PortB_Write	: std_logic;
 	signal PortA_Write	: std_logic;
 
 	signal fullC	: std_logic;
+	signal nEmpty	: std_logic;
 
 begin
 
@@ -186,14 +185,6 @@ begin
 
 	EndRst <= W_EndRstC;
 
-	rd_reg : process(rst_rd, clk_rd) begin
-		if (rst_rd = '1') then
-			ValidOutC <= '0';
-		elsif ((clk_rd'event) and (clk_rd = '1')) then
-			ValidOutC <= ValidOutN;
-		end if;
-	end process rd_reg;
-
 	register_stages : for i in 0 to (NUM_STAGES - 1) generate
 		first_stage : if (i = 0) generate
 			R_EndRstN(0) <= W_EndRstN;
@@ -226,6 +217,8 @@ begin
 		end process rd_reg;
 	end generate register_stages;
 
+	ValidOut <= nEmpty and En_rd;
+
 	empty_flag : fifo_ctrl generic map(
 		ADDR_L => ADDR_L,
 		RST_VAL => 1
@@ -241,7 +234,7 @@ begin
 		En => En_rd,
 
 		flag => empty,
-		nflag => ValidOut
+		nflag => nEmpty
 	);
 
 	full_flag : fifo_ctrl generic map(

@@ -37,14 +37,13 @@ port (
 	
 
 	-- Memory interface
-	DoneMemory	: out std_logic;
-	EndRst		: out std_logic;
-	ReadMem		: in std_logic;
-	Precharge	: in std_logic;
-	EnableMemoryInt	: in std_logic;
-	DataMemIntIn	: in std_logic_vector(DATA_L - 1 downto 0);
-	AddressMemInt	: in std_logic_vector(ADDR_L - 1 downto 0);
-	DataMemIntOut	: out std_logic_vector(DATA_L - 1 downto 0)
+	MemoryReady		: out std_logic;
+	InitializationCompleted	: out std_logic;
+	ReadMem			: in std_logic;
+	EnableMemoryInt		: in std_logic; -- Valid command signal
+	DataMemIntIn		: in std_logic_vector(DATA_L - 1 downto 0);
+	AddressMemInt		: in std_logic_vector(ADDR_L - 1 downto 0);
+	DataMemIntOut		: out std_logic_vector(DATA_L - 1 downto 0)
 
 );
 end entity mem_int;

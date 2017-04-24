@@ -20,6 +20,7 @@ package tb_pkg is
 	constant REG_NUM_TB	: positive := 4;
 	constant OP1_L_TB	: integer := DATA_L;
 	constant OP2_L_TB	: integer := DATA_L;
+	constant DATA_L_TB	: integer := DATA_L;
 
 	type reg_file_array is array(0 to REG_NUM_TB-1) of integer;
 
@@ -61,6 +62,29 @@ package body tb_pkg is
 		end loop;
 
 	end procedure clk_gen;
+
+	procedure fifo_push_op(signal ctrl_flag : in std_logic; constant PERIOD : in time; signal DataIn : out std_logic_vector(DATA_L_TB - 1 downto 0); signal Enable : out std_logic; variable seed1, seed2 : inout positive) is
+		variable DataIn_in	: integer;
+		variable rand_val, sign_val	: real;
+		variable En_in	: boolean;
+
+	begin
+
+		uniform(seed1, seed2, rand_val);
+		DataIn_in := integer(rand_val*(2.0**(real(DATA_L_TB)) - 1.0));
+		DataIn <= std_logic_vector(to_unsigned(DataIn_in, DATA_L_TB));
+
+		if (ctrl_flag = '0') then
+			uniform(seed1, seed2, rand_val);
+			En_in := rand_bool(rand_val);
+			Enable <= bool_to_std_logic(En_in), '0' after PERIOD;
+		else
+			Enable <= '0';
+		end if;
+
+		wait for PERIOD;
+
+	end procedure fifo_push_op;
 
 	procedure execute_ref(variable AddressIn_int, AddressOut1_int, AddressOut2_int : in integer; variable Immediate_int: in integer; variable CmdALU: in std_logic_vector(CMD_ALU_L-1 downto 0); variable CtrlCmd: in std_logic_vector(CTRL_CMD_L-1 downto 0); variable EnableRegFile_vec: in std_logic_vector(EN_REG_FILE_L_TB-1 downto 0); variable RegFileIn_int : in reg_file_array; variable RegFileOut_int : out reg_file_array; variable Op1, Op2 : out integer; variable StatusRegIn_int : in integer; variable StatusRegOut_int : out integer; variable ResOp_ideal: out integer) is
 		variable Done_int	: integer;

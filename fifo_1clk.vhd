@@ -120,7 +120,7 @@ begin
 
 	DataIn_fifo <= DataIn when (EndRstC = '1') else (others => '0');
 
-	ValidOutN <= En_rd when (emptyC = '0') else '0';
+	ValidOutN <= En_rd and (not emptyC);
 	ValidOut <= ValidOutC;
 
 	DataOut <= DataOut_fifo when (ValidOutC = '1') else (others => '0');

@@ -243,6 +243,6 @@ begin
 
 	Done <= '1' when (StateC = OUTPUT) else '0';
 
-	Res <= std_logic_vector(ResC) when StateC = OUTPUT else (others => '0');
+	Res <= std_logic_vector(ResC) when (StateC = OUTPUT) else (others => '0');
 
 end rtl; 
