@@ -14,12 +14,12 @@ package ddr2_phy_init_pkg is
 	constant T_NOP_INIT_ns		: real := 4.0e2;
 
 	-- Timing parameter (in nCK)
-	constant T_INIT_STARTUP	: positive := integer(ceil(T_INIT_STARTUP_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_NOP_INIT	: positive := integer(ceil(T_NOP_INIT_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_INIT_STARTUP	: positive := integer(ceil(T_INIT_STARTUP_ns/(real(DDR2_CLK_PERIOD))));
+	constant T_NOP_INIT	: positive := integer(ceil(T_NOP_INIT_ns/(real(DDR2_CLK_PERIOD))));
 	constant T_DLL_RESET	: positive := 200;
 
 	constant DLL_CNT_L	: integer := int_to_bit_num(T_DLL_RESET);
-	constant INIT_CNT_L	: integer := int_to_bit_num(max_int(T_INIT_STARTUP, max_int(T_RFC, max_int(T_RP, max_int(T_MRD, T_NOP_INIT)))));
+	constant INIT_CNT_L	: integer := int_to_bit_num(max_int(T_INIT_STARTUP-1, max_int(T_RFC-1, max_int(T_RP-1, max_int(T_MRD-1, T_NOP_INIT-1)))));
 
 	constant STATE_PHY_INIT_L	: positive := 4;
 

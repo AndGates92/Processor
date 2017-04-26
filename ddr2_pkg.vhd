@@ -47,21 +47,21 @@ package ddr2_pkg is
 	constant T_XARD		: positive := 2;
 	constant T_XARDS_max	: positive := 8;
 	constant T_AOFD		: positive := integer(ceil(2.5));
-	constant T_RCD		: positive := integer(ceil(T_RCD_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_RP		: positive := integer(ceil(T_RP_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_RC		: positive := integer(ceil(T_RC_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_RAP		: positive := integer(ceil(T_RAP_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_RAS_min	: positive := integer(ceil(T_RAS_ns_min/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_RAS_max	: positive := integer(ceil(T_RAS_ns_max/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_RRD		: positive := integer(ceil(T_RRD_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_FAW		: positive := integer(ceil(T_FAW_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_WR		: positive := integer(ceil(T_WR_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_RFC		: positive := integer(ceil(T_RFC_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_XSNR		: positive := integer(ceil(T_XSNR_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_MOD_min	: positive := integer(ceil(T_MOD_ns_min/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_MOD_max	: positive := integer(ceil(T_MOD_ns_max/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_REFI_lowT	: positive := integer(ceil(T_REFI_ns_lowT/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
-	constant T_REFI_highT	: positive := integer(ceil(T_REFI_ns_highT/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_RCD		: positive := integer(ceil(T_RCD_ns/(real(DDR2_CLK_PERIOD))));
+	constant T_RP		: positive := integer(ceil(T_RP_ns/(real(DDR2_CLK_PERIOD))));
+	constant T_RC		: positive := integer(ceil(T_RC_ns/(real(DDR2_CLK_PERIOD))));
+	constant T_RAP		: positive := integer(ceil(T_RAP_ns/(real(DDR2_CLK_PERIOD))));
+	constant T_RAS_min	: positive := integer(ceil(T_RAS_ns_min/(real(DDR2_CLK_PERIOD))));
+	constant T_RAS_max	: positive := integer(ceil(T_RAS_ns_max/(real(DDR2_CLK_PERIOD))));
+	constant T_RRD		: positive := integer(ceil(T_RRD_ns/(real(DDR2_CLK_PERIOD))));
+	constant T_FAW		: positive := integer(ceil(T_FAW_ns/(real(DDR2_CLK_PERIOD))));
+	constant T_WR		: positive := integer(ceil(T_WR_ns/(real(DDR2_CLK_PERIOD))));
+	constant T_RFC		: positive := integer(ceil(T_RFC_ns/(real(DDR2_CLK_PERIOD))));
+	constant T_XSNR		: positive := integer(ceil(T_XSNR_ns/(real(DDR2_CLK_PERIOD))));
+	constant T_MOD_min	: positive := integer(ceil(T_MOD_ns_min/(real(DDR2_CLK_PERIOD))));
+	constant T_MOD_max	: positive := integer(ceil(T_MOD_ns_max/(real(DDR2_CLK_PERIOD))));
+	constant T_REFI_lowT	: positive := integer(ceil(T_REFI_ns_lowT/(real(DDR2_CLK_PERIOD))));
+	constant T_REFI_highT	: positive := integer(ceil(T_REFI_ns_highT/(real(DDR2_CLK_PERIOD))));
 
 	-- ODT parameter
 	constant ODT_DISABLED	: std_logic_vector(1 downto 0) := std_logic_vector(to_unsigned(0, 2));

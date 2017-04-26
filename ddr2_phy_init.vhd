@@ -38,12 +38,12 @@ architecture rtl of ddr2_phy_init is
 
 	signal ClkCycleCntC, ClkCycleCntN	: unsigned(INIT_CNT_L - 1 downto 0);
 	signal ClkCntInitValue			: unsigned(INIT_CNT_L - 1 downto 0);
-	signal SetClkCntC, SetClkCntN		: std_logic;
+	signal SetClkCnt			: std_logic;
 	signal ClkCntEnC, ClkCntEnN		: std_logic;
 	signal ZeroClkCnt			: std_logic;
 
 	signal DLLResetCntC, DLLResetCntN	: unsigned(DLL_CNT_L - 1 downto 0);
-	signal SetDLLCntC, SetDLLCntN		: std_logic;
+	signal SetDLLCnt			: std_logic;
 	signal DLLCntEnC, DLLCntEnN		: std_logic;
 	signal ZeroDLLCnt			: std_logic;
 
@@ -68,12 +68,10 @@ begin
 
 			StateC <= START_INIT;
 
-			DLLResetCntC <= to_unsigned(T_DLL_RESET, DLLResetCntC'length);
-			SetDLLCntC <= '0';
+			DLLResetCntC <= to_unsigned(T_DLL_RESET-1, DLLResetCntC'length);
 			DLLCntEnC <= '0';
 
-			ClkCycleCntC <= to_unsigned(T_INIT_STARTUP, INIT_CNT_L);
-			SetClkCntC <= '0';
+			ClkCycleCntC <= to_unsigned(T_INIT_STARTUP-1, INIT_CNT_L);
 			ClkCntEnC <= '0';
 
 			nChipSelectC <= '0';
@@ -91,11 +89,9 @@ begin
 			StateC <= StateN;
 
 			DLLResetCntC <= DLLResetCntN;
-			SetDLLCntC <= SetDLLCntN;
 			DLLCntEnC <= DLLCntEnN;
 
 			ClkCycleCntC <= ClkCycleCntN;
-			SetClkCntC <= SetClkCntN;
 			ClkCntEnC <= ClkCntEnN;
 
 			nChipSelectC <= nChipSelectN;
@@ -115,26 +111,26 @@ begin
 	InitializationCompleted <= InitializationCompletedC;
 	InitializationCompletedN <= '1' when (StateC = INIT_COMPLETE) else '0';
 
-	DLLResetCntN <=	to_unsigned(T_DLL_RESET, DLLResetCntN'length)	when (SetDLLCntC = '1') else
+	DLLResetCntN <=	to_unsigned(T_DLL_RESET, DLLResetCntN'length)	when (SetDLLCnt = '1') else
 			(DLLResetCntC - decr_dll_cnt_value)		when ((DLLCntEnC = '1') and (ZeroDLLCnt = '0')) else
 			DLLResetCntC;
 
-	SetDLLCntN <= '1' when (ZeroClkCnt = '1') and (StateC = CMD_EMRS1) else '0';
+	SetDLLCnt <= '1' when (ZeroClkCnt = '1') and (StateC = CMD_EMRS1) else '0';
 	DLLCntEnN <= '1' when (StateC = CMD_MRS_A8_1) or (StateC = CMD_PREA) or (StateC = CMD_AUTO_REF_1) or (StateC = CMD_AUTO_REF_2) or (StateC = CMD_MRS_A8_0) else '0';
 	ZeroDLLCnt <= '1' when (DLLResetCntC = zero_dll_cnt_value) else '0';
 
-	ClkCycleCntN <=	ClkCntInitValue				when (SetClkCntC = '1') else
+	ClkCycleCntN <=	ClkCntInitValue				when (SetClkCnt = '1') else
 			(ClkCycleCntC - decr_clk_cnt_value)	when ((ClkCntEnC = '1') and (ZeroClkCnt = '0')) else
 			ClkCycleCntC;
 
 	ClkCntEnN <= not InitializationCompletedN;
-	SetClkCntN <= ZeroClkCnt when ((ZeroDLLCnt = '1') or not (StateC = CMD_MRS_A8_0)) else '0';
+	SetClkCnt <= ZeroClkCnt when ((ZeroDLLCnt = '1') or not (StateC = CMD_MRS_A8_0)) else '0';
 	ZeroClkCnt <= '1' when (ClkCycleCntC = zero_clk_cnt_value) else '0';
 
-	ClkCntInitValue <=	to_unsigned(T_NOP_INIT, INIT_CNT_L)	when ((StateC = CMD_NOP_400_1) or (StateC = CMD_NOP_400_2)) else
-				to_unsigned(T_RP, INIT_CNT_L)		when ((StateC = CMD_PREA_A10_0) or (StateC = CMD_PREA)) else
-				to_unsigned(T_MRD, INIT_CNT_L)		when ((StateC = CMD_EMRS3) or (StateC = CMD_EMRS2) or (StateC = CMD_EMRS1) or (StateC = CMD_MRS_A8_1) or (StateC = CMD_MRS_A8_0) or (StateC = CMD_EMRS1_A987_1) or (StateC = CMD_EMRS1_A987_0)) else
-				to_unsigned(T_RFC, INIT_CNT_L);
+	ClkCntInitValue <=	to_unsigned(T_NOP_INIT-1, INIT_CNT_L)	when ((ZeroClkCnt = '1') and ((StateC = START_INIT) or (StateC = CMD_PREA_A10_0))) else
+				to_unsigned(T_RP-1, INIT_CNT_L)		when ((ZeroClkCnt = '1') and ((StateC = CMD_NOP_400_1) or (StateC = CMD_MRS_A8_1))) else
+				to_unsigned(T_MRD-1, INIT_CNT_L)	when ((ZeroClkCnt = '1') and ((StateC = CMD_EMRS3) or (StateC = CMD_EMRS2) or (StateC = CMD_EMRS1) or (StateC = CMD_NOP_400_2) or (StateC = CMD_MRS_A8_0) or (StateC = CMD_EMRS1_A987_1) or (StateC = CMD_AUTO_REF_2))) else
+				to_unsigned(T_RFC-1, INIT_CNT_L);
 
 	nChipSelect <=	nChipSelectC;
 	nChipSelectN <=	'0';
@@ -167,7 +163,7 @@ begin
 			(others => '0');
 
 
-	state_det: process(StateC, ClkCycleCntC)
+	state_det: process(StateC, ZeroDLLCnt, ZeroClkCnt)
 	begin
 		StateN <= StateC; -- avoid latched
 		if (StateC = START_INIT) then
