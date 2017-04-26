@@ -1,4 +1,5 @@
 library ieee;
+use work.proc_pkg.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
@@ -15,7 +16,7 @@ end entity reg_file_tb;
 
 architecture bench of reg_file_tb is
 
-	constant CLK_PERIOD	: time := 10 ns;
+	constant CLK_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
 	constant NUM_TEST	: integer := 10000;
 
 	constant OUT_NUM_TB	: positive := 2;

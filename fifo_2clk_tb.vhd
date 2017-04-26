@@ -7,6 +7,7 @@ use std.textio.all;
 
 library work;
 use work.fifo_2clk_pkg.all;
+use work.proc_pkg.all;
 use work.tb_pkg.all;
 
 entity fifo_2clk_tb is
@@ -14,8 +15,8 @@ end entity fifo_2clk_tb;
 
 architecture bench of fifo_2clk_tb is
 
-	constant CLK_WR_PERIOD	: time := 10 ns;
-	constant CLK_RD_PERIOD	: time := 10 ns;
+	constant CLK_WR_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
+	constant CLK_RD_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
 	constant CLK_WR_PHASE	: time := 0 ns;
 	constant CLK_RD_PHASE	: time := 1 ns;
 	constant MAX_PERIOD	: time := max_time(CLK_WR_PERIOD, CLK_RD_PERIOD);

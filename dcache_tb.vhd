@@ -15,7 +15,7 @@ end entity dcache_tb;
 
 architecture bench of dcache_tb is
 
-	constant CLK_PERIOD	: time := 10 ns;
+	constant CLK_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
 	constant NUM_TEST	: integer := 10000;
 
 	signal clk_tb	: std_logic := '0';
