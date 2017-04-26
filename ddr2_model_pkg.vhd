@@ -3,9 +3,9 @@ use ieee.math_real.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-package mem_model_pkg is 
+package ddr2_model_pkg is 
 
-	component mem_model is
+	component ddr2_model is
 	generic (
 		ADDR_L		: positive := 16;
 		DATA_L		: positive := 32
@@ -26,4 +26,4 @@ package mem_model_pkg is
 	);
 	end component;
 
-end package mem_model_pkg;
+end package ddr2_model_pkg;

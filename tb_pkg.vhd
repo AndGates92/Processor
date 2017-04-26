@@ -29,6 +29,7 @@ package tb_pkg is
 	procedure decode_ref(variable OpCode: in std_logic_vector(OP_CODE_L - 1 downto 0); variable ImmediateIn : in integer; variable PCIn, PCCallIn : in integer; variable StatReg : in std_logic_vector(STAT_REG_L_TB - 1 downto 0);variable ImmediateOut : out integer; variable PCOut, PCCallOut : out integer; variable CtrlOut : out integer; variable EndOfProg : out boolean);
 	procedure reg_file_ref(variable RegFileIn_int: in reg_file_array; variable DataIn_int : in integer; variable AddressIn_int: in integer; variable AddressOut1_int : in integer; variable AddressOut2_int: in integer; variable Enable_int: in integer; variable Done_int: out integer; variable DataOut1_int: out integer; variable DataOut2_int : out integer; variable RegFileOut_int: out reg_file_array);
 	procedure alu_ref(variable Op1_int : in integer; variable Op2_int: in integer; variable Cmd: in std_logic_vector(CMD_ALU_L-1 downto 0); variable Res_ideal: out integer; variable Ovfl_ideal : out boolean; variable Unfl_ideal : out boolean);
+	procedure fifo_push_op(signal ctrl_flag : in std_logic; constant PERIOD : in time; signal DataIn : out std_logic_vector(DATA_L_TB - 1 downto 0); signal Enable : out std_logic; variable seed1, seed2 : inout positive);
 
 	function rand_num return real;
 	function max_time(time1, time2 : time) return time;

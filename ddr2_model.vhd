@@ -3,9 +3,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.mem_model_pkg.all;
+use work.ddr2_model_pkg.all;
 
-entity mem_model is
+entity ddr2_model is
 generic (
 	ADDR_L		: positive := 16;
 	DATA_L		: positive := 32
@@ -24,9 +24,9 @@ port (
 	DataMemOut	: out std_logic_vector(DATA_L - 1 downto 0)
 
 );
-end entity mem_model;
+end entity ddr2_model;
 
-architecture dummy of mem_model is
+architecture dummy of ddr2_model is
 
 	signal DoneMemoryN, DoneMemoryC	 : std_logic;
 

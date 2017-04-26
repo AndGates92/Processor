@@ -4,9 +4,10 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.mem_pkg.all;
+use work.proc_pkg.all;
+use work.ddr2_pkg.all;
 
-package mem_phy_pkg is 
+package ddr2_phy_pkg is 
 
 	constant STATE_PHY_L	: positive := 4;
 
@@ -43,50 +44,6 @@ package mem_phy_pkg is
 	constant CMD_WRITE_PRECHARGE		: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(16, MEM_CMD_L));
 	constant CMD_READ_PRECHARGE		: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(17, MEM_CMD_L));
 
-	constant PHY_CNT_L	: integer := int_to_bit_num(max_int(T_RCD, max_int(T_RFC, max_int(T_RP, max_int(T_AOFD, max_int(T_MOD_max, max_int(T_XARD, max_int(T_RC, max_int(T_RAP, max_int(T_RAS_max, max_int(T_RRD, max_int(T_FAW, max_int(T_WR, max_int(T_REFI_highT, max_int(T_CCD, max_int(T_MRD, max_int(max_XP, max_int(T_AOFD, max_int(T_XSRD, max_int(T_XP, max_int(T_REFI_lowT, max_int(T_XSNR, T_XARDS_max))))))))))))))))))))));
+	constant PHY_CNT_L	: integer := int_to_bit_num(max_int(T_RCD, max_int(T_RFC, max_int(T_RP, max_int(T_AOFD, max_int(T_MOD_max, max_int(T_XARD, max_int(T_RC, max_int(T_RAP, max_int(T_RAS_max, max_int(T_RRD, max_int(T_FAW, max_int(T_WR, max_int(T_REFI_highT, max_int(T_CCD, max_int(T_MRD, max_int(T_AOFD, max_int(T_XSRD, max_int(T_XP, max_int(T_REFI_lowT, max_int(T_XSNR, T_XARDS_max)))))))))))))))))))));
 
-	component mem_int is
-	port (
-
-		rst		: in std_logic;
-		clk		: in std_logic;
-
-		-- Memory access
-		AddressMem		: out std_logic_vector(ADDR_MEM_L - 1 downto 0);
-		BankSelMem		: out std_logic_vector(BANK_L - 1 downto 0);
-		DataMem			: inout std_logic_vector(DATA_L - 1 downto 0);
-		DataStrobeNMem		: inout std_logic;
-		DataStrobePMem		: inout std_logic;
-		UpDataStrobeNMem	: inout std_logic;
-		UpDataStrobePMem	: inout std_logic;
-		LowDataStrobeNMem	: inout std_logic;
-		LowDataStrobePMem	: inout std_logic;
-		ReadDataStrobeNMem	: inout std_logic;
-		ReadDataStrobePMem	: inout std_logic;
-		ChipSelect		: out std_logic;
-		ReadEnable		: out std_logic;
-		ColAccessStrobe		: out std_logic;
-		RowAccessStrobe		: out std_logic;
-		ClkEnable		: out std_logic;
-		ClkPMem			: out std_logic;
-		ClkNMem			: out std_logic;
-		WriteDataMask		: out std_logic;
-		UpWriteDataMask		: out std_logic;
-		LowWriteDataMask	: out std_logic;
-		OnDieTermination	: out std_logic;
-		
-
-		-- Memory interface
-		DoneMemory	: out std_logic;
-		EndRst		: out std_logic;
-		ReadMem		: in std_logic;
-		Precharge	: in std_logic;
-		EnableMemoryInt	: in std_logic;
-		DataMemIntIn	: in std_logic_vector(DATA_L - 1 downto 0);
-		AddressMemInt	: in std_logic_vector(ADDR_L - 1 downto 0);
-		DataMemIntOut	: out std_logic_vector(DATA_L - 1 downto 0);
-
-	);
-	end component;
-
-end package mem_phy_pkg;
+end package ddr2_phy_pkg;

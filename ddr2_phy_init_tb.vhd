@@ -6,6 +6,7 @@ use ieee.math_real.all;
 use std.textio.all;
 
 library work;
+use work.ddr2_pkg.all;
 use work.ddr2_phy_init_pkg.all;
 use work.tb_pkg.all;
 
@@ -15,24 +16,24 @@ end entity ddr2_phy_init_tb;
 architecture bench of ddr2_phy_init_tb is
 
 	constant CLK_PERIOD	: time := 10 ns;
-	constant NUM_TEST	: integer := 10000;
+	constant NUM_TEST	: integer := 100;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
 
 	-- Memory access
-	signal AddressMem		: std_logic_vector(ADDR_MEM_L - 1 downto 0);
-	signal BankSelMem		: std_logic_vector(BANK_L - 1 downto 0);
-	signal nChipSelect		: std_logic;
-	signal ReadEnable		: std_logic;
-	signal nColAccessStrobe		: std_logic;
-	signal nRowAccessStrobe		: std_logic;
-	signal ClkEnable		: std_logic;
-	signal OnDieTermination		: std_logic;
+	signal AddressMem_tb			: std_logic_vector(ADDR_MEM_L - 1 downto 0);
+	signal BankSelMem_tb			: std_logic_vector(BANK_L - 1 downto 0);
+	signal nChipSelect_tb			: std_logic;
+	signal ReadEnable_tb			: std_logic;
+	signal nColAccessStrobe_tb		: std_logic;
+	signal nRowAccessStrobe_tb		: std_logic;
+	signal ClkEnable_tb			: std_logic;
+	signal OnDieTermination_tb		: std_logic;
 
 	-- Memory interface
-	signal InitializationCompleted	: std_logic;
+	signal InitializationCompleted_tb	: std_logic;
 
 begin
 
@@ -62,9 +63,6 @@ begin
 			rst_tb <= '0';
 			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '1';
-			Op1_tb <= (others => '0');
-			Op2_tb <= (others => '0');
-			Start_tb <= '0';
 			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '0';
 		end procedure reset;
@@ -107,7 +105,9 @@ begin
 
 			num_pass := num_pass + pass;
 
-			wait until ((clk_tb'event) and (clk_tb = '1'));
+			for j in 0 to i loop
+				wait until ((clk_tb'event) and (clk_tb = '1'));
+			end loop;
 		end loop;
 
 		file_close(file_pointer);

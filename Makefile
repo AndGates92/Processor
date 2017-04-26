@@ -25,6 +25,7 @@ all:
 	make execute_all
 	make execute_dcache_all
 	make fifo_1clk_all
+	make ddr2_phy_init_all
 
 clean:
 	rm -rf ${LOG_FILE} ${SUMMARY_FILE} ${WORK_DIR}
@@ -39,6 +40,14 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} bram_pkg.vhd
 	@echo "Analysing mem_model_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} mem_model_pkg.vhd
+	@echo "Analysing ddr2_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ddr2_pkg.vhd
+	@echo "Analysing ddr2_phy_init_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ddr2_phy_init_pkg.vhd
+	@echo "Analysing ddr2_phy_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ddr2_phy_pkg.vhd
+	@echo "Analysing ddr2_model_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ddr2_model_pkg.vhd
 	@echo "Analysing alu_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} alu_pkg.vhd
 	@echo "Analysing ctrl_pkg.vhd"
@@ -214,7 +223,7 @@ execute_all:
 	make execute
 	make simulate_execute
 
-icache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_pkg.o
+icache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/execute_pkg.o
 	@echo "Analysing bram_1port.vhd"
 	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
 	@echo "Analysing bram_2port.vhd"
@@ -241,7 +250,7 @@ icache_all:
 	make icache
 	make simulate_icache
 
-dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_pkg.o
+dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/execute_pkg.o
 	@echo "Analysing bram_1port.vhd"
 	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
 	@echo "Analysing bram_2port.vhd"
@@ -366,4 +375,23 @@ fifo_2clk_all:
 	make libraries
 	make fifo_2clk
 	make simulate_fifo_2clk
+
+ddr2_phy_init: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/ddr2_phy_init_pkg.o ${WORK_DIR}/ddr2_pkg.o
+	@echo "Analysing ddr2_phy_init.vhd"
+	${GHDL} -a ${GHDL_ARGS} ddr2_phy_init.vhd
+	@echo "Analysing ddr2_phy_init_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ddr2_phy_init_tb.vhd
+	@echo "Elaborating ddr2_phy_init_tb"
+	${GHDL} -e ${GHDL_ARGS} ddr2_phy_init_tb
+	rm -r e~ddr2_phy_init_tb.o
+	mv ddr2_phy_init_tb ${WORK_DIR}
+
+simulate_ddr2_phy_init: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_phy_init_pkg.o ${WORK_DIR}/ddr2_phy_init.o  ${WORK_DIR}/ddr2_phy_init_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_init_tb ${GHDL_RUN_ARGS}ddr2_phy_init.vcd
+
+ddr2_phy_init_all:
+	make work_dir
+	make libraries
+	make ddr2_phy_init
+	make simulate_ddr2_phy_init
 

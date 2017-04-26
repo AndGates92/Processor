@@ -6,9 +6,10 @@ use ieee.numeric_std.all;
 library work;
 use work.proc_pkg.all;
 
-package mem_pkg is 
+package ddr2_pkg is 
 
-	constant CLK_RATIO	: positive := 4;
+	constant DDR2_CLK_PERIOD	: positive := 5;
+	constant CLK_RATIO		: positive := 4;
 
 	constant BANK_NUM	: positive := 8;
 	constant BANK_L		: positive := positive(int_to_bit_num(BANK_NUM));
@@ -26,15 +27,15 @@ package mem_pkg is
 	constant T_RP_ns		: real := 12.5;
 	constant T_RC_ns		: real := 57.5;
 	constant T_RAP_ns		: real := T_RCD_ns;
-	constant T_RAS_ns_min		: real := 45;
-	constant T_RAS_ns_max		: real := 7e4;
-	constant T_RRD_ns		: real := 10;
-	constant T_FAW_ns		: real := 45;
-	constant T_WR_ns		: real := 15;
+	constant T_RAS_ns_min		: real := 45.0;
+	constant T_RAS_ns_max		: real := 7.0e4;
+	constant T_RRD_ns		: real := 10.0;
+	constant T_FAW_ns		: real := 45.0;
+	constant T_WR_ns		: real := 15.0;
 	constant T_RFC_ns		: real := 127.5;
-	constant T_XSNR_ns		: real := T_RFC_ns + 10;
-	constant T_MOD_ns_min		: real := 0;
-	constant T_MOD_ns_max		: real := 12;
+	constant T_XSNR_ns		: real := T_RFC_ns + 10.0;
+	constant T_MOD_ns_min		: real := 0.0;
+	constant T_MOD_ns_max		: real := 12.0;
 	constant T_REFI_ns_lowT		: real := 7.8e3;
 	constant T_REFI_ns_highT	: real := 3.9e3;
 
@@ -46,28 +47,28 @@ package mem_pkg is
 	constant T_XARD		: positive := 2;
 	constant T_XARDS_max	: positive := 8;
 	constant T_AOFD		: positive := integer(ceil(2.5));
-	constant T_RCD		: integer := integer(ceil(T_RCD_ns/(CLK_PERIOD*CLK_RATIO)));
-	constant T_RP		: integer := integer(ceil(T_RP_ns/(CLK_PERIOD*CLK_RATIO)));
-	constant T_RC		: integer := integer(ceil(T_RC_ns/(CLK_PERIOD*CLK_RATIO)));
-	constant T_RAP		: integer := integer(ceil(T_RAP_ns/(CLK_PERIOD*CLK_RATIO)));
-	constant T_RAS_min	: integer := integer(ceil(T_RAS_ns_min/(CLK_PERIOD*CLK_RATIO)));
-	constant T_RAS_max	: integer := integer(ceil(T_RAS_ns_max/(CLK_PERIOD*CLK_RATIO)));
-	constant T_RRD		: integer := integer(ceil(T_RRD_ns/(CLK_PERIOD*CLK_RATIO)));
-	constant T_FAW		: integer := integer(ceil(T_FAW_ns/(CLK_PERIOD*CLK_RATIO)));
-	constant T_WR		: integer := integer(ceil(T_WR_ns/(CLK_PERIOD*CLK_RATIO)));
-	constant T_RFC		: integer := integer(ceil(T_RFC_ns/(CLK_PERIOD*CLK_RATIO)));
-	constant T_XSNR		: integer := integer(ceil(T_XSNR_ns/(CLK_PERIOD*CLK_RATIO)));
-	constant T_MOD_min	: integer := integer(ceil(T_MOD_ns_min/(CLK_PERIOD*CLK_RATIO)));
-	constant T_MOD_max	: integer := integer(ceil(T_MOD_ns_max/(CLK_PERIOD*CLK_RATIO)));
-	constant T_REFI_lowT	: integer := integer(ceil(T_REFI_ns_lowT/(CLK_PERIOD*CLK_RATIO)));
-	constant T_REFI_highT	: integer := integer(ceil(T_REFI_ns_highT/(CLK_PERIOD*CLK_RATIO)));
+	constant T_RCD		: positive := integer(ceil(T_RCD_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_RP		: positive := integer(ceil(T_RP_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_RC		: positive := integer(ceil(T_RC_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_RAP		: positive := integer(ceil(T_RAP_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_RAS_min	: positive := integer(ceil(T_RAS_ns_min/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_RAS_max	: positive := integer(ceil(T_RAS_ns_max/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_RRD		: positive := integer(ceil(T_RRD_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_FAW		: positive := integer(ceil(T_FAW_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_WR		: positive := integer(ceil(T_WR_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_RFC		: positive := integer(ceil(T_RFC_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_XSNR		: positive := integer(ceil(T_XSNR_ns/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_MOD_min	: positive := integer(ceil(T_MOD_ns_min/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_MOD_max	: positive := integer(ceil(T_MOD_ns_max/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_REFI_lowT	: positive := integer(ceil(T_REFI_ns_lowT/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
+	constant T_REFI_highT	: positive := integer(ceil(T_REFI_ns_highT/(real(DDR2_CLK_PERIOD*CLK_RATIO))));
 
 	-- ODT parameter
-	constant DISABLED	: std_logic_vector(1 downto 0) := std_logic_vector(to_unsigned(0, 2));
-	constant 75OHM		: std_logic_vector(1 downto 0) := std_logic_vector(to_unsigned(1, 2));
-	constant 150OHM		: std_logic_vector(1 downto 0) := std_logic_vector(to_unsigned(2, 2));
-	constant 50OMH		: std_logic_vector(1 downto 0) := std_logic_vector(to_unsigned(3, 2));
-	constant ODT		: std_logic_vector(1 downto 0) := 50OHM;
+	constant ODT_DISABLED	: std_logic_vector(1 downto 0) := std_logic_vector(to_unsigned(0, 2));
+	constant ODT_75OHM	: std_logic_vector(1 downto 0) := std_logic_vector(to_unsigned(1, 2));
+	constant ODT_150OHM	: std_logic_vector(1 downto 0) := std_logic_vector(to_unsigned(2, 2));
+	constant ODT_50OHM	: std_logic_vector(1 downto 0) := std_logic_vector(to_unsigned(3, 2));
+	constant ODT		: std_logic_vector(1 downto 0) := ODT_50OHM;
 
 	-- nDQS enable
 	constant nDQS_ENABLE	: std_logic := '0';
@@ -143,4 +144,4 @@ package mem_pkg is
 	constant NORMAL			: std_logic := '0';
 	constant WEAK			: std_logic := '1';
 	constant DRIVING_STRENGTH	: std_logic := nDLL_ENABLE;
-end package mem_pkg;
+end package ddr2_pkg;
