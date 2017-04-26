@@ -8,7 +8,7 @@ package proc_pkg is
 	function int_to_bit_num(op2_l : integer) return integer;
 	function max_int(x, y : integer) return integer;
 
-	constant CLK_PERIOD	: positive := 100; -- MHz
+	constant CLK_PERIOD	: positive := 10; -- ns
 
 	constant DATA_MEMORY_MB	: positive := 1; -- 1 MB
 	constant DATA_MEMORY	: positive := DATA_MEMORY_MB*(integer(2.0**(3.0) * 2.0**(10.0)));
