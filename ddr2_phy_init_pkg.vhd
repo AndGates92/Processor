@@ -19,7 +19,7 @@ package ddr2_phy_init_pkg is
 	constant T_DLL_RESET	: positive := 200;
 
 	constant DLL_CNT_L	: integer := int_to_bit_num(T_DLL_RESET);
-	constant INIT_CNT_L	: integer := int_to_bit_num(max_int(T_INIT_STARTUP-1, max_int(T_RFC-1, max_int(T_RP-1, max_int(T_MRD-1, T_NOP_INIT-1)))));
+	constant INIT_CNT_L	: integer := int_to_bit_num(max_int(T_INIT_STARTUP-1, max_int(T_RFC-1, max_int(T_RP-1, max_int(T_MRD-1, max_int(T_NOP_INIT-1, T_MOD_max-1))))));
 
 	constant STATE_PHY_INIT_L	: positive := 4;
 
@@ -37,7 +37,8 @@ package ddr2_phy_init_pkg is
 	constant CMD_MRS_A8_0		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(11, STATE_PHY_INIT_L));
 	constant CMD_EMRS1_A987_1	: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(12, STATE_PHY_INIT_L));
 	constant CMD_EMRS1_A987_0	: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(13, STATE_PHY_INIT_L));
-	constant INIT_COMPLETE		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(14, STATE_PHY_INIT_L));
+	constant APPLY_SETTING		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(14, STATE_PHY_INIT_L));
+	constant INIT_COMPLETE		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(15, STATE_PHY_INIT_L));
 
 	component ddr2_phy_init 
 	port (

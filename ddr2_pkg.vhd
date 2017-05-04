@@ -8,7 +8,7 @@ use work.proc_pkg.all;
 
 package ddr2_pkg is 
 
-	constant DDR2_CLK_PERIOD	: positive := 5;
+	constant DDR2_CLK_PERIOD	: positive := 1;
 	constant CLK_RATIO		: positive := 4;
 
 	constant BANK_NUM	: positive := 8;

@@ -71,14 +71,14 @@ begin
 			DLLResetCntC <= to_unsigned(T_DLL_RESET-1, DLLResetCntC'length);
 			DLLCntEnC <= '0';
 
-			ClkCycleCntC <= to_unsigned(T_INIT_STARTUP-1, INIT_CNT_L);
+			ClkCycleCntC <= to_unsigned(T_INIT_STARTUP-1, ClkCycleCntC'length);
 			ClkCntEnC <= '0';
 
 			nChipSelectC <= '0';
-			nColAccessStrobeC <= '0';
-			nRowAccessStrobeC <= '0';
+			nColAccessStrobeC <= '1';
+			nRowAccessStrobeC <= '1';
 			ClkEnableC <= '0';
-			ReadEnableC <= '0';
+			ReadEnableC <= '1';
 			AddressMemC <= (others => '0');
 			BankSelMemC <= (others => '0');
 
@@ -109,7 +109,7 @@ begin
 	OnDieTermination <= '0';
 
 	InitializationCompleted <= InitializationCompletedC;
-	InitializationCompletedN <= '1' when (StateC = INIT_COMPLETE) else '0';
+	InitializationCompletedN <= '1' when ((StateC = INIT_COMPLETE) or ((ZeroClkCnt = '1') and (StateC = APPLY_SETTING))) else '0';
 
 	DLLResetCntN <=	to_unsigned(T_DLL_RESET, DLLResetCntN'length)	when (SetDLLCnt = '1') else
 			(DLLResetCntC - decr_dll_cnt_value)		when ((DLLCntEnC = '1') and (ZeroDLLCnt = '0')) else
@@ -127,25 +127,26 @@ begin
 	SetClkCnt <= ZeroClkCnt when ((ZeroDLLCnt = '1') or not (StateC = CMD_MRS_A8_0)) else '0';
 	ZeroClkCnt <= '1' when (ClkCycleCntC = zero_clk_cnt_value) else '0';
 
-	ClkCntInitValue <=	to_unsigned(T_NOP_INIT-1, INIT_CNT_L)	when ((ZeroClkCnt = '1') and ((StateC = START_INIT) or (StateC = CMD_PREA_A10_0))) else
-				to_unsigned(T_RP-1, INIT_CNT_L)		when ((ZeroClkCnt = '1') and ((StateC = CMD_NOP_400_1) or (StateC = CMD_MRS_A8_1))) else
-				to_unsigned(T_MRD-1, INIT_CNT_L)	when ((ZeroClkCnt = '1') and ((StateC = CMD_EMRS3) or (StateC = CMD_EMRS2) or (StateC = CMD_EMRS1) or (StateC = CMD_NOP_400_2) or (StateC = CMD_MRS_A8_0) or (StateC = CMD_EMRS1_A987_1) or (StateC = CMD_AUTO_REF_2))) else
-				to_unsigned(T_RFC-1, INIT_CNT_L);
+	ClkCntInitValue <=	to_unsigned(T_NOP_INIT-1, ClkCntInitValue'length)	when ((ZeroClkCnt = '1') and ((StateC = START_INIT) or (StateC = CMD_PREA_A10_0))) else
+				to_unsigned(T_RP-1, ClkCntInitValue'length)		when ((ZeroClkCnt = '1') and ((StateC = CMD_NOP_400_1) or (StateC = CMD_MRS_A8_1))) else
+				to_unsigned(T_RFC-1, ClkCntInitValue'length)		when ((ZeroClkCnt = '1') and ((StateC = CMD_PREA) or (StateC = CMD_AUTO_REF_1))) else
+				to_unsigned(T_MOD_max-1, ClkCntInitValue'length)	when ((ZeroClkCnt = '1') and (StateC = CMD_EMRS1_A987_0)) else
+				to_unsigned(T_MRD-1, ClkCntInitValue'length);
 
 	nChipSelect <=	nChipSelectC;
 	nChipSelectN <=	'0';
 
 	nColAccessStrobe <= nColAccessStrobeC;
-	nColAccessStrobeN <= '0' when ((ZeroClkCnt = '1') and not((StateC = START_INIT) or (StateC = CMD_PREA_A10_0) or (StateC = CMD_MRS_A8_1) or (StateC = CMD_NOP_400_1) or (StateC = CMD_EMRS1_A987_0))) else '1';
+	nColAccessStrobeN <= '0' when ((ZeroClkCnt = '1') and not((StateC = START_INIT) or (StateC = CMD_PREA_A10_0) or (StateC = CMD_MRS_A8_1) or (StateC = CMD_NOP_400_1) or (StateC = CMD_EMRS1_A987_0) or (StateC = APPLY_SETTING))) else '1';
 
 	nRowAccessStrobe <= nRowAccessStrobeC;
-	nRowAccessStrobeN <= '0' when ((ZeroClkCnt = '1') and not((StateC = START_INIT) or (StateC = CMD_PREA_A10_0) or (StateC = CMD_EMRS1_A987_0))) else '1';
+	nRowAccessStrobeN <= '0' when ((ZeroClkCnt = '1') and not((StateC = START_INIT) or (StateC = CMD_PREA_A10_0) or (StateC = CMD_EMRS1_A987_0) or (StateC = APPLY_SETTING))) else '1';
 
 	ClkEnable <= ClkEnableC;
 	ClkEnableN <= '0' when ((StateC = START_INIT) and (ZeroClkCnt = '0')) else '1';
 
 	ReadEnable <= ReadEnableC;
-	ReadEnableN <= '0' when ((ZeroClkCnt = '1') and not((StateC = CMD_PREA) or (StateC = CMD_AUTO_REF_1) or (StateC = START_INIT) or (StateC = CMD_PREA_A10_0) or (StateC = CMD_EMRS1_A987_0))) else '1';
+	ReadEnableN <= '0' when ((ZeroClkCnt = '1') and not((StateC = CMD_PREA) or (StateC = CMD_AUTO_REF_1) or (StateC = START_INIT) or (StateC = CMD_PREA_A10_0) or (StateC = CMD_EMRS1_A987_0) or (StateC = APPLY_SETTING))) else '1';
 
 	AddressMem <= AddressMemC;
 	AddressMemN <=	(10 => '1', others => '0')															when ((StateC = CMD_NOP_400_1) and (ZeroClkCnt = '1')) else
@@ -153,7 +154,7 @@ begin
 			(8 => '1', others => '0')															when ((StateC = CMD_EMRS1) and (ZeroClkCnt = '1')) else
 			(12 => POWER_DOWN_EXIT, 11 => WRITE_REC(2), 10 => WRITE_REC(1), 9 => WRITE_REC(0), 6 => CAS(2), 5 => CAS(1), 4 => CAS(0), 3 => BURST_TYPE, 2 => BURST_LENGTH(2), 1 => BURST_LENGTH(1), 0 => BURST_LENGTH(0),  others => '0')		when ((StateC = CMD_AUTO_REF_2) and (ZeroClkCnt = '1')) else
 			(9 => '1', 8 => '1', 7 => '1', others => '0')														when ((StateC = CMD_MRS_A8_0) and (ZeroClkCnt = '1')) else
-			(12 => OUT_BUFFER, 11 => RDQS, 10 => nDQS, 6 => ODT(1), 2 => ODT(0), 5 => AL(2), 4 => AL(1), 3 => AL(0), 1 => DRIVING_STRENGTH, 0 => nDLL,  others => '0')	when ((StateC = CMD_EMRS1_A987_0) and (ZeroClkCnt = '1')) else
+			(12 => OUT_BUFFER, 11 => RDQS, 10 => nDQS, 6 => ODT(1), 2 => ODT(0), 5 => AL(2), 4 => AL(1), 3 => AL(0), 1 => DRIVING_STRENGTH, 0 => nDLL,  others => '0')	when ((StateC = CMD_EMRS1_A987_1) and (ZeroClkCnt = '1')) else
 			(others => '0');
 
 	BankSelMem <= BankSelMemC;
@@ -219,6 +220,10 @@ begin
 				StateN <= CMD_EMRS1_A987_0;
 			end if;
 		elsif (StateC = CMD_EMRS1_A987_0) then
+			if (ZeroClkCnt = '1') then
+				StateN <= APPLY_SETTING;
+			end if;
+		elsif (StateC = APPLY_SETTING) then
 			if (ZeroClkCnt = '1') then
 				StateN <= INIT_COMPLETE;
 			end if;
