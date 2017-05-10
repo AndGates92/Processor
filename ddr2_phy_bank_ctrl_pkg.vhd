@@ -15,7 +15,7 @@ package ddr2_phy_bank_ctrl_pkg is
 	constant T_READ_PRE	: positive := to_integer(unsigned(AL)) + (2**(to_integer(unsigned(BL)) - 1));
 	constant T_WRITE_PRE	: positive := WRITE_LATENCY + to_integer(unsigned(T_WR)) + (2**(to_integer(unsigned(BL)) - 1));
 
-	constant CNT_L		: integer := int_to_bit_num(max_int(T_RAS, max_int(T_RC, max_int(T_RP, max_int(READ_LATENCY, max_int(WRITE_LATENCY, max_int(T_ACT_COL, max_int(T_READ_PRE, T_WRITE_PRE))))))));
+	constant CNT_BANK_CTRL_L	: integer := int_to_bit_num(max_int(T_RAS, max_int(T_RC, max_int(T_RP, max_int(READ_LATENCY, max_int(WRITE_LATENCY, max_int(T_ACT_COL, max_int(T_READ_PRE, T_WRITE_PRE))))))));
 
 	constant STATE_BANK_CTRL_L	: positive := 4;
 
@@ -34,6 +34,7 @@ package ddr2_phy_bank_ctrl_pkg is
 		ColMemIn	: in std_logic_vector(COL_L - 1 downto 0);
 		RowMemIn	: in std_logic_vector(ROW_L - 1 downto 0);
 		ReadMem		: in std_logic;
+		LastBurst	: in std_logic;
 		UIReq		: in std_logic;
 
 		UIAck		: out std_logic;

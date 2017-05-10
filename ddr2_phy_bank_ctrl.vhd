@@ -17,6 +17,7 @@ port (
 	ColMemIn	: in std_logic_vector(COL_L - 1 downto 0);
 	RowMemIn	: in std_logic_vector(ROW_L - 1 downto 0);
 	ReadMem		: in std_logic;
+	LastBurst	: in std_logic;
 	UIReq		: in std_logic;
 
 	UIAck		: out std_logic;
@@ -35,6 +36,8 @@ end entity ddr2_phy_bank_ctrl;
 architecture rtl of ddr2_phy_bank_ctrl is
 
 	signal BankActiveC, BankActiveN		: std_logic;
+
+	signal CntC, CntN	: std_logic_vector(CNT_BANK_CTRL_L - 1 downto 0);
 
 	signal StateC, StateN			: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0);
 
