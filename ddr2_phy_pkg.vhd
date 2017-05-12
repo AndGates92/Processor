@@ -9,6 +9,9 @@ use work.ddr2_pkg.all;
 
 package ddr2_phy_pkg is 
 
+	constant MAX_OUTSTANDING_BURSTS		: positive := 10;
+	constant MAX_OUTSTANDING_BURSTS_L	: positive := int_to_bit_num(MAX_OUTSTANDING_BURSTS);
+
 	constant STATE_PHY_L	: positive := 4;
 
 	constant IDLE_MEM		: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_PHY_L));
@@ -27,7 +30,7 @@ package ddr2_phy_pkg is
 
 	constant CMD_NOP			: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(0, MEM_CMD_L));
 	constant CMD_DESEL			: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(1, MEM_CMD_L));
-	constant CMD_BANK_ACTIV			: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(2, MEM_CMD_L));
+	constant CMD_BANK_ACT			: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(2, MEM_CMD_L));
 	constant CMD_MODE_REG_SET		: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(3, MEM_CMD_L));
 	constant CMD_EXT_MODE_REG_SET_1		: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(4, MEM_CMD_L));
 	constant CMD_EXT_MODE_REG_SET_2		: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(5, MEM_CMD_L));
