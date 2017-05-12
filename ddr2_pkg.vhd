@@ -62,8 +62,6 @@ package ddr2_pkg is
 	constant T_MOD_max	: positive := integer(ceil(T_MOD_ns_max/(real(DDR2_CLK_PERIOD))));
 	constant T_REFI_lowT	: positive := integer(ceil(T_REFI_ns_lowT/(real(DDR2_CLK_PERIOD))));
 	constant T_REFI_highT	: positive := integer(ceil(T_REFI_ns_highT/(real(DDR2_CLK_PERIOD))));
-	constant READ_LATENCY	: positive := to_integer(unsigned(CAS)) + to_integer(unsigned(AL));
-	constant WRITE_LATENCY	: positive := READ_LATENCY - 1;
 
 	-- ODT parameter
 	constant ODT_DISABLED	: std_logic_vector(1 downto 0) := std_logic_vector(to_unsigned(0, 2));
@@ -146,4 +144,10 @@ package ddr2_pkg is
 	constant NORMAL			: std_logic := '0';
 	constant WEAK			: std_logic := '1';
 	constant DRIVING_STRENGTH	: std_logic := nDLL_ENABLE;
+
+	-- Derived parameters
+	constant READ_LATENCY	: positive := to_integer(unsigned(CAS)) + to_integer(unsigned(AL));
+	constant WRITE_LATENCY	: positive := READ_LATENCY - 1;
+
+
 end package ddr2_pkg;
