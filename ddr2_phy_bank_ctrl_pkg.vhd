@@ -35,21 +35,25 @@ package ddr2_phy_bank_ctrl_pkg is
 		clk		: in std_logic;
 
 		-- User Interface
-		ColMemIn	: in std_logic_vector(COL_L - 1 downto 0);
 		RowMemIn	: in std_logic_vector(ROW_L - 1 downto 0);
-		ReadMem		: in std_logic;
-		LastBurst	: in std_logic;
-		UIReq		: in std_logic;
+		CtrlReq		: in std_logic;
 
-		UIAck		: out std_logic;
+		CtrlAck		: out std_logic;
 
 		-- Arbitrer
-		ColMemOut		: out std_logic_vector(COL_L - 1 downto 0);
+		CmdAck			: in std_logic;
+
 		RowMemOut		: out std_logic_vector(ROW_L - 1 downto 0);
 		CmdOut			: out std_logic_vector(CMD_MEM_L - 1 downto 0);
 		CmdReq			: out std_logic;
 
-		CmdAck			: in std_logic;
+		-- Controller
+		ReadBurst		: in std_logic;
+		LastBurstBeat		: in std_logic;
+
+		ZeroOutstandingBursts	: out std_logic;
+		BankIdle		: out std_logic;
+		BankActive		: out std_logic
 
 	);
 	end component;
