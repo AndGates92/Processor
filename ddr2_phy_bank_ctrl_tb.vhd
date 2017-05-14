@@ -9,6 +9,7 @@ library work;
 use work.ddr2_pkg.all;
 use work.ddr2_phy_bank_ctrl_pkg.all;
 use work.tb_pkg.all;
+use work.ddr2_phy_bank_ctrl_pkg_tb.all;
 
 entity ddr2_phy_bank_ctrl_tb is
 end entity ddr2_phy_bank_ctrl_tb;
@@ -42,8 +43,6 @@ architecture bench of ddr2_phy_bank_ctrl_tb is
 
 	signal EndDataPhase_tb		: std_logic;
 	signal ReadBurst_tb		: std_logic;
-
-	type int_arr is array(0 to MAX_OUTSTANDING_BURSTS - 1) of integer;
 
 begin
 
@@ -85,7 +84,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr; variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr_ddr2_phy_bank_ctrl; variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 		begin
 			uniform(seed1, seed2, rand_val);
@@ -95,20 +94,44 @@ begin
 				uniform(seed1, seed2, rand_val);
 				rows(i) := integer(rand_val*(2.0**(real(ROW_L)) - 1.0));
 			end loop;
-
+			for i in num_bursts to (MAX_OUTSTANDING_BURSTS - 1) loop
+				rows(i) := int_arr_ddr2_phy_bank_ctrl_def;
+			end loop;
 		end procedure push_op;
 
 
 		procedure verify(file file_pointer : text; variable pass: out integer) is
+			variable match_rows	: boolean;
 			variable file_line	: line;
 		begin
-			if ((BankActive = '0') and (ZeroOutstandingBursts_tb = '1')
-			write(file_line, string'( "PHY Bank Controller: PASS"));
 
-			pass := 1;
+			write(file_line, string'( "PHY Bank Controller Status: Bank Idle: " & bool_to_str(std_logic_to_bool(BankIdle_tb)) & " Bank Active: " & bool_to_str(std_logic_to_bool(BankActive_tb)) & " Number of bursts: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl) & "No outstanding burst: " & bool_to_str(std_logic_to_bool(ZeroOutstandingBursts)));
 
+			match_rows = compare_int_arr_ddr2_phy_bank_ctrl(row_arr_exp, row_arr_rtl, num_bursts_exp);
+
+			if ((BankActive_tb = '0') and (ZeroOutstandingBursts_tb = '1') and (BankIdle_tb = '1') and (match_rows = true) and (num_bursts_exp = num_burst_rtl)) then
+				write(file_line, string'( "PHY Bank Controller: PASS"));
+				pass := 1;
+			elsif (BankIdle_tb = '0') then
+				write(file_line, string'( "PHY Bank Controller: FAIL (Bank not in the idle)"));
+				pass := 0;
+			elsif (BankActive_tb = '1') then
+				write(file_line, string'( "PHY Bank Controller: FAIL (Bank was not precharged after use)"));
+				pass := 0;
+			elsif (ZeroOutstandingBursts_tb = '0') then
+				write(file_line, string'( "PHY Bank Controller: FAIL (Outstanding bursts)"));
+				pass := 0;
+			elsif (num_bursts_exp /= num_bursts_rtl) then
+				write(file_line, string'( "PHY Bank Controller: FAIL (Number bursts mismatch: exp " & integer'image(num_bursts_exp) " rtl " & integer'image(num_bursts_rtl)));
+				pass := 0;
+			elsif (match_rows = false) then
+				write(file_line, string'( "PHY Bank Controller: FAIL (Row mismatch)"));
+				pass := 0;
+			else
+				write(file_line, string'( "PHY Bank Controller: FAIL (Unknown error)"));
+				pass := 0;
+			end if;
 			writeline(file_pointer, file_line);
-
 		end procedure verify;
 
 		variable num_bursts_exp	: integer;
