@@ -11,6 +11,10 @@ use work.execute_dcache_pkg.all;
 use work.ctrl_pkg.all;
 use work.alu_pkg.all;
 use work.tb_pkg.all;
+use work.alu_pkg_tb.all;
+use work.ctrl_pkg_tb.all;
+use work.reg_file_pkg_tb.all;
+use work.execute_pkg_tb.all;
 
 entity execute_dcache_tb is
 end entity execute_dcache_tb;

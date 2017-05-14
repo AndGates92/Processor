@@ -10,6 +10,7 @@ library work;
 use work.reg_file_pkg.all;
 use work.proc_pkg.all;
 use work.tb_pkg.all;
+use work.reg_file_pkg_tb.all;
 
 entity reg_file_tb is
 end entity reg_file_tb;

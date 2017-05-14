@@ -9,6 +9,7 @@ library work;
 use work.alu_pkg.all;
 use work.proc_pkg.all;
 use work.tb_pkg.all;
+use work.alu_pkg_tb.all;
 
 entity alu_tb is
 end entity alu_tb;

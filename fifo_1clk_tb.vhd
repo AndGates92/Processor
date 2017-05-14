@@ -9,6 +9,7 @@ library work;
 use work.fifo_1clk_pkg.all;
 use work.proc_pkg.all;
 use work.tb_pkg.all;
+use work.fifo_pkg_tb.all;
 
 entity fifo_1clk_tb is
 end entity fifo_1clk_tb;

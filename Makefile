@@ -70,6 +70,18 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} fifo_2clk_pkg.vhd
 	@echo "Analysing tb_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} tb_pkg.vhd
+	@echo "Analysing alu_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} alu_pkg_tb.vhd
+	@echo "Analysing reg_file_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} reg_file_pkg_tb.vhd
+	@echo "Analysing fifo_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} fifo_pkg_tb.vhd
+	@echo "Analysing ctrl_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ctrl_pkg_tb.vhd
+	@echo "Analysing execute_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} execute_pkg_tb.vhd
+	@echo "Analysing decode_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} decode_pkg_tb.vhd
 
 reg_file: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/reg_file_pkg.o
 	@echo "Analysing reg_file.vhd"
@@ -90,7 +102,7 @@ reg_file_all:
 	make reg_file
 	make simulate_reg_file
 
-alu: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o
+alu: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg_tb.o ${WORK_DIR}/alu_pkg.o
 	@echo "Analysing alu.vhd"
 	${GHDL} -a ${GHDL_ARGS} alu.vhd
 	@echo "Analysing alu_tb.vhd"
@@ -152,7 +164,7 @@ div_all:
 	make div
 	make simulate_div
 
-decode_stage: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o
+decode_stage: ${WORK_DIR}/decode_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o
 	@echo "Analysing decode.vhd"
 	${GHDL} -a ${GHDL_ARGS} decode.vhd
 	@echo "Analysing decode_tb.vhd"
@@ -162,7 +174,7 @@ decode_stage: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o 
 	rm -r e~decode_stage_tb.o
 	mv decode_stage_tb ${WORK_DIR}
 
-simulate_decode_stage: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/decode.o ${WORK_DIR}/decode_tb.o
+simulate_decode_stage: ${WORK_DIR}/decode_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/decode.o ${WORK_DIR}/decode_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r decode_stage_tb ${GHDL_RUN_ARGS}decode.vcd
 
 decode_stage_all:
@@ -171,7 +183,7 @@ decode_stage_all:
 	make decode_stage
 	make simulate_decode_stage
 
-ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o
+ctrl: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o
 	@echo "Analysing ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ctrl.vhd
 	@echo "Analysing ctrl_tb.vhd"
@@ -181,7 +193,7 @@ ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_D
 	rm -r e~ctrl_tb.o
 	mv ctrl_tb ${WORK_DIR}
 
-simulate_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl.o ${WORK_DIR}/ctrl_tb.o
+simulate_ctrl: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl.o ${WORK_DIR}/ctrl_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r ctrl_tb ${GHDL_RUN_ARGS}ctrl.vcd
 
 ctrl_all:
@@ -190,7 +202,7 @@ ctrl_all:
 	make ctrl
 	make simulate_ctrl
 
-execute: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_pkg.o
+execute: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/execute_pkg_tb.o ${WORK_DIR}/reg_file_pkg_tb.o ${WORK_DIR}/alu_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_pkg.o
 	@echo "Analysing alu.vhd"
 	${GHDL} -a ${GHDL_ARGS} alu.vhd
 	@echo "Analysing mul.vhd"
@@ -214,7 +226,7 @@ execute: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WOR
 	rm -r e~config_execute.o
 	mv config_execute ${WORK_DIR}
 
-simulate_execute: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_pkg.o ${WORK_DIR}/execute.o  ${WORK_DIR}/execute_tb.o
+simulate_execute: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/execute_pkg_tb.o ${WORK_DIR}/reg_file_pkg_tb.o ${WORK_DIR}/alu_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_pkg.o ${WORK_DIR}/execute.o  ${WORK_DIR}/execute_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r config_execute ${GHDL_RUN_ARGS}execute.vcd
 
 execute_all:
@@ -277,7 +289,7 @@ dcache_all:
 	make dcache
 	make simulate_dcache
 
-execute_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_dcache_pkg.o
+execute_dcache: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/execute_pkg_tb.o ${WORK_DIR}/reg_file_pkg_tb.o ${WORK_DIR}/alu_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_dcache_pkg.o
 	@echo "Analysing alu.vhd"
 	${GHDL} -a ${GHDL_ARGS} alu.vhd
 	@echo "Analysing mul.vhd"
@@ -309,7 +321,7 @@ execute_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.
 	rm -r e~config_execute_dcache.o
 	mv config_execute_dcache ${WORK_DIR}
 
-simulate_execute_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_dcache_pkg.o ${WORK_DIR}/execute_dcache.o  ${WORK_DIR}/execute_dcache_tb.o
+simulate_execute_dcache: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/execute_pkg_tb.o ${WORK_DIR}/reg_file_pkg_tb.o ${WORK_DIR}/alu_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_dcache_pkg.o ${WORK_DIR}/execute_dcache.o  ${WORK_DIR}/execute_dcache_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r config_execute_dcache ${GHDL_RUN_ARGS}execute_dcache.vcd
 
 execute_dcache_all:
@@ -318,7 +330,7 @@ execute_dcache_all:
 	make execute_dcache
 	make simulate_execute_dcache
 
-fifo_1clk: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o
+fifo_1clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o
 	@echo "Analysing bram_1port.vhd"
 	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
 	@echo "Analysing bram_2port.vhd"
@@ -336,7 +348,7 @@ fifo_1clk: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${
 	rm -r e~config_fifo_1clk.o
 	mv config_fifo_1clk ${WORK_DIR}
 
-simulate_fifo_1clk: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o ${WORK_DIR}/fifo_1clk.o  ${WORK_DIR}/fifo_1clk_tb.o
+simulate_fifo_1clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o ${WORK_DIR}/fifo_1clk.o  ${WORK_DIR}/fifo_1clk_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r config_fifo_1clk ${GHDL_RUN_ARGS}fifo_1clk.vcd
 
 fifo_1clk_all:
@@ -345,7 +357,7 @@ fifo_1clk_all:
 	make fifo_1clk
 	make simulate_fifo_1clk
 
-fifo_2clk: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o
+fifo_2clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o
 	@echo "Analysing bram_1port.vhd"
 	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
 	@echo "Analysing bram_2port.vhd"
@@ -367,7 +379,7 @@ fifo_2clk: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${
 	rm -r e~config_fifo_2clk.o
 	mv config_fifo_2clk ${WORK_DIR}
 
-simulate_fifo_2clk: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o ${WORK_DIR}/fifo_2clk.o  ${WORK_DIR}/fifo_2clk_tb.o
+simulate_fifo_2clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o ${WORK_DIR}/fifo_2clk.o  ${WORK_DIR}/fifo_2clk_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r config_fifo_2clk ${GHDL_RUN_ARGS}fifo_2clk.vcd
 
 fifo_2clk_all:
