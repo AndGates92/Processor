@@ -31,7 +31,7 @@ architecture bench of div_tb is
 	signal Quot_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
 	signal Rem_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
 
-	type int_arr is array(0 to 3) of integer;
+	type int_arr_div is array(0 to 3) of integer;
 
 	component div
 	generic (
@@ -165,8 +165,8 @@ begin
 		variable seed1, seed2	: positive;
 		variable pass	: integer;
 		variable num_pass	: integer;
-		variable dvd	: int_arr := (0, 10, -10, 0);
-		variable dvs	: int_arr := (10, 0, 0, 0);
+		variable dvd	: int_arr_div := (0, 10, -10, 0);
+		variable dvs	: int_arr_div := (10, 0, 0, 0);
 
 		file file_pointer	: text;
 		variable file_line	: line;
@@ -199,7 +199,7 @@ begin
 			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end loop;
 
-		for i in 0 to int_arr'high loop
+		for i in 0 to int_arr_div'high loop
 			push_op_fix(Op1_int, Op2_int, dvd(i), dvs(i));
 
 			wait on Done_tb;
@@ -216,7 +216,7 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "DIVISION => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST + (int_arr'high + 1))));
+		write(file_line, string'( "DIVISION => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST + (int_arr_div'high + 1))));
 		writeline(file_pointer, file_line);
 
 		file_close(file_pointer);

@@ -30,7 +30,7 @@ architecture bench of mul_tb is
 
 	signal Res_tb	: std_logic_vector(OP1_L_TB+OP2_L_TB - 1 downto 0);
 
-	type int_arr is array(0 to 2) of integer;
+	type int_arr_mul is array(0 to 2) of integer;
 
 	component mul
 	generic (
@@ -137,8 +137,8 @@ begin
 		variable seed1, seed2	: positive;
 		variable pass	: integer;
 		variable num_pass	: integer;
-		variable mpnd	: int_arr := (0, 0, 0);
-		variable mptr	: int_arr := (0, 0, 0);
+		variable mpnd	: int_arr_mul := (0, 0, 0);
+		variable mptr	: int_arr_mul := (0, 0, 0);
 
 		file file_pointer	: text;
 		variable file_line	: line;
@@ -170,7 +170,7 @@ begin
 			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end loop;
 
-		for i in 0 to int_arr'high loop
+		for i in 0 to int_arr_mul'high loop
 			push_op_fix(Op1_int, Op2_int, mpnd(i), mptr(i));
 
 			wait on Done_tb;
@@ -186,7 +186,7 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'("MULTIPLICATION => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST + (int_arr'high + 1))));
+		write(file_line, string'("MULTIPLICATION => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST + (int_arr_mul'high + 1))));
 		writeline(file_pointer, file_line);
 
 		file_close(file_pointer);
