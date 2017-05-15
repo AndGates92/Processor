@@ -238,6 +238,13 @@ begin
 		write(file_line, string'( "INSTRUCTION CACHE => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST)));
 		writeline(file_pointer, file_line);
 
+		if (num_pass = NUM_TEST) then
+			write(file_line, string'( "INSTRUCTION CACHE: TEST PASSED"));
+		else
+			write(file_line, string'( "INSTRUCTION CACHE: TEST FAILED: " & integer'image(NUM_TEST-num_pass) & " failures"));
+		end if;
+		writeline(file_pointer, file_line);
+
 		file_close(file_pointer);
 		stop <= true;
 

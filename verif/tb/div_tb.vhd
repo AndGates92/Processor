@@ -219,6 +219,13 @@ begin
 		write(file_line, string'( "DIVISION => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST + (int_arr_div'high + 1))));
 		writeline(file_pointer, file_line);
 
+		if (num_pass = (NUM_TEST+(int_arr_div'high + 1))) then
+			write(file_line, string'( "DIVISION: TEST PASSED"));
+		else
+			write(file_line, string'( "DIVISION: TEST FAILED: " & integer'image(NUM_TEST+(int_arr_div'high + 1)-num_pass) & " failures"));
+		end if;
+		writeline(file_pointer, file_line);
+
 		file_close(file_pointer);
 		stop <= true;
 
