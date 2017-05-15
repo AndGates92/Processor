@@ -17,6 +17,8 @@ architecture bench of div_tb is
 
 	constant CLK_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
 	constant NUM_TEST	: integer := 10000;
+	constant NUM_EXTRA_TEST	: integer := 3;
+	constant TOT_NUM_TEST	: integer := NUM_TEST + NUM_EXTRA_TEST;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;
@@ -30,8 +32,6 @@ architecture bench of div_tb is
 
 	signal Quot_tb	: std_logic_vector(OP1_L_TB - 1 downto 0);
 	signal Rem_tb	: std_logic_vector(OP2_L_TB - 1 downto 0);
-
-	type int_arr_div is array(0 to 3) of integer;
 
 	component div
 	generic (
@@ -165,8 +165,8 @@ begin
 		variable seed1, seed2	: positive;
 		variable pass	: integer;
 		variable num_pass	: integer;
-		variable dvd	: int_arr_div := (0, 10, -10, 0);
-		variable dvs	: int_arr_div := (10, 0, 0, 0);
+		variable dvd	: int_arr(0 to (NUM_EXTRA_TEST-1)) := (0, 10, -10, 0);
+		variable dvs	: int_arr(0 to (NUM_EXTRA_TEST-1)) := (10, 0, 0, 0);
 
 		file file_pointer	: text;
 		variable file_line	: line;
@@ -199,7 +199,7 @@ begin
 			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end loop;
 
-		for i in 0 to int_arr_div'high loop
+		for i in 0 to NUM_EXTRA_TEST loop
 			push_op_fix(Op1_int, Op2_int, dvd(i), dvs(i));
 
 			wait on Done_tb;
@@ -216,13 +216,13 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "DIVISION => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST + (int_arr_div'high + 1))));
+		write(file_line, string'( "DIVISION => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TEST)));
 		writeline(file_pointer, file_line);
 
-		if (num_pass = (NUM_TEST+(int_arr_div'high + 1))) then
+		if (num_pass = TOT_NUM_TEST) then
 			write(file_line, string'( "DIVISION: TEST PASSED"));
 		else
-			write(file_line, string'( "DIVISION: TEST FAILED: " & integer'image(NUM_TEST+(int_arr_div'high + 1)-num_pass) & " failures"));
+			write(file_line, string'( "DIVISION: TEST FAILED: " & integer'image(TOT_NUM_TEST-num_pass) & " failures"));
 		end if;
 		writeline(file_pointer, file_line);
 

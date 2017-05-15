@@ -84,7 +84,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr_ddr2_phy_bank_ctrl; variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable bl: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 		begin
 			uniform(seed1, seed2, rand_val);
@@ -93,52 +93,68 @@ begin
 			for i in 0 to (num_bursts - 1) loop
 				uniform(seed1, seed2, rand_val);
 				rows(i) := integer(rand_val*(2.0**(real(ROW_L)) - 1.0));
+				uniform(seed1, seed2, rand_val);
+				bl(i) := integer(rand_val*(2.0**(real(COL_L)) - 1.0));
 			end loop;
 			for i in num_bursts to (MAX_OUTSTANDING_BURSTS - 1) loop
-				rows(i) := int_arr_ddr2_phy_bank_ctrl_def;
+				rows(i) := int_arr_def;
+				bl(i) := int_arr_def;
 			end loop;
-		end procedure push_op;
+		end procedure test_param;
 
-
-		procedure verify(file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable num_bursts_exp, num_bursts_rtl: in integer; variable rows_arr_exp, rows_arr_rtl : in int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); file file_pointer : text; variable pass: out integer;) is
 			variable match_rows	: boolean;
 			variable file_line	: line;
 		begin
 
-			write(file_line, string'( "PHY Bank Controller Status: Bank Idle: " & bool_to_str(std_logic_to_bool(BankIdle_tb)) & " Bank Active: " & bool_to_str(std_logic_to_bool(BankActive_tb)) & " Number of bursts: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl) & "No outstanding burst: " & bool_to_str(std_logic_to_bool(ZeroOutstandingBursts)));
+			write(file_line, string'( "PHY Bank Controller Status: Bank Idle: " & bool_to_str(std_logic_to_bool(BankIdle_tb)) & " Bank Active: " & bool_to_str(std_logic_to_bool(BankActive_tb)) & " Number of bursts: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl) & "No outstanding burst: " & bool_to_str(std_logic_to_bool(ZeroOutstandingBursts_tb))));
 
-			match_rows = compare_int_arr_ddr2_phy_bank_ctrl(row_arr_exp, row_arr_rtl, num_bursts_exp);
+			match_rows = compare_int_arr(rows_arr_exp, rows_arr_rtl, num_bursts_exp);
 
 			if ((BankActive_tb = '0') and (ZeroOutstandingBursts_tb = '1') and (BankIdle_tb = '1') and (match_rows = true) and (num_bursts_exp = num_burst_rtl)) then
 				write(file_line, string'( "PHY Bank Controller: PASS"));
+				writeline(file_pointer, file_line);
 				pass := 1;
 			elsif (BankIdle_tb = '0') then
 				write(file_line, string'( "PHY Bank Controller: FAIL (Bank not in the idle)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (BankActive_tb = '1') then
 				write(file_line, string'( "PHY Bank Controller: FAIL (Bank was not precharged after use)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (ZeroOutstandingBursts_tb = '0') then
 				write(file_line, string'( "PHY Bank Controller: FAIL (Outstanding bursts)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (num_bursts_exp /= num_bursts_rtl) then
 				write(file_line, string'( "PHY Bank Controller: FAIL (Number bursts mismatch: exp " & integer'image(num_bursts_exp) " rtl " & integer'image(num_bursts_rtl)));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (match_rows = false) then
 				write(file_line, string'( "PHY Bank Controller: FAIL (Row mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in (num_bursts_exp - 1) loop
+					write(file_line, string'( "PHY Bank Controller: Burst #" & integer'image(i) & " exp " & integer'image(rows_arr_exp(i))) " vs rtl " & integer'image(rows_arr_rtl(i)));
+					writeline(file_pointer, file_line);
+				end loop;
 				pass := 0;
 			else
 				write(file_line, string'( "PHY Bank Controller: FAIL (Unknown error)"));
+				writeline(file_pointer, file_line);
 				pass := 0;
 			end if;
-			writeline(file_pointer, file_line);
 		end procedure verify;
 
+		variable seed1, seed2	: positive;
+
 		variable num_bursts_exp	: integer;
-		variable rows_arr_exp	: integer;
+		variable rows_arr_exp	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
 
 		variable num_bursts_rtl	: integer;
-		variable rows_arr_rtl	: integer;
+		variable rows_arr_rtl	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
+
+		variable bl_arr		: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
 
 		variable pass	: integer;
 		variable num_pass	: integer;
@@ -160,9 +176,11 @@ begin
 
 		for i in 0 to NUM_TEST-1 loop
 
-			test_param(num_bursts_exp, rows_arr_exp, seed1, seed2);
+			test_param(num_bursts_exp, rows_arr_exp, bl_arr, seed1, seed2);
 
-			verify(file_pointer, pass);
+			run_bank_ctrl(num_bursts_exp, rows_arr_exp, bl_arr, num_bursts_rtl, rows_arr_rtl, seed1, seed2);
+
+			verify(num_bursts_exp, num_bursts_rtl, rows_arr_exp, rows_arr_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 

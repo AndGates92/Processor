@@ -21,6 +21,9 @@ package tb_pkg is
 	constant OP2_L_TB	: integer := DATA_L;
 	constant DATA_L_TB	: integer := DATA_L;
 
+	constant int_arr_def	: integer := integer'high;
+
+	type int_arr is array(integer range <>) of integer;
 
 	procedure clk_gen (constant PERIOD : in time; constant PHASE : in time; signal stop : in boolean; signal clk : out std_logic);
 
@@ -31,6 +34,7 @@ package tb_pkg is
 	function std_logic_to_bool(val : std_logic) return boolean;
 	function bool_to_std_logic(val : boolean) return std_logic;
 	function bool_to_str(val : boolean) return string;
+	function compare_int_arr(arr1, arr2 : int_arr; num_el : integer) return boolean;
 
 end package tb_pkg;
 
@@ -112,7 +116,7 @@ package body tb_pkg is
 	function bool_to_std_logic(val : boolean) return std_logic is
 		variable val_conv	: std_logic;
 	begin
-		if (val = True) then
+		if (val = true) then
 			val_conv := '1';
 		else
 			val_conv := '0';
@@ -124,7 +128,7 @@ package body tb_pkg is
 	function bool_to_str(val : boolean) return string is
 		variable val_conv	: string(1 to 5);
 	begin
-		if (val = True) then
+		if (val = true) then
 			val_conv := "True ";
 		else
 			val_conv := "False";
@@ -133,4 +137,18 @@ package body tb_pkg is
 		return val_conv;
 	end;
 
+	function compare_int_arr(arr1, arr2 : int_arr; num_el : integer) return boolean is
+		variable match	: boolean;
+	begin
+		match := true;
+		for i in 0 to num_el loop
+			if (match = true) then
+				if (arr1(i) /= arr2(i)) then
+					match := false;
+				end if;
+			end if;
+		end loop;
+
+		return match;
+	end;
 end package body tb_pkg;
