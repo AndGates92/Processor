@@ -1,0 +1,124 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+
+use std.textio.all;
+
+library work;
+use work.ddr2_pkg.all;
+use work.ddr2_phy_init_pkg.all;
+use work.tb_pkg.all;
+
+entity ddr2_phy_init_tb is
+end entity ddr2_phy_init_tb;
+
+architecture bench of ddr2_phy_init_tb is
+
+	constant CLK_PERIOD	: time := DDR2_CLK_PERIOD * 1 ns;
+	constant NUM_TEST	: integer := 100;
+
+	signal clk_tb	: std_logic := '0';
+	signal stop	: boolean := false;
+	signal rst_tb	: std_logic;
+
+	-- Memory access
+	signal AddressMem_tb			: std_logic_vector(ADDR_MEM_L - 1 downto 0);
+	signal BankSelMem_tb			: std_logic_vector(BANK_L - 1 downto 0);
+	signal nChipSelect_tb			: std_logic;
+	signal ReadEnable_tb			: std_logic;
+	signal nColAccessStrobe_tb		: std_logic;
+	signal nRowAccessStrobe_tb		: std_logic;
+	signal ClkEnable_tb			: std_logic;
+	signal OnDieTermination_tb		: std_logic;
+
+	-- Memory interface
+	signal InitializationCompleted_tb	: std_logic;
+
+begin
+
+	DUT: ddr2_phy_init
+	port map (
+		clk => clk_tb,
+		rst => rst_tb,
+
+		AddressMem => AddressMem_tb,
+		BankSelMem => BankSelMem_tb,
+		nChipSelect => nChipSelect_tb,
+		ReadEnable => ReadEnable_tb,
+		nColAccessStrobe => nColAccessStrobe_tb,
+		nRowAccessStrobe => nRowAccessStrobe_tb,
+		ClkEnable => ClkEnable_tb,
+		OnDieTermination => OnDieTermination_tb,
+
+		InitializationCompleted => InitializationCompleted_tb
+	);
+ 
+	clk_gen(CLK_PERIOD, 0 ns, stop, clk_tb);
+
+	test: process
+
+		procedure reset is
+		begin
+			rst_tb <= '0';
+			wait until ((clk_tb'event) and (clk_tb = '1'));
+			rst_tb <= '1';
+			wait until ((clk_tb'event) and (clk_tb = '1'));
+			rst_tb <= '0';
+		end procedure reset;
+
+		procedure verify(file file_pointer : text; variable pass: out integer) is
+			variable file_line	: line;
+		begin
+			write(file_line, string'( "PHY Init completed: PASS"));
+
+			pass := 1;
+
+			writeline(file_pointer, file_line);
+
+		end procedure verify;
+
+		variable pass	: integer;
+		variable num_pass	: integer;
+
+		file file_pointer	: text;
+		variable file_line	: line;
+
+	begin
+
+		wait for 1 ns;
+
+		num_pass := 0;
+
+		file_open(file_pointer, log_file, append_mode);
+
+		write(file_line, string'( "PHY Init Test"));
+		writeline(file_pointer, file_line);
+
+		for i in 0 to NUM_TEST-1 loop
+
+			reset;
+
+			wait on InitializationCompleted_tb;
+
+			verify(file_pointer, pass);
+
+			num_pass := num_pass + pass;
+
+			for j in 0 to i loop
+				wait until ((clk_tb'event) and (clk_tb = '1'));
+			end loop;
+		end loop;
+
+		file_close(file_pointer);
+
+		file_open(file_pointer, summary_file, append_mode);
+		write(file_line, string'( "PHY Init => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST)));
+		writeline(file_pointer, file_line);
+
+		file_close(file_pointer);
+		stop <= true;
+
+	end process test;
+
+end bench;

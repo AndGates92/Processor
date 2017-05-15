@@ -2,13 +2,24 @@ VCOM = vcom
 VCOM_OPT = -quiet -explicit -O0 -93
 VCOM_WORK = -work
 
-WORK_DIR = ./work
+ROOT_DIR = .
+SRC_DIR = ${ROOT_DIR}/src
+RTL_DIR = ${SRC_DIR}/rtl
+RTL_PKG_DIR = ${SRC_DIR}/pkg
+RTL_CFG_DIR = ${SRC_DIR}/cfg
+
+VERIF_DIR = ${ROOT_DIR}/verif
+VERIF_TB_DIR = ${VERIF_DIR}/tb
+VERIF_PKG_DIR = ${VERIF_DIR}/pkg
+VERIF_MODELS_DIR = ${VERIF_DIR}/models
+
+WORK_DIR = ${ROOT_DIR}/work
 GHDL = ghdl
 GHDL_ARGS = -g --workdir=${WORK_DIR}
 GHDL_RUN_ARGS = --vcd=
 
-LOG_FILE = work/summary.log
-SUMMARY_FILE = work/summary
+LOG_FILE = ${WORK_DIR}/summary.log
+SUMMARY_FILE = ${WORK_DIR}/summary
 
 WAVE_READER = gtkwave
 
@@ -34,60 +45,60 @@ work_dir:
 	mkdir -p ${WORK_DIR}
 
 libraries: 
-	@echo "Analysing proc_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} proc_pkg.vhd
-	@echo "Analysing bram_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_pkg.vhd
-	@echo "Analysing mem_model_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} mem_model_pkg.vhd
-	@echo "Analysing ddr2_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ddr2_pkg.vhd
-	@echo "Analysing ddr2_phy_init_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ddr2_phy_init_pkg.vhd
-	@echo "Analysing ddr2_phy_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ddr2_phy_pkg.vhd
-	@echo "Analysing ddr2_model_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ddr2_model_pkg.vhd
-	@echo "Analysing alu_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} alu_pkg.vhd
-	@echo "Analysing ctrl_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ctrl_pkg.vhd
-	@echo "Analysing reg_file_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} reg_file_pkg.vhd
-	@echo "Analysing decode_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} decode_pkg.vhd
-	@echo "Analysing execute_dcache_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} execute_dcache_pkg.vhd
-	@echo "Analysing execute_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} execute_pkg.vhd
-	@echo "Analysing icache_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} icache_pkg.vhd
-	@echo "Analysing dcache_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} dcache_pkg.vhd
-	@echo "Analysing fifo_1clk_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_1clk_pkg.vhd
-	@echo "Analysing fifo_2clk_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_2clk_pkg.vhd
-	@echo "Analysing tb_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} tb_pkg.vhd
-	@echo "Analysing alu_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} alu_pkg_tb.vhd
-	@echo "Analysing reg_file_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} reg_file_pkg_tb.vhd
-	@echo "Analysing fifo_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_pkg_tb.vhd
-	@echo "Analysing ctrl_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ctrl_pkg_tb.vhd
-	@echo "Analysing execute_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} execute_pkg_tb.vhd
-	@echo "Analysing decode_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} decode_pkg_tb.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/proc_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/proc_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/bram_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/bram_pkg.vhd
+	@echo "Analysing ${VERIF_PKG_DIR}/mem_model_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/mem_model_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/ddr2_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ddr2_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/ddr2_phy_init_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ddr2_phy_init_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/ddr2_phy_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ddr2_phy_pkg.vhd
+	@echo "Analysing ${VERIF_PKG_DIR}/ddr2_model_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/ddr2_model_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/alu_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/alu_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/ctrl_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ctrl_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/reg_file_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/reg_file_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/decode_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/decode_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/execute_dcache_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/execute_dcache_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/execute_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/execute_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/icache_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/icache_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/dcache_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/dcache_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/fifo_1clk_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/fifo_1clk_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/fifo_2clk_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/fifo_2clk_pkg.vhd
+	@echo "Analysing ${VERIF_PKG_DIR}/tb_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/tb_pkg.vhd
+	@echo "Analysing ${VERIF_PKG_DIR}/alu_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/alu_pkg_tb.vhd
+	@echo "Analysing ${VERIF_PKG_DIR}/reg_file_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/reg_file_pkg_tb.vhd
+	@echo "Analysing ${VERIF_PKG_DIR}/fifo_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/fifo_pkg_tb.vhd
+	@echo "Analysing ${VERIF_PKG_DIR}/ctrl_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/ctrl_pkg_tb.vhd
+	@echo "Analysing ${VERIF_PKG_DIR}/execute_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/execute_pkg_tb.vhd
+	@echo "Analysing ${VERIF_PKG_DIR}/decode_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/decode_pkg_tb.vhd
 
 reg_file: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/reg_file_pkg.o
-	@echo "Analysing reg_file.vhd"
-	${GHDL} -a ${GHDL_ARGS} reg_file.vhd
-	@echo "Analysing reg_file_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} reg_file_tb.vhd
+	@echo "Analysing ${RTL_DIR}/reg_file.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/reg_file.vhd
+	@echo "Analysing ${VERIF_TB_DIR}reg_file_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/reg_file_tb.vhd
 	@echo "Elaborating reg_file_tb"
 	${GHDL} -e ${GHDL_ARGS} reg_file_tb
 	rm -r e~reg_file_tb.o
@@ -103,10 +114,10 @@ reg_file_all:
 	make simulate_reg_file
 
 alu: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg_tb.o ${WORK_DIR}/alu_pkg.o
-	@echo "Analysing alu.vhd"
-	${GHDL} -a ${GHDL_ARGS} alu.vhd
-	@echo "Analysing alu_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} alu_tb.vhd
+	@echo "Analysing ${RTL_DIR}/alu.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/alu.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/alu_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/alu_tb.vhd
 	@echo "Elaborating alu_tb"
 	${GHDL} -e ${GHDL_ARGS} alu_tb
 	rm -r e~alu_tb.o
@@ -122,12 +133,12 @@ alu_all:
 	make simulate_alu
 
 mul: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o
-	@echo "Analysing mul.vhd"
-	${GHDL} -a ${GHDL_ARGS} mul.vhd
-	@echo "Analysing mul_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} mul_tb.vhd
-	@echo "Analysing mul_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} mul_cfg.vhd
+	@echo "Analysing ${RTL_DIR}/mul.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/mul.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/mul_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/mul_tb.vhd
+	@echo "Analysing ${RTL_CFG_DIR}/mul_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_CFG_DIR}/mul_cfg.vhd
 	@echo "Elaborating mul_cfg"
 	${GHDL} -e ${GHDL_ARGS} config_mul
 	rm -r e~config_mul.o
@@ -144,12 +155,12 @@ mul_all:
 
 
 div: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o
-	@echo "Analysing div.vhd"
-	${GHDL} -a ${GHDL_ARGS} div.vhd
-	@echo "Analysing div_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} div_tb.vhd
-	@echo "Analysing div_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} div_cfg.vhd
+	@echo "Analysing ${RTL_DIR}/div.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/div.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/div_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/div_tb.vhd
+	@echo "Analysing ${RTL_CFG_DIR}/div_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_CFG_DIR}/div_cfg.vhd
 	@echo "Elaborating div_cfg"
 	${GHDL} -e ${GHDL_ARGS} config_div
 	rm -r e~config_div.o
@@ -165,10 +176,10 @@ div_all:
 	make simulate_div
 
 decode_stage: ${WORK_DIR}/decode_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o
-	@echo "Analysing decode.vhd"
-	${GHDL} -a ${GHDL_ARGS} decode.vhd
-	@echo "Analysing decode_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} decode_tb.vhd
+	@echo "Analysing ${RTL_DIR}/decode.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/decode.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/decode_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/decode_tb.vhd
 	@echo "Elaborating decode_stage_tb"
 	${GHDL} -e ${GHDL_ARGS} decode_stage_tb
 	rm -r e~decode_stage_tb.o
@@ -184,10 +195,10 @@ decode_stage_all:
 	make simulate_decode_stage
 
 ctrl: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o
-	@echo "Analysing ctrl.vhd"
-	${GHDL} -a ${GHDL_ARGS} ctrl.vhd
-	@echo "Analysing ctrl_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ctrl_tb.vhd
+	@echo "Analysing ${RTL_DIR}/ctrl.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/ctrl.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/ctrl_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ctrl_tb.vhd
 	@echo "Elaborating ctrl_tb"
 	${GHDL} -e ${GHDL_ARGS} ctrl_tb
 	rm -r e~ctrl_tb.o
@@ -203,24 +214,24 @@ ctrl_all:
 	make simulate_ctrl
 
 execute: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/execute_pkg_tb.o ${WORK_DIR}/reg_file_pkg_tb.o ${WORK_DIR}/alu_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_pkg.o
-	@echo "Analysing alu.vhd"
-	${GHDL} -a ${GHDL_ARGS} alu.vhd
-	@echo "Analysing mul.vhd"
-	${GHDL} -a ${GHDL_ARGS} mul.vhd
-	@echo "Analysing div.vhd"
-	${GHDL} -a ${GHDL_ARGS} div.vhd
-	@echo "Analysing reg_file.vhd"
-	${GHDL} -a ${GHDL_ARGS} reg_file.vhd
-	@echo "Analysing mem_model.vhd"
-	${GHDL} -a ${GHDL_ARGS} mem_model.vhd
-	@echo "Analysing ctrl.vhd"
-	${GHDL} -a ${GHDL_ARGS} ctrl.vhd
-	@echo "Analysing execute.vhd"
-	${GHDL} -a ${GHDL_ARGS} execute.vhd
-	@echo "Analysing execute_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} execute_tb.vhd
-	@echo "Analysing execute_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} execute_cfg.vhd
+	@echo "Analysing ${RTL_DIR}/alu.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/alu.vhd
+	@echo "Analysing ${RTL_DIR}/mul.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/mul.vhd
+	@echo "Analysing ${RTL_DIR}/div.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/div.vhd
+	@echo "Analysing ${RTL_DIR}/reg_file.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/reg_file.vhd
+	@echo "Analysing ${VERIF_MODELS_DIR}/mem_model.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_MODELS_DIR}/mem_model.vhd
+	@echo "Analysing ${RTL_DIR}/ctrl.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/ctrl.vhd
+	@echo "Analysing ${RTL_DIR}/execute.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/execute.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/execute_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/execute_tb.vhd
+	@echo "Analysing ${RTL_CFG_DIR}/execute_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_CFG_DIR}/execute_cfg.vhd
 	@echo "Elaborating execute_cfg"
 	${GHDL} -e ${GHDL_ARGS} config_execute
 	rm -r e~config_execute.o
@@ -236,18 +247,18 @@ execute_all:
 	make simulate_execute
 
 icache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/execute_pkg.o
-	@echo "Analysing bram_1port.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
-	@echo "Analysing bram_2port.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_2port.vhd
-	@echo "Analysing bram_rst.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_rst.vhd
-	@echo "Analysing icache.vhd"
-	${GHDL} -a ${GHDL_ARGS} icache.vhd
-	@echo "Analysing icache_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} icache_tb.vhd
-	@echo "Analysing icache_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} icache_cfg.vhd
+	@echo "Analysing ${RTL_DIR}/bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_1port.vhd
+	@echo "Analysing ${RTL_DIR}/bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_2port.vhd
+	@echo "Analysing ${RTL_DIR}/bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_rst.vhd
+	@echo "Analysing ${RTL_DIR}/icache.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/icache.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/icache_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/icache_tb.vhd
+	@echo "Analysing ${RTL_CFG_DIR}/icache_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_CFG_DIR}/icache_cfg.vhd
 	@echo "Elaborating icache_cfg"
 	${GHDL} -e ${GHDL_ARGS} config_icache
 	rm -r e~config_icache.o
@@ -263,18 +274,18 @@ icache_all:
 	make simulate_icache
 
 dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/execute_pkg.o
-	@echo "Analysing bram_1port.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
-	@echo "Analysing bram_2port.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_2port.vhd
-	@echo "Analysing bram_rst.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_rst.vhd
-	@echo "Analysing dcache.vhd"
-	${GHDL} -a ${GHDL_ARGS} dcache.vhd
-	@echo "Analysing dcache_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} dcache_tb.vhd
-	@echo "Analysing dcache_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} dcache_cfg.vhd
+	@echo "Analysing ${RTL_DIR}/bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_1port.vhd
+	@echo "Analysing ${RTL_DIR}/bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_2port.vhd
+	@echo "Analysing ${RTL_DIR}/bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_rst.vhd
+	@echo "Analysing ${RTL_DIR}/dcache.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/dcache.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/dcache_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/dcache_tb.vhd
+	@echo "Analysing ${RTL_CFG_DIR}/dcache_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_CFG_DIR}/dcache_cfg.vhd
 	@echo "Elaborating dcache_cfg"
 	${GHDL} -e ${GHDL_ARGS} config_dcache
 	rm -r e~config_dcache.o
@@ -290,32 +301,32 @@ dcache_all:
 	make simulate_dcache
 
 execute_dcache: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/execute_pkg_tb.o ${WORK_DIR}/reg_file_pkg_tb.o ${WORK_DIR}/alu_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/mem_model_pkg.o ${WORK_DIR}/execute_dcache_pkg.o
-	@echo "Analysing alu.vhd"
-	${GHDL} -a ${GHDL_ARGS} alu.vhd
-	@echo "Analysing mul.vhd"
-	${GHDL} -a ${GHDL_ARGS} mul.vhd
-	@echo "Analysing div.vhd"
-	${GHDL} -a ${GHDL_ARGS} div.vhd
-	@echo "Analysing reg_file.vhd"
-	${GHDL} -a ${GHDL_ARGS} reg_file.vhd
-	@echo "Analysing bram_rst.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_rst.vhd
-	@echo "Analysing bram_1port.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
-	@echo "Analysing bram_2port.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_2port.vhd
-	@echo "Analysing dcache.vhd"
-	${GHDL} -a ${GHDL_ARGS} dcache.vhd
-	@echo "Analysing mem_model.vhd"
-	${GHDL} -a ${GHDL_ARGS} mem_model.vhd
-	@echo "Analysing ctrl.vhd"
-	${GHDL} -a ${GHDL_ARGS} ctrl.vhd
-	@echo "Analysing execute_dcache.vhd"
-	${GHDL} -a ${GHDL_ARGS} execute_dcache.vhd
-	@echo "Analysing execute_dcache_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} execute_dcache_tb.vhd
-	@echo "Analysing execute_dcache_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} execute_dcache_cfg.vhd
+	@echo "Analysing ${RTL_DIR}/alu.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/alu.vhd
+	@echo "Analysing ${RTL_DIR}/mul.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/mul.vhd
+	@echo "Analysing ${RTL_DIR}/div.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/div.vhd
+	@echo "Analysing ${RTL_DIR}/reg_file.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/reg_file.vhd
+	@echo "Analysing ${RTL_DIR}/bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_rst.vhd
+	@echo "Analysing ${RTL_DIR}/bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_1port.vhd
+	@echo "Analysing ${RTL_DIR}/bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_2port.vhd
+	@echo "Analysing ${RTL_DIR}/dcache.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/dcache.vhd
+	@echo "Analysing ${VERIF_MODELS_DIR}/mem_model.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_MODELS_DIR}/mem_model.vhd
+	@echo "Analysing ${RTL_DIR}/ctrl.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/ctrl.vhd
+	@echo "Analysing ${RTL_DIR}/execute_dcache.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/execute_dcache.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/execute_dcache_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/execute_dcache_tb.vhd
+	@echo "Analysing ${RTL_CFG_DIR}/execute_dcache_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_CFG_DIR}/execute_dcache_cfg.vhd
 	@echo "Elaborating execute_dcache_cfg"
 	${GHDL} -e ${GHDL_ARGS} config_execute_dcache
 	rm -r e~config_execute_dcache.o
@@ -331,18 +342,18 @@ execute_dcache_all:
 	make simulate_execute_dcache
 
 fifo_1clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o
-	@echo "Analysing bram_1port.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
-	@echo "Analysing bram_2port.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_2port_sim.vhd
-	@echo "Analysing bram_rst.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_rst.vhd
-	@echo "Analysing fifo_1clk.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_1clk.vhd
-	@echo "Analysing fifo_1pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_1clk_tb.vhd
-	@echo "Analysing fifo_1clk_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_1clk_cfg.vhd
+	@echo "Analysing ${RTL_DIR}/bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_1port.vhd
+	@echo "Analysing ${RTL_DIR}/bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_2port_sim.vhd
+	@echo "Analysing ${RTL_DIR}/bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_rst.vhd
+	@echo "Analysing ${RTL_DIR}/fifo_1clk.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/fifo_1clk.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/fifo_1pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/fifo_1clk_tb.vhd
+	@echo "Analysing ${RTL_CFG_DIR}/fifo_1clk_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_CFG_DIR}/fifo_1clk_cfg.vhd
 	@echo "Elaborating fifo_1clk_cfg"
 	${GHDL} -e ${GHDL_ARGS} config_fifo_1clk
 	rm -r e~config_fifo_1clk.o
@@ -358,22 +369,22 @@ fifo_1clk_all:
 	make simulate_fifo_1clk
 
 fifo_2clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o
-	@echo "Analysing bram_1port.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_1port.vhd
-	@echo "Analysing bram_2port.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_2port_sim.vhd
-	@echo "Analysing bram_rst.vhd"
-	${GHDL} -a ${GHDL_ARGS} bram_rst.vhd
-	@echo "Analysing gray_cnt.vhd"
-	${GHDL} -a ${GHDL_ARGS} gray_cnt.vhd
-	@echo "Analysing fifo_ctrl.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_ctrl.vhd
-	@echo "Analysing fifo_2clk.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_2clk.vhd
-	@echo "Analysing fifo_2pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_2clk_tb.vhd
-	@echo "Analysing fifo_2clk_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} fifo_2clk_cfg.vhd
+	@echo "Analysing ${RTL_DIR}/bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_1port.vhd
+	@echo "Analysing ${RTL_DIR}/bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_2port_sim.vhd
+	@echo "Analysing ${RTL_DIR}/bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/bram_rst.vhd
+	@echo "Analysing ${RTL_DIR}/gray_cnt.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/gray_cnt.vhd
+	@echo "Analysing ${RTL_DIR}/fifo_ctrl.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/fifo_ctrl.vhd
+	@echo "Analysing ${RTL_DIR}/fifo_2clk.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/fifo_2clk.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/fifo_2pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/fifo_2clk_tb.vhd
+	@echo "Analysing ${RTL_CFG_DIR}/fifo_2clk_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_CFG_DIR}/fifo_2clk_cfg.vhd
 	@echo "Elaborating fifo_2clk_cfg"
 	${GHDL} -e ${GHDL_ARGS} config_fifo_2clk
 	rm -r e~config_fifo_2clk.o
@@ -389,10 +400,10 @@ fifo_2clk_all:
 	make simulate_fifo_2clk
 
 ddr2_phy_init: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/ddr2_phy_init_pkg.o ${WORK_DIR}/ddr2_pkg.o
-	@echo "Analysing ddr2_phy_init.vhd"
-	${GHDL} -a ${GHDL_ARGS} ddr2_phy_init.vhd
-	@echo "Analysing ddr2_phy_init_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ddr2_phy_init_tb.vhd
+	@echo "Analysing ${RTL_DIR}/ddr2_phy_init.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/ddr2_phy_init.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_init_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ddr2_phy_init_tb.vhd
 	@echo "Elaborating ddr2_phy_init_tb"
 	${GHDL} -e ${GHDL_ARGS} ddr2_phy_init_tb
 	rm -r e~ddr2_phy_init_tb.o
