@@ -86,7 +86,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable read: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable bl, delay: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable read_burst: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable bl, delay: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 			variable num_bursts_int	: integer;
 			variable bl_int		: integer;
@@ -110,13 +110,13 @@ begin
 				uniform(seed1, seed2, rand_val);
 				delay(i) := integer(rand_val)*MAX_BURST_DELAY;
 				uniform(seed1, seed2, rand_val);
-				read(i) := rand_bool(rand_val);
+				read_burst(i) := rand_bool(rand_val);
 			end loop;
 			for i in num_bursts to (MAX_OUTSTANDING_BURSTS - 1) loop
 				rows(i) := int_arr_def;
 				bl(i) := int_arr_def;
 				delay(i) := int_arr_def;
-				read(i) := false;
+				read_burst(i) := false;
 			end loop;
 		end procedure test_param;
 

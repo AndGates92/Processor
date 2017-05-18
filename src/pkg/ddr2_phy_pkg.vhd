@@ -17,8 +17,8 @@ package ddr2_phy_pkg is
 	constant IDLE_MEM		: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_PHY_L));
 	constant OUTPUT_MEM		: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_PHY_L));
 	constant RESET			: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_PHY_L));
-	constant WRITE			: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_PHY_L));
-	constant READ			: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_PHY_L));
+	constant WRITE_BURST		: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_PHY_L));
+	constant READ_BURST		: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_PHY_L));
 	constant PRECHARGE_ALL		: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_PHY_L));
 	constant WRITE_PRECHARGE	: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_PHY_L));
 	constant READ_PRECHARGE		: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_PHY_L));

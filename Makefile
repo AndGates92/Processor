@@ -421,7 +421,7 @@ ddr2_phy_init_all:
 	make ddr2_phy_init
 	make simulate_ddr2_phy_init
 
-ddr2_phy_bank_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_pkg.o
+ddr2_phy_bank_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_pkg.o
 	@echo "Analysing ${RTL_DIR}/ddr2_phy_bank_ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/ddr2_phy_bank_ctrl.vhd
 	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_bank_ctrl_tb.vhd"
@@ -431,7 +431,7 @@ ddr2_phy_bank_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/ddr2
 	rm -r e~ddr2_phy_bank_ctrl_tb.o
 	mv ddr2_phy_bank_ctrl_tb ${WORK_DIR}
 
-simulate_ddr2_phy_bank_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl.o  ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl_tb.o
+simulate_ddr2_phy_bank_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl.o  ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_bank_ctrl_tb ${GHDL_RUN_ARGS}ddr2_phy_bank_ctrl.vcd
 
 ddr2_phy_bank_ctrl_all:
