@@ -17,7 +17,7 @@ architecture bench of div_tb is
 
 	constant CLK_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
 	constant NUM_TEST	: integer := 10000;
-	constant NUM_EXTRA_TEST	: integer := 3;
+	constant NUM_EXTRA_TEST	: integer := 4;
 	constant TOT_NUM_TEST	: integer := NUM_TEST + NUM_EXTRA_TEST;
 
 	signal clk_tb	: std_logic := '0';
@@ -87,11 +87,11 @@ begin
 			variable Op1_in, Op2_in	: integer;
 			variable rand_val, sign_val	: real;
 		begin
-			uniform(seed1, seed2, rand_val);
-			uniform(seed1, seed2, sign_val);
+			rand_val := rand_num(seed1, seed2);
+			sign_val := rand_num(seed1, seed2);
 			Op1_in := integer(rand_sign(sign_val)*rand_val*(2.0**(real(OP1_L_TB) - 1.0) - 1.0));
-			uniform(seed1, seed2, rand_val);
-			uniform(seed1, seed2, sign_val);
+			rand_val := rand_num(seed1, seed2);
+			sign_val := rand_num(seed1, seed2);
 			Op2_in := integer(rand_sign(sign_val)*rand_val*(2.0**(real(OP2_L_TB) - 1.0) - 1.0));
 
 			Op1_tb <= std_logic_vector(to_signed(Op1_in, OP1_L_TB));
@@ -199,7 +199,7 @@ begin
 			wait until ((clk_tb'event) and (clk_tb = '1'));
 		end loop;
 
-		for i in 0 to NUM_EXTRA_TEST loop
+		for i in 0 to (NUM_EXTRA_TEST-1) loop
 			push_op_fix(Op1_int, Op2_int, dvd(i), dvs(i));
 
 			wait on Done_tb;

@@ -84,25 +84,36 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable bl: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable read: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable bl, delay: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 		begin
-			uniform(seed1, seed2, rand_val);
-			num_bursts := integer(rand_val*MAX_OUTSTANDING_BURSTS);
+			num_burst := 0;
+			while (num_bursts = 0) loop
+				rand_val := rand_num(seed1, seed2);
+				num_bursts := integer(rand_val*MAX_OUTSTANDING_BURSTS);
+			end loop;
 
 			for i in 0 to (num_bursts - 1) loop
-				uniform(seed1, seed2, rand_val);
+				rand_val := rand_num(seed1, seed2);
 				rows(i) := integer(rand_val*(2.0**(real(ROW_L)) - 1.0));
-				uniform(seed1, seed2, rand_val);
-				bl(i) := integer(rand_val*(2.0**(real(COL_L)) - 1.0));
+				bl(i) := 0;
+				while (bl(i) = 0) loop
+					rand_val := rand_num(seed1, seed2);
+					bl(i) := integer(rand_val*(2.0**(real(COL_L)) - 1.0));
+				end while;
+				rand_val := rand_num(seed1, seed2);
+				delay(i) := integer(rand_val*MAX_BURST_DELAY);
+				read(i) := rand_bool(rand_num(seed1, seed2));
 			end loop;
 			for i in num_bursts to (MAX_OUTSTANDING_BURSTS - 1) loop
 				rows(i) := int_arr_def;
 				bl(i) := int_arr_def;
+				delay(i) := int_arr_def;
+				read(i) := false;
 			end loop;
 		end procedure test_param;
 
-		procedure verify(variable num_bursts_exp, num_bursts_rtl: in integer; variable rows_arr_exp, rows_arr_rtl : in int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); file file_pointer : text; variable pass: out integer;) is
+		procedure verify(variable num_bursts_exp, num_bursts_rtl: in integer; variable err_arr, rows_arr_exp, rows_arr_rtl : in int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); file file_pointer : text; variable pass: out integer;) is
 			variable match_rows	: boolean;
 			variable file_line	: line;
 		begin
@@ -155,6 +166,8 @@ begin
 		variable rows_arr_rtl	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
 
 		variable bl_arr		: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
+		variable delay_arr	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
+		variable err_arr	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
 
 		variable pass	: integer;
 		variable num_pass	: integer;
@@ -176,11 +189,11 @@ begin
 
 		for i in 0 to NUM_TEST-1 loop
 
-			test_param(num_bursts_exp, rows_arr_exp, bl_arr, seed1, seed2);
+			test_param(num_bursts_exp, rows_arr_exp, read_arr, bl_arr, delay_arr, seed1, seed2);
 
-			run_bank_ctrl(num_bursts_exp, rows_arr_exp, bl_arr, num_bursts_rtl, rows_arr_rtl, seed1, seed2);
+			run_bank_ctrl(num_bursts_exp, delay_arr, rows_arr_exp, bl_arr, read_arr, num_bursts_rtl, rows_arr_rtl, seed1, seed2);
 
-			verify(num_bursts_exp, num_bursts_rtl, rows_arr_exp, rows_arr_rtl, file_pointer, pass);
+			verify(num_bursts_exp, num_bursts_rtl,   rows_arr_exp, rows_arr_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 

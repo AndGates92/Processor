@@ -18,6 +18,7 @@ architecture bench of mul_tb is
 	constant CLK_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
 	constant NUM_TEST	: integer := 10000;
 	constant NUM_EXTRA_TEST	: integer := 3;
+	constant TOT_NUM_TEST	: integer := NUM_TEST + NUM_EXTRA_TEST;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;
@@ -83,11 +84,11 @@ begin
 			variable Op1_in, Op2_in	: integer;
 			variable rand_val, sign_val	: real;
 		begin
-			uniform(seed1, seed2, rand_val);
-			uniform(seed1, seed2, sign_val);
+			rand_val := rand_num(seed1, seed2);
+			sign_val := rand_num(seed1, seed2);
 			Op1_in := integer(rand_sign(sign_val)*rand_val*(2.0**(real(OP1_L_TB) - 1.0) - 1.0));
-			uniform(seed1, seed2, rand_val);
-			uniform(seed1, seed2, sign_val);
+			rand_val := rand_num(seed1, seed2);
+			sign_val := rand_num(seed1, seed2);
 			Op2_in := integer(rand_sign(sign_val)*rand_val*(2.0**(real(OP2_L_TB) - 1.0) - 1.0));
 
 			Op1_tb <= std_logic_vector(to_signed(Op1_in, OP1_L_TB));

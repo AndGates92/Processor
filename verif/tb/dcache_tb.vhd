@@ -110,7 +110,7 @@ begin
 			variable rand_val	: real;
 		begin
 
-			uniform(seed1, seed2, rand_val);
+			rand_val := rand_num(seed1, seed2);
 			address_full := integer(rand_val*(2.0**(real(ADDR_MEM_L_TB)) - 1.0));
 			address_full_vec := std_logic_vector(to_unsigned(address_full, ADDR_MEM_L_TB));
 			Address_tb <= std_logic_vector(to_unsigned(address_full, ADDR_MEM_L_TB));
@@ -118,12 +118,12 @@ begin
 			address_bram_vec := address_full_vec(ADDR_BRAM_L + INCR_PC_L - 1 downto INCR_PC_L);
 			address_bram := to_integer(unsigned(address_bram_vec));
 
-			uniform(seed1, seed2, rand_val);
+			rand_val := rand_num(seed1, seed2);
 			data_in_in := integer(rand_val*(2.0**(real(DATA_L)) - 1.0));
 			data_in_int := data_in_in;
 			DataIn_tb <= std_logic_vector(to_unsigned(data_in_in, DATA_L));
 
-			uniform(seed1, seed2, rand_val);
+			rand_val := rand_num(seed1, seed2);
 			read_in := rand_bool(rand_val);
 			read_bool := read_in;
 			Read_tb <= bool_to_std_logic(read_in);
@@ -144,7 +144,7 @@ begin
 			variable rand_val	: real;
 		begin
 
-			uniform(seed1, seed2, rand_val);
+			rand_val := rand_num(seed1, seed2);
 			DValidCacheOut_mem := DValidCacheIn_mem;
 			DAddrCacheOut_mem := DAddrCacheIn_mem;
 			DDirtyCacheOut_mem := DDirtyCacheIn_mem;

@@ -4,9 +4,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.alu_pkg.all;
-use work.ctrl_pkg.all;
-use work.decode_pkg.all;
+--use work.alu_pkg.all;
+--use work.ctrl_pkg.all;
+--use work.decode_pkg.all;
 use work.proc_pkg.all;
 
 package tb_pkg is 
@@ -24,10 +24,11 @@ package tb_pkg is
 	constant int_arr_def	: integer := integer'high;
 
 	type int_arr is array(integer range <>) of integer;
+	type bool_arr is array(integer range <>) of boolean;
 
 	procedure clk_gen (constant PERIOD : in time; constant PHASE : in time; signal stop : in boolean; signal clk : out std_logic);
 
-	function rand_num return real;
+	function rand_num(seed1, seed2 : positive) return real;
 	function max_time(time1, time2 : time) return time;
 	function rand_bool(rand_val : real) return boolean;
 	function rand_sign(sign_val : real) return real;
@@ -57,11 +58,13 @@ package body tb_pkg is
 
 	end procedure clk_gen;
 
-	function rand_num return real is
-		variable seed1, seed2	: positive;
-		variable rand_val	: real;
+	function rand_num(seed1, seed2 : positive) return real is
+		variable seed1_var, seed2_var	: positive;
+		variable rand_val		: real;
 	begin
-		uniform(seed1, seed2, rand_val);
+		seed1_var := seed1;
+		seed2_var := seed2;
+		uniform(seed1_var, seed2_var, rand_val);
 		return rand_val;
 	end function;
 
