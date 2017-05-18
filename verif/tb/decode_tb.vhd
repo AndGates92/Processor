@@ -111,43 +111,43 @@ begin
 			variable Instr_vec	: std_logic_vector(INSTR_L - 1 downto 0);
 			variable ALU_func_vec	: std_logic_vector(CMD_ALU_L - 1 downto 0);
 		begin
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			StatusReg_in := integer(rand_val*(2.0**(real(STAT_REG_L_TB)) - 1.0));
 			StatusRegIn_tb <= std_logic_vector(to_unsigned(StatusReg_in, STAT_REG_L_TB));
 			StatusReg := std_logic_vector(to_unsigned(StatusReg_in, STAT_REG_L_TB));
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			PCIn_in := integer(rand_val*(2.0**(real(PC_L_TB)) - 1.0));
 			PCIn_tb <= std_logic_vector(to_unsigned(PCIn_in, PC_L_TB));
 			PCIn_int := PCIn_in;
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			OpCode_in := integer(rand_val*(2.0**(real(OP_CODE_L)) - 1.0));
 			OpCode_vec := std_logic_vector(to_unsigned(OpCode_in, OP_CODE_L));
 			OpCode := std_logic_vector(to_unsigned(OpCode_in, OP_CODE_L));
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			AddressIn_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB)))- 1.0));
 			AddressIn_vec := std_logic_vector(to_unsigned(AddressIn_in, int_to_bit_num(REG_NUM_TB)));
 			AddressIn_int := AddressIn_in;
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			AddressOut1_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB)))- 1.0));
 			AddressOut1_vec := std_logic_vector(to_unsigned(AddressOut1_in, int_to_bit_num(REG_NUM_TB)));
 			AddressOut1_int := AddressOut1_in;
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			AddressOut2_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB)))- 1.0));
 			AddressOut2_vec := std_logic_vector(to_unsigned(AddressOut2_in, int_to_bit_num(REG_NUM_TB)));
 			AddressOut2_int := AddressOut2_in;
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			ALU_func_in := integer(rand_val*(2.0**(real(CMD_ALU_L))- 1.0));
 			ALU_func_vec := std_logic_vector(to_unsigned(ALU_func_in, CMD_ALU_L));
 			ALU_func := ALU_func_vec;
 
 			if ((OpCode_vec = OP_CODE_MOV_I) or (OpCode_vec = OP_CODE_RD_S) or (OpCode_vec = OP_CODE_RD_M)) then
-				rand_val := rand_num(seed1, seed2);
+				uniform(seed1, seed2, rand_val);
 				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L - OP_CODE_L - int_to_bit_num(REG_NUM_TB))) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, DATA_L));
 				Immediate_int := Immediate_in;
@@ -157,7 +157,7 @@ begin
 				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 1;
 			elsif (OpCode_vec = OP_CODE_JUMP) or (OpCode_vec = OP_CODE_CALL) or (OpCode_vec = OP_CODE_BRE) or (OpCode_vec = OP_CODE_BRL) or (OpCode_vec = OP_CODE_BRG) or (OpCode_vec = OP_CODE_BRNE) then
-				rand_val := rand_num(seed1, seed2);
+				uniform(seed1, seed2, rand_val);
 				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L - OP_CODE_L)) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, DATA_L));
 				Immediate_int := Immediate_in;
@@ -168,7 +168,7 @@ begin
 				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 0;
 			elsif (OpCode_vec = OP_CODE_WR_S) or (OpCode_vec = OP_CODE_WR_M) then
-				rand_val := rand_num(seed1, seed2);
+				uniform(seed1, seed2, rand_val);
 				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L - OP_CODE_L - int_to_bit_num(REG_NUM_TB))) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, DATA_L));
 				Immediate_int := Immediate_in;
@@ -193,7 +193,7 @@ begin
 				ALU_func := std_logic_vector(to_unsigned(0, CMD_ALU_L));
 				EnableRegFile_int := 1;
 			elsif (OpCode_vec = OP_CODE_ALU_I) then
-				rand_val := rand_num(seed1, seed2);
+				uniform(seed1, seed2, rand_val);
 				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L - OP_CODE_L - 2*int_to_bit_num(REG_NUM_TB) - CMD_ALU_L)) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, DATA_L));
 				Immediate_int := Immediate_in;
@@ -201,7 +201,7 @@ begin
 				AddressOut2_int := 0;
 				EnableRegFile_int := 2 + 1;
 			elsif (OpCode_vec = OP_CODE_ALU_R) then
-				rand_val := rand_num(seed1, seed2);
+				uniform(seed1, seed2, rand_val);
 				Immediate_in := integer(rand_val*(2.0**(real(INSTR_L - OP_CODE_L - 3*int_to_bit_num(REG_NUM_TB) - CMD_ALU_L)) - 1.0));
 				Immediate_vec := std_logic_vector(to_unsigned(Immediate_in, DATA_L));
 				Immediate_int := Immediate_in;

@@ -97,7 +97,7 @@ begin
 			variable rand_val	: real;
 		begin
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			address_full := integer(rand_val*(2.0**(real(ADDR_MEM_L_TB)) - 1.0));
 			address_full_vec := std_logic_vector(to_unsigned(address_full, ADDR_MEM_L_TB));
 			Address_tb <= std_logic_vector(to_unsigned(address_full, ADDR_MEM_L_TB));
@@ -119,7 +119,7 @@ begin
 			variable rand_val	: real;
 		begin
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			IValidCacheOut_mem := IValidCacheIn_mem;
 			IAddrCacheOut_mem := IAddrCacheIn_mem;
 			ICacheOut_mem := ICacheIn_mem;

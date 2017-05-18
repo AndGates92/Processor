@@ -147,13 +147,13 @@ begin
 
 		begin
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			DataIn_in := integer(rand_val*(2.0**(real(DATA_L_TB)) - 1.0));
 			DataIn_tb <= std_logic_vector(to_unsigned(DataIn_in, DATA_L_TB));
 			DataIn_int := DataIn_in;
 
 			if (full_tb = '0') then
-				rand_val := rand_num(seed1, seed2);
+				uniform(seed1, seed2, rand_val);
 				En_wr_in := rand_bool(rand_val);
 				En_wr_tb <= bool_to_std_logic(En_wr_in), '0' after CLK_WR_PERIOD;
 				En_wr_bool := En_wr_in;
@@ -163,7 +163,7 @@ begin
 			end if;
 
 			if (empty_tb = '0') then
-				rand_val := rand_num(seed1, seed2);
+				uniform(seed1, seed2, rand_val);
 				En_rd_in := rand_bool(rand_val);
 				En_rd_tb <= bool_to_std_logic(En_rd_in), '0' after CLK_RD_PERIOD;
 				En_rd_bool := En_rd_in;

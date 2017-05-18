@@ -191,34 +191,34 @@ begin
 			variable rand_val	: real;
 		begin
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			CtrlCmd_in := integer(rand_val*(2.0**(real(CTRL_CMD_L)) - 1.0));
 			CtrlCmd_tb <= std_logic_vector(to_unsigned(CtrlCmd_in, CTRL_CMD_L));
 			CtrlCmd_vec := std_logic_vector(to_unsigned(CtrlCmd_in, CTRL_CMD_L));
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			EnableRegFile_in := integer(rand_val*(2.0**(real(EN_REG_FILE_L_TB)) - 1.0));
 			EnableRegFile_In_tb <= std_logic_vector(to_unsigned(EnableRegFile_in, EN_REG_FILE_L_TB));
 			EnableRegFile_vec := std_logic_vector(to_unsigned(EnableRegFile_in, EN_REG_FILE_L_TB));
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			CmdALU_in := integer(rand_val*(2.0**(real(CMD_ALU_L)) - 1.0));
 			CmdALU_In_tb <= std_logic_vector(to_unsigned(CmdALU_in, CMD_ALU_L));
 			CmdALU_vec := std_logic_vector(to_unsigned(CmdALU_in, CMD_ALU_L));
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			Immediate_in := integer(rand_val*(2.0**(real(DATA_L)) - 1.0));
 			Immediate_tb <= std_logic_vector(to_unsigned(Immediate_in, DATA_L));
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			AddressRegFileIn_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB))) - 1.0));
 			AddressRegFileIn_In_tb <= std_logic_vector(to_unsigned(AddressRegFileIn_in, int_to_bit_num(REG_NUM_TB)));
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			AddressRegFileOut1_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB))) - 1.0));
 			AddressRegFileOut1_In_tb <= std_logic_vector(to_unsigned(AddressRegFileOut1_in, int_to_bit_num(REG_NUM_TB)));
 
-			rand_val := rand_num(seed1, seed2);
+			uniform(seed1, seed2, rand_val);
 			AddressRegFileOut2_in := integer(rand_val*(2.0**(real(int_to_bit_num(REG_NUM_TB))) - 1.0));
 			AddressRegFileOut2_In_tb <= std_logic_vector(to_unsigned(AddressRegFileOut2_in, int_to_bit_num(REG_NUM_TB)));
 
