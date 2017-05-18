@@ -6,16 +6,17 @@ use ieee.numeric_std.all;
 library work;
 use work.proc_pkg.all;
 use work.ddr2_pkg.all;
+use work.ddr2_phy_pkg.all;
 
 package ddr2_phy_bank_ctrl_pkg is 
 
 	constant T_ACT_COL	: positive := T_RCD - to_integer(unsigned(AL)); 
-	constant T_WRITE_PRE	: positive := WRITE_LATENCY + to_integer(unsigned(T_WR)) + (2**(to_integer(unsigned(BL)) - 1));
+	constant T_WRITE_PRE	: positive := WRITE_LATENCY + T_WR + positive(2**(to_integer(unsigned(BURST_LENGTH))) - 1);
 	constant T_WRITE_ACT	: positive := T_RP + T_WRITE_PRE;
-	constant T_READ_PRE	: positive := to_integer(unsigned(AL)) + (2**(to_integer(unsigned(BL)) - 1));
+	constant T_READ_PRE	: positive := to_integer(unsigned(AL)) + (2**(to_integer(unsigned(BURST_LENGTH)) - 1));
 	constant T_READ_ACT	: positive := T_RP + T_READ_PRE;
 
-	constant CNT_BANK_CTRL_L	: integer := int_to_bit_num(max_int(T_RAS, max_int(T_RC, T_ACT_COL)));
+	constant CNT_BANK_CTRL_L	: integer := int_to_bit_num(max_int(T_RAS_min, max_int(T_RC, T_ACT_COL)));
 	constant CNT_DELAY_L		: integer := int_to_bit_num(max_int(T_READ_PRE, max_int(T_WRITE_PRE, T_RP)));
 
 	constant STATE_BANK_CTRL_L	: positive := 3;
@@ -44,12 +45,12 @@ package ddr2_phy_bank_ctrl_pkg is
 		CmdAck			: in std_logic;
 
 		RowMemOut		: out std_logic_vector(ROW_L - 1 downto 0);
-		CmdOut			: out std_logic_vector(CMD_MEM_L - 1 downto 0);
+		CmdOut			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
 		CmdReq			: out std_logic;
 
 		-- Controller
 		ReadBurst		: in std_logic;
-		LastBurstBeat		: in std_logic;
+		EndDataPhase		: in std_logic;
 
 		ZeroOutstandingBursts	: out std_logic;
 		BankIdle		: out std_logic;

@@ -18,9 +18,9 @@ package ddr2_pkg is
 	constant ROW_L		: positive := 13;
 
 	constant ADDR_MEM_L	: positive := 13;
-	constant ADDR_L		: positive := ROW_L + COL_L + BANK_L;
+	constant DDR2_ADDR_L		: positive := ROW_L + COL_L + BANK_L;
 
-	constant DATA_L		: positive := 16;
+	constant DDR2_DATA_L		: positive := 16;
 
 	-- Timing parameter (in ns)
 	constant T_RCD_ns		: real := 12.5;

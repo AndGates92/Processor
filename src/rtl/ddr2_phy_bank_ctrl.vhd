@@ -23,7 +23,7 @@ port (
 	CmdAck			: in std_logic;
 
 	RowMemOut		: out std_logic_vector(ROW_L - 1 downto 0);
-	CmdOut			: out std_logic_vector(CMD_MEM_L - 1 downto 0);
+	CmdOut			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
 	CmdReq			: out std_logic;
 
 	-- Controller
@@ -39,11 +39,13 @@ end entity ddr2_phy_bank_ctrl;
 
 architecture rtl of ddr2_phy_bank_ctrl is
 	constant zero_delay_cnt_value	: unsigned(CNT_DELAY_L - 1 downto 0) := (others => '0'); 
-	constant decr_delay_cnt_value	: unsigned(CNT_DELAY_L - 1 downto 0) := to_unsigned)1, CNT_DELAY_L); 
+	constant decr_delay_cnt_value	: unsigned(CNT_DELAY_L - 1 downto 0) := to_unsigned(1, CNT_DELAY_L); 
+
+	constant decr_bank_ctrl_cnt_value	: unsigned(CNT_BANK_CTRL_L - 1 downto 0) := to_unsigned(1, CNT_BANK_CTRL_L); 
 
 	constant zero_outstanding_bursts_value	: unsigned(MAX_OUTSTANDING_BURSTS_L - 1 downto 0) := (others => '0'); 
-	constant decr_outstanding_bursts_value	: unsigned(MAX_OUTSTANDING_BURSTS_L - 1 downto 0) := to_unsigned)1, MAX_OUTSTANDING_BURSTS_L);
-	constant incr_outstanding_bursts_value	: unsigned(MAX_OUTSTANDING_BURSTS_L - 1 downto 0) := to_unsigned)1, MAX_OUTSTANDING_BURSTS_L);
+	constant decr_outstanding_bursts_value	: unsigned(MAX_OUTSTANDING_BURSTS_L - 1 downto 0) := to_unsigned(1, MAX_OUTSTANDING_BURSTS_L);
+	constant incr_outstanding_bursts_value	: unsigned(MAX_OUTSTANDING_BURSTS_L - 1 downto 0) := to_unsigned(1, MAX_OUTSTANDING_BURSTS_L);
 
 	signal RowMemN, RowMemC	: std_logic_vector(ROW_L - 1 downto 0);
 
@@ -54,14 +56,20 @@ architecture rtl of ddr2_phy_bank_ctrl is
 	signal TRASReached		: std_logic;
 	signal TRCReached		: std_logic;
 
+	signal SameRow			: std_logic;
+	signal StartPrecharge		: std_logic;
+
+	signal DataPhase		: std_logic;
 	signal ExitDataPhase		: std_logic;
+
+	signal CtrlAck_comb		: std_logic;
 
 	signal CntBankCtrlC, CntBankCtrlN	: unsigned(CNT_BANK_CTRL_L - 1 downto 0);
 	signal BankCtrlCntEnC, BankCtrlCntEnN	: std_logic;
 	signal ResetBankCtrlCnt			: std_logic;
 
 	signal CntDelayC, CntDelayN		: unsigned(CNT_DELAY_L - 1 downto 0);
-	signal DelayCntInitValue		: unsigned(INIT_CNT_L - 1 downto 0);
+	signal DelayCntInitValue		: unsigned(CNT_DELAY_L - 1 downto 0);
 	signal SetDelayCnt			: std_logic;
 	signal DelayCntEnC, DelayCntEnN		: std_logic;
 	signal ZeroDelayCnt			: std_logic;
@@ -88,9 +96,9 @@ begin
 			DelayCntEnC <= '0';
 
 			CntBankCtrlC <= (others => '0');
-			BankCtrlEnC <= '0';
+			BankCtrlCntEnC <= '0';
 
-			OutstandingBurstC <= (others => '0');
+			OutstandingBurstsC <= (others => '0');
 
 			StateC <= IDLE;
 
@@ -107,9 +115,9 @@ begin
 			DelayCntEnC <= DelayCntEnN;
 
 			CntBankCtrlC <= CntBankCtrlN;
-			BankCtrlEnC <= BankCtrlEnN;
+			BankCtrlCntEnC <= BankCtrlCntEnN;
 
-			OutstandingBurstC <= OutstandingBurstN;
+			OutstandingBurstsC <= OutstandingBurstsN;
 
 			StateC <= StateN;
 
@@ -118,18 +126,20 @@ begin
 		end if;
 	end process reg;
 
-	OutstandingBursts <= std_logic_vector(OutstandingBurstsC);
 	BankActive <= BankActiveC;
 	BankIdle <= BankIdleC;
 	CmdOut <= CMD_BANK_ACT;
 	CmdReq <= CmdReqC;
 	RowMemOut <= RowMemC;
+	CtrlAck <= CtrlAck_comb;
 	ZeroOutstandingBursts <= ZeroOutstandingBursts_comb;
-	CtrlAck <= CmdAck when (State = WAIT_ACT_ACK) else DataPhase; -- return ack only when arbitrer gives the ack or during the data phase
+	CtrlAck_comb <= CmdAck when (StateC = WAIT_ACT_ACK) else (DataPhase and SameRow); -- return ack only when arbitrer gives the ack or during the data phase
 
-	RowMemN <= RowMemIn;
+	SameRow <= '1' when ((RowMemC = RowMemIn) and (CtrlReq = '1')) else '0';
 
-	DataPhase <= ((StateC = ELAPSE_T_ACT_COL) or ((BankActiveC = '1') and  (ExitDataPhase = '0')));
+	RowMemN <= RowMemIn when ((StateC = IDLE) or (StateC = WAIT_ACT_ACK)) else RowMemC;
+
+	DataPhase <= '1' when ((StateC = ELAPSE_T_ACT_COL) or ((BankActiveC = '1') and  (ExitDataPhase = '0'))) else '0';
 
 	CmdReqN <=	'1' when ((StateC = IDLE) and (CtrlReq = '1')) else
 			'0' when ((StateC = WAIT_ACT_ACK) and (CmdAck = '1')) else
@@ -139,12 +149,12 @@ begin
 			'0' when (ExitDataPhase = '1') else
 			BankActiveC;
 
-	TActColReached <= '0' when (CntBankCtrlC < to_unsigned(T_ACT_COL - 1)) else '1';
-	TRASReached <= '0' when (CntBankCtrlC < to_unsigned(T_RAS - 1)) else '1';
-	TRCReached <= '0' when (CntBankCtrlC < to_unsigned(T_RC - 1)) else '1';
+	TActColReached <= '0' when (CntBankCtrlC < to_unsigned((T_ACT_COL - 1), CNT_BANK_CTRL_L)) else '1';
+	TRASReached <= '0' when (CntBankCtrlC < to_unsigned((T_RAS_min - 1), CNT_BANK_CTRL_L)) else '1';
+	TRCReached <= '0' when (CntBankCtrlC < to_unsigned((T_RC - 1), CNT_BANK_CTRL_L)) else '1';
 
 	OutstandingBurstsN <=	(OutstandingBurstsC - decr_outstanding_bursts_value)	when (EndDataPhase = '1') else
-				(OutstandingBurstsC + incr_outstanding_bursts_value)	when ((DataPhase = '1') and (CmdReq = '1')) else
+				(OutstandingBurstsC + incr_outstanding_bursts_value)	when ((DataPhase = '1') and (SameRow = '1')) else
 				OutstandingBurstsC;
 
 	ZeroOutstandingBursts_comb <= '1' when (OutstandingBurstsC = zero_outstanding_bursts_value) else '0';
@@ -155,7 +165,7 @@ begin
 			(CntDelayC - decr_delay_cnt_value)	when ((DelayCntEnC = '1') and (ZeroDelayCnt = '1')) else
 			CntDelayC;
 
-	ZeroDelayCnt <= '1' when (CntDelay = zero_delay_cnt_value) else '0';
+	ZeroDelayCnt <= '1' when (CntDelayC = zero_delay_cnt_value) else '0';
 
 	SetDelayCnt <= '1' when ((ExitDataPhase = '1') or (StartPrecharge = '1')) else '0';
 
@@ -163,21 +173,21 @@ begin
 
 	DelayCntInitValue <=	to_unsigned(T_READ_PRE, CNT_DELAY_L) when ((ExitDataPhase = '1') and (ReadBurst = '1')) else
 				to_unsigned(T_WRITE_PRE, CNT_DELAY_L) when ((ExitDataPhase = '1') and (ReadBurst = '0')) else
-				to_unsigned(T_RP, CNT_DELAY_L)
+				to_unsigned(T_RP, CNT_DELAY_L);
 
 	DelayCntEnN <= '1' when ((SetDelayCnt = '1') or (StateC = PROCESS_COL_CMD) or (StateC = ELAPSE_T_RP)) else '0';
 
 	CntBankCtrlN <=	(others => '0')					when (ResetBankCtrlCnt = '1') else
-			(CntBankCtrlC - decr_bank_ctrl_cnt_value)	when ((BankCtrlCntEnC = '1') and (TRCExceeded = '0')) else
+			(CntBankCtrlC - decr_bank_ctrl_cnt_value)	when ((BankCtrlCntEnC = '1') and (TRCReached = '0')) else
 			CntBankCtrlC;
 
-	BankCtrlCntEnN <=	'1' when ((CtrlReq = '1') and (CtrlAck = '1')) else
+	BankCtrlCntEnN <=	'1' when ((CtrlReq = '1') and (CtrlAck_comb = '1')) else
 				'0' when ((StateC = ELAPSE_T_RP) and (ZeroDelayCnt = '1') and (TRCReached = '1')) else
 				BankCtrlCntEnC;
 
 	BankIdleN <= not BankCtrlCntEnN;
 
-	ResetBankCtrlCnt <= '1' when ((CtrlReq = '1') and (CtrlAck = '1') and (StateC = WAIT_ACT_ACK)) else '0';
+	ResetBankCtrlCnt <= '1' when ((CtrlReq = '1') and (CtrlAck_comb = '1') and (StateC = WAIT_ACT_ACK)) else '0';
 
 	state_det: process(StateC, CtrlReq, CmdAck, TActColReached, EndDataPhase, OutstandingBurstsC, TRASReached, TRCReached, ZeroDelayCnt)
 	begin
@@ -187,32 +197,32 @@ begin
 				StateN <= WAIT_ACT_ACK;
 			end if;
 		elsif (StateC = WAIT_ACT_ACK) then
-			if (CmdAck = '1') begin
+			if (CmdAck = '1') then
 				StateN <= ELAPSE_T_ACT_COL;
 			end if;
-		elsif (StateC = ELAPSE_T_ACT_ROW) then
-			if (TActColReached = '1') begin
+		elsif (StateC = ELAPSE_T_ACT_COL) then
+			if (TActColReached = '1') then
 				StateN <= DATA_PHASE;
 			end if;
 		elsif (StateC = DATA_PHASE) then
-			if (ExitDataPhase = '1') begin
+			if (ExitDataPhase = '1') then
 				StateN <= PROCESS_COL_CMD;
 			end if;
 		elsif (StateC = PROCESS_COL_CMD) then
-			if (ZeroDelayCnt = '1') begin
-				if (TRASReached = '1') begin
+			if (ZeroDelayCnt = '1') then
+				if (TRASReached = '1') then
 					StateN <= ELAPSE_T_RP;
 				else
 					StateN <= ELAPSE_T_RAS;
 				end if;
 			end if;
 		elsif (StateC = ELAPSE_T_RAS) then
-			if (TRASReached = '1') begin
+			if (TRASReached = '1') then
 				StateN <= ELAPSE_T_RP;
 			end if;
 		elsif (StateC = ELAPSE_T_RP) then
-			if ((ZeroDelayCnt = '1') and (TRCReached = '1')) begin
-				if (CmdReq = '1') then
+			if ((ZeroDelayCnt = '1') and (TRCReached = '1')) then
+				if (CmdReqC = '1') then
 					StateN <= WAIT_ACT_ACK;
 				else
 					StateN <= IDLE;
