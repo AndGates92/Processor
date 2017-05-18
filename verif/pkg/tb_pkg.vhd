@@ -4,9 +4,6 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
---use work.alu_pkg.all;
---use work.ctrl_pkg.all;
---use work.decode_pkg.all;
 use work.proc_pkg.all;
 
 package tb_pkg is 
@@ -28,13 +25,14 @@ package tb_pkg is
 
 	procedure clk_gen (constant PERIOD : in time; constant PHASE : in time; signal stop : in boolean; signal clk : out std_logic);
 
-	function rand_num(seed1, seed2 : positive) return real;
 	function max_time(time1, time2 : time) return time;
 	function rand_bool(rand_val : real) return boolean;
 	function rand_sign(sign_val : real) return real;
 	function std_logic_to_bool(val : std_logic) return boolean;
 	function bool_to_std_logic(val : boolean) return std_logic;
 	function bool_to_str(val : boolean) return string;
+
+	function reset_int_arr(val, num_el : integer) return int_arr;
 	function compare_int_arr(arr1, arr2 : int_arr; num_el : integer) return boolean;
 
 end package tb_pkg;
@@ -57,16 +55,6 @@ package body tb_pkg is
 		end loop;
 
 	end procedure clk_gen;
-
-	function rand_num(seed1, seed2 : positive) return real is
-		variable seed1_var, seed2_var	: positive;
-		variable rand_val		: real;
-	begin
-		seed1_var := seed1;
-		seed2_var := seed2;
-		uniform(seed1_var, seed2_var, rand_val);
-		return rand_val;
-	end function;
 
 	function max_time(time1, time2 : time) return time is
 		variable max	: time;
@@ -140,11 +128,21 @@ package body tb_pkg is
 		return val_conv;
 	end;
 
+	function reset_int_arr(val, num_el : integer) return int_arr is
+		variable arr : int_arr(0 to (num_el - 1));
+	begin
+		for i in 0 to (num_el-1) loop
+			arr(i) := val;
+		end loop;
+
+		return arr;
+	end;
+
 	function compare_int_arr(arr1, arr2 : int_arr; num_el : integer) return boolean is
 		variable match	: boolean;
 	begin
 		match := true;
-		for i in 0 to num_el loop
+		for i in 0 to (num_el-1) loop
 			if (match = true) then
 				if (arr1(i) /= arr2(i)) then
 					match := false;
