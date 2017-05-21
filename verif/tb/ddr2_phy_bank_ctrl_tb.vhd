@@ -86,7 +86,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable read_burst: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable bl, delay: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable read_burst: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable bl, cmd_delay: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 			variable num_bursts_int	: integer;
 			variable bl_int		: integer;
@@ -108,46 +108,70 @@ begin
 				end loop;
 				bl(i) := bl_int;
 				uniform(seed1, seed2, rand_val);
-				delay(i) := integer(rand_val)*MAX_BURST_DELAY;
+				cmd_delay(i) := integer(rand_val)*MAX_BURST_DELAY;
 				uniform(seed1, seed2, rand_val);
 				read_burst(i) := rand_bool(rand_val);
 			end loop;
 			for i in num_bursts to (MAX_OUTSTANDING_BURSTS - 1) loop
 				rows(i) := int_arr_def;
 				bl(i) := int_arr_def;
-				delay(i) := int_arr_def;
+				cmd_delay(i) := int_arr_def;
 				read_burst(i) := false;
 			end loop;
 		end procedure test_param;
 
-		procedure run_bank_ctrl (variable num_bursts_exp: in integer; variable delay_arr, rows_arr_exp, bl_arr : in int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable read_arr : in bool_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable num_bursts_rtl : out integer; variable err_arr, rows_arr_rtl : out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1))) is
+		procedure run_bank_ctrl (variable num_bursts_exp: in integer; variable cmd_delay_arr, rows_arr_exp, bl_arr : in int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable read_arr : in bool_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable num_bursts_rtl : out integer; variable err_arr, rows_arr_rtl : out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1))) is
 			variable row_cmd_cnt		: integer;
 			variable data_phase_cnt		: integer;
 			variable data_phase_burst_num	: integer;
 			variable num_bursts_rtl_int	: integer;
 			variable err_arr_int		: integer;
+			variable ctrl_req		: boolean;
+			variable cmd_delay		: integer;
 		begin
 			num_bursts_rtl_int := 0;
 			data_phase_burst_num := 0;
 			row_cmd_cnt := 0;
 			data_phase_cnt := 0;
 
+			ReadBurst_tb <= '0';
 			EndDataPhase_tb <= '0';
 			CmdAck_tb <= '0';
 			CtrlReq_tb <= '1';
+			ctrl_req := true;
 
 			err_arr_int := 0;
 
 			RowMemIn_tb <= std_logic_vector(to_unsigned(rows_arr_exp(num_bursts_rtl_int), ROW_L));
+			cmd_delay := cmd_delay_arr(num_bursts_rtl_int);
 
 			act_loop: loop
 
-				exit act_loop when num_bursts_rtl_int = num_bursts_exp;
+				exit act_loop when ((num_bursts_rtl_int = num_bursts_exp) and (data_phase_burst_num = num_bursts_exp));
 
-				wait until (CmdReq_tb = '1');
+				report "burst num: rtl " & integer'image(num_bursts_rtl_int) & " exp " & integer'image(num_bursts_exp);
+				report "data phase num: rtl " & integer'image(data_phase_burst_num) & " exp " & integer'image(num_bursts_exp);
+				report "cmd delay: " & integer'image(row_cmd_cnt) & " out of " & integer'image(cmd_delay);
+				report "ctrl_req: " & bool_to_str(ctrl_req);
 
-				for i in row_cmd_cnt to delay_arr(num_bursts_rtl_int) loop
-					if (i = delay_arr(num_bursts_rtl_int)) then
+				wait until (BankIdle_tb = '1');
+
+				if (ctrl_req = true) then
+					while (CmdReq_tb = '0') loop
+						if (CtrlAck_tb = '1') then
+							CtrlReq_tb <= '0';
+							ctrl_req := false;
+						end if;
+						wait until ((clk_tb = '1') and (clk_tb'event));
+					end loop;
+				end if;
+
+				for i in row_cmd_cnt to cmd_delay loop
+					if (CtrlAck_tb = '1') then
+						CtrlReq_tb <= '0';
+						ctrl_req := false;
+					end if;
+					if (i = cmd_delay) then
 						CmdAck_tb <= '1';
 						rows_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(RowMemOut_tb));
 					end if;
@@ -156,59 +180,85 @@ begin
 
 				if (CtrlAck_tb = '1') then
 					CtrlReq_tb <= '0';
+					ctrl_req := false;
 				end if;
 
 				while(CmdReq_tb = '1') loop
 					if (CtrlAck_tb = '1') then
 						CtrlReq_tb <= '0';
+						ctrl_req := false;
 					end if;
 					err_arr_int := err_arr_int + 1;
 					wait until ((clk_tb = '1') and (clk_tb'event));
 				end loop;
 
+
 				err_arr(num_bursts_rtl_int) := err_arr_int;
 				num_bursts_rtl_int := num_bursts_rtl_int + 1;
 
-				err_arr_int := 0;
+				if (num_bursts_rtl_int < num_bursts_exp) then
+					cmd_delay := cmd_delay_arr(num_bursts_rtl_int);
+				end if;
 
+				err_arr_int := 0;
 				CmdAck_tb <= '0';
 
 				while((ZeroOutstandingBursts_tb = '0') or (EndDataPhase_tb = '0')) loop
 					-- Controller Row Request
 					if (num_bursts_rtl_int < num_bursts_exp) then
-						if (CtrlReq_tb = '0') then
+						if (ctrl_req = false) then
 							if (CtrlAck_tb = '1') then
 								err_arr_int := err_arr_int + 1;
 							end if;
-							if (row_cmd_cnt = delay_arr(num_bursts_rtl_int)) then
+							if (row_cmd_cnt = cmd_delay) then
 								CtrlReq_tb <= '1';
+								ctrl_req := true;
 								RowMemIn_tb <= std_logic_vector(to_unsigned(rows_arr_exp(num_bursts_rtl_int), ROW_L));
+								row_cmd_cnt := 0;
 							else
 								row_cmd_cnt := row_cmd_cnt + 1;
 							end if;
 						else
 							if (CtrlAck_tb = '1') then
 								CtrlReq_tb <= '0';
+								ctrl_req := false;
 								rows_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(RowMemOut_tb));
 								err_arr(num_bursts_rtl_int) := err_arr_int;
 								num_bursts_rtl_int := num_bursts_rtl_int + 1;
+								cmd_delay := cmd_delay_arr(num_bursts_rtl_int);
 								err_arr_int := 0;
 							end if;
 						end if;
+					else
+						CtrlReq_tb <= '0';
+						ctrl_req := false;
 					end if;
 					-- Data phase
-					if (BankActive_tb = '1') then
-						if (data_phase_cnt = bl_arr(data_phase_burst_num)) then
-							data_phase_cnt := 0;
-							data_phase_burst_num := data_phase_burst_num + 1;
-							EndDataPhase_tb <= '1';
+					if (data_phase_burst_num < num_bursts_exp) then
+
+--						report "data phase: cnt " & integer'image(data_phase_cnt) & " out of " & integer'image(bl_arr(data_phase_burst_num));
+
+						if (BankActive_tb = '1') then
+							report "Bank Active";
+							if (data_phase_cnt = bl_arr(data_phase_burst_num)) then
+								data_phase_cnt := 0;
+								ReadBurst_tb <= bool_to_std_logic(read_arr(data_phase_burst_num));
+								data_phase_burst_num := data_phase_burst_num + 1;
+								EndDataPhase_tb <= '1';
+							else
+								data_phase_cnt := data_phase_cnt + 1;
+								EndDataPhase_tb <= '0';
+							end if;
 						else
-							data_phase_cnt := data_phase_cnt + 1;
 							EndDataPhase_tb <= '0';
 						end if;
+					else
+						EndDataPhase_tb <= '0';
 					end if;
 					wait until ((clk_tb = '1') and (clk_tb'event));
 				end loop;
+
+				EndDataPhase_tb <= '0';
 
 			end loop;
 
@@ -281,7 +331,7 @@ begin
 		variable read_arr	: bool_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
 
 		variable bl_arr		: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
-		variable delay_arr	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
+		variable cmd_delay_arr	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
 		variable err_arr	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
 
 		variable pass	: integer;
@@ -304,9 +354,9 @@ begin
 
 		for i in 0 to NUM_TEST-1 loop
 
-			test_param(num_bursts_exp, rows_arr_exp, read_arr, bl_arr, delay_arr, seed1, seed2);
+			test_param(num_bursts_exp, rows_arr_exp, read_arr, bl_arr, cmd_delay_arr, seed1, seed2);
 
-			run_bank_ctrl(num_bursts_exp, delay_arr, rows_arr_exp, bl_arr, read_arr, num_bursts_rtl, err_arr, rows_arr_rtl);
+			run_bank_ctrl(num_bursts_exp, cmd_delay_arr, rows_arr_exp, bl_arr, read_arr, num_bursts_rtl, err_arr, rows_arr_rtl);
 
 			verify(num_bursts_exp, num_bursts_rtl, err_arr, rows_arr_exp, rows_arr_rtl, file_pointer, pass);
 
