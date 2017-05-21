@@ -127,6 +127,7 @@ begin
 			variable num_bursts_rtl_int	: integer;
 			variable err_arr_int		: integer;
 			variable ctrl_req		: boolean;
+			variable cmd_req		: boolean;
 			variable cmd_delay		: integer;
 		begin
 			num_bursts_rtl_int := 0;
@@ -156,42 +157,48 @@ begin
 
 				wait until (BankIdle_tb = '1');
 
-				if (ctrl_req = true) then
-					while (CmdReq_tb = '0') loop
-						if (CtrlAck_tb = '1') then
-							CtrlReq_tb <= '0';
-							ctrl_req := false;
+				if (ctrl_req = false) then
+					for i in row_cmd_cnt to cmd_delay loop
+						if (i = cmd_delay) then
+							CtrlReq_tb <= '1';
+							ctrl_req := true;
+							RowMemIn_tb <= std_logic_vector(to_unsigned(rows_arr_exp(num_bursts_rtl_int), ROW_L));
+							row_cmd_cnt := 0;
 						end if;
 						wait until ((clk_tb = '1') and (clk_tb'event));
 					end loop;
 				end if;
 
-				for i in row_cmd_cnt to cmd_delay loop
+				while (CmdReq_tb = '0') loop
+					report "CmdRq_tb low";
 					if (CtrlAck_tb = '1') then
 						CtrlReq_tb <= '0';
 						ctrl_req := false;
 					end if;
-					if (i = cmd_delay) then
-						CmdAck_tb <= '1';
-						rows_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(RowMemOut_tb));
-					end if;
 					wait until ((clk_tb = '1') and (clk_tb'event));
 				end loop;
 
-				if (CtrlAck_tb = '1') then
-					CtrlReq_tb <= '0';
-					ctrl_req := false;
-				end if;
+				cmd_req := true;
 
 				while(CmdReq_tb = '1') loop
+					report "CmdRq_tb high";
 					if (CtrlAck_tb = '1') then
-						CtrlReq_tb <= '0';
-						ctrl_req := false;
+						if (ctrl_req = false) then
+							err_arr_int := err_arr_int + 1;
+						else
+							CtrlReq_tb <= '0';
+							ctrl_req := false;
+							err_arr_int := 0;
+						end if;
 					end if;
-					err_arr_int := err_arr_int + 1;
+					CmdAck_tb <= '1';
+					if (cmd_req = false) then
+						err_arr_int := err_arr_int + 1;
+					else
+						cmd_req := false;
+					end if;
 					wait until ((clk_tb = '1') and (clk_tb'event));
 				end loop;
-
 
 				err_arr(num_bursts_rtl_int) := err_arr_int;
 				num_bursts_rtl_int := num_bursts_rtl_int + 1;
@@ -214,19 +221,24 @@ begin
 								CtrlReq_tb <= '1';
 								ctrl_req := true;
 								RowMemIn_tb <= std_logic_vector(to_unsigned(rows_arr_exp(num_bursts_rtl_int), ROW_L));
+								cmd_req := true;
 								row_cmd_cnt := 0;
 							else
 								row_cmd_cnt := row_cmd_cnt + 1;
 							end if;
 						else
 							if (CtrlAck_tb = '1') then
-								CtrlReq_tb <= '0';
-								ctrl_req := false;
-								rows_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(RowMemOut_tb));
-								err_arr(num_bursts_rtl_int) := err_arr_int;
-								num_bursts_rtl_int := num_bursts_rtl_int + 1;
-								cmd_delay := cmd_delay_arr(num_bursts_rtl_int);
-								err_arr_int := 0;
+								if (ctrl_req = false) then
+									err_arr_int := err_arr_int + 1;
+								else
+									CtrlReq_tb <= '0';
+									ctrl_req := false;
+									rows_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(RowMemOut_tb));
+									err_arr(num_bursts_rtl_int) := err_arr_int;
+									num_bursts_rtl_int := num_bursts_rtl_int + 1;
+									cmd_delay := cmd_delay_arr(num_bursts_rtl_int);
+									err_arr_int := 0;
+								end if;
 							end if;
 						end if;
 					else
@@ -239,7 +251,6 @@ begin
 --						report "data phase: cnt " & integer'image(data_phase_cnt) & " out of " & integer'image(bl_arr(data_phase_burst_num));
 
 						if (BankActive_tb = '1') then
-							report "Bank Active";
 							if (data_phase_cnt = bl_arr(data_phase_burst_num)) then
 								data_phase_cnt := 0;
 								ReadBurst_tb <= bool_to_std_logic(read_arr(data_phase_burst_num));
