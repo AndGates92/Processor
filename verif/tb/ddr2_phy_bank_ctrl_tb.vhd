@@ -94,7 +94,7 @@ begin
 			num_bursts_int := 0;
 			while (num_bursts_int = 0) loop
 				uniform(seed1, seed2, rand_val);
-				num_bursts_int := integer(rand_val)*MAX_OUTSTANDING_BURSTS;
+				num_bursts_int := integer(rand_val*real(MAX_OUTSTANDING_BURSTS));
 			end loop;
 			num_bursts := num_bursts_int;
 
@@ -108,7 +108,7 @@ begin
 				end loop;
 				bl(i) := bl_int;
 				uniform(seed1, seed2, rand_val);
-				cmd_delay(i) := integer(rand_val)*MAX_BURST_DELAY;
+				cmd_delay(i) := integer(rand_val*real(MAX_BURST_DELAY));
 				uniform(seed1, seed2, rand_val);
 				read_burst(i) := rand_bool(rand_val);
 			end loop;
@@ -150,38 +150,37 @@ begin
 
 				exit act_loop when ((num_bursts_rtl_int = num_bursts_exp) and (data_phase_burst_num = num_bursts_exp));
 
-				report "burst num: rtl " & integer'image(num_bursts_rtl_int) & " exp " & integer'image(num_bursts_exp);
-				report "data phase num: rtl " & integer'image(data_phase_burst_num) & " exp " & integer'image(num_bursts_exp);
-				report "cmd delay: " & integer'image(row_cmd_cnt) & " out of " & integer'image(cmd_delay);
-				report "ctrl_req: " & bool_to_str(ctrl_req);
+				report "burst: exp " & integer'image(num_bursts_exp) & " rtl "  & integer'image(num_bursts_rtl_int);
 
-				wait until (BankIdle_tb = '1');
+				-- wait bank to be in the idle state
+				while (BankIdle_tb = '0') loop
+					wait until ((clk_tb = '1') and (clk_tb'event));
+				end loop;
 
 				if (ctrl_req = false) then
 					for i in row_cmd_cnt to cmd_delay loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
 						if (i = cmd_delay) then
 							CtrlReq_tb <= '1';
 							ctrl_req := true;
 							RowMemIn_tb <= std_logic_vector(to_unsigned(rows_arr_exp(num_bursts_rtl_int), ROW_L));
 							row_cmd_cnt := 0;
 						end if;
-						wait until ((clk_tb = '1') and (clk_tb'event));
 					end loop;
 				end if;
 
 				while (CmdReq_tb = '0') loop
-					report "CmdRq_tb low";
+					wait until ((clk_tb = '1') and (clk_tb'event));
 					if (CtrlAck_tb = '1') then
 						CtrlReq_tb <= '0';
 						ctrl_req := false;
 					end if;
-					wait until ((clk_tb = '1') and (clk_tb'event));
 				end loop;
 
 				cmd_req := true;
 
 				while(CmdReq_tb = '1') loop
-					report "CmdRq_tb high";
+					wait until ((clk_tb = '1') and (clk_tb'event));
 					if (CtrlAck_tb = '1') then
 						if (ctrl_req = false) then
 							err_arr_int := err_arr_int + 1;
@@ -192,12 +191,12 @@ begin
 						end if;
 					end if;
 					CmdAck_tb <= '1';
+					rows_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(RowMemOut_tb));
 					if (cmd_req = false) then
 						err_arr_int := err_arr_int + 1;
 					else
 						cmd_req := false;
 					end if;
-					wait until ((clk_tb = '1') and (clk_tb'event));
 				end loop;
 
 				err_arr(num_bursts_rtl_int) := err_arr_int;
@@ -211,6 +210,7 @@ begin
 				CmdAck_tb <= '0';
 
 				while((ZeroOutstandingBursts_tb = '0') or (EndDataPhase_tb = '0')) loop
+					wait until ((clk_tb = '1') and (clk_tb'event));
 					-- Controller Row Request
 					if (num_bursts_rtl_int < num_bursts_exp) then
 						if (ctrl_req = false) then
@@ -248,8 +248,6 @@ begin
 					-- Data phase
 					if (data_phase_burst_num < num_bursts_exp) then
 
---						report "data phase: cnt " & integer'image(data_phase_cnt) & " out of " & integer'image(bl_arr(data_phase_burst_num));
-
 						if (BankActive_tb = '1') then
 							if (data_phase_cnt = bl_arr(data_phase_burst_num)) then
 								data_phase_cnt := 0;
@@ -266,14 +264,18 @@ begin
 					else
 						EndDataPhase_tb <= '0';
 					end if;
-					wait until ((clk_tb = '1') and (clk_tb'event));
 				end loop;
 
+				wait until ((clk_tb = '1') and (clk_tb'event));
 				EndDataPhase_tb <= '0';
 
 			end loop;
 
 			num_bursts_rtl := num_bursts_rtl_int;
+
+			while (BankIdle_tb = '0') loop
+				wait until ((clk_tb = '1') and (clk_tb'event));
+			end loop;
 
 		end procedure run_bank_ctrl;
 
@@ -283,7 +285,8 @@ begin
 			variable file_line	: line;
 		begin
 
-			write(file_line, string'( "PHY Bank Controller Status: Bank Idle: " & bool_to_str(std_logic_to_bool(BankIdle_tb)) & " Bank Active: " & bool_to_str(std_logic_to_bool(BankActive_tb)) & " Number of bursts: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl) & "No outstanding burst: " & bool_to_str(std_logic_to_bool(ZeroOutstandingBursts_tb))));
+			write(file_line, string'( "PHY Bank Controller Status: Bank Idle: " & bool_to_str(std_logic_to_bool(BankIdle_tb)) & " Bank Active: " & bool_to_str(std_logic_to_bool(BankActive_tb)) & " Number of bursts: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl) & " No outstanding burst: " & bool_to_str(std_logic_to_bool(ZeroOutstandingBursts_tb))));
+			writeline(file_pointer, file_line);
 
 			match_rows := compare_int_arr(rows_arr_exp, rows_arr_rtl, num_bursts_exp);
 			no_errors := compare_int_arr(reset_int_arr(0, num_bursts_exp), err_arr, num_bursts_exp);
