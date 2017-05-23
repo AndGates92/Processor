@@ -17,7 +17,9 @@ end entity ddr2_phy_bank_ctrl_tb;
 architecture bench of ddr2_phy_bank_ctrl_tb is
 
 	constant CLK_PERIOD	: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TEST	: integer := 100;
+	constant NUM_TEST	: integer := 1000;
+	constant NUM_EXTRA_TEST	: integer := MAX_OUTSTANDING_BURSTS;
+	constant TOT_NUM_TEST	: integer := NUM_TEST + NUM_EXTRA_TEST;
 
 	constant MAX_BURST_DELAY	: integer := 20;
 
@@ -86,6 +88,43 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
+		procedure setup_extra_tests(variable num_bursts : out int_arr(0 to (NUM_EXTRA_TEST-1)); variable rows: out int_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS) - 1)); variable read_burst: out bool_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS) - 1)); variable bl, cmd_delay: out int_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS) - 1)); variable seed1, seed2: inout positive) is
+			variable rand_val		: real;
+			variable scaled_rand_val	: integer;
+		begin
+			for i in 0 to NUM_EXTRA_TEST-1 loop
+				scaled_rand_val := 0;
+				while (scaled_rand_val = 0) loop
+					uniform(seed1, seed2, rand_val);
+					scaled_rand_val := integer(rand_val*real(MAX_OUTSTANDING_BURSTS));
+				end loop;
+				num_bursts(i) := scaled_rand_val;
+
+				uniform(seed1, seed2, rand_val);
+				rows((i*MAX_OUTSTANDING_BURSTS) to (((i+1)*MAX_OUTSTANDING_BURSTS) - 1)) := reset_int_arr(integer(rand_val*(2.0**(real(ROW_L)) - 1.0)), MAX_OUTSTANDING_BURSTS);
+
+			end loop;
+
+			for i in 0 to (MAX_OUTSTANDING_BURSTS*NUM_EXTRA_TEST)-1 loop
+				if (i < MAX_OUTSTANDING_BURSTS) then
+					bl(i) := 1;
+				else
+					scaled_rand_val := 0;
+					while (scaled_rand_val = 0) loop
+						uniform(seed1, seed2, rand_val);
+						scaled_rand_val := integer(rand_val*(2.0**(real(COL_L)) - 1.0));
+					end loop;
+					bl(i) := scaled_rand_val;
+				end if;
+				uniform(seed1, seed2, rand_val);
+				cmd_delay(i) := integer(rand_val*real(MAX_BURST_DELAY));
+				uniform(seed1, seed2, rand_val);
+				read_burst(i) := rand_bool(rand_val);
+			end loop;
+
+
+		end procedure setup_extra_tests;
+
 		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable read_burst: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable bl, cmd_delay: out int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 			variable num_bursts_int	: integer;
@@ -150,13 +189,6 @@ begin
 
 				exit act_loop when ((num_bursts_rtl_int = num_bursts_exp) and (data_phase_burst_num = num_bursts_exp));
 
-				report "burst: exp " & integer'image(num_bursts_exp) & " rtl "  & integer'image(num_bursts_rtl_int);
-
-				-- wait bank to be in the idle state
-				while (BankIdle_tb = '0') loop
-					wait until ((clk_tb = '1') and (clk_tb'event));
-				end loop;
-
 				if (ctrl_req = false) then
 					for i in row_cmd_cnt to cmd_delay loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
@@ -169,18 +201,26 @@ begin
 					end loop;
 				end if;
 
-				while (CmdReq_tb = '0') loop
-					wait until ((clk_tb = '1') and (clk_tb'event));
+				-- wait bank to be in the idle state
+				while (BankIdle_tb = '0') loop
 					if (CtrlAck_tb = '1') then
 						CtrlReq_tb <= '0';
 						ctrl_req := false;
 					end if;
+					wait until ((clk_tb = '1') and (clk_tb'event));
+				end loop;
+
+				while (CmdReq_tb = '0') loop
+					if (CtrlAck_tb = '1') then
+						CtrlReq_tb <= '0';
+						ctrl_req := false;
+					end if;
+					wait until ((clk_tb = '1') and (clk_tb'event));
 				end loop;
 
 				cmd_req := true;
 
-				while(CmdReq_tb = '1') loop
-					wait until ((clk_tb = '1') and (clk_tb'event));
+				while(CmdReq_tb = '1' and CmdAck_tb = '0') loop
 					if (CtrlAck_tb = '1') then
 						if (ctrl_req = false) then
 							err_arr_int := err_arr_int + 1;
@@ -197,6 +237,7 @@ begin
 					else
 						cmd_req := false;
 					end if;
+					wait until ((clk_tb = '1') and (clk_tb'event));
 				end loop;
 
 				err_arr(num_bursts_rtl_int) := err_arr_int;
@@ -348,6 +389,19 @@ begin
 		variable cmd_delay_arr	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
 		variable err_arr	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
 
+		variable num_bursts_exp_extra	: int_arr(0 to (NUM_EXTRA_TEST - 1));
+		variable rows_arr_exp_extra	: int_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS) - 1));
+
+		variable num_bursts_rtl_extra	: integer;
+		variable rows_arr_rtl_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
+
+		variable read_arr_extra	: bool_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS) - 1));
+
+		variable bl_arr_extra		: int_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS) - 1));
+		variable cmd_delay_arr_extra	: int_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS) - 1));
+		variable err_arr_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS - 1));
+
+
 		variable pass	: integer;
 		variable num_pass	: integer;
 
@@ -376,21 +430,36 @@ begin
 
 			num_pass := num_pass + pass;
 
-			for j in 0 to i loop
+			wait until ((clk_tb'event) and (clk_tb = '1'));
+		end loop;
+
+		if (NUM_EXTRA_TEST > 0) then
+
+			setup_extra_tests(num_bursts_exp_extra, rows_arr_exp_extra, read_arr_extra, bl_arr_extra, cmd_delay_arr_extra, seed1, seed2);
+
+			for i in 0 to NUM_EXTRA_TEST-1 loop
+
+				run_bank_ctrl(num_bursts_exp_extra(i), cmd_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS) to (((i+1)*MAX_OUTSTANDING_BURSTS)-1)), rows_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS) to (((i+1)*MAX_OUTSTANDING_BURSTS)-1)), bl_arr_extra((i*MAX_OUTSTANDING_BURSTS) to (((i+1)*MAX_OUTSTANDING_BURSTS)-1)), read_arr_extra((i*MAX_OUTSTANDING_BURSTS) to (((i+1)*MAX_OUTSTANDING_BURSTS)-1)), num_bursts_rtl_extra, err_arr_extra, rows_arr_rtl_extra);
+
+				verify(num_bursts_exp_extra(i), num_bursts_rtl_extra, err_arr_extra, rows_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS) to (((i+1)*MAX_OUTSTANDING_BURSTS)-1)), rows_arr_rtl_extra, file_pointer, pass);
+
+				num_pass := num_pass + pass;
+
 				wait until ((clk_tb'event) and (clk_tb = '1'));
 			end loop;
-		end loop;
+
+		end if;
 
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "PHY Bank Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(NUM_TEST)));
+		write(file_line, string'( "PHY Bank Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TEST)));
 		writeline(file_pointer, file_line);
 
-		if (num_pass = NUM_TEST) then
+		if (num_pass = TOT_NUM_TEST) then
 			write(file_line, string'( "PHY Bank Controller: TEST PASSED"));
 		else
-			write(file_line, string'( "PHY Bank Controller: TEST FAILED: " & integer'image(NUM_TEST-num_pass) & " failures"));
+			write(file_line, string'( "PHY Bank Controller: TEST FAILED: " & integer'image(TOT_NUM_TEST-num_pass) & " failures"));
 		end if;
 		writeline(file_pointer, file_line);
 
