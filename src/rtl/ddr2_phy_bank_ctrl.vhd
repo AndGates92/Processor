@@ -97,7 +97,7 @@ begin
 			ProcActCmdC <= '0';
 
 			BankActiveC <= '0';
-			BankIdleC <= '0';
+			BankIdleC <= '1';
 
 			CntDelayC <= (others => '0');
 			DelayCntEnC <= '0';
