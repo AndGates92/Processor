@@ -40,7 +40,7 @@ all:
 	make ddr2_phy_bank_ctrl_all
 
 clean:
-	rm -rf ${LOG_FILE} ${SUMMARY_FILE} ${WORK_DIR}
+	rm -rf ${LOG_FILE} ${SUMMARY_FILE} ${WORK_DIR}/*
 
 work_dir:
 	mkdir -p ${WORK_DIR}
