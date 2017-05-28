@@ -19,13 +19,16 @@ package ctrl_pkg is
 	constant CTRL_CMD_RD_S		: std_logic_vector(CTRL_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(5, CTRL_CMD_L));
 	constant CTRL_CMD_MOV		: std_logic_vector(CTRL_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(6, CTRL_CMD_L));
 
-	constant ALU_OP			: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_L));
-	constant MULTIPLICATION		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
-	constant DIVISION		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_L));
-	constant REG_FILE_READ		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_L));
-	constant REG_FILE_WRITE		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_L));
-	constant MEMORY_ACCESS		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_L));
-	constant UNKNOWN_COMMAND	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_L));
+	constant STATE_CTRL_L	: positive := 3;
+
+	constant CTRL_IDLE		: std_logic_vector(STATE_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_CTRL_L));
+	constant ALU_OP			: std_logic_vector(STATE_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_CTRL_L));
+	constant MULTIPLICATION		: std_logic_vector(STATE_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_CTRL_L));
+	constant DIVISION		: std_logic_vector(STATE_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_CTRL_L));
+	constant REG_FILE_READ		: std_logic_vector(STATE_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_CTRL_L));
+	constant REG_FILE_WRITE		: std_logic_vector(STATE_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_CTRL_L));
+	constant MEMORY_ACCESS		: std_logic_vector(STATE_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_CTRL_L));
+	constant UNKNOWN_COMMAND	: std_logic_vector(STATE_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_CTRL_L));
 
 	component ctrl
 	generic (

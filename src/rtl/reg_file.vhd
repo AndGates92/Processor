@@ -41,7 +41,7 @@ architecture rtl of reg_file is
 	signal AddressOut2C, AddressOut2N	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	signal AddressInC, AddressInN	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 
-	signal StateC, StateN	: std_logic_vector(STATE_L - 1 downto 0);
+	signal StateC, StateN	: std_logic_vector(STATE_REG_FILE_L - 1 downto 0);
 
 	signal EnableC, EnableN	: std_logic_vector(EN_L - 1 downto 0);
 	signal DoneC, DoneN	: std_logic_vector(OUT_NUM - 1 downto 0);
@@ -57,7 +57,7 @@ begin
 			AddressInC <= (others => '0');
 			AddressOut1C <= (others => '0');
 			AddressOut2C <= (others => '0');
-			StateC <= IDLE;
+			StateC <= REG_FILE_IDLE;
 			RegFileC <= (others => (others => '0'));
 			EnableC <= (others => '0');
 			DoneC <= (others => '0');
@@ -75,16 +75,16 @@ begin
 		end if;
 	end process reg;
 
-	EnableN <= Enable when StateC = IDLE else EnableC;
-	Done <= DoneC when StateC = OUTPUT else (others => '0');
+	EnableN <= Enable when StateC = REG_FILE_IDLE else EnableC;
+	Done <= DoneC when StateC = REG_FILE_OUTPUT else (others => '0');
 
-	DataInN <= DataIn when StateC = IDLE else DataInC;
-	DataOut1 <= DataOut1C when (StateC = OUTPUT) and (DoneC(0) = '1') else (others => '0');
-	DataOut2 <= DataOut2C when (StateC = OUTPUT) and (DoneC(1) = '1') else (others => '0');
+	DataInN <= DataIn when StateC = REG_FILE_IDLE else DataInC;
+	DataOut1 <= DataOut1C when (StateC = REG_FILE_OUTPUT) and (DoneC(0) = '1') else (others => '0');
+	DataOut2 <= DataOut2C when (StateC = REG_FILE_OUTPUT) and (DoneC(1) = '1') else (others => '0');
 
-	AddressInN <= AddressIn when StateC = IDLE else AddressInC;
-	AddressOut1N <= AddressOut1 when StateC = IDLE else AddressOut1C;
-	AddressOut2N <= AddressOut2 when StateC = IDLE else AddressOut2C;
+	AddressInN <= AddressIn when StateC = REG_FILE_IDLE else AddressInC;
+	AddressOut1N <= AddressOut1 when StateC = REG_FILE_IDLE else AddressOut1C;
+	AddressOut2N <= AddressOut2 when StateC = REG_FILE_IDLE else AddressOut2C;
 
 	UPDATE_REG_OUT: for i in 0 to REG_NUM-1 generate
 		RegFileN(i) <= DataInC when (EnableC(0) = '1') and (AddressInC = std_logic_vector(to_unsigned(i, int_to_bit_num(REG_NUM)))) and (StateC = LOAD_STORE) else RegFileC(i);
@@ -94,21 +94,21 @@ begin
 	DataOut2N <= RegFileC(to_integer(unsigned(AddressOut2C))) when (EnableC(2) = '1') and (StateC = LOAD_STORE) else (others => '0');
 
 	DoneN <= EnableC(2 downto 1) when StateC = LOAD_STORE else (others => '0');
-	End_LS <= '1' when StateC = OUTPUT else '0';
+	End_LS <= '1' when StateC = REG_FILE_OUTPUT else '0';
 
 	state_det: process(StateC, Enable)
 	begin
 		StateN <= StateC; -- avoid latches
-		if (StateC = IDLE) then
+		if (StateC = REG_FILE_IDLE) then
 			if (Enable = ZeroEnable) then
-				StateN <= IDLE;
+				StateN <= REG_FILE_IDLE;
 			else
 				StateN <= LOAD_STORE;
 			end if;
 		elsif (StateC = LOAD_STORE) then
-			StateN <= OUTPUT;
-		elsif (StateC = OUTPUT) then
-			StateN <= IDLE;
+			StateN <= REG_FILE_OUTPUT;
+		elsif (StateC = REG_FILE_OUTPUT) then
+			StateN <= REG_FILE_IDLE;
 		else
 			StateN <= StateC;
 		end if;

@@ -22,11 +22,6 @@ package proc_pkg is
 	constant INCR_PC	: positive := 4;
 	constant INCR_PC_L	: positive := positive(int_to_bit_num(INCR_PC));
 
-	constant STATE_L	: positive := 3;
-
-	constant IDLE		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_L));
-	constant OUTPUT		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_L));
-
 end package proc_pkg;
 
 package body proc_pkg is

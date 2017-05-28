@@ -23,10 +23,9 @@ end entity bram_rst;
 
 architecture rtl_bram_1port of bram_rst is
 
-	constant GEN_ADDR		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
 	constant MAX_ADDR		: unsigned(ADDR_L - 1 downto 0) := (others => '1');
 
-	signal StateN, StateC			: std_logic_vector(STATE_L - 1 downto 0);
+	signal StateN, StateC			: std_logic_vector(STATE_BRAM_L - 1 downto 0);
 	signal PortA_AddressC, PortA_AddressN	: unsigned(ADDR_L - 1 downto 0);
 
 begin
@@ -35,7 +34,7 @@ begin
 	begin
 		if (rst = '1') then
 
-			StateC <= IDLE;
+			StateC <= BRAM_IDLE;
 			PortA_AddressC <= (others => '0');
 
 		elsif ((clk'event) and (clk = '1')) then
@@ -49,7 +48,7 @@ begin
 	state_det: process(StateC, Start, PortA_AddressC)
 	begin
 		StateN <= StateC; -- avoid latches
-		if (StateC = IDLE) then
+		if (StateC = BRAM_IDLE) then
 			if (Start = '1') then
 				StateN <= GEN_ADDR;
 			else
@@ -57,18 +56,18 @@ begin
 			end if;
 		elsif (StateC = GEN_ADDR) then
 			if (PortA_AddressC = MAX_ADDR) then
-				StateN <= OUTPUT;
+				StateN <= BRAM_OUTPUT;
 			else
 				StateN <= StateC;
 			end if;
-		elsif (StateC = OUTPUT) then
-			StateN <= IDLE;
+		elsif (StateC = BRAM_OUTPUT) then
+			StateN <= BRAM_IDLE;
 		else
 			StateN <= StateC;
 		end if;
 	end process state_det;
 
-	Done <=	'1' when (StateC = OUTPUT) else '0';
+	Done <=	'1' when (StateC = BRAM_OUTPUT) else '0';
 
 	PortA_Address <= std_logic_vector(PortA_AddressC);
 	PortB_Address <= (others => 'X');
@@ -79,10 +78,9 @@ end rtl_bram_1port;
 
 architecture rtl_bram_2port of bram_rst is
 
-	constant GEN_ADDR		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
 	constant MAX_ADDR		: unsigned(ADDR_L - 1 downto 0) := (others => '1');
 
-	signal StateN, StateC			: std_logic_vector(STATE_L - 1 downto 0);
+	signal StateN, StateC			: std_logic_vector(STATE_BRAM_L - 1 downto 0);
 	signal PortA_AddressC, PortA_AddressN	: unsigned(ADDR_L - 1 downto 0);
 	signal PortB_AddressC, PortB_AddressN	: unsigned(ADDR_L - 1 downto 0);
 
@@ -92,7 +90,7 @@ begin
 	begin
 		if (rst = '1') then
 
-			StateC <= IDLE;
+			StateC <= BRAM_IDLE;
 			PortA_AddressC <= (others => '0');
 			PortB_AddressC <= to_unsigned(1, ADDR_L);
 
@@ -108,7 +106,7 @@ begin
 	state_det: process(StateC, Start, PortA_AddressC, PortB_AddressC)
 	begin
 		StateN <= StateC; -- avoid latches
-		if (StateC = IDLE) then
+		if (StateC = BRAM_IDLE) then
 			if (Start = '1') then
 				StateN <= GEN_ADDR;
 			else
@@ -116,18 +114,18 @@ begin
 			end if;
 		elsif (StateC = GEN_ADDR) then
 			if (PortA_AddressC = MAX_ADDR) or (PortB_AddressC = MAX_ADDR) then
-				StateN <= OUTPUT;
+				StateN <= BRAM_OUTPUT;
 			else
 				StateN <= StateC;
 			end if;
-		elsif (StateC = OUTPUT) then
-			StateN <= IDLE;
+		elsif (StateC = BRAM_OUTPUT) then
+			StateN <= BRAM_IDLE;
 		else
 			StateN <= StateC;
 		end if;
 	end process state_det;
 
-	Done <=	'1' when (StateC = OUTPUT) else '0';
+	Done <=	'1' when (StateC = BRAM_OUTPUT) else '0';
 
 	PortA_Address <= std_logic_vector(PortA_AddressC);
 	PortB_Address <= std_logic_vector(PortB_AddressC);

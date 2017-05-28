@@ -41,7 +41,7 @@ architecture rtl_bram_1port of dcache is
 	signal rstN, rstC		: std_logic;
 	signal EndRstN, EndRstC		: std_logic;
 
-	signal StateN, StateC		: std_logic_vector(STATE_L - 1 downto 0);
+	signal StateN, StateC		: std_logic_vector(STATE_DCACHE_L - 1 downto 0);
 	signal HitC, HitN		: std_logic;
 	signal DataOutN, DataOutC	: std_logic_vector(DATA_L - 1 downto 0);
 	signal DataInN, DataInC		: std_logic_vector(DATA_L - 1 downto 0);
@@ -68,17 +68,17 @@ begin
 	state_det: process(StateC, Start, PortA_DataOut, AddressC, DoneMemory, DoneReset)
 	begin
 		StateN <= StateC; -- avoid latches
-		if (StateC = IDLE) then
+		if (StateC = DCACHE_IDLE) then
 			if (rst = '1') then
 				StateN <= RESET;
 			elsif (Start = '0') then
-				StateN <= IDLE;
+				StateN <= DCACHE_IDLE;
 			else
 				StateN <= BRAM_FWD;
 			end if;
 		elsif (StateC = RESET) then
 			if (DoneReset = '1') then
-				StateN <= OUTPUT;
+				StateN <= DCACHE_OUTPUT;
 			else
 				StateN <= StateC;
 			end if;
@@ -88,7 +88,7 @@ begin
 			StateN <= BRAM_RECV_DATA;
 		elsif (StateC = BRAM_RECV_DATA) then
 			if ((ReadC = '1') and (PortA_DataOut(DCACHE_LINE_L - DIRTY_BIT_L - 1 downto (DCACHE_LINE_L - int_to_bit_num(DATA_MEMORY) - DIRTY_BIT_L - VALID_L)) = ("1" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0))))  then
-				StateN <= OUTPUT;
+				StateN <= DCACHE_OUTPUT;
 			elsif ((ReadC = '0') and (PortA_DataOut(DCACHE_LINE_L - DIRTY_BIT_L - 1 downto (DCACHE_LINE_L - int_to_bit_num(DATA_MEMORY) - DIRTY_BIT_L - VALID_L)) = ("1" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0))) and (PortA_DataOut(DCACHE_LINE_L - 1) = '0'))  then
 				StateN <= WRITE_BRAM;
 			else
@@ -96,14 +96,14 @@ begin
 			end if;
 		elsif (StateC = MEMORY_ACCESS) then
 			if (DoneMemory = '1') then
-				StateN <= OUTPUT;
+				StateN <= DCACHE_OUTPUT;
 			else
 				StateN <= StateC;
 			end if;
 		elsif (StateC = WRITE_BRAM) then
-			StateN <= OUTPUT;
-		elsif (StateC = OUTPUT) then
-			StateN <= IDLE;
+			StateN <= DCACHE_OUTPUT;
+		elsif (StateC = DCACHE_OUTPUT) then
+			StateN <= DCACHE_IDLE;
 		else
 			StateN <= StateC;
 		end if;
@@ -119,7 +119,7 @@ begin
 			DataOutC <= (others => '0');
 			DataInC <= (others => '0');
 			HitC <= '0';
-			StateC <= IDLE;
+			StateC <= DCACHE_IDLE;
 			AddressC <= (others => '0');
 			ReadC <= '0';
 
@@ -149,20 +149,20 @@ begin
 
 	rstN <= rst;
 	EndRstN <=	'0' when (StateC = RESET) else
-			'1' when (StateC = OUTPUT) else
+			'1' when (StateC = DCACHE_OUTPUT) else
 			EndRstC;
 
 	EndRst <= EndRstC;
 
-	AddressN <= Address when (StateC = IDLE) else AddressC;
-	ReadN <= Read when (StateC = IDLE) else ReadC;
-	DataInN <= DataIn when (StateC = IDLE) else DataInC;
+	AddressN <= Address when (StateC = DCACHE_IDLE) else AddressC;
+	ReadN <= Read when (StateC = DCACHE_IDLE) else ReadC;
+	DataInN <= DataIn when (StateC = DCACHE_IDLE) else DataInC;
 
-	HitN <=	'0' when (StateC = IDLE) else
+	HitN <=	'0' when (StateC = DCACHE_IDLE) else
 		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOut(DCACHE_LINE_L - DIRTY_BIT_L - 1 downto DCACHE_LINE_L - DIRTY_BIT_L - int_to_bit_num(DATA_MEMORY) - VALID_L) = ("1" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0))) else
 		HitC;
 
-	DataOutN <=	(others => '0') when (StateC = IDLE) else
+	DataOutN <=	(others => '0') when (StateC = DCACHE_IDLE) else
 			PortA_DataOut(DATA_L - 1 downto 0) when (Read = '1') and (StateC = BRAM_RECV_DATA) else
 			DataMemOut when (StateC = MEMORY_ACCESS) else
 			DataOutC;
@@ -171,31 +171,31 @@ begin
 
 	AddressMem <= AddressC;
 	DataMemIn <= PortA_DataOutC(DATA_L - 1 downto 0);
-	DataOut <= DataOutC when (StateC = OUTPUT) else (others => '0');
-	Done <= '1' when (StateC = OUTPUT) else '0';
-	Hit <= '0' when (StateC = IDLE) else HitC;
+	DataOut <= DataOutC when (StateC = DCACHE_OUTPUT) else (others => '0');
+	Done <= '1' when (StateC = DCACHE_OUTPUT) else '0';
+	Hit <= '0' when (StateC = DCACHE_IDLE) else HitC;
 
 	PortA_DataInN <=	"11" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0) & DataInC when (StateC = WRITE_BRAM) or ((StateC = MEMORY_ACCESS) and (ReadC = '0')) else
 				"01" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0) & DataMemOut when (StateC = MEMORY_ACCESS) and (ReadC = '1') else
-				(others => '0') when (StateC = IDLE) or (StateC = RESET) else
+				(others => '0') when (StateC = DCACHE_IDLE) or (StateC = RESET) else
 				PortA_DataInC;
 
 	PortA_DataOutN <=	PortA_DataOut when (StateC = BRAM_RECV_DATA) else
-				(others => '0') when (StateC = IDLE) else
+				(others => '0') when (StateC = DCACHE_IDLE) else
 				PortA_DataOutC;
 
 	PortA_AddressN <=	PortA_Address_rst when (StateC = RESET) else
 				AddressC(ADDR_BRAM_L + INCR_PC_L - 1 downto INCR_PC_L) when (StateC = BRAM_FWD) or (StateC = MEMORY_ACCESS) else
-				(others => '0') when (StateC = IDLE) else
+				(others => '0') when (StateC = DCACHE_IDLE) else
 				PortA_AddressC;
 
 	PortA_WriteN <=	'1' when (StateC = MEMORY_ACCESS) or (StateC = WRITE_BRAM) or (StateC = RESET) else
-			'0' when (StateC = IDLE) else
+			'0' when (StateC = DCACHE_IDLE) else
 			PortA_WriteC;
 
 	PortA_DataIn <= PortA_DataInC;
 	PortA_Address <= PortA_AddressC;
-	PortA_Write <= '0' when(StateC = IDLE) else PortA_WriteC;
+	PortA_Write <= '0' when(StateC = DCACHE_IDLE) else PortA_WriteC;
 
 	BRAM_1PORT_I : bram_1port generic map(
 		ADDR_BRAM_L => ADDR_BRAM_L,
@@ -234,7 +234,7 @@ architecture rtl_bram_2port of dcache is
 	signal rstN, rstC		: std_logic;
 	signal EndRstN, EndRstC		: std_logic;
 
-	signal StateN, StateC		: std_logic_vector(STATE_L - 1 downto 0);
+	signal StateN, StateC		: std_logic_vector(STATE_DCACHE_L - 1 downto 0);
 	signal HitC, HitN		: std_logic;
 	signal DataOutN, DataOutC	: std_logic_vector(DATA_L - 1 downto 0);
 	signal DataInN, DataInC		: std_logic_vector(DATA_L - 1 downto 0);
@@ -272,17 +272,17 @@ begin
 	state_det: process(StateC, Start, PortA_DataOut, AddressC, DoneMemory, DoneReset)
 	begin
 		StateN <= StateC; -- avoid latches
-		if (StateC = IDLE) then
+		if (StateC = DCACHE_IDLE) then
 			if (rst = '1') then
 				StateN <= RESET;
 			elsif (Start = '0') then
-				StateN <= IDLE;
+				StateN <= DCACHE_IDLE;
 			else
 				StateN <= BRAM_FWD;
 			end if;
 		elsif (StateC = RESET) then
 			if (DoneReset = '1') then
-				StateN <= OUTPUT;
+				StateN <= DCACHE_OUTPUT;
 			else
 				StateN <= StateC;
 			end if;
@@ -292,7 +292,7 @@ begin
 			StateN <= BRAM_RECV_DATA;
 		elsif (StateC = BRAM_RECV_DATA) then
 			if ((ReadC = '1') and (PortA_DataOut(DCACHE_LINE_L - DIRTY_BIT_L - 1 downto (DCACHE_LINE_L - int_to_bit_num(DATA_MEMORY) - DIRTY_BIT_L - VALID_L)) = ("1" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0))))  then
-				StateN <= OUTPUT;
+				StateN <= DCACHE_OUTPUT;
 			elsif ((ReadC = '0') and (PortA_DataOut(DCACHE_LINE_L - DIRTY_BIT_L - 1 downto (DCACHE_LINE_L - int_to_bit_num(DATA_MEMORY) - DIRTY_BIT_L - VALID_L)) = ("1" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0))) and (PortA_DataOut(DCACHE_LINE_L - 1) = '0'))  then
 				StateN <= WRITE_BRAM;
 			else
@@ -300,14 +300,14 @@ begin
 			end if;
 		elsif (StateC = MEMORY_ACCESS) then
 			if (DoneMemory = '1') then
-				StateN <= OUTPUT;
+				StateN <= DCACHE_OUTPUT;
 			else
 				StateN <= StateC;
 			end if;
 		elsif (StateC = WRITE_BRAM) then
-			StateN <= OUTPUT;
-		elsif (StateC = OUTPUT) then
-			StateN <= IDLE;
+			StateN <= DCACHE_OUTPUT;
+		elsif (StateC = DCACHE_OUTPUT) then
+			StateN <= DCACHE_IDLE;
 		else
 			StateN <= StateC;
 		end if;
@@ -323,7 +323,7 @@ begin
 			DataOutC <= (others => '0');
 			DataInC <= (others => '0');
 			HitC <= '0';
-			StateC <= IDLE;
+			StateC <= DCACHE_IDLE;
 			AddressC <= (others => '0');
 			ReadC <= '0';
 
@@ -364,20 +364,20 @@ begin
 
 	rstN <= rst;
 	EndRstN <=	'0' when (StateC = RESET) else
-			'1' when (StateC = OUTPUT) else
+			'1' when (StateC = DCACHE_OUTPUT) else
 			EndRstC;
 
 	EndRst <= EndRstC;
 
-	AddressN <= Address when (StateC = IDLE) else AddressC;
-	ReadN <= Read when (StateC = IDLE) else ReadC;
-	DataInN <= DataIn when (StateC = IDLE) else DataInC;
+	AddressN <= Address when (StateC = DCACHE_IDLE) else AddressC;
+	ReadN <= Read when (StateC = DCACHE_IDLE) else ReadC;
+	DataInN <= DataIn when (StateC = DCACHE_IDLE) else DataInC;
 
-	HitN <=	'0' when (StateC = IDLE) else
+	HitN <=	'0' when (StateC = DCACHE_IDLE) else
 		'1' when (StateC = BRAM_RECV_DATA) and (PortA_DataOut(DCACHE_LINE_L - DIRTY_BIT_L - 1 downto DCACHE_LINE_L - DIRTY_BIT_L - int_to_bit_num(DATA_MEMORY) - VALID_L) = ("1" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0))) else
 		HitC;
 
-	DataOutN <=	(others => '0') when (StateC = IDLE) else
+	DataOutN <=	(others => '0') when (StateC = DCACHE_IDLE) else
 			PortA_DataOut(DATA_L - 1 downto 0) when (Read = '1') and (StateC = BRAM_RECV_DATA) else
 			DataMemOut when (StateC = MEMORY_ACCESS) else
 			DataOutC;
@@ -386,46 +386,46 @@ begin
 
 	AddressMem <= AddressC;
 	DataMemIn <= PortA_DataOutC(DATA_L - 1 downto 0);
-	DataOut <= DataOutC when (StateC = OUTPUT) else (others => '0');
-	Done <= '1' when (StateC = OUTPUT) else '0';
-	Hit <= '0' when (StateC = IDLE) else HitC;
+	DataOut <= DataOutC when (StateC = DCACHE_OUTPUT) else (others => '0');
+	Done <= '1' when (StateC = DCACHE_OUTPUT) else '0';
+	Hit <= '0' when (StateC = DCACHE_IDLE) else HitC;
 
 	PortA_DataInN <=	"11" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0) & DataInC when (StateC = WRITE_BRAM) or ((StateC = MEMORY_ACCESS) and (ReadC = '0')) else
 				"01" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0) & DataMemOut when (StateC = MEMORY_ACCESS) and (ReadC = '1') else
-				(others => '0') when (StateC = IDLE) or (StateC = RESET) else
+				(others => '0') when (StateC = DCACHE_IDLE) or (StateC = RESET) else
 				PortA_DataInC;
 
 	PortA_DataOutN <=	PortA_DataOut when (StateC = BRAM_RECV_DATA) else
-				(others => '0') when (StateC = IDLE) else
+				(others => '0') when (StateC = DCACHE_IDLE) else
 				PortA_DataOutC;
 
 	PortA_AddressN <=	PortA_Address_rst when (StateC = RESET) else
 				AddressC(ADDR_BRAM_L + INCR_PC_L - 1 downto INCR_PC_L) when (StateC = BRAM_FWD) or (StateC = MEMORY_ACCESS) else
-				(others => '0') when (StateC = IDLE) else
+				(others => '0') when (StateC = DCACHE_IDLE) else
 				PortA_AddressC;
 
 	PortA_WriteN <=	'1' when (StateC = MEMORY_ACCESS) or (StateC = WRITE_BRAM) or (StateC = RESET) else
-			'0' when (StateC = IDLE) else
+			'0' when (StateC = DCACHE_IDLE) else
 			PortA_WriteC;
 
 	PortA_DataIn <= PortA_DataInC;
 	PortA_Address <= PortA_AddressC;
-	PortA_Write <= '0' when(StateC = IDLE) else PortA_WriteC;
+	PortA_Write <= '0' when(StateC = DCACHE_IDLE) else PortA_WriteC;
 
 
 
-	PortB_DataInN <=	(others => '0') when (StateC = IDLE) or (StateC = RESET) else
+	PortB_DataInN <=	(others => '0') when (StateC = DCACHE_IDLE) or (StateC = RESET) else
 				PortB_DataInC;
 
-	PortB_DataOutN <=	(others => '0') when (StateC = IDLE) else
+	PortB_DataOutN <=	(others => '0') when (StateC = DCACHE_IDLE) else
 				PortB_DataOutC;
 
 	PortB_AddressN <=	PortB_Address_rst when (StateC = RESET) else
-				(others => '0') when (StateC = IDLE) else
+				(others => '0') when (StateC = DCACHE_IDLE) else
 				PortB_AddressC;
 
 	PortB_WriteN <=	'1' when (StateC = RESET) else
-			'0' when (StateC = IDLE) else
+			'0' when (StateC = DCACHE_IDLE) else
 			PortB_WriteC;
 
 	PortB_DataIn <= PortB_DataInC;

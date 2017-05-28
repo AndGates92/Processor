@@ -40,7 +40,7 @@ architecture booth_radix2 of mul is
 
 	signal ProdLowIdle	: unsigned(MULTR_L - 1 downto 0);
 
-	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
+	signal StateC, StateN: std_logic_vector(STATE_ALU_L - 1 downto 0);
 
 	signal CountC, CountN: unsigned(int_to_bit_num(MULTR_L)-1 downto 0);
 
@@ -71,7 +71,7 @@ begin
 			SubC <= (others => '0');
 			ProdC <= (others => '0');
 			CountC <= (others => '0');
-			StateC <= IDLE;
+			StateC <= ALU_IDLE;
 		elsif (clk'event) and (clk = '1') then
 			AddC <= AddN;
 			SubC <= SubN;
@@ -84,22 +84,22 @@ begin
 	state_det: process(StateC, Start, CountC, multiplicand, multiplier)
 	begin
 		StateN <= StateC; -- avoid latches
-		if (StateC = IDLE) then
+		if (StateC = ALU_IDLE) then
 			if (Start = '1') then
 				if (multiplicand = zero_multd) or (multiplier = zero_multr) then -- fast track in case of zero input
-					StateN <= OUTPUT;
+					StateN <= ALU_OUTPUT;
 				else
 					StateN <= COMPUTE;
 				end if;
 			end if;
 		elsif (StateC = COMPUTE) then
 			if CountC = to_unsigned(MULTR_L - 1, CountC'length) then
-				StateN <= OUTPUT;
+				StateN <= ALU_OUTPUT;
 			else
 				StateN <= COMPUTE;
 			end if;
-		elsif (StateC = OUTPUT) then
-			StateN <= IDLE;
+		elsif (StateC = ALU_OUTPUT) then
+			StateN <= ALU_IDLE;
 		else
 			StateN <= StateC;
 		end if;
@@ -125,7 +125,7 @@ begin
 		tmp <= (others => '0');
 		ProdLSB <= ProdC(1 downto 0);
 
-		if (StateC = IDLE) then
+		if (StateC = ALU_IDLE) then
 			AddN(AddN'length-1 downto (AddN'length-MULTD_L)) <= unsigned(multiplicand);
 			AddN((AddN'length-MULTD_L-1) downto 0) <= to_unsigned(0, AddN'length-MULTD_L);
 			SubN(SubN'length-1 downto (SubN'length-MULTD_L)) <= multd_2comp;
@@ -148,15 +148,15 @@ begin
 
 			ProdN <= tmp(tmp'length-1 downto tmp'length-1) & tmp(tmp'length-1 downto 1);
 
-		elsif (StateC = OUTPUT) then
+		elsif (StateC = ALU_OUTPUT) then
 			ProdN <= ProdC;
 		else
 			ProdN <= ProdC;
 		end if;
 	end process data;
 
-	Done <= '1' when StateC = OUTPUT else '0';
-	Res <= std_logic_vector(ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(OP1_L+OP2_L-1 downto 1)) when StateC = OUTPUT else (others => '0');
+	Done <= '1' when StateC = ALU_OUTPUT else '0';
+	Res <= std_logic_vector(ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(OP1_L+OP2_L-1 downto 1)) when StateC = ALU_OUTPUT else (others => '0');
 
 end booth_radix2;
 
@@ -179,7 +179,7 @@ architecture booth_radix4 of mul is
 
 	signal multd_2comp	: unsigned(MULTD_L - 1 downto 0);
 
-	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
+	signal StateC, StateN: std_logic_vector(STATE_ALU_L - 1 downto 0);
 
 	signal CountC, CountN: unsigned(int_to_bit_num(MULTR_L/2)-1 downto 0);
 
@@ -210,7 +210,7 @@ begin
 			SubC <= (others => '0');
 			ProdC <= (others => '0');
 			CountC <= (others => '0');
-			StateC <= IDLE;
+			StateC <= ALU_IDLE;
 		elsif (clk'event) and (clk = '1') then
 			AddC <= AddN;
 			SubC <= SubN;
@@ -223,22 +223,22 @@ begin
 	state_det: process(StateC, Start, CountC, multiplicand, multiplier)
 	begin
 		StateN <= StateC; -- avoid latches
-		if (StateC = IDLE) then
+		if (StateC = ALU_IDLE) then
 			if (Start = '1') then
 				if (unsigned(multiplicand) = zero_multd) or (unsigned(multiplier) = zero_multr) then -- fast track in case of zero input
-					StateN <= OUTPUT;
+					StateN <= ALU_OUTPUT;
 				else
 					StateN <= COMPUTE;
 				end if;
 			end if;
 		elsif (StateC = COMPUTE) then
 			if CountC = to_unsigned(MULTR_L/2 - 1, CountC'length) then
-				StateN <= OUTPUT;
+				StateN <= ALU_OUTPUT;
 			else
 				StateN <= COMPUTE;
 			end if;
-		elsif (StateC = OUTPUT) then
-			StateN <= IDLE;
+		elsif (StateC = ALU_OUTPUT) then
+			StateN <= ALU_IDLE;
 		else
 			StateN <= StateC;
 		end if;
@@ -264,7 +264,7 @@ begin
 		tmp <= (others => '0');
 		ProdLSB <= ProdC(2 downto 0);
 
-		if (StateC = IDLE) then
+		if (StateC = ALU_IDLE) then
 			AddN <= unsigned(multiplicand);
 			SubN <= multd_2comp;
 			ProdN(MULTR_L downto 0) <= ProdLowIdle & "0";
@@ -287,14 +287,14 @@ begin
 					tmp <= ProdC;
 			end case;
 			ProdN <= tmp(tmp'length-1 downto tmp'length-1) & tmp(tmp'length-1 downto 1);
-		elsif (StateC = OUTPUT) then
+		elsif (StateC = ALU_OUTPUT) then
 			ProdN <= ProdC;
 		else
 			ProdN <= ProdC;
 		end if;
 	end process data;
 
-	Done <= '1' when StateC = OUTPUT else '0';
-	Res <= std_logic_vector(ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(OP1_L+OP2_L-1 downto 1)) when StateC = OUTPUT else (others => '0');
+	Done <= '1' when StateC = ALU_OUTPUT else '0';
+	Res <= std_logic_vector(ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(OP1_L+OP2_L-1 downto 1)) when StateC = ALU_OUTPUT else (others => '0');
 
 end booth_radix4;

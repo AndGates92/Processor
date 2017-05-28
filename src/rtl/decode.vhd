@@ -46,7 +46,7 @@ architecture rtl of decode_stage is
 
 	constant ZERO_VEC	: std_logic_vector(DATA_L - 1 downto 0) := (others => '0');
 
-	signal StateC, StateN	: std_logic_vector(STATE_L - 1 downto 0);
+	signal StateC, StateN	: std_logic_vector(STATE_DECODE_L - 1 downto 0);
 
 	signal InstrN, InstrC	: std_logic_vector(INSTR_L - 1 downto 0);
 
@@ -73,72 +73,72 @@ begin
 	state_det: process(StateC, NewInstr)
 	begin
 		StateN <= StateC; -- avoid latches
-		if (StateC = IDLE) then
+		if (StateC = DECODE_IDLE) then
 			if (NewInstr = '0') then
-				StateN <= IDLE;
+				StateN <= DECODE_IDLE;
 			else
 				StateN <= DECODE;
 			end if;
 		elsif (StateC = DECODE) then
-			StateN <= OUTPUT;
-		elsif (StateC = OUTPUT) then
-			StateN <= IDLE;
+			StateN <= DECODE_OUTPUT;
+		elsif (StateC = DECODE_OUTPUT) then
+			StateN <= DECODE_IDLE;
 		else
 			StateN <= StateC;
 		end if;
 	end process state_det;
 
-	InstrN <= Instr when StateC = IDLE else InstrC;
+	InstrN <= Instr when StateC = DECODE_IDLE else InstrC;
 
 	RegInN <=	'1' when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RD_S) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CLR) or  (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_SET)) else 
-			'0' when (StateC = IDLE) else
+			'0' when (StateC = DECODE_IDLE) else
 			RegInC;
 
 	RegOut1N <=	'1' when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_WR_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_WR_S) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R)  or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R)) else 
-			'0' when (StateC = IDLE) else
+			'0' when (StateC = DECODE_IDLE) else
 			RegOut1C;
 
 	RegOut2N <=	'1' when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) else 
-			'0'  when (StateC = IDLE) else
+			'0'  when (StateC = DECODE_IDLE) else
 			RegOut2C;
 
 	AddressInN <=	(InstrC(INSTR_L - OP_CODE_L - 1 downto INSTR_L - OP_CODE_L - int_to_bit_num(REG_NUM))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RD_M) or  (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RD_S) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CLR) or  (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_SET)) else 
-			(others => '0') when (StateC = IDLE) else
+			(others => '0') when (StateC = DECODE_IDLE) else
 			AddressInC;
 
 	AddressOut1N <=	(InstrC(INSTR_L - OP_CODE_L - 1 downto INSTR_L - OP_CODE_L - int_to_bit_num(REG_NUM))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_WR_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_WR_S)) else 
 			(InstrC(INSTR_L - OP_CODE_L - int_to_bit_num(REG_NUM) - 1 downto INSTR_L - OP_CODE_L - 2*int_to_bit_num(REG_NUM))) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R)) else
-			(others => '0') when (StateC = IDLE) else
+			(others => '0') when (StateC = DECODE_IDLE) else
 			AddressOut1C;
 
 	AddressOut2N <=	(InstrC(INSTR_L - OP_CODE_L - 2*int_to_bit_num(REG_NUM) - 1 downto INSTR_L - OP_CODE_L - 3*int_to_bit_num(REG_NUM))) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) else
-			(others => '0')  when (StateC = IDLE) else
+			(others => '0')  when (StateC = DECODE_IDLE) else
 			AddressOut2C;
 
 	ImmediateN <=	ZERO_VEC(OP_CODE_L + 3*int_to_bit_num(REG_NUM) + CMD_ALU_L - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 3*int_to_bit_num(REG_NUM) - 1 downto CMD_ALU_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) else
 			ZERO_VEC(OP_CODE_L + 2*int_to_bit_num(REG_NUM) + CMD_ALU_L - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 2*int_to_bit_num(REG_NUM) - 1 downto CMD_ALU_L)) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) else
 			ZERO_VEC(OP_CODE_L + int_to_bit_num(REG_NUM) - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - int_to_bit_num(REG_NUM) - 1 downto 0)) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RD_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_WR_M) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RD_S) or  (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_WR_S)) else
 			(others => '1') when ((StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_SET)) else
-			(others => '0') when (StateC = IDLE) or ((StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CLR)) else
+			(others => '0') when (StateC = DECODE_IDLE) or ((StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CLR)) else
 			ImmediateC;
 
 	CmdALUN <=	InstrC(CMD_ALU_L - 1 downto 0) when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R)) else
-			(others => '0') when (StateC = IDLE) else
+			(others => '0') when (StateC = DECODE_IDLE) else
 			CmdALUC;
 
 	PCCallN <=	unsigned(PCIn) + INCR_PC when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CALL) else
 			(others => '0') when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RET) else
 			PCCallC;
 
-	PCN <=	unsigned(PCIn) when (StateC = IDLE) else
+	PCN <=	unsigned(PCIn) when (StateC = DECODE_IDLE) else
 		PCC + unsigned(ZERO_VEC(PC_L - (INSTR_L - OP_CODE_L) - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 1 downto 0))) when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_JUMP) else
 		unsigned(ZERO_VEC(PC_L - (INSTR_L - OP_CODE_L) - 1 downto 0) & (InstrC(INSTR_L - OP_CODE_L - 1 downto 0))) when (StateC = DECODE) and (((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRE) and (StatusRegIn(0) = '1')) or ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRNE) and (StatusRegIn(0) = '0')) or ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRL) and (StatusRegIn(3) = '1')) or ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_BRG) and (StatusRegIn(3) = '0'))  or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CALL)) else
 		PCCallC when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_RET) else
-		(others => '0') when (StateC = IDLE) else
+		(others => '0') when (StateC = DECODE_IDLE) else
 		PCC;
 
 	EndOfProgN <=	'1' when (StateC = DECODE) and (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_EOP) else
-			'0' when (StateC = IDLE) else
+			'0' when (StateC = DECODE_IDLE) else
 			EndOfProgC;
 
 	CtrlN <=	CTRL_CMD_ALU when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_ALU_I)) else
@@ -149,17 +149,17 @@ begin
 			CTRL_CMD_MOV when (StateC = DECODE) and ((InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_R) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_MOV_I) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_SET) or (InstrC(INSTR_L - 1 downto INSTR_L - OP_CODE_L) = OP_CODE_CLR)) else
 			CTRL_CMD_DISABLE;
 
-	EnableRegFile <= RegOut2C & RegOut1C & RegInC when (StateC = OUTPUT) else (others => '0');
-	AddressIn <= AddressInC when (StateC = OUTPUT) else (others => '0');
-	AddressOut1 <= AddressOut1C when (StateC = OUTPUT) else (others => '0');
-	AddressOut2 <= AddressOut2C when (StateC = OUTPUT) else (others => '0');
-	Immediate <= ImmediateC when (StateC = OUTPUT) else (others => '0');
-	AddressIn <= AddressInC when (StateC = OUTPUT) else (others => '0');
-	CmdALU <= CmdALUC when (StateC = OUTPUT) else (others => '0');
-	PCOut <= std_logic_vector(PCC) when (StateC = OUTPUT) else (others => '0');
-	Done <= '1' when (StateC = OUTPUT) else '0';
-	EndOfProg <= EndOfProgC when (StateC = OUTPUT) else '0';
-	Ctrl <= CtrlC when (StateC = OUTPUT) else (others => '0');
+	EnableRegFile <= RegOut2C & RegOut1C & RegInC when (StateC = DECODE_OUTPUT) else (others => '0');
+	AddressIn <= AddressInC when (StateC = DECODE_OUTPUT) else (others => '0');
+	AddressOut1 <= AddressOut1C when (StateC = DECODE_OUTPUT) else (others => '0');
+	AddressOut2 <= AddressOut2C when (StateC = DECODE_OUTPUT) else (others => '0');
+	Immediate <= ImmediateC when (StateC = DECODE_OUTPUT) else (others => '0');
+	AddressIn <= AddressInC when (StateC = DECODE_OUTPUT) else (others => '0');
+	CmdALU <= CmdALUC when (StateC = DECODE_OUTPUT) else (others => '0');
+	PCOut <= std_logic_vector(PCC) when (StateC = DECODE_OUTPUT) else (others => '0');
+	Done <= '1' when (StateC = DECODE_OUTPUT) else '0';
+	EndOfProg <= EndOfProgC when (StateC = DECODE_OUTPUT) else '0';
+	Ctrl <= CtrlC when (StateC = DECODE_OUTPUT) else (others => '0');
 
 
 	reg: process(rst, clk)
@@ -169,7 +169,7 @@ begin
 			AddressOut1C <= (others => '0');
 			AddressOut2C <= (others => '0');
 			ImmediateC <= (others => '0');
-			StateC <= IDLE;
+			StateC <= DECODE_IDLE;
 			InstrC <= (others => '0');
 			RegInC <= '0';
 			RegOut1C <= '0';

@@ -98,16 +98,16 @@ architecture rtl of ctrl is
 	signal AddressRegFileOut2N, AddressRegFileOut2C	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	signal EnableRegFileN, EnableRegFileC	: std_logic_vector(EN_REG_FILE_L - 1 downto 0);
 
-	signal StateC, StateN	: std_logic_vector(STATE_L - 1 downto 0);
-	signal NextStateC, NextStateN	: std_logic_vector(STATE_L - 1 downto 0);
+	signal StateC, StateN	: std_logic_vector(STATE_CTRL_L - 1 downto 0);
+	signal NextStateC, NextStateN	: std_logic_vector(STATE_CTRL_L - 1 downto 0);
 
 begin
 
 	reg: process(rst, clk)
 	begin
 		if (rst = '1') then
-			StateC <= IDLE;
-			NextStateC <= IDLE;
+			StateC <= CTRL_IDLE;
+			NextStateC <= CTRL_IDLE;
 
 			ImmediateC <= (others => '0');
 			CtrlCmdC <= (others => '0');
@@ -141,12 +141,12 @@ begin
 	end process reg;
 
 	state_det: process(StateC, NextStateC, CtrlCmdC, CtrlCmd, EnableRegFile_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
-		variable State_tmp	: std_logic_vector(STATE_L - 1 downto 0);
+		variable State_tmp	: std_logic_vector(STATE_CTRL_L - 1 downto 0);
 	begin
 		StateN <= StateC; -- avoid latches
 		NextStateN <= NextStateC;
 		State_tmp := StateC;
-		if (StateC = IDLE) then
+		if (StateC = CTRL_IDLE) then
 			if (EndDecoding = '1') then
 				if (CtrlCmd = CTRL_CMD_ALU) or (CtrlCmd = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) or ((CtrlCmd = CTRL_CMD_MOV) and (EnableRegFile_In(1) = '1')) then
 					StateN <= REG_FILE_READ;
@@ -187,9 +187,9 @@ begin
 				NextStateN <= REG_FILE_WRITE;
 			end if;
 		elsif (StateC = REG_FILE_WRITE) then
-			NextStateN <= IDLE;
+			NextStateN <= CTRL_IDLE;
 			if (DoneRegFile = '1') then
-				StateN <= IDLE;
+				StateN <= CTRL_IDLE;
 			else
 				StateN <= StateC;
 			end if;
@@ -220,7 +220,7 @@ begin
 			if (CtrlCmd = CTRL_CMD_RD_S) or (CtrlCmd = CTRL_CMD_RD_M) then
 				State_tmp := REG_FILE_WRITE;
 			elsif (CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)  then
-				State_tmp := IDLE;
+				State_tmp := CTRL_IDLE;
 			else
 				State_tmp := StateC;
 			end if;
@@ -232,14 +232,14 @@ begin
 				StateN <= StateC;
 			end if;
 		elsif (StateC = UNKNOWN_COMMAND) then
-			StateN <= IDLE;
+			StateN <= CTRL_IDLE;
 		else
 			StateN <= StateC;
 		end if;
 	end process state_det;
 
 
-	EndExecution <= '1' when (StateC = UNKNOWN_COMMAND) or ((NextStateC = IDLE) and (DoneRegFile = '1')) or (((CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)) and (StateC = MEMORY_ACCESS) and (DoneMemory = '1')) else '0';
+	EndExecution <= '1' when (StateC = UNKNOWN_COMMAND) or ((NextStateC = CTRL_IDLE) and (DoneRegFile = '1')) or (((CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)) and (StateC = MEMORY_ACCESS) and (DoneMemory = '1')) else '0';
 
 	ImmediateN <= Immediate when (EndDecoding = '1') else ImmediateC;
 	CmdALUN <= CmdALU_In when (EndDecoding = '1') else CmdALUC;

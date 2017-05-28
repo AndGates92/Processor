@@ -5,6 +5,12 @@ use ieee.numeric_std.all;
 
 package bram_pkg is 
 
+	constant STATE_BRAM_L	: positive := 2;
+
+	constant BRAM_IDLE	: std_logic_vector(STATE_BRAM_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_BRAM_L));
+	constant BRAM_OUTPUT	: std_logic_vector(STATE_BRAM_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_BRAM_L));
+	constant GEN_ADDR	: std_logic_vector(STATE_BRAM_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_BRAM_L));
+
 	component bram_rst is
 	generic (
 		ADDR_L	: positive := 32

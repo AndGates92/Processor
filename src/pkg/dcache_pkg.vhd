@@ -14,12 +14,16 @@ package dcache_pkg is
 	constant ADDR_BRAM_L	: positive := int_to_bit_num(DCACHE_LINE);
 	constant DCACHE_LINE_L	: positive := DIRTY_BIT_L + VALID_L + int_to_bit_num(DATA_MEMORY) + DATA_L;
 
-	constant RESET		: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
-	constant BRAM_FWD	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_L));
-	constant WAIT_BRAM_DATA	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_L));
-	constant BRAM_RECV_DATA	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_L));
-	constant MEMORY_ACCESS	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_L));
-	constant WRITE_BRAM	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_L));
+	constant STATE_DCACHE_L	: positive := 3;
+
+	constant DCACHE_IDLE	: std_logic_vector(STATE_DCACHE_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_DCACHE_L));
+	constant DCACHE_OUTPUT	: std_logic_vector(STATE_DCACHE_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_DCACHE_L));
+	constant RESET		: std_logic_vector(STATE_DCACHE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_DCACHE_L));
+	constant BRAM_FWD	: std_logic_vector(STATE_DCACHE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_DCACHE_L));
+	constant WAIT_BRAM_DATA	: std_logic_vector(STATE_DCACHE_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_DCACHE_L));
+	constant BRAM_RECV_DATA	: std_logic_vector(STATE_DCACHE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_DCACHE_L));
+	constant MEMORY_ACCESS	: std_logic_vector(STATE_DCACHE_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_DCACHE_L));
+	constant WRITE_BRAM	: std_logic_vector(STATE_DCACHE_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_DCACHE_L));
 
 
 	component dcache is

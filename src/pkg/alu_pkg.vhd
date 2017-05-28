@@ -4,31 +4,34 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.proc_pkg.all;
 
 package alu_pkg is 
 
 	constant CMD_ALU_L	: positive := 4;
 
-	constant CMD_ALU_USUM	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(0,CMD_ALU_L));
-	constant CMD_ALU_SSUM	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(1,CMD_ALU_L));
-	constant CMD_ALU_USUB	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(2,CMD_ALU_L));
-	constant CMD_ALU_SSUB	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(3,CMD_ALU_L));
-	constant CMD_ALU_UCMP	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(4,CMD_ALU_L));
-	constant CMD_ALU_SCMP	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(5,CMD_ALU_L));
-	constant CMD_ALU_AND	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(6,CMD_ALU_L));
-	constant CMD_ALU_OR	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(7,CMD_ALU_L));
-	constant CMD_ALU_XOR	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(8,CMD_ALU_L));
-	constant CMD_ALU_NOT	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(9,CMD_ALU_L));
-	constant CMD_ALU_SHIFT	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(10,CMD_ALU_L));
-	constant CMD_ALU_MUL	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(11,CMD_ALU_L));
-	constant CMD_ALU_DIV	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(12,CMD_ALU_L));
+	constant CMD_ALU_USUM		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(0,CMD_ALU_L));
+	constant CMD_ALU_SSUM		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(1,CMD_ALU_L));
+	constant CMD_ALU_USUB		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(2,CMD_ALU_L));
+	constant CMD_ALU_SSUB		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(3,CMD_ALU_L));
+	constant CMD_ALU_UCMP		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(4,CMD_ALU_L));
+	constant CMD_ALU_SCMP		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(5,CMD_ALU_L));
+	constant CMD_ALU_AND		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(6,CMD_ALU_L));
+	constant CMD_ALU_OR		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(7,CMD_ALU_L));
+	constant CMD_ALU_XOR		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(8,CMD_ALU_L));
+	constant CMD_ALU_NOT		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(9,CMD_ALU_L));
+	constant CMD_ALU_SHIFT		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(10,CMD_ALU_L));
+	constant CMD_ALU_MUL		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(11,CMD_ALU_L));
+	constant CMD_ALU_DIV		: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(12,CMD_ALU_L));
 	constant CMD_ALU_DISABLE	: std_logic_vector(CMD_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(integer(2.0**(real(CMD_ALU_L)) - 1.0),CMD_ALU_L));
 
-	constant COMPUTE	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_L));
-	constant COMPARE	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_L));
-	constant COMPUTE_FIRST	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_L));
-	constant COMPUTE_LAST	: std_logic_vector(STATE_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_L));
+	constant STATE_ALU_L	: positive := 3;
+
+	constant ALU_IDLE	: std_logic_vector(STATE_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_ALU_L));
+	constant ALU_OUTPUT	: std_logic_vector(STATE_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_ALU_L));
+	constant COMPUTE	: std_logic_vector(STATE_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_ALU_L));
+	constant COMPARE	: std_logic_vector(STATE_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_ALU_L));
+	constant COMPUTE_FIRST	: std_logic_vector(STATE_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_ALU_L));
+	constant COMPUTE_LAST	: std_logic_vector(STATE_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_ALU_L));
 
 	function calc_length_multiplier (op1_l, op2_l, base : integer; multiplicand : integer) return integer;
 	function find_min (op1_l, op2_l : integer) return integer;

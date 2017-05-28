@@ -50,7 +50,7 @@ architecture rtl of alu is
 	signal DoneOp		: std_logic;
 	signal UnCmdN, UnCmdC, UnCmdInt		: std_logic;
 
-	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
+	signal StateC, StateN: std_logic_vector(STATE_ALU_L - 1 downto 0);
 
 begin
 
@@ -66,7 +66,7 @@ begin
 			UnflC <= '0';
 			UnCmdC <= '0';
 			ResC <= (others => '0');
-			StateC <= IDLE;
+			StateC <= ALU_IDLE;
 		elsif (clk'event) and (clk = '1') then
 			Op1C <= Op1N;
 			Op2C <= Op2N;
@@ -84,28 +84,28 @@ begin
 	state_det: process(StateC, Start, DoneOp, UnCmdInt, CmdC, UnCmdC)
 	begin
 		StateN <= StateC; -- avoid latches
-		if (StateC = IDLE) then
+		if (StateC = ALU_IDLE) then
 			if (Start = '1') then
 				StateN <= COMPUTE;
 			else
-				StateN <= IDLE;
+				StateN <= ALU_IDLE;
 			end if;
 		elsif (StateC = COMPUTE) then
 			if DoneOp = '1' then
-				StateN <= OUTPUT;
+				StateN <= ALU_OUTPUT;
 			elsif (CmdC = CMD_ALU_UCMP) or (CmdC = CMD_ALU_SCMP) then
 				StateN <= COMPARE;
 			elsif (UnCmdC = '1') then
-				StateN <= OUTPUT;
+				StateN <= ALU_OUTPUT;
 			else
 				StateN <= COMPUTE;
 			end if;
 		elsif (StateC = COMPARE) then
-			StateN <= OUTPUT;
-		elsif (StateC = OUTPUT) then
-			StateN <= IDLE;
+			StateN <= ALU_OUTPUT;
+		elsif (StateC = ALU_OUTPUT) then
+			StateN <= ALU_IDLE;
 		else
-			StateN <= IDLE;
+			StateN <= ALU_IDLE;
 		end if;
 	end process state_det;
 
@@ -152,7 +152,7 @@ begin
 		UnCmdN <= UnCmdC;
 		DoneOp <= '0';
 
-		if (StateC = IDLE) then
+		if (StateC = ALU_IDLE) then
 			Op1N <= unsigned(Op1);
 			Op2N <= unsigned(Op2);
 			CmdN <= Cmd;
@@ -228,7 +228,7 @@ begin
 			else
 				ResN <= (others => '0');
 			end if;
-		elsif (StateC = OUTPUT) then
+		elsif (StateC = ALU_OUTPUT) then
 			ResN <= ResC;
 			DoneOp <= '0';
 		else
@@ -237,12 +237,12 @@ begin
 		end if;
 	end process data;
 
-	Unfl <= UnflC when (StateC = OUTPUT) else '0';
-	Ovfl <= OvflC when (StateC = OUTPUT) else '0';
-	UnCmd <= UnCmdC when (StateC = OUTPUT) else '0';
+	Unfl <= UnflC when (StateC = ALU_OUTPUT) else '0';
+	Ovfl <= OvflC when (StateC = ALU_OUTPUT) else '0';
+	UnCmd <= UnCmdC when (StateC = ALU_OUTPUT) else '0';
 
-	Done <= '1' when (StateC = OUTPUT) else '0';
+	Done <= '1' when (StateC = ALU_OUTPUT) else '0';
 
-	Res <= std_logic_vector(ResC) when (StateC = OUTPUT) else (others => '0');
+	Res <= std_logic_vector(ResC) when (StateC = ALU_OUTPUT) else (others => '0');
 
 end rtl; 

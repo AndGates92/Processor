@@ -49,7 +49,7 @@ architecture non_restoring of div is
 	signal ZeroDvdN, ZeroDvdC, ZeroDvd	: std_logic;
 	signal ZeroDvsN, ZeroDvsC, ZeroDvs	: std_logic;
 
-	signal StateC, StateN: std_logic_vector(STATE_L - 1 downto 0);
+	signal StateC, StateN: std_logic_vector(STATE_ALU_L - 1 downto 0);
 
 	signal CountC, CountN: unsigned(int_to_bit_num(OP_L-2)-1 downto 0);
 
@@ -75,7 +75,7 @@ begin
 			SignC <= '0';
 			SignDvdC <= '0';
 			CountC <= (others => '0');
-			StateC <= IDLE;
+			StateC <= ALU_IDLE;
 			QuotC <= (others => '0');
 			RemC <= (others => '0');
 			ZeroDvsC <= '0';
@@ -96,10 +96,10 @@ begin
 	state_det: process(StateC, Start, CountC, ext_divd, ext_divr)
 	begin
 		StateN <= StateC; -- avoid latches
-		if (StateC = IDLE) then
+		if (StateC = ALU_IDLE) then
 			if (Start = '1') then
 				if (ext_divd = zero_divd) or (ext_divr = zero_divr) then -- fast track in case of zero input
-					StateN <= OUTPUT;
+					StateN <= ALU_OUTPUT;
 				else
 					StateN <= COMPUTE_FIRST;
 				end if;
@@ -113,9 +113,9 @@ begin
 				StateN <= COMPUTE;
 			end if;
 		elsif (StateC = COMPUTE_LAST) then
-			StateN <= OUTPUT;
-		elsif (StateC = OUTPUT) then
-			StateN <= IDLE;
+			StateN <= ALU_OUTPUT;
+		elsif (StateC = ALU_OUTPUT) then
+			StateN <= ALU_IDLE;
 		else
 			StateN <= StateC;
 		end if;
@@ -155,7 +155,7 @@ begin
 		ZeroDvsN <= ZeroDvsC;
 		ZeroDvdN <= ZeroDvdC;
 
-		if (StateC = IDLE) then
+		if (StateC = ALU_IDLE) then
 			DivisorN <= DivisorProp;
 			QuotN <= DividendProp(DividendProp'length -1 downto 0);
 			RemN <= (others => '0');
@@ -178,7 +178,7 @@ begin
 			else
 				RemN <= RemC;
 			end if;
-		elsif (StateC = OUTPUT) then
+		elsif (StateC = ALU_OUTPUT) then
 			RemN <= RemC;
 			QuotN <= QuotC;
 		else
@@ -190,29 +190,29 @@ begin
 		end if;
 	end process data;
 
-	Done <=	'1' when StateC = OUTPUT else 
+	Done <=	'1' when StateC = ALU_OUTPUT else 
 		'0';
 
 --	QuotOut <=	("0" & QuotC) when SignC = '0' else
 --			("1" & not QuotC) + 1;
 
---	Quotient <= 	std_logic_vector(QuotOut) when StateC = OUTPUT else 
+--	Quotient <= 	std_logic_vector(QuotOut) when StateC = ALU_OUTPUT else 
 --			(others => '0');
 
 --	RemOut <=	unsigned(RemC) when SignDvdC = '0' else
 --			(not unsigned(RemC)) + 1;
 
---	Remainder <= 	std_logic_vector(RemC) when StateC = OUTPUT else 
+--	Remainder <= 	std_logic_vector(RemC) when StateC = ALU_OUTPUT else 
 --			(others => '0');
 
-	Quotient <=	(others => '1')									when StateC = OUTPUT and ZeroDvsC = '1' and ZeroDvdC = '1' else 
-			std_logic_vector(to_unsigned((2**(Quotient'length-1)-1), Quotient'length)) 	when StateC = OUTPUT and ZeroDvsC = '1' and SignC = '0' else
-			std_logic_vector(to_signed(-(2**(Quotient'length-1)-1), Quotient'length)) 	when StateC = OUTPUT and ZeroDvsC = '1' and SignC = '1' else
-			std_logic_vector("0" & QuotC(DIVD_L-1 - 1 downto 0)) 							when StateC = OUTPUT and SignC = '0' and ZeroDvdC = '0' and ZeroDvsC = '0' else
-			std_logic_vector(("1" & not QuotC(DIVD_L-1 - 1 downto 0)) + 1)						when StateC = OUTPUT and SignC = '1' and ZeroDvdC = '0' and ZeroDvsC = '0' else
+	Quotient <=	(others => '1')									when StateC = ALU_OUTPUT and ZeroDvsC = '1' and ZeroDvdC = '1' else 
+			std_logic_vector(to_unsigned((2**(Quotient'length-1)-1), Quotient'length)) 	when StateC = ALU_OUTPUT and ZeroDvsC = '1' and SignC = '0' else
+			std_logic_vector(to_signed(-(2**(Quotient'length-1)-1), Quotient'length)) 	when StateC = ALU_OUTPUT and ZeroDvsC = '1' and SignC = '1' else
+			std_logic_vector("0" & QuotC(DIVD_L-1 - 1 downto 0)) 				when StateC = ALU_OUTPUT and SignC = '0' and ZeroDvdC = '0' and ZeroDvsC = '0' else
+			std_logic_vector(("1" & not QuotC(DIVD_L-1 - 1 downto 0)) + 1)			when StateC = ALU_OUTPUT and SignC = '1' and ZeroDvdC = '0' and ZeroDvsC = '0' else
 			(others => '0');
 
-	Remainder <= 	std_logic_vector((not unsigned(RemC(DIVR_L-1 downto 0))) + 1)	when StateC = OUTPUT and SignDvdC = '1' and ZeroDvdC = '0' and ZeroDvsC = '0' else
-			std_logic_vector(RemC(DIVR_L-1 downto 0)) 				when StateC = OUTPUT and SignDvdC = '0' and ZeroDvdC = '0' and ZeroDvsC = '0' else
+	Remainder <= 	std_logic_vector((not unsigned(RemC(DIVR_L-1 downto 0))) + 1)		when StateC = ALU_OUTPUT and SignDvdC = '1' and ZeroDvdC = '0' and ZeroDvsC = '0' else
+			std_logic_vector(RemC(DIVR_L-1 downto 0)) 				when StateC = ALU_OUTPUT and SignDvdC = '0' and ZeroDvdC = '0' and ZeroDvsC = '0' else
 			(others => '0');
 end non_restoring;
