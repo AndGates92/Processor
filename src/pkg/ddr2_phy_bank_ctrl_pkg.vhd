@@ -13,7 +13,7 @@ package ddr2_phy_bank_ctrl_pkg is
 	constant T_ACT_COL	: positive := T_RCD - to_integer(unsigned(AL)); 
 	constant T_WRITE_PRE	: positive := WRITE_LATENCY + T_WR + positive(2**(to_integer(unsigned(BURST_LENGTH))) - 1);
 	constant T_WRITE_ACT	: positive := T_RP + T_WRITE_PRE;
-	constant T_READ_PRE	: positive := to_integer(unsigned(AL)) + (2**(to_integer(unsigned(BURST_LENGTH)) - 1));
+	constant T_READ_PRE	: positive := to_integer(unsigned(AL)) + (2**(to_integer(unsigned(BURST_LENGTH)) - 1)) + max_int(T_RTP, 2) - 2;
 	constant T_READ_ACT	: positive := T_RP + T_READ_PRE;
 
 	constant CNT_BANK_CTRL_L	: integer := int_to_bit_num(max_int(T_RAS_min, max_int(T_RC, T_ACT_COL)));
@@ -21,7 +21,7 @@ package ddr2_phy_bank_ctrl_pkg is
 
 	constant STATE_BANK_CTRL_L	: positive := 3;
 
-	constant IDLE				: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_BANK_CTRL_L));
+	constant BANK_CTRL_IDLE			: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_BANK_CTRL_L));
 	constant WAIT_ACT_ACK			: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_BANK_CTRL_L));
 	constant ELAPSE_T_ACT_COL		: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_BANK_CTRL_L));
 	constant DATA_PHASE			: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_BANK_CTRL_L));

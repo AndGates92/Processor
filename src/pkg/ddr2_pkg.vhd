@@ -23,6 +23,8 @@ package ddr2_pkg is
 	constant DDR2_DATA_L		: positive := 16;
 
 	-- Timing parameter (in ns)
+	constant T_WTR_ns		: real := 7.5;
+	constant T_RTP_ns		: real := 7.5;
 	constant T_RCD_ns		: real := 12.5;
 	constant T_RP_ns		: real := 12.5;
 	constant T_RC_ns		: real := 57.5;
@@ -47,6 +49,8 @@ package ddr2_pkg is
 	constant T_XARD		: positive := 2;
 	constant T_XARDS_max	: positive := 8;
 	constant T_AOFD		: positive := integer(ceil(2.5));
+	constant T_WTR		: positive := integer(ceil(T_WTR_ns/(real(DDR2_CLK_PERIOD))));
+	constant T_RTP		: positive := integer(ceil(T_RTP_ns/(real(DDR2_CLK_PERIOD))));
 	constant T_RCD		: positive := integer(ceil(T_RCD_ns/(real(DDR2_CLK_PERIOD))));
 	constant T_RP		: positive := integer(ceil(T_RP_ns/(real(DDR2_CLK_PERIOD))));
 	constant T_RC		: positive := integer(ceil(T_RC_ns/(real(DDR2_CLK_PERIOD))));

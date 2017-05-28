@@ -47,6 +47,4 @@ package ddr2_phy_pkg is
 	constant CMD_WRITE_PRECHARGE		: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(16, MEM_CMD_L));
 	constant CMD_READ_PRECHARGE		: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(17, MEM_CMD_L));
 
-	constant PHY_CNT_L	: integer := int_to_bit_num(max_int(T_RCD-1, max_int(T_RFC-1, max_int(T_RP-1, max_int(T_AOFD-1, max_int(T_MOD_max-1, max_int(T_XARD-1, max_int(T_RC-1, max_int(T_RAP-1, max_int(T_RAS_max-1, max_int(T_RRD-1, max_int(T_FAW-1, max_int(T_WR-1, max_int(T_REFI_highT-1, max_int(T_CCD-1, max_int(T_MRD-1, max_int(T_AOFD-1, max_int(T_XSRD-1, max_int(T_XP-1, max_int(T_REFI_lowT-1, max_int(T_XSNR-1, T_XARDS_max-1)))))))))))))))))))));
-
 end package ddr2_phy_pkg;

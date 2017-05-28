@@ -107,7 +107,7 @@ begin
 
 			OutstandingBurstsC <= (others => '0');
 
-			StateC <= IDLE;
+			StateC <= BANK_CTRL_IDLE;
 
 			CmdReqC <= '0';
 
@@ -142,19 +142,19 @@ begin
 	RowMemOut <= RowMemC;
 	CtrlAck <= CtrlAck_comb;
 	ZeroOutstandingBursts <= ZeroOutstandingBursts_comb;
-	CtrlAck_comb <= CtrlReq and (not ProcActCmdC) when ((StateC = IDLE) or (StateC = WAIT_ACT_ACK)) else (DataPhase and ReqActSameRow); -- return ack only when arbitrer gives the ack or during the data phase
+	CtrlAck_comb <= CtrlReq and (not ProcActCmdC) when ((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) else (DataPhase and ReqActSameRow); -- return ack only when arbitrer gives the ack or during the data phase
 
-	ProcActCmdN <=	'1' when ((StateC = IDLE) or (StateC = WAIT_ACT_ACK)) and (ProcActCmdC = '0') and (CtrlReq = '1') and (CtrlAck_comb = '1') else
-			'0' when ((StateC /= IDLE) and (StateC /= WAIT_ACT_ACK)) else
+	ProcActCmdN <=	'1' when ((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) and (ProcActCmdC = '0') and (CtrlReq = '1') and (CtrlAck_comb = '1') else
+			'0' when ((StateC /= BANK_CTRL_IDLE) and (StateC /= WAIT_ACT_ACK)) else
 			ProcActCmdC;
 
 	ReqActSameRow <= '1' when ((RowMemC = RowMemIn) and (CtrlReq = '1')) else '0';
 
-	RowMemN <= RowMemIn when (((StateC = IDLE) or (StateC = WAIT_ACT_ACK)) and (CtrlReq = '1') and (CtrlAck_comb = '1')) else RowMemC;
+	RowMemN <= RowMemIn when (((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) and (CtrlReq = '1') and (CtrlAck_comb = '1')) else RowMemC;
 
 	DataPhase <= '1' when ((StateC = ELAPSE_T_ACT_COL) or ((BankActiveC = '1') and  (ExitDataPhase = '0'))) else '0';
 
-	CmdReqN <=	'1' when (((StateC = WAIT_ACT_ACK) or (StateC = IDLE)) and (CtrlReq = '1') and (CtrlAck_comb = '1')) else
+	CmdReqN <=	'1' when (((StateC = WAIT_ACT_ACK) or (StateC = BANK_CTRL_IDLE)) and (CtrlReq = '1') and (CtrlAck_comb = '1')) else
 			'0' when ((StateC = WAIT_ACT_ACK) and (CmdAck = '1')) else
 			CmdReqC;
 
@@ -208,7 +208,7 @@ begin
 	state_det: process(StateC, CtrlReq, CmdAck, TActColReached, ExitDataPhase, OutstandingBurstsC, TRASReached, TRCReached, ZeroDelayCnt)
 	begin
 		StateN <= StateC; -- avoid latched
-		if (StateC = IDLE) then
+		if (StateC = BANK_CTRL_IDLE) then
 			if (CtrlReq = '1') then
 				StateN <= WAIT_ACT_ACK;
 			end if;
@@ -241,7 +241,7 @@ begin
 				if (CtrlReq = '1') then
 					StateN <= WAIT_ACT_ACK;
 				else
-					StateN <= IDLE;
+					StateN <= BANK_CTRL_IDLE;
 				end if;
 			end if;
 		end if;
