@@ -5,12 +5,8 @@ use ieee.numeric_std.all;
 
 library work;
 use work.proc_pkg.all;
-use work.ddr2_pkg.all;
 
 package ddr2_phy_pkg is 
-
-	constant MAX_OUTSTANDING_BURSTS		: positive := 10;
-	constant MAX_OUTSTANDING_BURSTS_L	: positive := int_to_bit_num(MAX_OUTSTANDING_BURSTS);
 
 	constant STATE_PHY_L	: positive := 4;
 

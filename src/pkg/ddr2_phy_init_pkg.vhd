@@ -5,7 +5,8 @@ use ieee.numeric_std.all;
 
 library work;
 use work.proc_pkg.all;
-use work.ddr2_pkg.all;
+use work.ddr2_mrs_pkg.all;
+use work.ddr2_timing_pkg.all;
 
 package ddr2_phy_init_pkg is 
 
@@ -41,6 +42,10 @@ package ddr2_phy_init_pkg is
 	constant INIT_COMPLETE		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(15, STATE_PHY_INIT_L));
 
 	component ddr2_phy_init 
+	generic (
+		BANK_L		: positive := 3;
+		ADDR_MEM_L	: positive := 13
+	);
 	port (
 
 		rst		: in std_logic;

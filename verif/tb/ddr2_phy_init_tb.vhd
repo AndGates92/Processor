@@ -6,9 +6,10 @@ use ieee.math_real.all;
 use std.textio.all;
 
 library work;
-use work.ddr2_pkg.all;
+use work.ddr2_timing_pkg.all;
 use work.ddr2_phy_init_pkg.all;
 use work.tb_pkg.all;
+use work.ddr2_pkg_tb.all;
 
 entity ddr2_phy_init_tb is
 end entity ddr2_phy_init_tb;
@@ -23,8 +24,8 @@ architecture bench of ddr2_phy_init_tb is
 	signal rst_tb	: std_logic;
 
 	-- Memory access
-	signal AddressMem_tb			: std_logic_vector(ADDR_MEM_L - 1 downto 0);
-	signal BankSelMem_tb			: std_logic_vector(BANK_L - 1 downto 0);
+	signal AddressMem_tb			: std_logic_vector(ADDR_MEM_L_TB - 1 downto 0);
+	signal BankSelMem_tb			: std_logic_vector(BANK_L_TB - 1 downto 0);
 	signal nChipSelect_tb			: std_logic;
 	signal ReadEnable_tb			: std_logic;
 	signal nColAccessStrobe_tb		: std_logic;
@@ -37,7 +38,10 @@ architecture bench of ddr2_phy_init_tb is
 
 begin
 
-	DUT: ddr2_phy_init
+	DUT: ddr2_phy_init generic map (
+		BANK_L => BANK_L_TB,
+		ADDR_MEM_L => ADDR_MEM_L_TB
+	)
 	port map (
 		clk => clk_tb,
 		rst => rst_tb,

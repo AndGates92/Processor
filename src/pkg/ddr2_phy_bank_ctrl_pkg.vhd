@@ -5,8 +5,9 @@ use ieee.numeric_std.all;
 
 library work;
 use work.proc_pkg.all;
-use work.ddr2_pkg.all;
 use work.ddr2_phy_pkg.all;
+use work.ddr2_mrs_pkg.all;
+use work.ddr2_timing_pkg.all;
 
 package ddr2_phy_bank_ctrl_pkg is 
 
@@ -30,6 +31,10 @@ package ddr2_phy_bank_ctrl_pkg is
 	constant ELAPSE_T_RP			: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_BANK_CTRL_L));
 
 	component ddr2_phy_bank_ctrl
+	generic (
+		ROW_L			: positive := 13;
+		MAX_OUTSTANDING_BURSTS	: positive := 10
+	);
 	port (
 
 		rst		: in std_logic;

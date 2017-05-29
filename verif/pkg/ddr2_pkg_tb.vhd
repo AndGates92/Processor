@@ -21,4 +21,7 @@ package ddr2_pkg_tb is
 
 	constant DDR2_DATA_L_TB	: positive := 16;
 
+	constant MAX_OUTSTANDING_BURSTS_TB		: positive := 10;
+	constant MAX_OUTSTANDING_BURSTS_L_TB		: positive := int_to_bit_num(MAX_OUTSTANDING_BURSTS_TB);
+
 end package ddr2_pkg_tb;

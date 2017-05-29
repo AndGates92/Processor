@@ -3,11 +3,17 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.ddr2_pkg.all;
+use work.proc_pkg.all;
+use work.ddr2_mrs_pkg.all;
+use work.ddr2_timing_pkg.all;
 use work.ddr2_phy_pkg.all;
 use work.ddr2_phy_bank_ctrl_pkg.all;
 
 entity ddr2_phy_bank_ctrl is
+generic (
+	ROW_L			: positive := 13;
+	MAX_OUTSTANDING_BURSTS	: positive := 10
+);
 port (
 
 	rst		: in std_logic;
@@ -43,9 +49,9 @@ architecture rtl of ddr2_phy_bank_ctrl is
 
 	constant incr_bank_ctrl_cnt_value	: unsigned(CNT_BANK_CTRL_L - 1 downto 0) := to_unsigned(1, CNT_BANK_CTRL_L); 
 
-	constant zero_outstanding_bursts_value	: unsigned(MAX_OUTSTANDING_BURSTS_L - 1 downto 0) := (others => '0'); 
-	constant decr_outstanding_bursts_value	: unsigned(MAX_OUTSTANDING_BURSTS_L - 1 downto 0) := to_unsigned(1, MAX_OUTSTANDING_BURSTS_L);
-	constant incr_outstanding_bursts_value	: unsigned(MAX_OUTSTANDING_BURSTS_L - 1 downto 0) := to_unsigned(1, MAX_OUTSTANDING_BURSTS_L);
+	constant zero_outstanding_bursts_value	: unsigned(int_to_bit_num(MAX_OUTSTANDING_BURSTS) - 1 downto 0) := (others => '0'); 
+	constant decr_outstanding_bursts_value	: unsigned(int_to_bit_num(MAX_OUTSTANDING_BURSTS) - 1 downto 0) := to_unsigned(1, int_to_bit_num(MAX_OUTSTANDING_BURSTS));
+	constant incr_outstanding_bursts_value	: unsigned(int_to_bit_num(MAX_OUTSTANDING_BURSTS) - 1 downto 0) := to_unsigned(1, int_to_bit_num(MAX_OUTSTANDING_BURSTS));
 
 	signal DecrOutstandingBurstsCnt	: std_logic;
 	signal IncrOutstandingBurstsCnt	: std_logic;
@@ -79,7 +85,7 @@ architecture rtl of ddr2_phy_bank_ctrl is
 	signal DelayCntEnC, DelayCntEnN		: std_logic;
 	signal ZeroDelayCnt			: std_logic;
 
-	signal OutstandingBurstsC, OutstandingBurstsN	: unsigned(MAX_OUTSTANDING_BURSTS_L - 1 downto 0);
+	signal OutstandingBurstsC, OutstandingBurstsN	: unsigned(int_to_bit_num(MAX_OUTSTANDING_BURSTS) - 1 downto 0);
 	signal ZeroOutstandingBursts_comb		: std_logic;
 
 	signal StateC, StateN			: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0);
