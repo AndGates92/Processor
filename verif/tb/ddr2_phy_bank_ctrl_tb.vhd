@@ -61,6 +61,8 @@ begin
 
 		RowMemIn => RowMemIn_tb,
 
+		CmdAck => CmdAck_tb,
+
 		RowMemOut => RowMemOut_tb,
 		CmdOut => CmdOut_tb,
 		CmdReq => CmdReq_tb,
