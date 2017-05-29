@@ -23,18 +23,18 @@ port (
 	RowMemIn	: in std_logic_vector(ROW_L - 1 downto 0);
 
 	-- Arbitrer
-	CmdAck			: in std_logic;
+	CmdAck		: in std_logic;
 
-	RowMemOut		: out std_logic_vector(ROW_L - 1 downto 0);
-	CmdOut			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
-	CmdReq			: out std_logic;
+	RowMemOut	: out std_logic_vector(ROW_L - 1 downto 0);
+	CmdOut		: out std_logic_vector(MEM_CMD_L - 1 downto 0);
+	CmdReq		: out std_logic;
 
 	-- Controller
-	CtrlReq		: in std_logic;
+	CtrlReq			: in std_logic;
 	EndDataPhase		: in std_logic;
 	ReadBurst		: in std_logic;
 
-	CtrlAck		: out std_logic;
+	CtrlAck			: out std_logic;
 	ZeroOutstandingBursts	: out std_logic;
 	BankIdle		: out std_logic;
 	BankActive		: out std_logic

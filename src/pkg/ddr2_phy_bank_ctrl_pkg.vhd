@@ -44,11 +44,11 @@ package ddr2_phy_bank_ctrl_pkg is
 		RowMemIn	: in std_logic_vector(ROW_L - 1 downto 0);
 
 		-- Arbitrer
-		CmdAck			: in std_logic;
+		CmdAck		: in std_logic;
 
-		RowMemOut		: out std_logic_vector(ROW_L - 1 downto 0);
-		CmdOut			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
-		CmdReq			: out std_logic;
+		RowMemOut	: out std_logic_vector(ROW_L - 1 downto 0);
+		CmdOut		: out std_logic_vector(MEM_CMD_L - 1 downto 0);
+		CmdReq		: out std_logic;
 
 		-- Controller
 		CtrlReq			: in std_logic;
