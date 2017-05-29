@@ -42,9 +42,6 @@ package ddr2_phy_bank_ctrl_pkg is
 
 		-- User Interface
 		RowMemIn	: in std_logic_vector(ROW_L - 1 downto 0);
-		CtrlReq		: in std_logic;
-
-		CtrlAck		: out std_logic;
 
 		-- Arbitrer
 		CmdAck			: in std_logic;
@@ -54,9 +51,11 @@ package ddr2_phy_bank_ctrl_pkg is
 		CmdReq			: out std_logic;
 
 		-- Controller
+		CtrlReq			: in std_logic;
 		ReadBurst		: in std_logic;
 		EndDataPhase		: in std_logic;
 
+		CtrlAck			: out std_logic;
 		ZeroOutstandingBursts	: out std_logic;
 		BankIdle		: out std_logic;
 		BankActive		: out std_logic

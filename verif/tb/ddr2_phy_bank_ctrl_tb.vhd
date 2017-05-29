@@ -60,19 +60,16 @@ begin
 		rst => rst_tb,
 
 		RowMemIn => RowMemIn_tb,
-		CtrlReq => CtrlReq_tb,
-
-		CtrlAck => CtrlAck_tb,
-
-		CmdAck => CmdAck_tb,
 
 		RowMemOut => RowMemOut_tb,
 		CmdOut => CmdOut_tb,
 		CmdReq => CmdReq_tb,
 
+		CtrlReq => CtrlReq_tb,
 		ReadBurst => ReadBurst_tb,
 		EndDataPhase => EndDataPhase_tb,
 
+		CtrlAck => CtrlAck_tb,
 		ZeroOutstandingBursts => ZeroOutstandingBursts_tb,
 		BankIdle => BankIdle_tb,
 		BankActive => BankActive_tb
