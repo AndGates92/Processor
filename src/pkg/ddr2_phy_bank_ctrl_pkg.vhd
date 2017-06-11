@@ -40,9 +40,6 @@ package ddr2_phy_bank_ctrl_pkg is
 		rst		: in std_logic;
 		clk		: in std_logic;
 
-		-- User Interface
-		RowMemIn	: in std_logic_vector(ROW_L - 1 downto 0);
-
 		-- Arbitrer
 		CmdAck		: in std_logic;
 
@@ -50,16 +47,20 @@ package ddr2_phy_bank_ctrl_pkg is
 		CmdOut		: out std_logic_vector(MEM_CMD_L - 1 downto 0);
 		CmdReq		: out std_logic;
 
-		-- Controller
-		CtrlReq			: in std_logic;
-		ReadBurst		: in std_logic;
-		EndDataPhase		: in std_logic;
+		-- Transaction Controller
+		RowMemIn	: in std_logic_vector(ROW_L - 1 downto 0);
+		CtrlReq		: in std_logic;
 
-		CtrlAck			: out std_logic;
+		CtrlAck		: out std_logic;
+
+		-- Column Controller
+		EndDataPhase		: in std_logic;
+		ReadBurst		: in std_logic;
+
+		-- Bank Status
 		ZeroOutstandingBursts	: out std_logic;
 		BankIdle		: out std_logic;
 		BankActive		: out std_logic
-
 	);
 	end component;
 
