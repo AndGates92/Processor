@@ -47,4 +47,17 @@ package body proc_pkg is
 		return max_val;
 	end;
 
+	function max_real(x, y : real) return real is
+		variable max_val	: real;
+	begin
+		if (x > y) then
+			max_val := x;
+		else
+			max_val := y;
+		end if;
+
+		return max_val;
+	end;
+
+
 end package body proc_pkg;
