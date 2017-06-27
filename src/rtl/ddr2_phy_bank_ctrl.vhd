@@ -155,24 +155,30 @@ begin
 			'0' when ((StateC /= BANK_CTRL_IDLE) and (StateC /= WAIT_ACT_ACK)) else
 			ProcActCmdC;
 
+	-- If same row is requested to be activate, accept immediately the request
 	ReqActSameRow <= '1' when ((RowMemC = RowMemIn) and (CtrlReq = '1')) else '0';
 
+	-- Store Row open for future comparison
 	RowMemN <= RowMemIn when (((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) and (CtrlReq = '1') and (CtrlAck_comb = '1')) else RowMemC;
 
+	-- Bank in data phase
 	DataPhase <= '1' when ((StateC = ELAPSE_T_ACT_COL) or ((BankActiveC = '1') and  (ExitDataPhase = '0'))) else '0';
 
 	CmdReqN <=	'1' when (((StateC = WAIT_ACT_ACK) or (StateC = BANK_CTRL_IDLE)) and (CtrlReq = '1') and (CtrlAck_comb = '1')) else
 			'0' when ((StateC = WAIT_ACT_ACK) and (CmdAck = '1')) else
 			CmdReqC;
 
+	-- Bank active after time between activate and column command is elapsed
 	BankActiveN <=	'1' when ((StateC = ELAPSE_T_ACT_COL) and (TActColReached = '1')) else
 			'0' when ((StateC = DATA_PHASE) and (ExitDataPhase = '1')) else
 			BankActiveC;
 
+	-- Reached flag
 	TActColReached <= '0' when (CntBankCtrlC < to_unsigned((T_ACT_COL - 1), CNT_BANK_CTRL_L)) else '1';
 	TRASReached <= '0' when (CntBankCtrlC < to_unsigned((T_RAS_min - 1), CNT_BANK_CTRL_L)) else '1';
 	TRCReached <= '0' when (CntBankCtrlC < to_unsigned((T_RC - 1), CNT_BANK_CTRL_L)) else '1';
 
+	-- Outstanding burst ctrl
 	DecrOutstandingBurstsCnt <= EndDataPhase and (not ZeroOutstandingBursts_comb);
 	IncrOutstandingBurstsCnt <= DataPhase and ReqActSameRow;
 
@@ -182,8 +188,10 @@ begin
 
 	ZeroOutstandingBursts_comb <= '1' when (OutstandingBurstsC = zero_outstanding_bursts_value) else '0';
 
+	-- End data phase when no outstanding bursts
 	ExitDataPhase <= (EndDataPhase and ZeroOutstandingBursts_comb);
 
+	-- Column command to precharge time
 	CntDelayN <=	DelayCntInitValue			when (SetDelayCnt = '1') else
 			(CntDelayC - decr_delay_cnt_value)	when ((DelayCntEnC = '1') and (ZeroDelayCnt = '0')) else
 			CntDelayC;

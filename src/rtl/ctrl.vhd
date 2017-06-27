@@ -254,6 +254,7 @@ begin
 --			Op1ALUC		when (StateC = ALU_OP) else
 --			(others => '0');
 
+	-- Use data in register file
 	Op1 <= DataRegOut1;
 	Op2 <= Op2Internal; --DataRegOut2 when (DoneReadStatus(1) = '1') else ImmediateC;
 	Op2Internal <= DataRegOut2 when (DoneReadStatus(1) = '1') else ImmediateC;

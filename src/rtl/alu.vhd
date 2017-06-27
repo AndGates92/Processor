@@ -111,32 +111,41 @@ begin
 
 	UnCmdInt <= '0' when (StateC = COMPUTE) and ((CmdC = CMD_ALU_USUM) or (CmdC = CMD_ALU_SSUM) or (CmdC = CMD_ALU_USUB) or (CmdC = CMD_ALU_SSUB) or (CmdC = CMD_ALU_UCMP) or (CmdC = CMD_ALU_SCMP) or (CmdC = CMD_ALU_AND) or (CmdC = CMD_ALU_OR) or (CmdC = CMD_ALU_NOT) or (CmdC = CMD_ALU_XOR)) else '1';
 
+	-- Unsigned operations
 	USum <= ("0" & Op1C) + ("0" & Op2C);
 	USubN <= ("0" & Op1C) - ("0" & Op2C);
 
+	-- Unsigned comparison
 	UCmp <=	(others => '0')			when USubC = ZERO else
 		to_unsigned(1, UCmp'length)	when USubC(USubC'length-1) = '0' else
 		(others => '1');
 
+	-- Signed operations
 	SSum <= unsigned(signed(Op1C(Op1C'length-1 downto Op1C'length-1) & Op1C) + signed(Op2C(Op2C'length-1 downto Op2C'length-1) & Op2C));
 	SSubN <= unsigned(signed(Op1C(Op1C'length-1 downto Op1C'length-1) & Op1C) - signed(Op2C(Op2C'length-1 downto Op2C'length-1) & Op2C));
 
+	-- Signed comparison
 	SCmp <=	(others => '0')			when SSubC = ZERO else
 		to_unsigned(1, SCmp'length)	when SSubC(SSubC'length-1) = '0' else
 		(others => '1');
 
+	-- Logical operations
+	-- AND
 	and_bit: for k in 0 to OP1_L-1 generate 
 		BAnd(k) <= Op1C(k) and Op2C(k);
 	end generate and_bit;
 
+	-- OR
 	or_bit: for k in 0 to OP1_L-1 generate 
 		BOr(k) <= Op1C(k) or Op2C(k);
 	end generate or_bit;
 
+	-- XOR
 	xor_bit: for k in 0 to OP1_L-1 generate 
 		BXor(k) <= Op1C(k) xor Op2C(k);
 	end generate xor_bit;
 
+	-- NOT
 	not_bit: for k in 0 to OP1_L-1 generate 
 		BNot(k) <= not Op1C(k);
 	end generate not_bit;
@@ -237,6 +246,7 @@ begin
 		end if;
 	end process data;
 
+	-- Assert flags when result is put on the output line
 	Unfl <= UnflC when (StateC = ALU_OUTPUT) else '0';
 	Ovfl <= OvflC when (StateC = ALU_OUTPUT) else '0';
 	UnCmd <= UnCmdC when (StateC = ALU_OUTPUT) else '0';

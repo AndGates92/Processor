@@ -72,6 +72,7 @@ begin
 	PortA_Address <= std_logic_vector(PortA_AddressC);
 	PortB_Address <= (others => 'X');
 
+	-- increment the address
 	PortA_AddressN <= PortA_AddressC + 1 when (StateC = GEN_ADDR) else PortA_AddressC;
 
 end rtl_bram_1port;
@@ -113,7 +114,7 @@ begin
 				StateN <= StateC;
 			end if;
 		elsif (StateC = GEN_ADDR) then
-			if (PortA_AddressC = MAX_ADDR) or (PortB_AddressC = MAX_ADDR) then
+			if (PortA_AddressC = MAX_ADDR) or (PortB_AddressC = MAX_ADDR) then -- Max address reached
 				StateN <= BRAM_OUTPUT;
 			else
 				StateN <= StateC;

@@ -55,6 +55,7 @@ architecture non_restoring of div is
 
 begin
 
+	-- Extend operands to make sure they have the same length
 	ext_dividend : if (DIVD_L <=  DIVR_L) generate
 		ext_divd(DIVD_L-2 downto 0) <= unsigned(Dividend(DIVD_L-2 downto 0));
 		ext_divd(OP_L-1 downto DIVD_L-1) <= (others => Dividend(DIVD_L-1));
@@ -127,6 +128,7 @@ begin
 	ZeroDvs <=	'1' when ext_divr = zero_divr else
 			'0';
 
+	-- Make operand unsigned
 	Dividend_2comp <= 	(not unsigned(ext_divd(OP_L-1 - 1 downto 0)) + 1);
 
 
@@ -141,6 +143,7 @@ begin
 	RemProp <=	(RemC(RemC'length-1 - 1 downto 0) & signed(QuotC(QuotC'length - 1 downto QuotC'length - 1))) + signed("0" & DivisorC) when RemC(RemC'length - 1) = '1' else
 			(RemC(RemC'length-1 - 1 downto 0) & signed(QuotC(QuotC'length - 1 downto QuotC'length - 1))) - signed("0" & DivisorC);
 
+	-- Sign bit
 	Sign <=  ext_divd(OP_L - 1) xor ext_divr(OP_L - 1);
 
 	data: process(QuotC, RemC, SignC, SignDvdC, StateC, CountC, DivisorC, RemProp, DivisorProp, DividendProp, Sign, ext_divd, ZeroDvdC, ZeroDvsC, ZeroDvd, ZeroDvs)
