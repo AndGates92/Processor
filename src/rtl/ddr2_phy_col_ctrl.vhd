@@ -4,14 +4,12 @@ use ieee.numeric_std.all;
 
 library work;
 use work.proc_pkg.all;
-use work.ddr2_mrs_pkg.all;
 use work.ddr2_timing_pkg.all;
 use work.ddr2_phy_pkg.all;
 use work.ddr2_phy_col_ctrl_pkg.all;
 
 entity ddr2_phy_col_ctrl is
 generic (
-	COL_LSB			: positive := 2;
 	BURST_LENGTH_L		: positive := 5;
 	BANK_NUM		: positive := 8;
 	COL_L			: positive := 10
@@ -37,33 +35,40 @@ port (
 	CmdReq		: out std_logic;
 
 	-- Controller
-	CtrlReq			: in std_logic;
-	ReadBurstIn		: in std_logic;
-	ColMemIn		: in std_logic_vector(COL_L - COL_LSB - 1 downto 0);
-	BankMemIn		: in std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
-	BurstLength		: in std_logic_vector(BURST_LENGTH_L - 1 downto 0);
+	CtrlReq		: in std_logic;
+	ReadBurstIn	: in std_logic;
+	ColMemIn	: in std_logic_vector(COL_L - 1 downto 0);
+	BankMemIn	: in std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
+	BurstLength	: in std_logic_vector(BURST_LENGTH_L - 1 downto 0);
 
-	CtrlAck			: out std_logic
+	CtrlAck		: out std_logic
 
 );
 end entity ddr2_phy_col_ctrl;
 
 architecture rtl of ddr2_phy_col_ctrl is
 
+	constant zero_cnt_col_to_col_value	: unsigned(CNT_COL_TO_COL_L - 1 downto 0) := (others => '0'); 
+	constant decr_cnt_col_to_col_value	: unsigned(CNT_COL_TO_COL_L - 1 downto 0) := to_unsigned(1, CNT_COL_TO_COL_L);
 	constant zero_cnt_col_ctrl_value	: unsigned(CNT_COL_CTRL_L - 1 downto 0) := (others => '0'); 
-	constant decr_cnt_col_ctrl_value	: unsigned(CNT_COL_CTRL_L - 1 downto 0) := to_unsigned(1, CNT_COL_CTRL_L); 
-	constant zero_burstr_length_value	: unsigned(BURST_LENGTH_L - 1 downto 0) := to_unsigned(0, BURST_LENGTH_L); 
-	constant decr_burstr_length_value	: unsigned(BURST_LENGTH_L - 1 downto 0) := to_unsigned(1, BURST_LENGTH_L); 
-	constant incr_col_value			: unsigned(COL_L - COL_LSB - 1 downto 0) := to_unsigned(1, COL_L - COL_LSB);
-	constant col_lsb			: unsigned(COL_LSB - 1 downto 0) := to_unsigned(0, COL_LSB);
+	constant decr_cnt_col_ctrl_value	: unsigned(CNT_COL_CTRL_L - 1 downto 0) := to_unsigned(1, CNT_COL_CTRL_L);
+	constant zero_burst_length_value	: unsigned(BURST_LENGTH_L - 1 downto 0) := to_unsigned(0, BURST_LENGTH_L);
+	constant decr_burst_length_value	: unsigned(BURST_LENGTH_L - 1 downto 0) := to_unsigned(1, BURST_LENGTH_L);
+	constant incr_col_value			: unsigned(COL_L - 1 downto 0) := to_unsigned(1, COL_L);
 
 	signal ColMemN, ColMemC				: std_logic_vector(COL_L - 1 downto 0);
 	signal ReadBurstN, ReadBurstC			: std_logic;
 	signal BankMemN, BankMemC			: std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
-	signal Cmd_comb				: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal Cmd_comb					: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal CmdReqN, CmdReqC				: std_logic;
 
 	signal BurstLengthN, BurstLengthC		: unsigned(BURST_LENGTH_L - 1 downto 0);
+
+	signal CntColToColN, CntColToColC		: unsigned(CNT_COL_TO_COL_L - 1 downto 0);
+	signal ColToColCntInitValue			: unsigned(CNT_COL_TO_COL_L - 1 downto 0);
+	signal SetColToColCnt				: std_logic;
+	signal ColToColCntEn				: std_logic;
+	signal ZeroColToColCnt				: std_logic;
 
 	signal CntColCtrlN, CntColCtrlC			: unsigned(CNT_COL_CTRL_L - 1 downto 0);
 	signal ColCtrlCntInitValue			: unsigned(CNT_COL_CTRL_L - 1 downto 0);
@@ -96,6 +101,9 @@ begin
 			StateC <= COL_CTRL_IDLE;
 
 			CntColCtrlC <= (others => '0');
+			ColCtrlCntEnC <= '0';
+
+			CntColToColC <= (others => '0');
 			CntBeatC <= (others => '0');
 
 		elsif ((clk'event) and (clk = '1')) then
@@ -111,6 +119,9 @@ begin
 			StateC <= StateN;
 
 			CntColCtrlC <= CntColCtrlN;
+			ColCtrlCntEnC <= ColCtrlCntEnN;
+
+			CntColToColC <= CntColToColN;
 			CntBeatC <= CntBeatN;
 
 		end if;
@@ -123,15 +134,15 @@ begin
 	CmdReq <= CmdReqC;
 	EndDataPhaseVec <= EndDataPhaseVec_comb;
 
-	CmdReqN <= '1' when ((StateC = DATA_PHASE) or ((ZeroColCtrlCnt = '1') and ((StateC = CHANGE_OP) or (CtrlAckN)))) else '0'; -- Send a Command Request if in DATA_PHASE state or moving into
+	CmdReqN <= ZeroColToColCnt when ((StateC = DATA_PHASE) or ((ZeroColCtrlCnt = '1') and ((StateC = CHANGE_OP) or (CtrlAckN)))) else '0'; -- Send a Command Request if in DATA_PHASE state or moving into it
 
 	CtrlAck <= CtrlAckC;
 	CtrlAckN <= CtrlReq and BankActive(BankMemIn) when ((StateC = COL_CTRL_IDLE) or ((StateC = DATA_PHASE) and (EndDataPhase = '1'))) else '0'; -- accept request if bank is active
 
 	BankMemN <= BankMemIn when (CtrlReq = 1) and (CtrlAckC = '1') else BankMemC;
 
-	ColMemN <=	unsigned(ColMemIn) & col_lsb					when ((CtrlReq = '1') and (CtrlAckC = '1')) else
-			(ColMemC(COL_L - 1 downto COL_LSB) + incr_col_value) & col_lsb	when ((CmdReqC = '1') and (CmdAck = '1')) else
+	ColMemN <=	unsigned(ColMemIn)				when ((CtrlReq = '1') and (CtrlAckC = '1')) else
+			(ColMemC(COL_L - 1 downto 0) + incr_col_value) 	when ((CmdReqC = '1') and (CmdAck = '1')) else
 			ColMemC;
 
 	BurstLengthN <=	unsigned(BurstLength)			when ((CtrlReq = 1) and (CtrlAckC = '1')) else
@@ -168,6 +179,14 @@ begin
 	ColCtrlCntEnN <=	'1' when (((ChangeOp = '1') or (CtrlReq = '0')) and (StateC = DATA_PHASE) and (EndDataPhase = '1')) else	-- enable counter if diff op next or no outstanding request
 				'0' when ((SameOp = '1') and (StateC = DATA_PHASE) and (EndDataPhase = '1')) else	-- disable counter if same op next
 				CntColCtrlEnC;
+
+	CntColToColN <=	CntColToColInitValue				when (SetColToColCnt = '1') else
+			(CntColToColC - decr_col_to_col_cnt_value)	when ((ColToColCntEn = '1') and (ZeroColToColCnt = '0')) else
+			CntColToColC;
+	ZeroColToColCnt <= '1' when (CntColToColC = zero_cnt_col_to_col_value) else '0';
+	ColToColCntInitValue <= to_unsigned(T_COL_COL - 1, CNT_COL_TO_COL_L);
+	SetCntCtrlCnt <= CmdReqC and CmdAck;	-- reset when beginning a new data phase
+	ColToColCntEn <= '1';	-- free running counter
 
 	state_det: process(StateC)
 	begin
