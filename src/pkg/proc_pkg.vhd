@@ -7,6 +7,7 @@ package proc_pkg is
 
 	function int_to_bit_num(op2_l : integer) return integer;
 	function max_int(x, y : integer) return integer;
+	function max_real(x, y : real) return real;
 
 	constant PROC_CLK_PERIOD	: positive := 10; -- ns
 
