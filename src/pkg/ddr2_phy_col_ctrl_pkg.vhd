@@ -53,7 +53,7 @@ package ddr2_phy_col_ctrl_pkg is
 		-- Controller
 		CtrlReq		: in std_logic;
 		ReadBurstIn	: in std_logic;
-		ColMemIn	: in std_logic_vector(COL_L - 1 downto 0);
+		ColMemIn	: in std_logic_vector(COL_L - BURST_LENGTH - 1 downto 0);
 		BankMemIn	: in std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 		BurstLength	: in std_logic_vector(BURST_LENGTH_L - 1 downto 0);
 

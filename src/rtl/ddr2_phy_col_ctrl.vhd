@@ -20,10 +20,10 @@ port (
 	clk		: in std_logic;
 
 	-- Bank Controller
-	EndDataPhaseVec			: in std_logic_vector(BANK_NUM - 1 downto 0);
 	BankActiveVec			: in std_logic_vector(BANK_NUM - 1 downto 0);
 	ZeroOutstandingBurstsVec	: in std_logic_vector(BANK_NUM - 1 downto 0);
 
+	EndDataPhaseVec			: out std_logic_vector(BANK_NUM - 1 downto 0);
 	ReadBurstOut			: out std_logic;
 
 	-- Arbitrer
@@ -37,7 +37,7 @@ port (
 	-- Controller
 	CtrlReq		: in std_logic;
 	ReadBurstIn	: in std_logic;
-	ColMemIn	: in std_logic_vector(COL_L - 1 downto 0);
+	ColMemIn	: in std_logic_vector(COL_L - to_integer(unsigned(BURST_LENGTH)) - 1 downto 0);
 	BankMemIn	: in std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	BurstLength	: in std_logic_vector(BURST_LENGTH_L - 1 downto 0);
 
@@ -54,9 +54,10 @@ architecture rtl of ddr2_phy_col_ctrl is
 	constant decr_cnt_col_ctrl_value	: unsigned(CNT_COL_CTRL_L - 1 downto 0) := to_unsigned(1, CNT_COL_CTRL_L);
 	constant zero_burst_length_value	: unsigned(BURST_LENGTH_L - 1 downto 0) := to_unsigned(0, BURST_LENGTH_L);
 	constant decr_burst_length_value	: unsigned(BURST_LENGTH_L - 1 downto 0) := to_unsigned(1, BURST_LENGTH_L);
-	constant incr_col_value			: unsigned(COL_L - 1 downto 0) := to_unsigned(1, COL_L);
+	constant incr_col_value			: unsigned(COL_L - to_integer(unsigned(BURST_LENGTH)) - 1 downto 0) := to_unsigned(1, COL_L - to_integer(unsigned(BURST_LENGTH)));
+	constant zero_col_lsb			: unsigned(to_integer(unsigned(BURST_LENGTH)) - 1 downto 0) := to_unsigned(0, to_integer(unsigned(BURST_LENGTH)));
 
-	signal ColMemN, ColMemC				: std_logic_vector(COL_L - 1 downto 0);
+	signal ColMemN, ColMemC				: std_logic_vector(COL_L - to_integer(unsigned(BURST_LENGTH)) - 1 downto 0);
 	signal ReadBurstN, ReadBurstC			: std_logic;
 	signal BankMemN, BankMemC			: std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	signal Cmd_comb					: std_logic_vector(MEM_CMD_L - 1 downto 0);
@@ -112,7 +113,7 @@ begin
 			ColMemC <= ColMemN;
 			ReadBurstC <= ReadBurstN;
 			BankMemC <= BankMemN;
-			CmdReqC <= CmdReqC;
+			CmdReqC <= CmdReqN;
 
 			BurstLengthC <= BurstLengthN;
 
@@ -127,22 +128,22 @@ begin
 		end if;
 	end process reg;
 
-	ColMemOut <= ColMemC;
+	ColMemOut <= ColMemC & zero_col_lsb;
 	ReadBurstOut <= ReadBurstC;
 	BankMemOut <= BankMemC;
 	CmdOut <= Cmd_comb;
 	CmdReq <= CmdReqC;
 	EndDataPhaseVec <= EndDataPhaseVec_comb;
 
-	CmdReqN <= ZeroColToColCnt when ((StateC = DATA_PHASE) or ((ZeroColCtrlCnt = '1') and ((StateC = CHANGE_OP) or (CtrlAckN)))) else '0'; -- Send a Command Request if in DATA_PHASE state or moving into it
+	CmdReqN <= ZeroColToColCnt when ((StateC = DATA_PHASE) or ((StateC = CHANGE_OP) or (CtrlAckN = '1'))) else '0'; -- Send a Command Request if in DATA_PHASE state or moving into it
 
 	CtrlAck <= CtrlAckC;
 	CtrlAckN <= CtrlReq and BankActive(BankMemIn) when ((StateC = COL_CTRL_IDLE) or ((StateC = DATA_PHASE) and (EndDataPhase = '1'))) else '0'; -- accept request if bank is active
 
 	BankMemN <= BankMemIn when (CtrlReq = 1) and (CtrlAckC = '1') else BankMemC;
 
-	ColMemN <=	unsigned(ColMemIn)				when ((CtrlReq = '1') and (CtrlAckC = '1')) else
-			(ColMemC(COL_L - 1 downto 0) + incr_col_value) 	when ((CmdReqC = '1') and (CmdAck = '1')) else
+	ColMemN <=	unsigned(ColMemIn)		when ((CtrlReq = '1') and (CtrlAckC = '1')) else
+			(ColMemC + incr_col_value) 	when ((CmdReqC = '1') and (CmdAck = '1')) else
 			ColMemC;
 
 	BurstLengthN <=	unsigned(BurstLength)			when ((CtrlReq = 1) and (CtrlAckC = '1')) else
