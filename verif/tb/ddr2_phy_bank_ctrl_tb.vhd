@@ -352,7 +352,7 @@ begin
 				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (num_bursts_exp /= num_bursts_rtl) then
-				write(file_line, string'( "PHY Bank Controller: FAIL (Number bursts mismatch: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl)));
+				write(file_line, string'( "PHY Bank Controller: FAIL (Number bursts mismatch): exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl)));
 				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (match_rows = false) then
