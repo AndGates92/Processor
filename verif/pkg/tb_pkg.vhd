@@ -21,8 +21,8 @@ package tb_pkg is
 	constant int_arr_def	: integer := integer'high;
 
 	type int_arr is array(integer range <>) of integer;
-	type 2d_int_arr is array(integer range <>, integer range <>) of integer;
-	type 3d_int_arr is array(integer range <>, integer range <>, integer range <>) of integer;
+	type int_arr_2d is array(integer range <>, integer range <>) of integer;
+	type int_arr_3d is array(integer range <>, integer range <>, integer range <>) of integer;
 	type bool_arr is array(integer range <>) of boolean;
 
 	procedure clk_gen (constant PERIOD : in time; constant PHASE : in time; signal stop : in boolean; signal clk : out std_logic);
@@ -36,6 +36,7 @@ package tb_pkg is
 
 	function reset_int_arr(val, num_el : integer) return int_arr;
 	function compare_int_arr(arr1, arr2 : int_arr; num_el : integer) return boolean;
+	function compare_bool_arr(arr1, arr2 : bool_arr; num_el : integer) return boolean;
 
 end package tb_pkg;
 

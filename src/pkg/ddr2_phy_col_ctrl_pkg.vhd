@@ -5,6 +5,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.proc_pkg.all;
+use work.ddr2_phy_pkg.all;
 use work.ddr2_mrs_pkg.all;
 use work.ddr2_timing_pkg.all;
 
@@ -20,9 +21,9 @@ package ddr2_phy_col_ctrl_pkg is
 
 	constant STATE_COL_CTRL_L	: positive := 2;
 
-	constant COL_CTRL_IDLE		: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_COL_CTRL_L));
-	constant DATA_PHASE		: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_COL_CTRL_L));
-	constant CHANGE_BURST_OP	: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_COL_CTRL_L));
+	constant COL_CTRL_IDLE		: std_logic_vector(STATE_COL_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_COL_CTRL_L));
+	constant DATA_PHASE		: std_logic_vector(STATE_COL_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_COL_CTRL_L));
+	constant CHANGE_BURST_OP	: std_logic_vector(STATE_COL_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_COL_CTRL_L));
 
 	component ddr2_phy_col_ctrl is
 	generic (
@@ -36,10 +37,10 @@ package ddr2_phy_col_ctrl_pkg is
 		clk		: in std_logic;
 
 		-- Bank Controller
-		EndDataPhaseVec			: in std_logic_vector(BANK_NUM - 1 downto 0);
 		BankActiveVec			: in std_logic_vector(BANK_NUM - 1 downto 0);
 		ZeroOutstandingBurstsVec	: in std_logic_vector(BANK_NUM - 1 downto 0);
 
+		EndDataPhaseVec			: out std_logic_vector(BANK_NUM - 1 downto 0);
 		ReadBurstOut			: out std_logic;
 
 		-- Arbitrer
@@ -53,7 +54,7 @@ package ddr2_phy_col_ctrl_pkg is
 		-- Controller
 		CtrlReq		: in std_logic;
 		ReadBurstIn	: in std_logic;
-		ColMemIn	: in std_logic_vector(COL_L - BURST_LENGTH - 1 downto 0);
+		ColMemIn	: in std_logic_vector(COL_L - to_integer(unsigned(BURST_LENGTH)) - 1 downto 0);
 		BankMemIn	: in std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 		BurstLength	: in std_logic_vector(BURST_LENGTH_L - 1 downto 0);
 
