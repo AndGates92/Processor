@@ -109,7 +109,7 @@ begin
 		procedure test_param(variable num_bursts : out integer; variable cols: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst, last_burst: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, cmd_act_delay, cmd_ack_ack_delay, bank: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 			variable num_bursts_int	: integer;
-			variable col_int		: integer;
+			variable col_int	: integer;
 			variable bl_int		: integer;
 		begin
 			num_bursts_int := 0;
@@ -217,7 +217,7 @@ begin
 							ReadBurstIn_tb <= bool_to_std_logic(read_arr_exp(num_bursts_rtl_int));
 							CtrlReq_tb <= '1';
 							ctrl_req := true;
-							ColMemIn_tb <= std_logic_vector(to_unsigned(col, COL_L_TB - to_integer(unsigned(BURST_LENGTH))));
+							ColMemIn_tb <= std_logic_vector(to_unsigned(col, integer(COL_L_TB - to_integer(unsigned(BURST_LENGTH)))));
 							BurstLength_tb <= std_logic_vector(to_unsigned(bl, BURST_LENGTH_L_TB));
 							BankMemIn_tb <= std_logic_vector(to_unsigned(bank, int_to_bit_num(BANK_NUM_TB)));
 							col_cmd_cnt := 0;
@@ -451,7 +451,7 @@ begin
 
 		for i in 0 to NUM_TEST-1 loop
 
-			test_param(num_bursts_exp, cols_arr, read_arr_rtl, last_arr, bl_arr_rtl, cmd_delay_arr, cmd_act_delay_arr, cmd_ack_ack_delay_arr, bank_arr_rtl, seed1, seed2);
+			test_param(num_bursts_exp, cols_arr, read_arr_exp, last_arr, bl_arr_exp, cmd_delay_arr, cmd_act_delay_arr, cmd_ack_ack_delay_arr, bank_arr_exp, seed1, seed2);
 
 			run_col_ctrl(num_bursts_exp, cmd_ack_ack_delay_arr, cmd_delay_arr, cmd_act_delay_arr, cols_arr, bl_arr_exp, bank_arr_exp, read_arr_exp, last_arr, num_bursts_rtl, read_arr_rtl, err_arr, bl_arr_rtl, bank_arr_rtl, col_err_arr, col_err_arr_exp, col_err_arr_rtl);
 
