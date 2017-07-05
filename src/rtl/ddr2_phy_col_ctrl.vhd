@@ -230,9 +230,9 @@ begin
 		elsif (StateC = DATA_PHASE) then
 			if (EndDataPhase = '1') then
 				if (ChangeOp = '1') then -- next burst has a different operation: read - write or write - read transition
-					StateC <= CHANGE_BURST_OP;
+					StateN <= CHANGE_BURST_OP;
 				elsif ((BankActiveMuxed = '0') or (CtrlReq = '0')) then
-					StateC <= COL_CTRL_IDLE;
+					StateN <= COL_CTRL_IDLE;
 				end if;
 			end if;
 		elsif (StateC = CHANGE_BURST_OP) then

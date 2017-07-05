@@ -169,7 +169,6 @@ begin
 			variable err_arr_int		: integer;
 			variable col_err		: integer;
 			variable ctrl_req		: boolean;
-			variable cmd_req		: boolean;
 			variable act_req		: boolean;
 			variable col			: integer;
 			variable bl			: integer;
@@ -193,12 +192,21 @@ begin
 			act_req := false;
 
 			err_arr_int := 0;
+			col_err := 0;
+
+			col_exp := 0;
+			col_rtl := 0;
 
 			bl_accepted := 0;
+
+			bl_next := 0;
+			bank_next := 0;
+			col_next := 0;
 
 			ColMemIn_tb <= (others => '0');
 			BankMemIn_tb <= (others => '0');
 			BurstLength_tb <= (others => '0');
+			ZeroOutstandingBurstsVec_tb <= (others => '0');
 			col := cols_arr(num_bursts_rtl_int);
 			bl := bl_arr_exp(num_bursts_rtl_int);
 			bank := bank_arr_exp(num_bursts_rtl_int);
@@ -217,7 +225,7 @@ begin
 							ReadBurstIn_tb <= bool_to_std_logic(read_arr_exp(num_bursts_rtl_int));
 							CtrlReq_tb <= '1';
 							ctrl_req := true;
-							ColMemIn_tb <= std_logic_vector(to_unsigned(col, integer(COL_L_TB - to_integer(unsigned(BURST_LENGTH)))));
+							ColMemIn_tb <= std_logic_vector(to_unsigned(col, COL_L_TB - to_integer(unsigned(BURST_LENGTH))));
 							BurstLength_tb <= std_logic_vector(to_unsigned(bl, BURST_LENGTH_L_TB));
 							BankMemIn_tb <= std_logic_vector(to_unsigned(bank, int_to_bit_num(BANK_NUM_TB)));
 							col_cmd_cnt := 0;
@@ -326,7 +334,7 @@ begin
 
 		end procedure run_col_ctrl;
 
-		procedure verify(variable num_bursts_exp, num_bursts_rtl: in integer; variable err_arr, col_err_arr : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_err_arr_exp, col_err_arr_rtl : out int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); variable bank_arr_exp, bank_arr_rtl, bl_arr_exp, bl_arr_rtl : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_arr_exp, read_arr_rtl : in bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable num_bursts_exp, num_bursts_rtl: in integer; variable err_arr, col_err_arr : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_err_arr_exp, col_err_arr_rtl : in int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); variable bank_arr_exp, bank_arr_rtl, bl_arr_exp, bl_arr_rtl : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_arr_exp, read_arr_rtl : in bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); file file_pointer : text; variable pass: out integer) is
 			variable match_cols		: boolean;
 			variable match_banks		: boolean;
 			variable match_bl		: boolean;
