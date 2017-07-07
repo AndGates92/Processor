@@ -186,6 +186,7 @@ begin
 			data_phase_cnt := 0;
 
 			ReadBurstIn_tb <= '0';
+			BankActiveVec_tb <= (others => '0');
 			CmdAck_tb <= '0';
 			CtrlReq_tb <= '0';
 			ctrl_req := false;

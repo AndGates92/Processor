@@ -142,22 +142,21 @@ begin
 	CmdReq <= CmdReqC;
 	EndDataPhaseVec <= EndDataPhaseVec_comb;
 
-	CmdReqN <= ZeroColToColCnt when ((StateC = DATA_PHASE) or ((StateC = CHANGE_BURST_OP) or (CtrlAckN = '1'))) else '0'; -- Send a Command Request if in DATA_PHASE state or moving into it
 
 	CtrlAck <= CtrlAckC;
 	CtrlAckN <= CtrlReq and BankActiveMuxed when ((StateC = COL_CTRL_IDLE) or ((StateC = DATA_PHASE) and (EndDataPhase = '1'))) else '0'; -- accept request if bank is active
 
-	BankMemN <= BankMemIn when ((CtrlReq = '1') and (CtrlAckC = '1')) else BankMemC;
+	BankMemN <= BankMemIn when (CtrlAckN = '1') else BankMemC; --((CtrlReq = '1') and (CtrlAckC = '1')) else BankMemC;
 
-	ColMemN <=	unsigned(ColMemIn)		when ((CtrlReq = '1') and (CtrlAckC = '1')) else
+	ColMemN <=	unsigned(ColMemIn)		when (CtrlAckN = '1') else --((CtrlReq = '1') and (CtrlAckC = '1')) else
 			(ColMemC + incr_col_value) 	when ((CmdReqC = '1') and (CmdAck = '1')) else
 			ColMemC;
 
-	BurstLengthN <=	unsigned(BurstLength)				when ((CtrlReq = '1') and (CtrlAckC = '1')) else
+	BurstLengthN <=	unsigned(BurstLength)				when (CtrlAckN = '1') else -- ((CtrlReq = '1') and (CtrlAckC = '1')) else
 			(BurstLengthC - decr_burst_length_value)	when ((CmdReqC = '1') and (CmdAck = '1')) else
 			BurstLengthC;
 
-	ReadBurstN <= ReadBurstIn when (CtrlReq = '1') and (CtrlAckC = '1') else ReadBurstC;
+	ReadBurstN <= ReadBurstIn when (CtrlAckN = '1') else ReadBurstC; --(CtrlReq = '1') and (CtrlAckC = '1') else ReadBurstC;
 
 	NotSameOpIn <= (ReadBurstC xor ReadBurstIn); -- change burst operation
 	ChangeOp <= CtrlReq and NotSameOpIn; -- valid change burst operation
@@ -208,19 +207,43 @@ begin
 				'0' when ((SameOp = '1') and (StateC = DATA_PHASE) and (EndDataPhase = '1')) else	-- disable counter if same op next
 				ColCtrlCntEnC;
 
-	CntColToColN <=	ColToColCntInitValue				when (SetColToColCnt = '1') else
-			(CntColToColC - decr_cnt_col_to_col_value)	when ((ColToColCntEn = '1') and (ZeroColToColCnt = '0')) else
-			CntColToColC;
-	ZeroColToColCnt <= '1' when (CntColToColC = zero_cnt_col_to_col_value) else '0';
-	ColToColCntInitValue <= to_unsigned(T_COL_COL - 1, CNT_COL_TO_COL_L);
-	SetColToColCnt <= CmdReqC and CmdAck;	-- reset when beginning a new data phase
-	ColToColCntEn <= '1';	-- free running counter
+	T_COL_COL_LARGER_1 : if T_COL_COL > 1 generate
 
-	state_det: process(StateC, CtrlReq, CtrlAckC, EndDataPhase, ChangeOp, ZeroColCtrlCnt)
+		CmdReqN <= (ZeroColToColCnt and not CmdAck) when ((StateC = DATA_PHASE) or ((StateC = CHANGE_BURST_OP) or (CtrlAckN = '1'))) else '0'; -- Send a Command Request if in DATA_PHASE state or moving into it
+
+		coltocolcnt_reg: process(rst, clk)
+		begin
+			if (rst = '1') then
+				CntColToColC <= (others => '0');
+			elsif ((clk'event) and (clk = '1')) then
+				CntColToColC <= CntColToColN;
+
+			end if;
+		end process coltocolcnt_reg;
+
+		CntColToColN <=	ColToColCntInitValue				when (SetColToColCnt = '1') else
+				(CntColToColC - decr_cnt_col_to_col_value)	when ((ColToColCntEn = '1') and (ZeroColToColCnt = '0')) else
+				CntColToColC;
+		ZeroColToColCnt <= '1' when (CntColToColC = zero_cnt_col_to_col_value) else '0';
+		ColToColCntInitValue <= to_unsigned(T_COL_COL - 1, CNT_COL_TO_COL_L);
+		SetColToColCnt <= CmdReqC and CmdAck;	-- reset when beginning a new data phase
+		ColToColCntEn <= '1';	-- free running counter
+
+	end generate T_COL_COL_LARGER_1;
+
+
+	T_COL_COL_EQ_1 : if T_COL_COL = 1 generate
+
+		CmdReqN <= '1' when ((StateC = DATA_PHASE) or ((StateC = CHANGE_BURST_OP) or (CtrlAckN = '1'))) else '0'; -- Send a Command Request if in DATA_PHASE state or moving into it
+
+	end generate T_COL_COL_EQ_1;
+
+	state_det: process(StateC, CtrlReq, CtrlAckN, EndDataPhase, ChangeOp, ZeroColCtrlCnt)
 	begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = COL_CTRL_IDLE) then
-			if ((CtrlReq = '1') and (CtrlAckC = '1')) then
+--			if ((CtrlReq = '1') and (CtrlAckC = '1')) then
+			if (CtrlAckN = '1') then
 				if (ZeroColCtrlCnt = '1') then
 					StateN <= DATA_PHASE;
 				else
@@ -231,7 +254,8 @@ begin
 			if (EndDataPhase = '1') then
 				if (ChangeOp = '1') then -- next burst has a different operation: read - write or write - read transition
 					StateN <= CHANGE_BURST_OP;
-				elsif ((BankActiveMuxed = '0') or (CtrlReq = '0')) then
+--				elsif ((BankActiveMuxed = '0') or (CtrlReq = '0')) then
+				elsif (CtrlAckN = '1') then
 					StateN <= COL_CTRL_IDLE;
 				end if;
 			end if;
