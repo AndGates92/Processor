@@ -219,6 +219,8 @@ begin
 
 				exit col_loop when ((num_bursts_rtl_int = num_bursts_exp) and (data_phase_burst_num = num_bursts_exp));
 
+				CmdAck_tb <= '0';
+
 				if (ctrl_req = false) then
 					for i in col_cmd_cnt to cmd_delay loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
@@ -227,7 +229,7 @@ begin
 							CtrlReq_tb <= '1';
 							ctrl_req := true;
 							ColMemIn_tb <= std_logic_vector(to_unsigned(col, COL_L_TB - to_integer(unsigned(BURST_LENGTH))));
-							BurstLength_tb <= std_logic_vector(to_unsigned(bl, BURST_LENGTH_L_TB));
+							BurstLength_tb <= std_logic_vector(to_unsigned(bl-1, BURST_LENGTH_L_TB));
 							BankMemIn_tb <= std_logic_vector(to_unsigned(bank, int_to_bit_num(BANK_NUM_TB)));
 							col_cmd_cnt := 0;
 						end if;
@@ -248,8 +250,9 @@ begin
 
 				act_req := true;
 				BankActiveVec_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(bank))), BANK_NUM_TB));
-				wait until ((clk_tb = '1') and (clk_tb'event));
+				--wait until ((clk_tb = '1') and (clk_tb'event));
 				wait until (CtrlAck_tb = '1');
+
 				CtrlReq_tb <= '0'; 
 				ctrl_req := false;
 				act_req := false;
@@ -268,16 +271,24 @@ begin
 					ZeroOutstandingBurstsVec_tb <= (others => '0');
 				end if;
 
-				while (bl_accepted < bl) loop
+				burst_loop: loop
+
+					exit burst_loop when (EndDataPhaseVec_tb(bank) = '1');
+
 					wait until ((clk_tb = '1') and (clk_tb'event));
+					wait for 1 ps;
 
 					if (CmdReq_tb = '1') then
+						report "burst " & integer'image(num_bursts_rtl_int) & " out of " & integer'image(num_bursts_exp);
+						report "ack to ack " & integer'image(cmd_ack_ack_delay);
+						report "ack to ack cnt " & integer'image(cmd_ack_ack_cnt);
+						report "bl cnt " & integer'image(bl_accepted) & " out of " & integer'image(bl);
 						if (cmd_ack_ack_cnt = cmd_ack_ack_delay) then
 							CmdAck_tb <= '1';
 							cmd_ack_ack_cnt := 0;
 							bl_accepted := bl_accepted + 1;
 							col_rtl := to_integer(unsigned(ColMemOut_tb));
-							col_exp := integer(real(col + bl_accepted) * (2.0**(real(bank))));
+							col_exp := integer(real(col + bl_accepted) * (2.0**(real(to_integer(unsigned(BURST_LENGTH))))));
 							if (col_rtl /= col_exp) then
 								col_err_arr_rtl(data_phase_burst_num, col_err) := col_rtl;
 								col_err_arr_exp(data_phase_burst_num, col_err) := col_exp;
@@ -287,21 +298,26 @@ begin
 							CmdAck_tb <= '0';
 							cmd_ack_ack_cnt := cmd_ack_ack_cnt + 1;
 						end if;
+					else
+						CmdAck_tb <= '0';
 					end if;
 
 					if (ctrl_req = false) then
+
+						report "cmd delay " & integer'image(cmd_delay);
 						if (col_cmd_cnt = cmd_delay) then
 							ReadBurstIn_tb <= bool_to_std_logic(read_arr_exp(num_bursts_rtl_int));
 							CtrlReq_tb <= '1';
 							ctrl_req := true;
 							ColMemIn_tb <= std_logic_vector(to_unsigned(col_next, COL_L_TB - to_integer(unsigned(BURST_LENGTH))));
-							BurstLength_tb <= std_logic_vector(to_unsigned(bl_next, BURST_LENGTH_L_TB));
+							BurstLength_tb <= std_logic_vector(to_unsigned(bl_next-1, BURST_LENGTH_L_TB));
 							BankMemIn_tb <= std_logic_vector(to_unsigned(bank_next, int_to_bit_num(BANK_NUM_TB)));
 							col_cmd_cnt := 0;
 						else
 							col_cmd_cnt := col_cmd_cnt + 1;
 						end if;
 					else
+						report "cmd act delay " & integer'image(cmd_act_delay);
 						if (CtrlAck_tb = '1') then
 							err_arr_int := err_arr_int + 1;
 						end if;
@@ -324,6 +340,7 @@ begin
 				err_arr_int := 0;
 				col_err_arr(data_phase_burst_num) := col_err;
 				col_err := 0;
+				cmd_ack_ack_cnt := 0;
 				col := col_next;
 				bank := bank_next;
 				bl := bl_next;
