@@ -221,6 +221,8 @@ begin
 
 				CmdAck_tb <= '0';
 
+				report "ctrl_req: " & bool_to_str(ctrl_req) & " act_req " & bool_to_str(act_req);
+
 				if (ctrl_req = false) then
 					for i in col_cmd_cnt to cmd_delay loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
@@ -250,8 +252,11 @@ begin
 
 				act_req := true;
 				BankActiveVec_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(bank))), BANK_NUM_TB));
-				--wait until ((clk_tb = '1') and (clk_tb'event));
+
+				report "Wait CtrlAck: bl " & integer'image(bl) & " bank " & integer'image(bank) & " col " & integer'image(col);
 				wait until (CtrlAck_tb = '1');
+
+				report "Got CtrlAck: bl " & integer'image(bl) & " bank " & integer'image(bank) & " col " & integer'image(col);
 
 				CtrlReq_tb <= '0'; 
 				ctrl_req := false;
@@ -273,16 +278,15 @@ begin
 
 				burst_loop: loop
 
+					wait until ((clk_tb = '1') and (clk_tb'event));
+
+					report "EndDataPhase " & bool_to_str(std_logic_to_bool(EndDataPhaseVec_tb(bank))) & " bank " & integer'image(bank) & " EndDataPhaseVec " & integer'image(to_integer(unsigned(EndDataPhaseVec_tb)));
+
 					exit burst_loop when (EndDataPhaseVec_tb(bank) = '1');
 
-					wait until ((clk_tb = '1') and (clk_tb'event));
 					wait for 1 ps;
 
 					if (CmdReq_tb = '1') then
-						report "burst " & integer'image(num_bursts_rtl_int) & " out of " & integer'image(num_bursts_exp);
-						report "ack to ack " & integer'image(cmd_ack_ack_delay);
-						report "ack to ack cnt " & integer'image(cmd_ack_ack_cnt);
-						report "bl cnt " & integer'image(bl_accepted) & " out of " & integer'image(bl);
 						if (cmd_ack_ack_cnt = cmd_ack_ack_delay) then
 							CmdAck_tb <= '1';
 							cmd_ack_ack_cnt := 0;
@@ -303,8 +307,6 @@ begin
 					end if;
 
 					if (ctrl_req = false) then
-
-						report "cmd delay " & integer'image(cmd_delay);
 						if (col_cmd_cnt = cmd_delay) then
 							ReadBurstIn_tb <= bool_to_std_logic(read_arr_exp(num_bursts_rtl_int));
 							CtrlReq_tb <= '1';
@@ -317,7 +319,6 @@ begin
 							col_cmd_cnt := col_cmd_cnt + 1;
 						end if;
 					else
-						report "cmd act delay " & integer'image(cmd_act_delay);
 						if (CtrlAck_tb = '1') then
 							err_arr_int := err_arr_int + 1;
 						end if;
@@ -332,7 +333,12 @@ begin
 						end if;
 					end if;
 
+
 				end loop;
+
+				if (bank = bank_next) then
+					act_req := true;
+				end if;
 
 				read_arr_rtl(data_phase_burst_num) := std_logic_to_bool(ReadBurstOut_tb);
 				bank_arr_rtl(data_phase_burst_num) := to_integer(unsigned(BankMemOut_tb));
@@ -345,6 +351,8 @@ begin
 				bank := bank_next;
 				bl := bl_next;
 				data_phase_burst_num := data_phase_burst_num + 1;
+
+				report "Next burst: bl " & integer'image(bl) & " bank " & integer'image(bank) & " col " & integer'image(col);
 
 			end loop;
 
