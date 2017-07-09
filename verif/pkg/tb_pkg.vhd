@@ -28,8 +28,11 @@ package tb_pkg is
 	procedure clk_gen (constant PERIOD : in time; constant PHASE : in time; signal stop : in boolean; signal clk : out std_logic);
 
 	function max_time(time1, time2 : time) return time;
+	function round(val : real) return integer;
+
 	function rand_bool(rand_val : real) return boolean;
 	function rand_sign(sign_val : real) return real;
+
 	function std_logic_to_bool(val : std_logic) return boolean;
 	function bool_to_std_logic(val : boolean) return std_logic;
 	function bool_to_str(val : boolean) return string;
@@ -169,5 +172,21 @@ package body tb_pkg is
 		end loop;
 
 		return match;
+	end;
+
+	function round(val : real) return integer is
+		variable rounded_val	: integer;
+		variable floor_val	: real;
+		variable decimal_val	: real;
+	begin
+		floor_val := real(integer(val)); -- chop off decimal part
+		decimal_val := val - floor_val;
+		if (decimal_val < 0.5) then
+			rounded_val := integer(val);
+		else
+			rounded_val := integer(val) + 1;
+		end if;
+
+		return rounded_val;
 	end;
 end package body tb_pkg;
