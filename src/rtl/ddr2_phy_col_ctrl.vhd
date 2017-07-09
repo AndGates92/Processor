@@ -97,7 +97,7 @@ architecture rtl of ddr2_phy_col_ctrl is
 
 	signal CmdReqValid			: std_logic;
 
-	signal SingleBurst			: std_logic;
+	signal SingleBurstN, SingleBurstC	: std_logic;
 	signal ZeroBurstCnt			: std_logic;
 
 begin
@@ -121,6 +121,8 @@ begin
 
 			CntColToColC <= (others => '0');
 
+			SingleBurstC <= '0';
+
 		elsif ((clk'event) and (clk = '1')) then
 			CtrlAckC <= CtrlAckN;
 
@@ -137,6 +139,8 @@ begin
 			ColCtrlCntEnC <= ColCtrlCntEnN;
 
 			CntColToColC <= CntColToColN;
+
+			SingleBurstC <= SingleBurstN;
 
 		end if;
 	end process reg;
@@ -162,7 +166,11 @@ begin
 			(BurstLengthC - decr_burst_length_value)	when ((CmdReqC = '1') and (CmdAck = '1') and (ZeroBurstCnt = '0')) else
 			BurstLengthC;
 
-	SingleBurst <= '1' when ((BurstLength = std_logic_vector(zero_burst_length_value)) and (CtrlAckN = '1')) else '0';
+	ZeroBurstCnt <= '1' when (BurstLengthC = zero_burst_length_value) else '0';
+
+	SingleBurstN <=	'1' when ((BurstLength = std_logic_vector(zero_burst_length_value)) and (CtrlAckN = '1')) else
+			'0' when ((CmdReqC = '1') and (CmdAck = '1')) else
+			SingleBurstC;
 
 	ReadBurstN <= ReadBurstIn when (CtrlAckN = '1') else ReadBurstC; --(CtrlReq = '1') and (CtrlAckC = '1') else ReadBurstC;
 
@@ -178,9 +186,7 @@ begin
 				CMD_WRITE_PRECHARGE	when "011",
 				CMD_WRITE		when others;
 
-	ZeroBurstCnt <= '1' when (BurstLengthC = zero_burst_length_value) else '0';
-
-	NoOutstandingBurst <= (CmdReqC and CmdAck) when (SingleBurst = '1') else ZeroBurstCnt;
+	NoOutstandingBurst <= (CmdReqC and CmdAck) when (SingleBurstC = '1') else ZeroBurstCnt;
 
 	EndDataPhase <= NoOutstandingBurst when (StateC = DATA_PHASE) else '0';
 
