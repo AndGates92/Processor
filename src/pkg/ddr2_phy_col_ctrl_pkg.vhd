@@ -41,7 +41,7 @@ package ddr2_phy_col_ctrl_pkg is
 		ZeroOutstandingBurstsVec	: in std_logic_vector(BANK_NUM - 1 downto 0);
 
 		EndDataPhaseVec			: out std_logic_vector(BANK_NUM - 1 downto 0);
-		ReadBurstOut			: out std_logic;
+		ReadBurstVec			: out std_logic_vector(BANK_NUM - 1 downto 0);
 
 		-- Arbitrer
 		CmdAck		: in std_logic;

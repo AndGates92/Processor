@@ -25,7 +25,7 @@ port (
 	ZeroOutstandingBurstsVec	: in std_logic_vector(BANK_NUM - 1 downto 0);
 
 	EndDataPhaseVec			: out std_logic_vector(BANK_NUM - 1 downto 0);
-	ReadBurstOut			: out std_logic;
+	ReadBurstVec			: out std_logic_vector(BANK_NUM - 1 downto 0);
 
 	-- Arbitrer
 	CmdAck		: in std_logic;
@@ -60,7 +60,10 @@ architecture rtl of ddr2_phy_col_ctrl is
 
 	signal CtrlAckN, CtrlAckC		: std_logic;
 	signal ColMemN, ColMemC			: unsigned(COL_L - to_integer(unsigned(BURST_LENGTH)) - 1 downto 0);
+
 	signal ReadBurstN, ReadBurstC		: std_logic;
+	signal ReadBurstVec_comb		: std_logic_vector(BANK_NUM - 1 downto 0);
+
 	signal BankActiveMuxed			: std_logic;
 	signal BankMemN, BankMemC		: std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	signal Cmd_comb				: std_logic_vector(MEM_CMD_L - 1 downto 0);
@@ -147,7 +150,7 @@ begin
 	end process reg;
 
 	ColMemOut <= std_logic_vector(ColMemC & zero_col_lsb);
-	ReadBurstOut <= ReadBurstC;
+	ReadBurstVec <= ReadBurstVec_comb;
 	BankMemOut <= BankMemC;
 	CmdOut <= Cmd_comb;
 	CmdReq <= CmdReqC;
@@ -195,6 +198,10 @@ begin
 	NoOutstandingBurst <= CmdReqC and CmdAck and (SingleBurstC or ZeroBurstCnt);
 
 	EndDataPhase <= NoOutstandingBurst when (StateC = DATA_PHASE) else '0';
+
+	ReadBurstVec_gen : for i in 0 to integer(ReadBurstVec_comb'length - 1) generate
+		ReadBurstVec_comb(i) <= ReadBurstC when (BankMemC = std_logic_vector(to_unsigned(i, int_to_bit_num(BANK_NUM)))) else '0';
+	end generate;
 
 	EndDataPhaseVec_gen : for i in 0 to integer(EndDataPhaseVec_comb'length - 1) generate
 		EndDataPhaseVec_comb(i) <= EndDataPhase when (BankMemC = std_logic_vector(to_unsigned(i, int_to_bit_num(BANK_NUM)))) else '0';

@@ -37,11 +37,11 @@ architecture bench of ddr2_phy_col_ctrl_tb is
 	signal rst_tb	: std_logic;
 
 	-- Bank Controller
-	signal EndDataPhaseVec_tb		: std_logic_vector(BANK_NUM_TB - 1 downto 0);
 	signal BankActiveVec_tb			: std_logic_vector(BANK_NUM_TB - 1 downto 0);
 	signal ZeroOutstandingBurstsVec_tb	: std_logic_vector(BANK_NUM_TB - 1 downto 0);
 
-	signal ReadBurstOut_tb			: std_logic;
+	signal EndDataPhaseVec_tb		: std_logic_vector(BANK_NUM_TB - 1 downto 0);
+	signal ReadBurstVec_tb			: std_logic_vector(BANK_NUM_TB - 1 downto 0);
 
 	-- Arbitrer
 	signal CmdAck_tb	: std_logic;
@@ -76,7 +76,7 @@ begin
 		ZeroOutstandingBurstsVec => ZeroOutstandingBurstsVec_tb,
 
 		EndDataPhaseVec => EndDataPhaseVec_tb,
-		ReadBurstOut => ReadBurstOut_tb,
+		ReadBurstVec => ReadBurstVec_tb,
 
 		-- Arbitrer
 		CmdAck => CmdAck_tb,
@@ -357,7 +357,7 @@ report "Error CmdAck";
 
 				bl_arr_rtl(data_phase_burst_num) := bl_accepted;
 				bl_accepted := 0;
-				read_arr_rtl(data_phase_burst_num) := std_logic_to_bool(ReadBurstOut_tb);
+				read_arr_rtl(data_phase_burst_num) := std_logic_to_bool(ReadBurstVec_tb(bank));
 				bank_arr_rtl(data_phase_burst_num) := to_integer(unsigned(BankMemOut_tb));
 				err_arr(data_phase_burst_num) := err_arr_int;
 				err_arr_int := 0;
