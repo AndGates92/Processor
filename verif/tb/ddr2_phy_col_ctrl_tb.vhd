@@ -21,7 +21,7 @@ architecture bench of ddr2_phy_col_ctrl_tb is
 
 	constant CLK_PERIOD	: time := DDR2_CLK_PERIOD * 1 ns;
 	constant NUM_TEST	: integer := 1000;
-	constant NUM_EXTRA_TEST	: integer := 0;
+	constant NUM_EXTRA_TEST	: integer := 2;
 	constant TOT_NUM_TEST	: integer := NUM_TEST + NUM_EXTRA_TEST;
 	constant MAX_ATTEMPTS	: integer := 20;
 
@@ -109,6 +109,65 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
+		procedure setup_extra_tests(variable num_bursts : out int_arr(0 to (NUM_EXTRA_TEST-1)); variable cols: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1)); variable read_burst, last_burst: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1)); variable bl, cmd_delay, cmd_act_delay, cmd_ack_ack_delay, bank: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1)); variable seed1, seed2: inout positive) is
+			variable read_burst_set	: boolean;
+			variable rand_val	: real;
+			variable num_bursts_int	: integer;
+			variable col_int	: integer;
+			variable bl_int		: integer;
+			variable attempt_num	: integer;
+		begin
+			read_burst_set := false;
+			for j in 0 to (NUM_EXTRA_TEST-1) loop
+				num_bursts_int := 0;
+				while (num_bursts_int = 0) loop
+					uniform(seed1, seed2, rand_val);
+					num_bursts_int := integer(rand_val*real(MAX_OUTSTANDING_BURSTS_TB));
+				end loop;
+				num_bursts(j) := num_bursts_int;
+
+				for i in 0 to (num_bursts_int - 1) loop
+					uniform(seed1, seed2, rand_val);
+					col_int := integer(rand_val*(2.0**(real(COL_L_TB - to_integer(unsigned(BURST_LENGTH)))) - 1.0));
+					cols(j*MAX_OUTSTANDING_BURSTS_TB+i) := col_int;
+					bl_int := 0;
+					attempt_num := 0;
+					while ((bl_int <= 0) and (attempt_num < MAX_ATTEMPTS)) loop
+						uniform(seed1, seed2, rand_val);
+						bl_int := round(rand_val*((2.0**(real(COL_L_TB - to_integer(unsigned(BURST_LENGTH))))) - real(col_int) - 1.0));
+						attempt_num := attempt_num + 1;
+					end loop;
+					if (attempt_num = MAX_ATTEMPTS) then
+						bl_int := 1;
+					end if;
+					bl(j*MAX_OUTSTANDING_BURSTS_TB+i) := bl_int;
+					uniform(seed1, seed2, rand_val);
+					bank(j*MAX_OUTSTANDING_BURSTS_TB+i) := integer(rand_val*(real(BANK_NUM_TB-1)));
+					uniform(seed1, seed2, rand_val);
+					cmd_delay(j*MAX_OUTSTANDING_BURSTS_TB+i) := integer(rand_val*real(MAX_BURST_DELAY));
+					uniform(seed1, seed2, rand_val);
+					cmd_ack_ack_delay(j*MAX_OUTSTANDING_BURSTS_TB+i) := integer(rand_val*real(MAX_CMD_ACK_ACK_DELAY));
+					uniform(seed1, seed2, rand_val);
+					cmd_act_delay(j*MAX_OUTSTANDING_BURSTS_TB+i) := integer(rand_val*real(MAX_BURST_DELAY));
+					read_burst(j*MAX_OUTSTANDING_BURSTS_TB+i) := read_burst_set;
+					uniform(seed1, seed2, rand_val);
+					last_burst(j*MAX_OUTSTANDING_BURSTS_TB+i) := rand_bool(rand_val);
+				end loop;
+				for i in num_bursts_int to (MAX_OUTSTANDING_BURSTS_TB - 1) loop
+					cols(j*MAX_OUTSTANDING_BURSTS_TB+i) := int_arr_def;
+					bl(j*MAX_OUTSTANDING_BURSTS_TB+i) := int_arr_def;
+					bank(j*MAX_OUTSTANDING_BURSTS_TB+i) := int_arr_def;
+					cmd_delay(j*MAX_OUTSTANDING_BURSTS_TB+i) := int_arr_def;
+					cmd_act_delay(j*MAX_OUTSTANDING_BURSTS_TB+i) := int_arr_def;
+					cmd_ack_ack_delay(j*MAX_OUTSTANDING_BURSTS_TB+i) := int_arr_def;
+					read_burst(j*MAX_OUTSTANDING_BURSTS_TB+i) := false;
+					last_burst(j*MAX_OUTSTANDING_BURSTS_TB+i) := false;
+				end loop;
+				read_burst_set := not read_burst_set;
+			end loop;
+
+		end procedure setup_extra_tests;
+
 		procedure test_param(variable num_bursts : out integer; variable cols: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst, last_burst: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, cmd_act_delay, cmd_ack_ack_delay, bank: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 			variable num_bursts_int	: integer;
@@ -151,7 +210,7 @@ begin
 				uniform(seed1, seed2, rand_val);
 				last_burst(i) := rand_bool(rand_val);
 			end loop;
-			for i in num_bursts to (MAX_OUTSTANDING_BURSTS_TB - 1) loop
+			for i in num_bursts_int to (MAX_OUTSTANDING_BURSTS_TB - 1) loop
 				cols(i) := int_arr_def;
 				bl(i) := int_arr_def;
 				bank(i) := int_arr_def;
@@ -254,11 +313,9 @@ begin
 						wait until ((clk_tb = '1') and (clk_tb'event));
 						if (CmdReq_tb = '1') then
 							err_arr_int := err_arr_int + 1;
-report "Error CmdReq";
 						end if;
 						if (CmdAck_tb = '1') then
 							err_arr_int := err_arr_int + 1;
-report "Error CmdAck";
 						end if;
 					end loop;
 				end if;
@@ -488,6 +545,31 @@ report "Error CmdAck";
 		variable col_err_arr_exp	: int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)));
 		variable col_err_arr_rtl	: int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)));
 
+		variable num_bursts_exp_extra		: int_arr(0 to (NUM_EXTRA_TEST - 1));
+		variable num_bursts_rtl_extra		: integer;
+
+		variable start_col_arr_exp_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable cols_arr_extra			: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
+		variable col_err_arr_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
+
+		variable read_arr_exp_extra		: bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
+		variable read_arr_rtl_extra		: bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable last_arr_extra			: bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
+
+		variable bank_arr_exp_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
+		variable bl_arr_exp_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
+
+		variable bank_arr_rtl_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable bl_arr_rtl_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
+
+		variable cmd_delay_arr_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
+		variable cmd_act_delay_arr_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
+		variable cmd_ack_ack_delay_arr_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
+		variable err_arr_extra			: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
+
+		variable col_err_arr_exp_extra		: int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)));
+		variable col_err_arr_rtl_extra		: int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)));
+
 		variable pass		: integer;
 		variable num_pass	: integer;
 
@@ -517,7 +599,28 @@ report "Error CmdAck";
 			num_pass := num_pass + pass;
 
 			wait until ((clk_tb'event) and (clk_tb = '1'));
+
 		end loop;
+
+		if (NUM_EXTRA_TEST > 0) then
+
+			setup_extra_tests(num_bursts_exp_extra, cols_arr_extra, read_arr_exp_extra, last_arr_extra, bl_arr_exp_extra, cmd_delay_arr_extra, cmd_act_delay_arr_extra, cmd_ack_ack_delay_arr_extra, bank_arr_exp_extra, seed1, seed2);
+
+			for i in 0 to NUM_EXTRA_TEST-1 loop
+
+				reset;
+
+				run_col_ctrl(num_bursts_exp_extra(i), cmd_ack_ack_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), cmd_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), cmd_act_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), cols_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), bl_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), bank_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), read_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), last_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), num_bursts_rtl_extra, read_arr_rtl_extra, err_arr_extra, bl_arr_rtl_extra, bank_arr_rtl_extra, col_err_arr_extra, start_col_arr_exp_extra, col_err_arr_exp_extra, col_err_arr_rtl_extra);
+
+				verify(num_bursts_exp_extra(i), num_bursts_rtl_extra, err_arr_extra, col_err_arr_extra, start_col_arr_exp_extra, col_err_arr_exp_extra, col_err_arr_rtl_extra, bank_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), bank_arr_rtl_extra, bl_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), bl_arr_rtl_extra, read_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), read_arr_rtl_extra, file_pointer, pass);
+
+				num_pass := num_pass + pass;
+
+				wait until ((clk_tb'event) and (clk_tb = '1'));
+
+			end loop;
+
+		end if;
 
 		file_close(file_pointer);
 
