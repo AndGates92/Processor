@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 library work;
 use work.proc_pkg.all;
 use work.ddr2_mrs_pkg.all;
-use work.ddr2_timing_pkg.all;
+use work.ddr2_gen_ac_timing_pkg.all;
 
 package ddr2_phy_init_pkg is 
 

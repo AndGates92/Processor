@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 library work;
 use work.proc_pkg.all;
 
-package ddr2_timing_pkg is 
+package ddr2_gen_ac_timing_pkg is 
 
 	constant DDR2_CLK_PERIOD	: positive := 1;
 
@@ -36,7 +36,6 @@ package ddr2_timing_pkg is
 	constant T_XP		: positive := 2;
 	constant T_XARD		: positive := 2;
 	constant T_XARDS_max	: positive := 8;
-	constant T_AOFD		: positive := integer(ceil(2.5));
 	constant T_WTR		: positive := integer(ceil(T_WTR_ns/(real(DDR2_CLK_PERIOD))));
 	constant T_RTP		: positive := integer(ceil(T_RTP_ns/(real(DDR2_CLK_PERIOD))));
 	constant T_RCD		: positive := integer(ceil(T_RCD_ns/(real(DDR2_CLK_PERIOD))));
@@ -55,4 +54,4 @@ package ddr2_timing_pkg is
 	constant T_REFI_lowT	: positive := integer(ceil(T_REFI_ns_lowT/(real(DDR2_CLK_PERIOD))));
 	constant T_REFI_highT	: positive := integer(ceil(T_REFI_ns_highT/(real(DDR2_CLK_PERIOD))));
 
-end package ddr2_timing_pkg;
+end package ddr2_gen_ac_timing_pkg;
