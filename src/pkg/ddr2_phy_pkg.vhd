@@ -8,6 +8,8 @@ use work.proc_pkg.all;
 
 package ddr2_phy_pkg is 
 
+	constant MAX_OUTSTANDING_REF	: positive := 8;
+
 	constant STATE_PHY_L	: positive := 4;
 
 	constant IDLE_MEM		: std_logic_vector(STATE_PHY_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_PHY_L));

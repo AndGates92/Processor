@@ -26,7 +26,6 @@ port (
 	nRowAccessStrobe	: out std_logic;
 	ClkEnable		: out std_logic;
 	OnDieTermination	: out std_logic;
-	
 
 	-- Memory interface
 	InitializationCompleted	: out std_logic

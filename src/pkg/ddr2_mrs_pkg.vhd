@@ -53,7 +53,7 @@ package ddr2_mrs_pkg is
 	-- Burst type
 	constant SEQ_BURST	: std_logic := '0';
 	constant INTL_BURST	: std_logic := '1';
-	constant BURST_TYPE		: std_logic := SEQ_BURST;
+	constant BURST_TYPE	: std_logic := SEQ_BURST;
 
 	-- Burst length
 	constant BL4		: std_logic_vector(2 downto 0) := std_logic_vector(to_unsigned(2, 3));
