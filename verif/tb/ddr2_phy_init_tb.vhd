@@ -8,6 +8,7 @@ use std.textio.all;
 library work;
 use work.ddr2_gen_ac_timing_pkg.all;
 use work.ddr2_phy_init_pkg.all;
+use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
 use work.ddr2_pkg_tb.all;
 

@@ -8,6 +8,7 @@ use std.textio.all;
 library work;
 use work.alu_pkg.all;
 use work.proc_pkg.all;
+use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
 
 entity mul_tb is

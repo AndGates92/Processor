@@ -10,6 +10,7 @@ use work.alu_pkg.all;
 use work.decode_pkg.all;
 use work.ctrl_pkg.all;
 use work.proc_pkg.all;
+use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
 use work.alu_pkg_tb.all;
 use work.decode_pkg_tb.all;

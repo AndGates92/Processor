@@ -9,6 +9,7 @@ library work;
 use work.ddr2_gen_ac_timing_pkg.all;
 use work.ddr2_phy_pkg.all;
 use work.ddr2_phy_bank_ctrl_pkg.all;
+use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
 use work.ddr2_pkg_tb.all;
 
@@ -329,7 +330,7 @@ begin
 			variable file_line	: line;
 		begin
 
-			write(file_line, string'( "PHY Bank Controller Status: Bank Idle: " & bool_to_str(std_logic_to_bool(BankIdle_tb)) & " Bank Active: " & bool_to_str(std_logic_to_bool(BankActive_tb)) & " Number of bursts: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl) & " No outstanding burst: " & bool_to_str(std_logic_to_bool(ZeroOutstandingBursts_tb))));
+			write(file_line, string'( "PHY Bank Controller Status: Bank Idle: " & std_logic_to_str(BankIdle_tb) & " Bank Active: " & std_logic_to_str(BankActive_tb) & " Number of bursts: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl) & " No outstanding burst: " & std_logic_to_str(ZeroOutstandingBursts_tb)));
 			writeline(file_pointer, file_line);
 
 			match_rows := compare_int_arr(rows_arr_exp, rows_arr_rtl, num_bursts_exp);

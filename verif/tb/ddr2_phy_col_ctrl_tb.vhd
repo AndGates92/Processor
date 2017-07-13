@@ -10,6 +10,7 @@ use work.ddr2_phy_pkg.all;
 use work.ddr2_mrs_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 use work.ddr2_phy_col_ctrl_pkg.all;
+use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
 use work.proc_pkg.all;
 use work.ddr2_pkg_tb.all;

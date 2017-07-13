@@ -47,6 +47,8 @@ work_dir:
 	mkdir -p ${WORK_DIR}
 
 libraries: 
+	@echo "Analysing ${RTL_PKG_DIR}/type_conversion_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/type_conversion_pkg.vhd
 	@echo "Analysing ${RTL_PKG_DIR}/proc_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/proc_pkg.vhd
 	@echo "Analysing ${RTL_PKG_DIR}/bram_pkg.vhd"

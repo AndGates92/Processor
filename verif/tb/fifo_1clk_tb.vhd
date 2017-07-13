@@ -8,6 +8,7 @@ use std.textio.all;
 library work;
 use work.fifo_1clk_pkg.all;
 use work.proc_pkg.all;
+use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
 use work.fifo_pkg_tb.all;
 

@@ -33,10 +33,6 @@ package tb_pkg is
 	function rand_bool(rand_val : real) return boolean;
 	function rand_sign(sign_val : real) return real;
 
-	function std_logic_to_bool(val : std_logic) return boolean;
-	function bool_to_std_logic(val : boolean) return std_logic;
-	function bool_to_str(val : boolean) return string;
-
 	function reset_int_arr(val, num_el : integer) return int_arr;
 	function compare_int_arr(arr1, arr2 : int_arr; num_el : integer) return boolean;
 	function compare_bool_arr(arr1, arr2 : bool_arr; num_el : integer) return boolean;
@@ -97,42 +93,6 @@ package body tb_pkg is
 
 		return bool;
 	end function;
-
-	function std_logic_to_bool(val : std_logic) return boolean is
-		variable val_conv	: boolean;
-	begin
-		if (val = '1') then
-			val_conv := True;
-		else
-			val_conv := False;
-		end if;
-
-		return val_conv;
-	end;
-
-	function bool_to_std_logic(val : boolean) return std_logic is
-		variable val_conv	: std_logic;
-	begin
-		if (val = true) then
-			val_conv := '1';
-		else
-			val_conv := '0';
-		end if;
-
-		return val_conv;
-	end;
-
-	function bool_to_str(val : boolean) return string is
-		variable val_conv	: string(1 to 5);
-	begin
-		if (val = true) then
-			val_conv := "True ";
-		else
-			val_conv := "False";
-		end if;
-
-		return val_conv;
-	end;
 
 	function reset_int_arr(val, num_el : integer) return int_arr is
 		variable arr : int_arr(0 to (num_el - 1));

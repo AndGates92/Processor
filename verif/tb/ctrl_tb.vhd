@@ -9,6 +9,7 @@ library work;
 use work.alu_pkg.all;
 use work.ctrl_pkg.all;
 use work.proc_pkg.all;
+use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
 use work.alu_pkg_tb.all;
 use work.ctrl_pkg_tb.all;
@@ -428,7 +429,7 @@ begin
 		procedure verify(variable CtrlCmd_vec : in std_logic_vector(CTRL_CMD_L - 1 downto 0); variable CtrlCmd_str : in string; variable CmdALU_vec : in std_logic_vector(CMD_ALU_L - 1 downto 0); variable CmdALU_str : in string; variable EnableRegFile_vec : in std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0); variable ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess : in integer; file file_pointer : text; variable pass : out integer) is
 			variable file_line	: line;
 		begin
-			write(file_line, string'("CONTROL UNIT: Ctrl Command " & CtrlCmd_str & " ALU Command " & CmdALU_str  & " Register File (In:" & bool_to_str(std_logic_to_bool(EnableRegFile_vec(0))) & " Out1:" & bool_to_str(std_logic_to_bool(EnableRegFile_vec(1))) & " Out2:" & bool_to_str(std_logic_to_bool(EnableRegFile_vec(2))) & "):"));
+			write(file_line, string'("CONTROL UNIT: Ctrl Command " & CtrlCmd_str & " ALU Command " & CmdALU_str  & " Register File (In:" & std_logic_to_str(EnableRegFile_vec(0)) & " Out1:" & std_logic_to_str(EnableRegFile_vec(1)) & " Out2:" & std_logic_to_str(EnableRegFile_vec(2)) & "):"));
 			writeline(file_pointer, file_line);
 			write(file_line, string'("ALU " & integer'image(ALUOp) & " Multiplication " & integer'image(Mul) & " Division " & integer'image(Div) & " Register File (Write: " & integer'image(WriteRegFile) & " and Read: " & integer'image(ReadRegFile) & ") Memory Access " & integer'image(MemAccess)));
 			writeline(file_pointer, file_line);

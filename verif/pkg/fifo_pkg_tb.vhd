@@ -5,6 +5,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.proc_pkg.all;
+use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
 
 package fifo_pkg_tb is 
