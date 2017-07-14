@@ -16,20 +16,22 @@ package ddr2_phy_ref_ctrl_pkg is
 
 	constant REF_CTRL_IDLE			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_REF_CTRL_L));
 	constant FINISH_OUTSTANDING_TX		: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_REF_CTRL_L));
-	constant REF_REQUEST			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_REF_CTRL_L));
+	constant AUTO_REF_REQUEST			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_REF_CTRL_L));
 	constant ODT_DISABLE			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_REF_CTRL_L));
-	constant ODT_TURN_OFF_DELAY		: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_REF_CTRL_L));
-	constant SELF_REF_ENTRY_REQUEST		: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_REF_CTRL_L));
-	constant SELF_REF_EXIT_REQUEST		: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_REF_CTRL_L));
-	constant SELF_REF			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_REF_CTRL_L));
-	constant SELF_REF_EXIT_REQUEST		: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(8, STATE_REF_CTRL_L));
-	constant ENABLE_OP			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(9, STATE_REF_CTRL_L));
+	constant SELF_REF_ENTRY_REQUEST		: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_REF_CTRL_L));
+	constant SELF_REF_EXIT_REQUEST		: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_REF_CTRL_L));
+	constant SELF_REF			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_REF_CTRL_L));
+	constant SELF_REF_EXIT_REQUEST		: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_REF_CTRL_L));
+	constant ENABLE_OP			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(8, STATE_REF_CTRL_L));
 
-	constant AUTO_REF_CNT_L	: integer;
-	constant AUTO_REF_TIME	: integer;
+	constant AUTO_REFRESH_EXIT_MAX_TIME	: integer := T_RFC;
+	constant SELF_REFRESH_EXIT_MAX_TIME	: integer := max_int(T_XSRD, T_XSNR);
+	constant ENABLE_OP_CNT_L		: integer := int_to_bit_num(max_int(SELF_REFRESH_EXIT_MAX_TIME, AUTO_REFRESH_EXIT_MAX_TIME));
 
-	constant NON_READ_CMD_EN_CNT_L	: integer := int_to_bit_num(T_XSNR);
-	constant READ_CMD_EN_CNT_L	: integer := int_to_bit_num(T_XSRD);
+	constant AUTO_REF_CNT_L		: integer;
+	constant AUTO_REF_TIME		: integer;
+
+	constant OUTSTANDING_REF_CNT_L	: positive := int_to_bit_num(MAX_OUTSTANDING_REF);
 
 	function sel_param (param_sel_true, param_sel_false, sel : integer) return integer;
 
