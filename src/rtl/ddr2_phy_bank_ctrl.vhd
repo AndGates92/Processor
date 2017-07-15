@@ -150,9 +150,8 @@ begin
 	ZeroOutstandingBursts <= ZeroOutstandingBursts_comb;
 	CtrlAck_comb <= CtrlReq and (not ProcActCmdC) when ((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) else (DataPhase and ReqActSameRow); -- return ack only when arbitrer gives the ack or during the data phase
 
-	ProcActCmdN <=	'1' when ((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) and (ProcActCmdC = '0') and (CtrlReq = '1') and (CtrlAck_comb = '1') else
-			'0' when ((StateC /= BANK_CTRL_IDLE) and (StateC /= WAIT_ACT_ACK)) else
-			ProcActCmdC;
+	ProcActCmdN <=	(not ProcActCmdC) and CtrlReq and CtrlAck_comb when ((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) else
+			'0';
 
 	-- If same row is requested to be activate, accept immediately the request
 	ReqActSameRow <= '1' when ((RowMemC = RowMemIn) and (CtrlReq = '1')) else '0';
