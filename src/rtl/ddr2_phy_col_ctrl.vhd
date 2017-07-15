@@ -165,13 +165,13 @@ begin
 
 	CtrlReqValid <= CtrlReq and BankActiveMuxed;
 
-	BankMemN <= BankMemIn when (CtrlAckN = '1') else BankMemC; --((CtrlReq = '1') and (CtrlAckC = '1')) else BankMemC;
+	BankMemN <= BankMemIn when (CtrlAckN = '1') else BankMemC;
 
-	ColMemN <=	unsigned(ColMemIn)		when (CtrlAckN = '1') else --((CtrlReq = '1') and (CtrlAckC = '1')) else
+	ColMemN <=	unsigned(ColMemIn)		when (CtrlAckN = '1') else
 			(ColMemC + incr_col_value) 	when ((CmdReqC = '1') and (CmdAck = '1')) else
 			ColMemC;
 
-	BurstLengthN <=	unsigned(BurstLength) 				when (CtrlAckN = '1') else -- ((CtrlReq = '1') and (CtrlAckC = '1')) else
+	BurstLengthN <=	unsigned(BurstLength) 				when (CtrlAckN = '1') else
 			(BurstLengthC - decr_burst_length_value)	when ((CmdReqC = '1') and (CmdAck = '1') and (ZeroBurstCnt = '0')) else
 			BurstLengthC;
 
@@ -181,7 +181,7 @@ begin
 			'0' when ((CmdReqC = '1') and (CmdAck = '1')) else
 			SingleBurstC;
 
-	ReadBurstN <= ReadBurstIn when (CtrlAckN = '1') else ReadBurstC; --(CtrlReq = '1') and (CtrlAckC = '1') else ReadBurstC;
+	ReadBurstN <= ReadBurstIn when (CtrlAckN = '1') else ReadBurstC;
 
 	NotSameOpIn <= (ReadBurstC xor ReadBurstIn); -- change burst operation
 	ChangeOp <= CtrlReq and NotSameOpIn; -- valid change burst operation
