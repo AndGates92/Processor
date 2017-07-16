@@ -25,7 +25,7 @@ end entity div;
 
 architecture non_restoring of div is
 
-	constant OP_L : integer := find_max(DIVD_L, DIVR_L);
+	constant OP_L : integer := max_int(DIVD_L, DIVR_L);
 	constant zero_divd : unsigned(OP_L-1 downto 0) := (others => '0');
 	constant zero_divr : unsigned(OP_L-1 downto 0) := (others => '0');
 
@@ -34,8 +34,6 @@ architecture non_restoring of div is
 	signal SignDvdC, SignDvdN	: std_logic;
 	signal QuotC, QuotN		: unsigned(OP_L-1 - 1 downto 0);
 	signal RemN, RemC, RemProp	: signed(OP_L - 1 downto 0);
---	signal QuotOut			: unsigned(OP_L - 1 downto 0);
---	signal RemOut			: unsigned(OP_L - 1 downto 0);
 
 	signal Dividend_2comp	: unsigned(OP_L-1 - 1 downto 0);
 	signal Divisor_2comp	: unsigned(OP_L-1 - 1 downto 0);
@@ -195,18 +193,6 @@ begin
 
 	Done <=	'1' when StateC = ALU_OUTPUT else 
 		'0';
-
---	QuotOut <=	("0" & QuotC) when SignC = '0' else
---			("1" & not QuotC) + 1;
-
---	Quotient <= 	std_logic_vector(QuotOut) when StateC = ALU_OUTPUT else 
---			(others => '0');
-
---	RemOut <=	unsigned(RemC) when SignDvdC = '0' else
---			(not unsigned(RemC)) + 1;
-
---	Remainder <= 	std_logic_vector(RemC) when StateC = ALU_OUTPUT else 
---			(others => '0');
 
 	Quotient <=	(others => '1')									when StateC = ALU_OUTPUT and ZeroDvsC = '1' and ZeroDvdC = '1' else 
 			std_logic_vector(to_unsigned((2**(Quotient'length-1)-1), Quotient'length)) 	when StateC = ALU_OUTPUT and ZeroDvsC = '1' and SignC = '0' else
