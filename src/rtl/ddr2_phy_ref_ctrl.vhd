@@ -72,7 +72,7 @@ architecture rtl of ddr2_phy_ref_ctrl is
 	signal ZeroAutoRefCnt			: std_logic;
 
 	signal Cmd_comb				: std_logic_vector(MEM_CMD_L - 1 downto 0);
-	signal CtrlAck_comb			: std_logic;
+	signal CtrlAckN, CtrlAckC		: std_logic;
 
 	signal StateN, StateC			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0);
 
@@ -123,6 +123,8 @@ begin
 
 			RefreshReqC <= '0';
 
+			CtrlAckC <= '0';
+
 		elsif ((clk'event) and (clk = '1')) then
 
 			StateC <= StateN;
@@ -149,10 +151,12 @@ begin
 
 			RefreshReqC <= RefreshReqN;
 
+			CtrlAckC <= CtrlAckN;
+
 		end if;
 	end process reg;
 
-	CtrlAck <= CtrlAck_comb;
+	CtrlAck <= CtrlAckC;
 
 	ODTCtrlReq <= ODTCtrlReqC;
 	ODTDisable <= ODTDisableC;
@@ -216,7 +220,7 @@ begin
 			'0'	when (((StateC = AUTO_REF_REQUEST) or (StateC = SELF_REF_ENTRY_REQUEST) or (StateC = SELF_REF_EXIT_REQUEST)) and (CmdAck = '1')) else
 			CmdReqC;
 
-	CtrlAck_comb <= CmdReqC and CmdAck;
+	CtrlAckN <= CtrlReq when (((StateC = FINISH_OUTSTANDING_TX) and (BankIdle = all_banks_idle)) or (StateC = SELF_REFRESH)) else '0';
 
 	ODTDisableN <=	CtrlReq			when ((StateC = FINISH_OUTSTANDING_TX) and (BankIdle = all_banks_idle)) else
 			not AllOpEnableC	when (StateC = ENABLE_OP) else
