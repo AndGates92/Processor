@@ -22,9 +22,14 @@ architecture bench of ddr2_phy_ref_ctrl_tb is
 
 	constant CLK_PERIOD	: time := DDR2_CLK_PERIOD * 1 ns;
 	constant NUM_TEST	: integer := 1000;
-	constant NUM_EXTRA_TEST	: integer := 2;
+	constant NUM_EXTRA_TEST	: integer := 0;
 	constant TOT_NUM_TEST	: integer := NUM_TEST + NUM_EXTRA_TEST;
-	constant MAX_ATTEMPTS	: integer := 20;
+
+	constant MAX_REQUESTS_PER_TEST		: integer := 50;
+	constant MAX_SELF_REFRESH_TIME		: integer := 2*AUTO_REF_TIME;
+	constant MAX_CMD_REQ_ACK_DELAY		: integer := 20;
+	constant MAX_ODT_CMD_REQ_ACK_DELAY	: integer := 20;
+	constant MAX_BANK_IDLE_DELAY		: integer := AUTO_REF_TIME;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;
@@ -111,7 +116,37 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_requests : out integer; variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_requests : out integer; variable self_refresh: out bool_arr(0 to (MAX_REQUESTS_PER_TEST); variable cmd_req_ack_delay, odt_cmd_req_ack_delay, self_refresh_time, bank_idle_delay: out int_arr(0 to (MAX_REQUESTS_PER_TEST); variable seed1, seed2: inout positive) is
+			variable rand_val		: real;
+			variable num_requests_int	: integer;
+		begin
+
+			num_requests_int := 0;
+			while (num_requests_int = 0) loop
+				uniform(seed1, seed2, rand_val);
+				num_requests_int := integer(rand_val*real(MAX_REQUESTS_PER_TEST));
+			end loop;
+			num_requests := num_requests_int;
+
+			for i in 0 to (num_requests_int - 1) loop
+				uniform(seed1, seed2, rand_val);
+				cmd_req_ack_delay(i) := integer(rand_val*real(MAX_CMD_REQ_ACK_DELAY));
+				uniform(seed1, seed2, rand_val);
+				odt_cmd_req_ack_delay(i) := integer(rand_val*real(MAX_ODT_CMD_REQ_ACK_DELAY));
+				uniform(seed1, seed2, rand_val);
+				self_refresh_time(i) := integer(rand_val*real(MAX_SELF_REFRESH_TIME));
+				uniform(seed1, seed2, rand_val);
+				bank_idle_delay(i) := integer(rand_val*real(MAX_BANK_IDLE_DELAY));
+				uniform(seed1, seed2, rand_val);
+				self_refresh(i) := rand_bool(rand_val);
+			end loop;
+			for i in num_requests_int to (MAX_REQUESTS_PER_TEST - 1) loop
+				cmd_req_ack_delay(i) := int_arr_def;
+				odt_cmd_req_ack_delay(i) := int_arr_def;
+				self_refresh_time(i) := int_arr_def;
+				bank_idle_delay(i) := int_arr_def;
+				self_refresh(i) := false;
+			end loop;
 
 		end procedure test_param;
 
