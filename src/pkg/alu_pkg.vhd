@@ -34,8 +34,6 @@ package alu_pkg is
 	constant COMPUTE_LAST	: std_logic_vector(STATE_ALU_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_ALU_L));
 
 	function calc_length_multiplier (op1_l, op2_l, base : integer; multiplicand : integer) return integer;
-	function find_min (op1_l, op2_l : integer) return integer;
-	function find_max (op1_l, op2_l : integer) return integer;
 
 	component mul
 	generic (
@@ -119,32 +117,6 @@ package body alu_pkg is
 
 		return length_op;
 
-	end;
-
-	function find_min (op1_l, op2_l : integer) return integer is
-		variable rem_op	: integer;
-		variable min	: integer;
-	begin
-		if (op1_l <= op2_l) then
-			min := op1_l;
-		else
-			min := op2_l;
-		end if;
-
-		return min;
-	end;
-
-	function find_max (op1_l, op2_l : integer) return integer is
-		variable rem_op	: integer;
-		variable max	: integer;
-	begin
-		if (op1_l >= op2_l) then
-			max := op1_l;
-		else
-			max := op2_l;
-		end if;
-
-		return max;
 	end;
 
 end package body alu_pkg;

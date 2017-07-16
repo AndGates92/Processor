@@ -6,6 +6,7 @@ use ieee.numeric_std.all;
 package proc_pkg is 
 
 	function int_to_bit_num(op2_l : integer) return integer;
+	function min_int(x, y : integer) return integer;
 	function max_int(x, y : integer) return integer;
 	function max_real(x, y : real) return real;
 
@@ -34,6 +35,18 @@ package body proc_pkg is
 		nbit := tmp;
 
 		return nbit;
+	end;
+
+	function min_int(x, y : integer) return integer is
+		variable max_val	: integer;
+	begin
+		if (x <= y) then
+			max_val := x;
+		else
+			max_val := y;
+		end if;
+
+		return max_val;
 	end;
 
 	function max_int(x, y : integer) return integer is
