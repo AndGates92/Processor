@@ -55,7 +55,7 @@ package ddr2_phy_ref_ctrl_pkg is
 		-- Bank Controller
 		BankIdle		: in std_logic_vector(BANK_NUM - 1 downto 0);
 
-		-- ODT controller
+		-- ODT Controller
 		ODTCtrlAck		: in std_logic;
 
 		ODTDisable		: out std_logic;
