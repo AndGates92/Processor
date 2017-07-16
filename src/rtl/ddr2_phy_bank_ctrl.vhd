@@ -162,8 +162,8 @@ begin
 	-- Bank in data phase
 	DataPhase <= '1' when ((StateC = ELAPSE_T_ACT_COL) or ((BankActiveC = '1') and  (ExitDataPhase = '0'))) else '0';
 
-	CmdReqN <=	'1' when (((StateC = WAIT_ACT_ACK) or (StateC = BANK_CTRL_IDLE)) and (CtrlReq = '1') and (CtrlAck_comb = '1')) else
-			'0' when ((StateC = WAIT_ACT_ACK) and (CmdAck = '1')) else
+	CmdReqN <=	'1'	when (((StateC = WAIT_ACT_ACK) or (StateC = BANK_CTRL_IDLE)) and (CtrlReq = '1') and (CtrlAck_comb = '1')) else
+			'0'	when ((StateC = WAIT_ACT_ACK) and (CmdAck = '1')) else
 			CmdReqC;
 
 	-- Bank active after time between activate and column command is elapsed
@@ -200,8 +200,8 @@ begin
 
 	StartPrecharge <= '1' when ((TRASReached = '1') and ((StateC = ELAPSE_T_RAS) or ((StateC = PROCESS_COL_CMD) and (ZeroDelayCnt = '1')))) else '0';
 
-	DelayCntInitValue <=	to_unsigned(T_READ_PRE, CNT_DELAY_L) when ((ExitDataPhase = '1') and (ReadBurst = '1')) else
-				to_unsigned(T_WRITE_PRE, CNT_DELAY_L) when ((ExitDataPhase = '1') and (ReadBurst = '0')) else
+	DelayCntInitValue <=	to_unsigned(T_READ_PRE, CNT_DELAY_L)	when ((ExitDataPhase = '1') and (ReadBurst = '1')) else
+				to_unsigned(T_WRITE_PRE, CNT_DELAY_L)	when ((ExitDataPhase = '1') and (ReadBurst = '0')) else
 				to_unsigned(T_RP, CNT_DELAY_L);
 
 	DelayCntEnN <= '1' when ((SetDelayCnt = '1') or (StateC = PROCESS_COL_CMD) or (StateC = ELAPSE_T_RP)) else '0';
@@ -210,8 +210,8 @@ begin
 			(CntBankCtrlC + incr_bank_ctrl_cnt_value)	when ((BankCtrlCntEnC = '1') and (TRCReached = '0')) else
 			CntBankCtrlC;
 
-	BankCtrlCntEnN <=	'1' when ((CmdReqC = '1') and (CmdAck = '1')) else
-				'0' when ((StateC = ELAPSE_T_RP) and (ZeroDelayCnt = '1') and (TRCReached = '1')) else
+	BankCtrlCntEnN <=	'1'	when ((CmdReqC = '1') and (CmdAck = '1')) else
+				'0'	when ((StateC = ELAPSE_T_RP) and (ZeroDelayCnt = '1') and (TRCReached = '1')) else
 				BankCtrlCntEnC;
 
 	BankIdleN <= not BankCtrlCntEnN;

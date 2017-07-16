@@ -158,9 +158,9 @@ begin
 
 
 	CtrlAck <= CtrlAckC;
-	CtrlAckN <= 	CtrlReqValid and (ZeroColCtrlCnt or SameOp) when (StateC = COL_CTRL_IDLE) else
-			CtrlReqValid and ZeroColCtrlCnt when (StateC = CHANGE_BURST_OP) else
-			CtrlReqValid and EndDataPhase and SameOp when (StateC = DATA_PHASE) else 
+	CtrlAckN <= 	(CtrlReqValid and (ZeroColCtrlCnt or SameOp))	when (StateC = COL_CTRL_IDLE) else
+			(CtrlReqValid and ZeroColCtrlCnt)		when (StateC = CHANGE_BURST_OP) else
+			(CtrlReqValid and EndDataPhase and SameOp)	when (StateC = DATA_PHASE) else 
 			'0'; -- accept request if bank is active
 
 	CtrlReqValid <= CtrlReq and BankActiveMuxed;
@@ -236,9 +236,9 @@ begin
 	ColCtrlCntEnN <=	EndDataPhase and (ChangeOp or not CtrlReq) when (StateC = DATA_PHASE) else	-- enable counter if diff op next or no outstanding request
 				ColCtrlCntEnC;
 
-	CmdReqValid <=	CtrlAckN when (StateC = COL_CTRL_IDLE) else
-			ZeroColCtrlCnt and CtrlReqValid when (StateC = CHANGE_BURST_OP) else
-			'1' when (StateC = DATA_PHASE) else
+	CmdReqValid <=	CtrlAckN			when (StateC = COL_CTRL_IDLE) else
+			ZeroColCtrlCnt and CtrlReqValid	when (StateC = CHANGE_BURST_OP) else
+			'1'				when (StateC = DATA_PHASE) else
 			'0';
 
 	T_COL_COL_LARGER_1 : if T_COL_COL > 1 generate
