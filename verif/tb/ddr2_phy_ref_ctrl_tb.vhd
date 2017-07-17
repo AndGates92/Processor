@@ -116,7 +116,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_requests : out integer; variable self_refresh: out bool_arr(0 to (MAX_REQUESTS_PER_TEST); variable cmd_req_ack_delay, odt_cmd_req_ack_delay, self_refresh_time, bank_idle_delay: out int_arr(0 to (MAX_REQUESTS_PER_TEST); variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_requests : out integer; variable self_refresh : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable phy_completed_delay, cmd_req_ack_delay, odt_cmd_req_ack_delay, self_refresh_time, bank_idle_delay : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2 : inout positive) is
 			variable rand_val		: real;
 			variable num_requests_int	: integer;
 		begin
@@ -136,6 +136,8 @@ begin
 				uniform(seed1, seed2, rand_val);
 				self_refresh_time(i) := integer(rand_val*real(MAX_SELF_REFRESH_TIME));
 				uniform(seed1, seed2, rand_val);
+				phy_completed_delay(i) := integer(rand_val*real(MAX_PHY_COMPLETED_DELAY));
+				uniform(seed1, seed2, rand_val);
 				bank_idle_delay(i) := integer(rand_val*real(MAX_BANK_IDLE_DELAY));
 				uniform(seed1, seed2, rand_val);
 				self_refresh(i) := rand_bool(rand_val);
@@ -144,92 +146,48 @@ begin
 				cmd_req_ack_delay(i) := int_arr_def;
 				odt_cmd_req_ack_delay(i) := int_arr_def;
 				self_refresh_time(i) := int_arr_def;
+				phy_completed_delay(i) := int_arr_def;
 				bank_idle_delay(i) := int_arr_def;
 				self_refresh(i) := false;
 			end loop;
 
 		end procedure test_param;
 
-		procedure verify(variable num_bursts_exp, num_bursts_rtl: in integer; variable err_arr, col_err_arr, start_col_arr_exp : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_err_arr_exp, col_err_arr_rtl : in int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); variable bank_arr_exp, bank_arr_rtl, bl_arr_exp, bl_arr_rtl : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_arr_exp, read_arr_rtl : in bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); file file_pointer : text; variable pass: out integer) is
-			variable match_cols		: boolean;
-			variable match_banks		: boolean;
-			variable match_bl		: boolean;
-			variable match_read_burst	: boolean;
-			variable no_errors		: boolean;
+		procedure run_ref_ctrl(variable num_requests_exp : in integer; variable self_refresh_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST-1)); variable phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable cmd_arr_rtl : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1)) is
+			variable num_requests_rtl_int	: integer;
+			variable self_refresh		: boolean;
+			variable cmd_req_ack_delay	: integer;
+			variable odt_cmd_req_ack_delay	: integer;
+			variable self_refresh_time	: integer;
+			variable bank_idle_delay	: integer;
+			variable phy_completed_delay	: integer;
+			variable ctrl_req		: boolean;
+		begin
+			num_requests_rtl_int := 0;
+			self_refresh := self_refresh_arr(num_requests_rtl_int);
+			cmd_req_ack_delay := cmd_req_ack_delay_arr(num_requests_rtl_int);
+			odt_cmd_req_ack_delay := odt_cmd_req_ack_delay_arr(num_requests_rtl_int);
+			self_refresh_time := self_refresh_time_arr(num_requests_rtl_int);
+			phy_completed_delay := phy_completed_delay_arr(num_requests_rtl_int);
+			bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int);
+
+			ctrl_req := false;
+
+		end procedure run_ref_ctrl;
+
+		procedure verify(variable num_requests_exp, num_requests_rtl : in integer; variable cmd_arr_rtl : in int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); file file_pointer : text; variable pass: out integer) is
 			variable file_line		: line;
 		begin
 
-			write(file_line, string'( "PHY Refresh Controller: Number of bursts: " & integer'image(num_bursts_exp)));
+			write(file_line, string'( "PHY Refresh Controller: Number of requests: " & integer'image(num_requests_exp)));
 			writeline(file_pointer, file_line);
 
-			no_errors := compare_int_arr(reset_int_arr(0, num_bursts_exp), err_arr, num_bursts_exp);
-			match_cols := compare_int_arr(reset_int_arr(0, num_bursts_exp), col_err_arr, num_bursts_exp);
-			match_banks := compare_int_arr(bank_arr_exp, bank_arr_rtl, num_bursts_exp);
-			match_read_burst := compare_bool_arr(read_arr_exp, read_arr_rtl, num_bursts_exp);
-			match_bl := compare_int_arr(bl_arr_exp, bl_arr_rtl, num_bursts_exp);
-
-			if ((match_bl = true) and (match_read_burst = true) and (match_banks = true) and (match_cols = true) and (no_errors = true) and (num_bursts_exp = num_bursts_rtl)) then
-				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " details: Start Col " & integer'image(start_col_arr_exp(i)) & " Burst Length " & integer'image(bl_arr_exp(i))));
-					writeline(file_pointer, file_line);
-				end loop;
-				write(file_line, string'( "PHY Column Controller: PASS"));
+			if (num_requests_exp = num_requests_rtl) then
+				write(file_line, string'( "PHY Refresh Controller: PASS"));
 				writeline(file_pointer, file_line);
 				pass := 1;
-			elsif (match_bl = false) then
-				write(file_line, string'( "PHY Column Controller: FAIL (Burst Length mismatch)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Beats: exp " & integer'image(bl_arr_exp(i)) & " vs rtl " & integer'image(bl_arr_rtl(i))));
-					writeline(file_pointer, file_line);
-				end loop;
-				pass := 0;
-			elsif (match_read_burst = false) then
-				write(file_line, string'( "PHY Column Controller: FAIL (Read Burst count mismatch)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Column Controller: Read Burst #" & integer'image(i) & " exp " & bool_to_str(read_arr_exp(i)) & " vs rtl " & bool_to_str(read_arr_rtl(i))));
-					writeline(file_pointer, file_line);
-				end loop;
-				pass := 0;
-			elsif (match_cols = false) then
-				write(file_line, string'( "PHY Column Controller: FAIL (Col mismatch)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "========================================================================================"));
-					writeline(file_pointer, file_line);
-					write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " details: Start Col " & integer'image(start_col_arr_exp(i)) & " Burst Length " & integer'image(bl_arr_exp(i))));
-					writeline(file_pointer, file_line);
-					for j in 0 to (col_err_arr(i) - 1) loop
-						write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " exp " & integer'image(col_err_arr_exp(i, j)) & " vs rtl " & integer'image(col_err_arr_rtl(i, j))));
-						writeline(file_pointer, file_line);
-					end loop;
-				end loop;
-				write(file_line, string'( "========================================================================================"));
-				writeline(file_pointer, file_line);
-				pass := 0;
-			elsif (num_bursts_exp /= num_bursts_rtl) then
-				write(file_line, string'( "PHY Column Controller: FAIL (Number bursts mismatch): exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl)));
-				writeline(file_pointer, file_line);
-				pass := 0;
-			elsif (match_banks = false) then
-				write(file_line, string'( "PHY Column Controller: FAIL (Bank mismatch)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " exp " & integer'image(bank_arr_exp(i))) & " vs rtl " & integer'image(bank_arr_rtl(i)));
-					writeline(file_pointer, file_line);
-				end loop;
-				pass := 0;
-			elsif (no_errors = false) then
-				write(file_line, string'( "PHY Column Controller: FAIL (Handshake Error)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Column Controller: Error Burst #" & integer'image(i) & ": " & integer'image(err_arr(i))));
-					writeline(file_pointer, file_line);
-				end loop;
-				pass := 0;
 			else
-				write(file_line, string'( "PHY Column Controller: FAIL (Unknown error)"));
+				write(file_line, string'( "PHY Refresh Controller: FAIL (Unknown error)"));
 				writeline(file_pointer, file_line);
 				pass := 0;
 			end if;
@@ -237,55 +195,17 @@ begin
 
 		variable seed1, seed2	: positive;
 
-		variable num_bursts_exp	: integer;
-		variable num_bursts_rtl	: integer;
+		variable num_requests_exp		: integer;
+		variable num_requests_rtl		: integer;
 
-		variable start_col_arr_exp	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable cols_arr		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable col_err_arr		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable self_refresh_arr		: bool_arr(0 to (MAX_REQUESTS_PER_TEST-1));
+		variable phy_completed_delay_arr	: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable cmd_req_ack_delay_arr		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable odt_cmd_req_ack_delay_arr	: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable self_refresh_time_arr		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable bank_idle_delay_arr		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
-		variable read_arr_exp		: bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable read_arr_rtl		: bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable last_arr		: bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-
-		variable bank_arr_exp		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable bl_arr_exp		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-
-		variable bank_arr_rtl		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable bl_arr_rtl		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-
-		variable cmd_delay_arr		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable cmd_act_delay_arr	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable cmd_ack_ack_delay_arr	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable err_arr		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-
-		variable col_err_arr_exp	: int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)));
-		variable col_err_arr_rtl	: int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)));
-
-		variable num_bursts_exp_extra		: int_arr(0 to (NUM_EXTRA_TEST - 1));
-		variable num_bursts_rtl_extra		: integer;
-
-		variable start_col_arr_exp_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable cols_arr_extra			: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
-		variable col_err_arr_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-
-		variable read_arr_exp_extra		: bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
-		variable read_arr_rtl_extra		: bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable last_arr_extra			: bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
-
-		variable bank_arr_exp_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
-		variable bl_arr_exp_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
-
-		variable bank_arr_rtl_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable bl_arr_rtl_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-
-		variable cmd_delay_arr_extra		: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
-		variable cmd_act_delay_arr_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
-		variable cmd_ack_ack_delay_arr_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB*NUM_EXTRA_TEST - 1));
-		variable err_arr_extra			: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
-
-		variable col_err_arr_exp_extra		: int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)));
-		variable col_err_arr_rtl_extra		: int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)));
+		variable cmd_arr_rtl			: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1);
 
 		variable pass		: integer;
 		variable num_pass	: integer;
@@ -307,11 +227,11 @@ begin
 
 		for i in 0 to NUM_TEST-1 loop
 
-			test_param(num_bursts_exp, cols_arr, read_arr_exp, last_arr, bl_arr_exp, cmd_delay_arr, cmd_act_delay_arr, cmd_ack_ack_delay_arr, bank_arr_exp, seed1, seed2);
+			test_param(num_requests_exp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, seed1, seed2);
 
-			run_col_ctrl(num_bursts_exp, cmd_ack_ack_delay_arr, cmd_delay_arr, cmd_act_delay_arr, cols_arr, bl_arr_exp, bank_arr_exp, read_arr_exp, last_arr, num_bursts_rtl, read_arr_rtl, err_arr, bl_arr_rtl, bank_arr_rtl, col_err_arr, start_col_arr_exp, col_err_arr_exp, col_err_arr_rtl);
+			run_ref_ctrl(num_requests_exp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, num_requests_rtl, cmd_arr_rtl);
 
-			verify(num_bursts_exp, num_bursts_rtl, err_arr, col_err_arr, start_col_arr_exp, col_err_arr_exp, col_err_arr_rtl, bank_arr_exp, bank_arr_rtl, bl_arr_exp, bl_arr_rtl, read_arr_exp, read_arr_rtl, file_pointer, pass);
+			verify(num_requests_exp, num_requests_rtl, cmd_arr_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
