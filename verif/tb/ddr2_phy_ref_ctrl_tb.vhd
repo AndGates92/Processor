@@ -153,7 +153,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_ref_ctrl(variable num_requests_exp : in integer; variable self_refresh_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST-1)); variable phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable cmd_arr_rtl : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1)) is
+		procedure run_ref_ctrl(variable num_requests_exp : in integer; variable self_refresh_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST-1)); variable phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable cmd_arr_rtl : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable ctrl_err_arr_rtl, cmd_err_arr_rtl, odt_err_arr_rtl : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
 			variable num_requests_rtl_int	: integer;
 			variable self_refresh		: boolean;
 			variable cmd_req_ack_delay	: integer;
@@ -162,20 +162,108 @@ begin
 			variable bank_idle_delay	: integer;
 			variable phy_completed_delay	: integer;
 			variable ctrl_req		: boolean;
+			variable cmd_req		: boolean;
 		begin
 			num_requests_rtl_int := 0;
-			self_refresh := self_refresh_arr(num_requests_rtl_int);
-			cmd_req_ack_delay := cmd_req_ack_delay_arr(num_requests_rtl_int);
-			odt_cmd_req_ack_delay := odt_cmd_req_ack_delay_arr(num_requests_rtl_int);
-			self_refresh_time := self_refresh_time_arr(num_requests_rtl_int);
-			phy_completed_delay := phy_completed_delay_arr(num_requests_rtl_int);
-			bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int);
 
-			ctrl_req := false;
+			ref_loop: loop
+
+				exit ref_loop when (num_requests_rtl_int = num_requests_exp)
+
+				self_refresh := self_refresh_arr(num_requests_rtl_int);
+				cmd_req_ack_delay := cmd_req_ack_delay_arr(num_requests_rtl_int);
+				odt_cmd_req_ack_delay := odt_cmd_req_ack_delay_arr(num_requests_rtl_int);
+				self_refresh_time := self_refresh_time_arr(num_requests_rtl_int);
+				phy_completed_delay := phy_completed_delay_arr(num_requests_rtl_int);
+				bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int);
+
+				odt_err_arr_rtl(num_requests_rtl_int) := 0;
+				cmd_err_arr_rtl(num_requests_rtl_int) := 0;
+				ctrl_err_arr_rtl(num_requests_rtl_int) := 0;
+
+				ctrl_req := false;
+
+				if (self_refresh) then
+
+				else
+
+					while (RefreshReq_tb = '0') loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+						if (ODTCtrlReq_tb = '1') then
+							odt_err_arr_rtl(num_requests_rtl_int) := odt_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+						if (CtrlAck_tb = '1') then
+							ctrl_err_arr_rtl(num_requests_rtl_int) := ctrl_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+						if (CmdReq_tb = '1') then
+							cmd_err_arr_rtl(num_requests_rtl_int) := cmd_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+					end loop;
+
+					for i in 0 to bank_idle_delay loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+						if (i = bank_idle_delay) then
+							BankIdle_tb <= std_logic_vector(to_unsigned((2**(BANK_NUM_TB) - 1), BANK_NUM_TB));
+						else
+							BankIdle_tb <= std_logic_vector(to_unsigned((2**(i mod BANK_NUM_TB)), BANK_NUM_TB))
+						end if;
+						if (ODTCtrlReq_tb = '1') then
+							odt_err_arr_rtl(num_requests_rtl_int) := odt_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+						if (CtrlAck_tb = '1') then
+							ctrl_err_arr_rtl(num_requests_rtl_int) := ctrl_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+						if (CmdReq_tb = '1') then
+							cmd_err_arr_rtl(num_requests_rtl_int) := cmd_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+					end loop;
+
+					while (CmdReq_tb = '0') loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+						if (ODTCtrlReq_tb = '1') then
+							odt_err_arr_rtl(num_requests_rtl_int) := odt_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+						if (CtrlAck_tb = '1') then
+							ctrl_err_arr_rtl(num_requests_rtl_int) := ctrl_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+					end loop;
+
+					for i in 0 to cmd_req_ack_delay loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+						if (i = cmd_req_ack_delay) then
+							CmdAck_tb <= '1';
+						else
+							CmdAck_tb <= '0';
+						end if;
+						if (ODTCtrlReq_tb = '1') then
+							odt_err_arr_rtl(num_requests_rtl_int) := odt_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+						if (CtrlAck_tb = '1') then
+							ctrl_err_arr_rtl(num_requests_rtl_int) := ctrl_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+					end loop;
+
+					while ((ReadOpEnable_tb = '0') || (NonReadOpEnable_tb = '0')) loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+						CmdAck_tb <= '0';
+						if (ODTCtrlReq_tb = '1') then
+							odt_err_arr_rtl(num_requests_rtl_int) := odt_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+						if (CtrlAck_tb = '1') then
+							ctrl_err_arr_rtl(num_requests_rtl_int) := ctrl_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+						if (CmdReq_tb = '1') then
+							cmd_err_arr_rtl(num_requests_rtl_int) := cmd_err_arr_rtl(num_requests_rtl_int) + 1;
+						end if;
+					end loop;
+
+				end if;
+
+			end loop;
 
 		end procedure run_ref_ctrl;
 
-		procedure verify(variable num_requests_exp, num_requests_rtl : in integer; variable cmd_arr_rtl : in int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable num_requests_exp, num_requests_rtl : in integer; variable cmd_arr_rtl : in int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable ctrl_err_arr_rtl, cmd_err_arr_rtl, odt_err_arr_rtl : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
 			variable file_line		: line;
 		begin
 
@@ -207,6 +295,10 @@ begin
 
 		variable cmd_arr_rtl			: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1);
 
+		variable ctrl_err_arr_rtl		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable cmd_err_arr_rtl		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable odt_err_arr_rtl		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+
 		variable pass		: integer;
 		variable num_pass	: integer;
 
@@ -229,35 +321,15 @@ begin
 
 			test_param(num_requests_exp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, seed1, seed2);
 
-			run_ref_ctrl(num_requests_exp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, num_requests_rtl, cmd_arr_rtl);
+			run_ref_ctrl(num_requests_exp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, num_requests_rtl, cmd_arr_rtl, ctrl_err_arr_rtl, cmd_err_arr_rtl, odt_err_arr_rtl);
 
-			verify(num_requests_exp, num_requests_rtl, cmd_arr_rtl, file_pointer, pass);
+			verify(num_requests_exp, num_requests_rtl, cmd_arr_rtl, ctrl_err_arr_rtl, cmd_err_arr_rtl, odt_err_arr_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
 			wait until ((clk_tb'event) and (clk_tb = '1'));
 
 		end loop;
-
-		if (NUM_EXTRA_TEST > 0) then
-
-			setup_extra_tests(num_bursts_exp_extra, cols_arr_extra, read_arr_exp_extra, last_arr_extra, bl_arr_exp_extra, cmd_delay_arr_extra, cmd_act_delay_arr_extra, cmd_ack_ack_delay_arr_extra, bank_arr_exp_extra, seed1, seed2);
-
-			for i in 0 to NUM_EXTRA_TEST-1 loop
-
-				reset;
-
-				run_col_ctrl(num_bursts_exp_extra(i), cmd_ack_ack_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), cmd_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), cmd_act_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), cols_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), bl_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), bank_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), read_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), last_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), num_bursts_rtl_extra, read_arr_rtl_extra, err_arr_extra, bl_arr_rtl_extra, bank_arr_rtl_extra, col_err_arr_extra, start_col_arr_exp_extra, col_err_arr_exp_extra, col_err_arr_rtl_extra);
-
-				verify(num_bursts_exp_extra(i), num_bursts_rtl_extra, err_arr_extra, col_err_arr_extra, start_col_arr_exp_extra, col_err_arr_exp_extra, col_err_arr_rtl_extra, bank_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), bank_arr_rtl_extra, bl_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), bl_arr_rtl_extra, read_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)), read_arr_rtl_extra, file_pointer, pass);
-
-				num_pass := num_pass + pass;
-
-				wait until ((clk_tb'event) and (clk_tb = '1'));
-
-			end loop;
-
-		end if;
 
 		file_close(file_pointer);
 
