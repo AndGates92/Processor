@@ -163,6 +163,10 @@ begin
 			variable phy_completed_delay	: integer;
 			variable ctrl_req		: boolean;
 			variable cmd_req		: boolean;
+
+			variable odt_err		: integer;
+			variable ctrl_err		: integer;
+			variable cmd_err		: integer;
 		begin
 			num_requests_rtl_int := 0;
 
@@ -177,11 +181,42 @@ begin
 				phy_completed_delay := phy_completed_delay_arr(num_requests_rtl_int);
 				bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int);
 
-				odt_err_arr_rtl(num_requests_rtl_int) := 0;
-				cmd_err_arr_rtl(num_requests_rtl_int) := 0;
-				ctrl_err_arr_rtl(num_requests_rtl_int) := 0;
+				odt_err := 0;
+				cmd_err := 0;
+				ctrl_err := 0;
 
 				ctrl_req := false;
+
+				-- PHY Init
+				PhyInitCompleted_tb <= '0';
+
+				-- Bank Controller
+				BankIdle_tb <= (others => '0');
+
+				-- ODT Controller
+				ODTCtrlAck_tb <= '0';
+
+				-- Arbitrer
+				CmdAck_tb <= '0';
+
+				-- Controller
+				CtrlReq_tb <= '0';
+
+				for i in 0 to phy_completed_delay loop
+					wait until ((clk_tb = '1') and (clk_tb'event));
+					if (i == phy_completed_delay)
+						PhyInitCompleted_tb <= '1';
+					end if;
+					if (ODTCtrlReq_tb = '1') then
+						odt_err := odt_err + 1;
+					end if;
+					if (CtrlAck_tb = '1') then
+						ctrl_err := ctrl_err + 1;
+					end if;
+					if (CmdReq_tb = '1') then
+						cmd_err := cmd_err + 1;
+					end if;
+				end loop;
 
 				if (self_refresh) then
 
@@ -190,13 +225,13 @@ begin
 					while (RefreshReq_tb = '0') loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
 						if (ODTCtrlReq_tb = '1') then
-							odt_err_arr_rtl(num_requests_rtl_int) := odt_err_arr_rtl(num_requests_rtl_int) + 1;
+							odt_err := odt_err + 1;
 						end if;
 						if (CtrlAck_tb = '1') then
-							ctrl_err_arr_rtl(num_requests_rtl_int) := ctrl_err_arr_rtl(num_requests_rtl_int) + 1;
+							ctrl_err := ctrl_err + 1;
 						end if;
 						if (CmdReq_tb = '1') then
-							cmd_err_arr_rtl(num_requests_rtl_int) := cmd_err_arr_rtl(num_requests_rtl_int) + 1;
+							cmd_err := cmd_err + 1;
 						end if;
 					end loop;
 
@@ -208,23 +243,23 @@ begin
 							BankIdle_tb <= std_logic_vector(to_unsigned((2**(i mod BANK_NUM_TB)), BANK_NUM_TB))
 						end if;
 						if (ODTCtrlReq_tb = '1') then
-							odt_err_arr_rtl(num_requests_rtl_int) := odt_err_arr_rtl(num_requests_rtl_int) + 1;
+							odt_err := odt_err + 1;
 						end if;
 						if (CtrlAck_tb = '1') then
-							ctrl_err_arr_rtl(num_requests_rtl_int) := ctrl_err_arr_rtl(num_requests_rtl_int) + 1;
+							ctrl_err := ctrl_err + 1;
 						end if;
 						if (CmdReq_tb = '1') then
-							cmd_err_arr_rtl(num_requests_rtl_int) := cmd_err_arr_rtl(num_requests_rtl_int) + 1;
+							cmd_err := cmd_err + 1;
 						end if;
 					end loop;
 
 					while (CmdReq_tb = '0') loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
 						if (ODTCtrlReq_tb = '1') then
-							odt_err_arr_rtl(num_requests_rtl_int) := odt_err_arr_rtl(num_requests_rtl_int) + 1;
+							odt_err := odt_err + 1;
 						end if;
 						if (CtrlAck_tb = '1') then
-							ctrl_err_arr_rtl(num_requests_rtl_int) := ctrl_err_arr_rtl(num_requests_rtl_int) + 1;
+							ctrl_err := ctrl_err + 1;
 						end if;
 					end loop;
 
@@ -236,30 +271,40 @@ begin
 							CmdAck_tb <= '0';
 						end if;
 						if (ODTCtrlReq_tb = '1') then
-							odt_err_arr_rtl(num_requests_rtl_int) := odt_err_arr_rtl(num_requests_rtl_int) + 1;
+							odt_err := odt_err + 1;
 						end if;
 						if (CtrlAck_tb = '1') then
-							ctrl_err_arr_rtl(num_requests_rtl_int) := ctrl_err_arr_rtl(num_requests_rtl_int) + 1;
+							ctrl_err := ctrl_err + 1;
 						end if;
 					end loop;
+
+					CmdAck_tb <= '0';
 
 					while ((ReadOpEnable_tb = '0') || (NonReadOpEnable_tb = '0')) loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
 						CmdAck_tb <= '0';
 						if (ODTCtrlReq_tb = '1') then
-							odt_err_arr_rtl(num_requests_rtl_int) := odt_err_arr_rtl(num_requests_rtl_int) + 1;
+							odt_err := odt_err + 1;
 						end if;
 						if (CtrlAck_tb = '1') then
-							ctrl_err_arr_rtl(num_requests_rtl_int) := ctrl_err_arr_rtl(num_requests_rtl_int) + 1;
+							ctrl_err := ctrl_err + 1;
 						end if;
 						if (CmdReq_tb = '1') then
-							cmd_err_arr_rtl(num_requests_rtl_int) := cmd_err_arr_rtl(num_requests_rtl_int) + 1;
+							cmd_err := cmd_err + 1;
 						end if;
 					end loop;
 
 				end if;
 
+				odt_err_arr_rtl(num_requests_rtl_int) := odt_err; 
+				cmd_err_arr_rtl(num_requests_rtl_int) := cmd_err; 
+				ctrl_err_arr_rtl(num_requests_rtl_int) := ctrl_err; 
+
+				num_requests_rtl_int := num_requests_rtl_int + 1;
+
 			end loop;
+
+			num_requests_rtl := num_requests_rtl_int;
 
 		end procedure run_ref_ctrl;
 
