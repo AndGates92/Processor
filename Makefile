@@ -71,6 +71,8 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ddr2_phy_bank_ctrl_pkg.vhd
 	@echo "Analysing ${RTL_PKG_DIR}/ddr2_phy_col_ctrl_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ddr2_phy_col_ctrl_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/ddr2_phy_ref_ctrl_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ddr2_phy_ref_ctrl_pkg.vhd
 	@echo "Analysing ${RTL_PKG_DIR}/alu_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/alu_pkg.vhd
 	@echo "Analysing ${RTL_PKG_DIR}/ctrl_pkg.vhd"
@@ -473,4 +475,24 @@ ddr2_phy_col_ctrl_all:
 	make libraries
 	make ddr2_phy_col_ctrl
 	make simulate_ddr2_phy_col_ctrl
+
+ddr2_phy_ref_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_phy_ref_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+
+	@echo "Analysing ${RTL_DIR}/ddr2_phy_ref_ctrl.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/ddr2_phy_ref_ctrl.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_ref_ctrl_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ddr2_phy_ref_ctrl_tb.vhd
+	@echo "Elaborating ddr2_phy_ref_ctrl_tb"
+	${GHDL} -e ${GHDL_ARGS} ddr2_phy_ref_ctrl_tb
+	rm -r e~ddr2_phy_ref_ctrl_tb.o
+	mv ddr2_phy_ref_ctrl_tb ${WORK_DIR}
+
+simulate_ddr2_phy_ref_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_ref_ctrl.o  ${WORK_DIR}/ddr2_phy_ref_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_ref_ctrl_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_ref_ctrl_tb ${GHDL_RUN_ARGS}ddr2_phy_ref_ctrl.vcd
+
+ddr2_phy_ref_ctrl_all:
+	make work_dir
+	make libraries
+	make ddr2_phy_ref_ctrl
+	make simulate_ddr2_phy_ref_ctrl
 
