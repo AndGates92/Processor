@@ -163,6 +163,7 @@ begin
 			variable phy_completed_delay	: integer;
 			variable ctrl_req		: boolean;
 			variable cmd_req		: boolean;
+			variable odt_req		: boolean;
 
 			variable odt_err		: integer;
 			variable ctrl_err		: integer;
@@ -186,6 +187,8 @@ begin
 				ctrl_err := 0;
 
 				ctrl_req := false;
+				odt_req := false;
+				cmd_req := false;
 
 				-- PHY Init
 				PhyInitCompleted_tb <= '0';
@@ -219,39 +222,62 @@ begin
 				end loop;
 
 				if (self_refresh) then
+					CtrlReq_tb <= '1';
+					ctrl_req := true;
+				else
+					CtrlReq_tb <= '0';
+					ctrl_req := false;
+				end if;
+
+				while (RefreshReq_tb = '0') loop
+					wait until ((clk_tb = '1') and (clk_tb'event));
+					if (ODTCtrlReq_tb = '1') then
+						odt_err := odt_err + 1;
+					end if;
+					if (CtrlAck_tb = '1') then
+						ctrl_err := ctrl_err + 1;
+					end if;
+					if (CmdReq_tb = '1') then
+						cmd_err := cmd_err + 1;
+					end if;
+				end loop;
+
+				for i in 0 to bank_idle_delay loop
+					wait until ((clk_tb = '1') and (clk_tb'event));
+					if (i = bank_idle_delay) then
+						BankIdle_tb <= std_logic_vector(to_unsigned((2**(BANK_NUM_TB) - 1), BANK_NUM_TB));
+					else
+						BankIdle_tb <= std_logic_vector(to_unsigned((2**(i mod BANK_NUM_TB)), BANK_NUM_TB))
+					end if;
+					if (ODTCtrlReq_tb = '1') then
+						odt_err := odt_err + 1;
+					end if;
+					if (CtrlAck_tb = '1') then
+						ctrl_err := ctrl_err + 1;
+					end if;
+					if (CmdReq_tb = '1') then
+						cmd_err := cmd_err + 1;
+					end if;
+				end loop;
+
+				if (self_refresh) then
+
+					while ((ODTCtrlReq_tb = '0') and (CtrlAck_tb = '0')) loop
+						if (CtrlAck_tb = '1') then
+							ctrl_err := ctrl_err + 1;
+						end if;
+					end if;
+
+					if (ODTCtrlReq_tb = '1') then
+						odt_req := true;
+					end if;
+
+					if (CtrlAck_tb = '1') then
+						CtrlReq_tb <= '0';
+						ctrl_req := false;
+					end if;
 
 				else
-
-					while (RefreshReq_tb = '0') loop
-						wait until ((clk_tb = '1') and (clk_tb'event));
-						if (ODTCtrlReq_tb = '1') then
-							odt_err := odt_err + 1;
-						end if;
-						if (CtrlAck_tb = '1') then
-							ctrl_err := ctrl_err + 1;
-						end if;
-						if (CmdReq_tb = '1') then
-							cmd_err := cmd_err + 1;
-						end if;
-					end loop;
-
-					for i in 0 to bank_idle_delay loop
-						wait until ((clk_tb = '1') and (clk_tb'event));
-						if (i = bank_idle_delay) then
-							BankIdle_tb <= std_logic_vector(to_unsigned((2**(BANK_NUM_TB) - 1), BANK_NUM_TB));
-						else
-							BankIdle_tb <= std_logic_vector(to_unsigned((2**(i mod BANK_NUM_TB)), BANK_NUM_TB))
-						end if;
-						if (ODTCtrlReq_tb = '1') then
-							odt_err := odt_err + 1;
-						end if;
-						if (CtrlAck_tb = '1') then
-							ctrl_err := ctrl_err + 1;
-						end if;
-						if (CmdReq_tb = '1') then
-							cmd_err := cmd_err + 1;
-						end if;
-					end loop;
 
 					while (CmdReq_tb = '0') loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
@@ -266,6 +292,7 @@ begin
 					for i in 0 to cmd_req_ack_delay loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
 						if (i = cmd_req_ack_delay) then
+							cmd_arr_rtl(num_requests_rtl_int, 0) := to_integer(unsigned(CmdOut_tb));
 							CmdAck_tb <= '1';
 						else
 							CmdAck_tb <= '0';
