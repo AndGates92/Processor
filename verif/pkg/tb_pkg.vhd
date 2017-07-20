@@ -24,6 +24,9 @@ package tb_pkg is
 	type int_arr_2d is array(integer range <>, integer range <>) of integer;
 	type int_arr_3d is array(integer range <>, integer range <>, integer range <>) of integer;
 	type bool_arr is array(integer range <>) of boolean;
+	type bool_arr_2d is array(integer range <>, integer range <>) of boolean;
+	type bool_arr_3d is array(integer range <>, integer range <>, integer range <>) of boolean;
+
 
 	procedure clk_gen (constant PERIOD : in time; constant PHASE : in time; signal stop : in boolean; signal clk : out std_logic);
 
