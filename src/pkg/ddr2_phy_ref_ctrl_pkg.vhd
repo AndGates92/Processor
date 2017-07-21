@@ -88,6 +88,9 @@ package body ddr2_phy_ref_ctrl_pkg is
 		else
 			param_out := param_sel_false;
 		end if;
+
+		return param_out;
+
 	end function sel_param;
 
 	constant AUTO_REF_CNT_L	: integer := int_to_bit_num(sel_param(T_REFI_highT, T_REFI_lowT, std_logic_to_bool(HITEMP_REF)));
