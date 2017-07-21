@@ -353,7 +353,7 @@ begin
 				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (num_bursts_exp /= num_bursts_rtl) then
-				write(file_line, string'( "PHY Bank Controller: FAIL (Number bursts mismatch): exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl)));
+				write(file_line, string'( "PHY Bank Controller: FAIL (Number bursts mismatch): exp " & integer'image(num_bursts_exp) & " vs rtl " & integer'image(num_bursts_rtl)));
 				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (match_rows = false) then
@@ -368,7 +368,7 @@ begin
 				write(file_line, string'( "PHY Bank Controller: FAIL (Handshake Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Bank Controller: Error Burst #" & integer'image(i) & ": " & integer'image(err_arr(i))));
+					write(file_line, string'( "PHY Bank Controller: Error Burst #" & integer'image(i) & ": " & integer'image(err_arr(i)) & " Error(s)"));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
