@@ -38,7 +38,11 @@ package tb_pkg is
 
 	function reset_int_arr(val, num_el : integer) return int_arr;
 	function compare_int_arr(arr1, arr2 : int_arr; num_el : integer) return boolean;
+	function compare_int_arr_2d(arr1, arr2 : int_arr_2d; num_el1, num_el2 : integer) return boolean;
+	function compare_int_arr_3d(arr1, arr2 : int_arr_3d; num_el1, num_el2, num_el3 : integer) return boolean;
 	function compare_bool_arr(arr1, arr2 : bool_arr; num_el : integer) return boolean;
+	function compare_bool_arr_2d(arr1, arr2 : bool_arr_2d; num_el1, num_el2 : integer) return boolean;
+	function compare_bool_arr_3d(arr1, arr2 : bool_arr_3d; num_el1, num_el2, num_el3 : integer) return boolean;
 
 end package tb_pkg;
 
@@ -122,6 +126,42 @@ package body tb_pkg is
 		return match;
 	end;
 
+	function compare_int_arr_2d(arr1, arr2 : int_arr_2d; num_el1, num_el2 : integer) return boolean is
+		variable match	: boolean;
+	begin
+		match := true;
+		for i in 0 to (num_el1-1) loop
+			for j in 0 to (num_el2-1) loop
+				if (match = true) then
+					if (arr1(i, j) /= arr2(i, j)) then
+						match := false;
+					end if;
+				end if;
+			end loop;
+		end loop;
+
+		return match;
+	end;
+
+	function compare_int_arr_3d(arr1, arr2 : int_arr_3d; num_el1, num_el2, num_el3 : integer) return boolean is
+		variable match	: boolean;
+	begin
+		match := true;
+		for i in 0 to (num_el1-1) loop
+			for j in 0 to (num_el2-1) loop
+				for z in 0 to (num_el3-1) loop
+					if (match = true) then
+						if (arr1(i, j, z) /= arr2(i, j, z)) then
+							match := false;
+						end if;
+					end if;
+				end loop;
+			end loop;
+		end loop;
+
+		return match;
+	end;
+
 	function compare_bool_arr(arr1, arr2 : bool_arr; num_el : integer) return boolean is
 		variable match	: boolean;
 	begin
@@ -132,6 +172,42 @@ package body tb_pkg is
 					match := false;
 				end if;
 			end if;
+		end loop;
+
+		return match;
+	end;
+
+	function compare_bool_arr_2d(arr1, arr2 : bool_arr_2d; num_el1, num_el2 : integer) return boolean is
+		variable match	: boolean;
+	begin
+		match := true;
+		for i in 0 to (num_el1-1) loop
+			for j in 0 to (num_el2-1) loop
+				if (match = true) then
+					if (arr1(i, j) /= arr2(i, j)) then
+						match := false;
+					end if;
+				end if;
+			end loop;
+		end loop;
+
+		return match;
+	end;
+
+	function compare_bool_arr_3d(arr1, arr2 : bool_arr_3d; num_el1, num_el2, num_el3 : integer) return boolean is
+		variable match	: boolean;
+	begin
+		match := true;
+		for i in 0 to (num_el1-1) loop
+			for j in 0 to (num_el2-1) loop
+				for z in 0 to (num_el3-1) loop
+					if (match = true) then
+						if (arr1(i, j, z) /= arr2(i, j, z)) then
+							match := false;
+						end if;
+					end if;
+				end loop;
+			end loop;
 		end loop;
 
 		return match;
