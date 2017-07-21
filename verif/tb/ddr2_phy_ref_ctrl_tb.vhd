@@ -31,6 +31,8 @@ architecture bench of ddr2_phy_ref_ctrl_tb is
 	constant MAX_ODT_CMD_REQ_ACK_DELAY	: integer := 20;
 	constant MAX_BANK_IDLE_DELAY		: integer := AUTO_REF_TIME;
 
+	constant MAX_PHY_COMPLETED_DELAY	: integer := 100;
+
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
@@ -173,7 +175,7 @@ begin
 
 			ref_loop: loop
 
-				exit ref_loop when (num_requests_rtl_int = num_requests_exp)
+				exit ref_loop when (num_requests_rtl_int = num_requests_exp);
 
 				self_refresh := self_refresh_arr(num_requests_rtl_int);
 				cmd_req_ack_delay := cmd_req_ack_delay_arr(num_requests_rtl_int);
@@ -206,7 +208,7 @@ begin
 				CtrlReq_tb <= '0';
 
 				for i in 0 to phy_completed_delay loop
-					if (i == phy_completed_delay)
+					if (i = phy_completed_delay) then
 						PhyInitCompleted_tb <= '1';
 					end if;
 					if (ODTCtrlReq_tb = '1') then
@@ -246,7 +248,7 @@ begin
 					if (i = bank_idle_delay) then
 						BankIdle_tb <= std_logic_vector(to_unsigned((2**(BANK_NUM_TB) - 1), BANK_NUM_TB));
 					else
-						BankIdle_tb <= std_logic_vector(to_unsigned((2**(i mod BANK_NUM_TB)), BANK_NUM_TB))
+						BankIdle_tb <= std_logic_vector(to_unsigned((2**(i mod BANK_NUM_TB)), BANK_NUM_TB));
 					end if;
 					if (ODTCtrlReq_tb = '1') then
 						odt_err := odt_err + 1;
@@ -276,7 +278,7 @@ begin
 							end if;
 						end if;
 						wait until ((clk_tb = '1') and (clk_tb'event));
-					end if;
+					end loop;
 
 					odt_req := true;
 
@@ -445,7 +447,7 @@ begin
 				CmdAck_tb <= '0';
 				cmd_req := false;
 
-				while ((ReadOpEnable_tb = '0') || (NonReadOpEnable_tb = '0')) loop
+				while ((ReadOpEnable_tb = '0') or (NonReadOpEnable_tb = '0')) loop
 					if (ODTCtrlReq_tb = '1') then
 						odt_err := odt_err + 1;
 					end if;
@@ -469,7 +471,7 @@ begin
 							ctrl_err := ctrl_err + 1;
 						end if;
 						wait until ((clk_tb = '1') and (clk_tb'event));
-					end if;
+					end loop;
 
 					odt_req := true;
 
@@ -510,7 +512,7 @@ begin
 
 		end procedure run_ref_ctrl;
 
-		procedure verify(variable num_requests_exp, num_requests_rtl : in integer; variable odt_cmd_arr_rtl, odt_cmd_arr_exp : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable cmd_arr_rtl, cmd_arr_exp : in int_arr_2d(0 to (MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable ctrl_err_arr_rtl, cmd_err_arr, odt_err_arr_rtl : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable num_requests_exp, num_requests_rtl : in integer; variable odt_cmd_arr_rtl, odt_cmd_arr_exp : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable cmd_arr_rtl, cmd_arr_exp : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable ctrl_err_arr, cmd_err_arr, odt_err_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
 			variable file_line	: line;
 
 			variable no_cmd_err	: boolean;
@@ -525,11 +527,11 @@ begin
 			writeline(file_pointer, file_line);
 
 			no_cmd_err := compare_int_arr(reset_int_arr(0, num_requests_exp), cmd_err_arr, num_requests_exp);
-			no_odt_cmd_err := compare_int_arr(reset_int_arr(0, num_requests_exp), odt_cmd_err_arr, num_requests_exp);
+			no_odt_cmd_err := compare_int_arr(reset_int_arr(0, num_requests_exp), odt_err_arr, num_requests_exp);
 			no_ctrl_err := compare_int_arr(reset_int_arr(0, num_requests_exp), ctrl_err_arr, num_requests_exp);
 
 			cmd_match := compare_int_arr_2d(cmd_arr_rtl, cmd_arr_exp, num_requests_exp, 2);
-			odt_cmd_match := compare_int_arr_2d(odt_cmd_arr_rtl, odt_cmd_arr_exp, num_requests_exp, 2);
+			odt_cmd_match := compare_bool_arr_2d(odt_cmd_arr_rtl, odt_cmd_arr_exp, num_requests_exp, 2);
 
 			if ((num_requests_exp = num_requests_rtl) and (no_cmd_err = true)  and (no_cmd_err = true) and (no_odt_cmd_err = true) and (no_ctrl_err = true) and (odt_cmd_match = true) and (cmd_match = true)) then
 				write(file_line, string'( "PHY Refresh Controller: PASS"));
@@ -547,7 +549,7 @@ begin
 				write(file_line, string'( "PHY Refresh Controller: FAIL (ODT Command Handshake Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
-					write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & ": " & integer'image(odt_cmd_err_arr(i)) & " Error(s)"));
+					write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & ": " & integer'image(odt_err_arr(i)) & " Error(s)"));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
@@ -567,8 +569,8 @@ begin
 				write(file_line, string'( "PHY Refresh Controller: FAIL (Command mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
-					for j in 0 to (2 - 1) loop
-						write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & " Command # " & integer'image(j) & ": exp " & integer'image(cmd_arr_rtl(i, j)) & " vs rtl " & integer'image(cmd_arr_rtl(i, j))));
+					for j in 0 to 1 loop
+						write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & " Command # " & integer'image(j) & ": exp " & integer'image(cmd_arr_exp(i, j)) & " vs rtl " & integer'image(cmd_arr_rtl(i, j))));
 						writeline(file_pointer, file_line);
 					end loop;
 				end loop;
@@ -577,8 +579,8 @@ begin
 				write(file_line, string'( "PHY Refresh Controller: FAIL (ODT Command mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
-					for j in 0 to (2 - 1) loop
-						write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & " Command # " & integer'image(j) & ": exp " & integer'image(odt_cmd_arr_rtl(i, j)) & " vs rtl " & integer'image(odt_cmd_arr_rtl(i, j))));
+					for j in 0 to 1 loop
+						write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & " Command # " & integer'image(j) & ": exp " & bool_to_str(odt_cmd_arr_exp(i, j)) & " vs rtl " & bool_to_str(odt_cmd_arr_rtl(i, j))));
 						writeline(file_pointer, file_line);
 					end loop;
 				end loop;

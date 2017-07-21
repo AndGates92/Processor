@@ -57,6 +57,8 @@ architecture rtl of ddr2_phy_ref_ctrl is
 	constant decr_outstanding_ref_cnt_value		: unsigned(OUTSTANDING_REF_CNT_L - 1 downto 0) := (to_unsigned(1, OUTSTANDING_REF_CNT_L));
 	constant incr_outstanding_ref_cnt_value		: unsigned(OUTSTANDING_REF_CNT_L - 1 downto 0) := (to_unsigned(1, OUTSTANDING_REF_CNT_L));
 
+	constant incr_enable_op_cnt_value		: unsigned(ENABLE_OP_CNT_L - 1 downto 0) := (to_unsigned(1, ENABLE_OP_CNT_L));
+
 	constant all_banks_idle				: std_logic_vector(BANK_NUM - 1 downto 0) := std_logic_vector(to_unsigned(((2**(BANK_NUM))-1), BANK_NUM));
 
 	signal CntOutstandingRefN, CntOutstandingRefC		: unsigned(OUTSTANDING_REF_CNT_L - 1 downto 0);
@@ -72,6 +74,8 @@ architecture rtl of ddr2_phy_ref_ctrl is
 	signal ZeroAutoRefCnt			: std_logic;
 
 	signal Cmd_comb				: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal CmdReqN, CmdReqC			: std_logic;
+
 	signal CtrlAckN, CtrlAckC		: std_logic;
 
 	signal StateN, StateC			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0);
@@ -86,11 +90,14 @@ architecture rtl of ddr2_phy_ref_ctrl is
 	signal MaxEnableOpCnt						: std_logic;
 
 	signal SelfRefresh			: std_logic;
-	signal SelfRefreshOpN, SelfRefreshOpN	: std_logic;
+	signal SelfRefreshOpN, SelfRefreshOpC	: std_logic;
 	signal RefreshReqN, RefreshReqC		: std_logic;
 
 	signal AnyOpForbiddenN, AnyOpForbiddenC	: std_logic;
 	signal AllOpEnableN, AllOpEnableC	: std_logic;
+
+	signal ODTCtrlReqN, ODTCtrlReqC		: std_logic;
+	signal ODTDisableN, ODTDisableC		: std_logic;
 
 begin
 
@@ -123,6 +130,8 @@ begin
 
 			RefreshReqC <= '0';
 
+			CmdReqC <= '0';
+
 			CtrlAckC <= '0';
 
 		elsif ((clk'event) and (clk = '1')) then
@@ -134,7 +143,7 @@ begin
 
 			CntOutstandingRefC <= CntOutstandingRefN;
 
-			CntEnableOpC <= CntEnableN;
+			CntEnableOpC <= CntEnableOpN;
 			CntEnableOpInitMaxValueC <= CntEnableOpInitMaxValueN;
 			EnableOpCntEnC <= EnableOpCntEnN;
 
@@ -150,6 +159,8 @@ begin
 			ODTDisableC <= ODTDisableN;
 
 			RefreshReqC <= RefreshReqN;
+
+			CmdReqC <= CmdReqN;
 
 			CtrlAckC <= CtrlAckN;
 
@@ -170,12 +181,12 @@ begin
 	RefreshReq <= RefreshReqC;
 
 	-- Outstanding refresh counter
-	select IncrDecrOutstandingRefCntVec with
-		CntOutstandingRefN <=	(CntOutstandingRefC + incr_outstanding_ref_cnt_value)	when "10"
-					(CntOutstandingRefC - decr_outstanding_ref_cnt_value)	when "01"
-					CntOutstandingRefC;
+	with IncrDecrOutstandingRefCntVec select
+		CntOutstandingRefN <=	(CntOutstandingRefC + incr_outstanding_ref_cnt_value)	when "10",
+					(CntOutstandingRefC - decr_outstanding_ref_cnt_value)	when "01",
+					CntOutstandingRefC					when others;
 	IncrDecrOutstandingRefCntVec <= IncrOutstandingRefCnt & DecrOutstandingRefCnt;
-	DecrOutstandingRefCnt <= (not SelfRefreshOpC) and AllOpEnable when (StateC = ENABLE_OP) else '0';
+	DecrOutstandingRefCnt <= (not SelfRefreshOpC) and AllOpEnableC when (StateC = ENABLE_OP) else '0';
 	IncrOutstandingRefCnt <= ZeroAutoRefCnt;
 	ZeroOutstandingRefCnt <= '1' when (CntOutstandingRefC = zero_outstanding_ref_cnt_value) else '0';
 
@@ -187,7 +198,7 @@ begin
 	SetAutoRefCnt <= ZeroAutoRefCnt;
 	AutoRefCntEnN <= PhyInitCompleted and not SelfRefresh; -- Disable during power up and when memory is in self refresh
 
-	CntEnableOpN <=	(others => '0') when (ResetEnableOp = '1') else
+	CntEnableOpN <=	(others => '0') when (ResetEnableOpCnt = '1') else
 			CntEnableOpC + incr_enable_op_cnt_value when ((EnableOpCntEnC = '1') and (MaxEnableOpCnt = '1')) else 
 			CntEnableOpC;
 
@@ -208,8 +219,8 @@ begin
 				'0'	when (StateC = ENABLE_OP) else
 				AnyOpForbiddenC;
 
-	ReadOpEnableN <= '0' when ((AnyOpForbiddenC = '1') or (CntEnableOp < to_unsigned(T_XSRD, ENABLE_OP_CNT_L))) else '1';
-	NonReadOpEnableN <= '0' when ((AnyOpForbiddenC = '1') or (CntEnableOp < to_unsigned(T_XSNR, ENABLE_OP_CNT_L))) else '1';
+	ReadOpEnableN <= '0' when ((AnyOpForbiddenC = '1') or (CntEnableOpC < to_unsigned(T_XSRD, ENABLE_OP_CNT_L))) else '1';
+	NonReadOpEnableN <= '0' when ((AnyOpForbiddenC = '1') or (CntEnableOpC < to_unsigned(T_XSNR, ENABLE_OP_CNT_L))) else '1';
 	AllOpEnableN <= NonReadOpEnableN and ReadOpEnableN;
 
 	Cmd_comb <=	CMD_SELF_REF_ENTRY	when (StateC = SELF_REF_ENTRY_REQUEST) else 
@@ -232,13 +243,13 @@ begin
 			ODTCtrlReqC;
 
 	SelfRefresh <= '1' when (StateC = SELF_REFRESH) else '0';
-	SelfRefreshOpN <= CtrlReq when ((StateC = FINISH_OUTSTADNING_TX) and (BankIdle = all_banks_idle)) else SelfRefreshOpC;
+	SelfRefreshOpN <= CtrlReq when ((StateC = FINISH_OUTSTANDING_TX) and (BankIdle = all_banks_idle)) else SelfRefreshOpC;
 
 	RefreshReqN <=	((not ZeroOutstandingRefCnt) or CtrlReq)	when (StateC = REF_CTRL_IDLE) else
-			AllOpEnable					when (StateC = ENABLE_OP) else
+			AllOpEnableC					when (StateC = ENABLE_OP) else
 			RefreshReqC;
 
-	state_det: process(StateC, ZeroOutstadingRefCnt, CtrlReq, BankIdle, CmdAck, ODTCtrlAck, ALLOpEnableC, SelfRefreshOpC)
+	state_det: process(StateC, ZeroOutstandingRefCnt, CtrlReq, BankIdle, CmdAck, ODTCtrlAck, ALLOpEnableC, SelfRefreshOpC)
 	begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = REF_CTRL_IDLE) then
@@ -263,7 +274,7 @@ begin
 			end if;
 		elsif (StateC = SELF_REF_ENTRY_REQUEST) then
 			if (CmdAck = '1') then
-				StateN = SELF_REF;
+				StateN <= SELF_REF;
 			end if;
 		elsif (StateC = SELF_REF) then
 			if (CtrlReq = '1') then
