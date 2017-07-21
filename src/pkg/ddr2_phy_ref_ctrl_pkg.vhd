@@ -33,7 +33,7 @@ package ddr2_phy_ref_ctrl_pkg is
 
 	constant OUTSTANDING_REF_CNT_L	: positive := int_to_bit_num(MAX_OUTSTANDING_REF);
 
-	function sel_param (param_sel_true, param_sel_false, sel : integer) return integer;
+	function sel_param (param_sel_true, param_sel_false : integer; sel : boolean) return integer;
 
 	component ddr2_phy_ref_ctrl is
 	generic (
