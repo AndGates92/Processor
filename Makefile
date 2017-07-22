@@ -39,6 +39,7 @@ all:
 	make ddr2_phy_init_all
 	make ddr2_phy_bank_ctrl_all
 	make ddr2_phy_col_ctrl_all
+	make ddr2_phy_ref_ctrl_all
 
 clean:
 	rm -rf ${LOG_FILE} ${SUMMARY_FILE} ${WORK_DIR}/*
