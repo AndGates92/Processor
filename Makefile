@@ -13,10 +13,12 @@ VERIF_TB_DIR = ${VERIF_DIR}/tb
 VERIF_PKG_DIR = ${VERIF_DIR}/pkg
 VERIF_MODELS_DIR = ${VERIF_DIR}/models
 
+WAVES_DIR = /tmp
+
 WORK_DIR = ${ROOT_DIR}/work
 GHDL = ghdl
 GHDL_ARGS = -g --workdir=${WORK_DIR}
-GHDL_RUN_ARGS = --vcd=
+GHDL_RUN_ARGS = --vcd=${WAVES_DIR}/
 
 LOG_FILE = ${WORK_DIR}/summary.log
 SUMMARY_FILE = ${WORK_DIR}/summary
