@@ -21,7 +21,7 @@ end entity ddr2_phy_ref_ctrl_tb;
 architecture bench of ddr2_phy_ref_ctrl_tb is
 
 	constant CLK_PERIOD	: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TEST	: integer := 1000;
+	constant NUM_TEST	: integer := 50;
 	constant NUM_EXTRA_TEST	: integer := 0;
 	constant TOT_NUM_TEST	: integer := NUM_TEST + NUM_EXTRA_TEST;
 
@@ -166,6 +166,7 @@ begin
 			variable ctrl_req		: boolean;
 			variable cmd_req		: boolean;
 			variable odt_req		: boolean;
+			variable outstanding_ref	: boolean;
 
 			variable odt_err		: integer;
 			variable ctrl_err		: integer;
@@ -177,12 +178,23 @@ begin
 
 				exit ref_loop when (num_requests_rtl_int = num_requests_exp);
 
-				self_refresh := self_refresh_arr(num_requests_rtl_int);
-				cmd_req_ack_delay := cmd_req_ack_delay_arr(num_requests_rtl_int);
-				odt_cmd_req_ack_delay := odt_cmd_req_ack_delay_arr(num_requests_rtl_int);
-				self_refresh_time := self_refresh_time_arr(num_requests_rtl_int);
-				phy_completed_delay := phy_completed_delay_arr(num_requests_rtl_int);
-				bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int);
+				if (RefreshReq_tb = '1') then
+					outstanding_ref := true;
+					self_refresh := false;
+					cmd_req_ack_delay := 0;
+					odt_cmd_req_ack_delay := 0;
+					self_refresh_time := 0;
+					phy_completed_delay := 0;
+					bank_idle_delay := 0;
+				else
+					outstanding_ref := false;
+					self_refresh := self_refresh_arr(num_requests_rtl_int);
+					cmd_req_ack_delay := cmd_req_ack_delay_arr(num_requests_rtl_int);
+					odt_cmd_req_ack_delay := odt_cmd_req_ack_delay_arr(num_requests_rtl_int);
+					self_refresh_time := self_refresh_time_arr(num_requests_rtl_int);
+					phy_completed_delay := phy_completed_delay_arr(num_requests_rtl_int);
+					bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int);
+				end if;
 
 				odt_err := 0;
 				cmd_err := 0;
@@ -208,6 +220,7 @@ begin
 				CtrlReq_tb <= '0';
 
 				for i in 0 to phy_completed_delay loop
+					wait for 1 ps;
 					if (i = phy_completed_delay) then
 						PhyInitCompleted_tb <= '1';
 					end if;
@@ -232,6 +245,7 @@ begin
 				end if;
 
 				while (RefreshReq_tb = '0') loop
+					wait for 1 ps;
 					if (ODTCtrlReq_tb = '1') then
 						odt_err := odt_err + 1;
 					end if;
@@ -245,6 +259,7 @@ begin
 				end loop;
 
 				for i in 0 to bank_idle_delay loop
+					wait for 1 ps;
 					if (i = bank_idle_delay) then
 						BankIdle_tb <= std_logic_vector(to_unsigned((2**(BANK_NUM_TB) - 1), BANK_NUM_TB));
 					else
@@ -265,6 +280,7 @@ begin
 				if (self_refresh) then
 
 					while (ODTCtrlReq_tb = '0') loop
+						wait for 1 ps;
 						if (CmdReq_tb = '1') then
 							cmd_err := cmd_err + 1;
 						end if;
@@ -283,9 +299,11 @@ begin
 					odt_req := true;
 
 					for i in 0 to odt_cmd_req_ack_delay loop
+						wait for 1 ps;
 						if (i = odt_cmd_req_ack_delay) then
 							odt_cmd_arr_rtl(num_requests_rtl_int, 0) := std_logic_to_bool(ODTDisable_tb);
 							odt_cmd_arr_exp(num_requests_rtl_int, 0) := true;
+							odt_req := false;
 							ODTCtrlAck_tb <= '1';
 						end if;
 
@@ -306,6 +324,7 @@ begin
 					ODTCtrlAck_tb <= '0';
 
 					while (CmdReq_tb = '0') loop
+						wait for 1 ps;
 						if (ODTCtrlReq_tb = '1') then
 							odt_err := odt_err + 1;
 						end if;
@@ -323,6 +342,7 @@ begin
 					cmd_req := true;
 
 					for i in 0 to cmd_req_ack_delay loop
+						wait for 1 ps;
 						if (i = cmd_req_ack_delay) then
 							cmd_arr_rtl(num_requests_rtl_int, 0) := to_integer(unsigned(CmdOut_tb));
 							cmd_arr_exp(num_requests_rtl_int, 0) := to_integer(unsigned(CMD_SELF_REF_ENTRY));
@@ -351,6 +371,7 @@ begin
 					end if;
 
 					for i in 0 to self_refresh_time loop
+						wait for 1 ps;
 						if (CmdReq_tb = '1') then
 							cmd_err := cmd_err + 1;
 						end if;
@@ -367,18 +388,18 @@ begin
 					ctrl_req := true;
 
 					while (CtrlAck_tb = '0') loop
-						if (CmdReq_tb = '1') then
-							cmd_err := cmd_err + 1;
-						end if;
+						wait for 1 ps;
 						if (ODTCtrlReq_tb = '1') then
 							odt_err := odt_err + 1;
 						end if;
 						wait until ((clk_tb = '1') and (clk_tb'event));
 					end loop;
 
+					CtrlReq_tb <= '0';
 					ctrl_req := false;
 
 					while (CmdReq_tb = '0') loop
+						wait for 1 ps;
 						if (ODTCtrlReq_tb = '1') then
 							odt_err := odt_err + 1;
 						end if;
@@ -391,6 +412,7 @@ begin
 					cmd_req := true;
 
 					for i in 0 to cmd_req_ack_delay loop
+						wait for 1 ps;
 						if (i = cmd_req_ack_delay) then
 							cmd_arr_rtl(num_requests_rtl_int, 1) := to_integer(unsigned(CmdOut_tb));
 							cmd_arr_exp(num_requests_rtl_int, 1) := to_integer(unsigned(CMD_SELF_REF_EXIT));
@@ -412,6 +434,7 @@ begin
 					odt_cmd_arr_exp(num_requests_rtl_int, 0) := false;
 
 					while (CmdReq_tb = '0') loop
+						wait for 1 ps;
 						if (ODTCtrlReq_tb = '1') then
 							odt_err := odt_err + 1;
 						end if;
@@ -424,6 +447,7 @@ begin
 					cmd_req := true;
 
 					for i in 0 to cmd_req_ack_delay loop
+						wait for 1 ps;
 						if (i = cmd_req_ack_delay) then
 							cmd_arr_rtl(num_requests_rtl_int, 0) := to_integer(unsigned(CmdOut_tb));
 							cmd_arr_rtl(num_requests_rtl_int, 1) := 0;
@@ -448,6 +472,7 @@ begin
 				cmd_req := false;
 
 				while ((ReadOpEnable_tb = '0') or (NonReadOpEnable_tb = '0')) loop
+					wait for 1 ps;
 					if (ODTCtrlReq_tb = '1') then
 						odt_err := odt_err + 1;
 					end if;
@@ -461,7 +486,7 @@ begin
 				end loop;
 
 				if (self_refresh = true) then
-
+					wait for 1 ps;
 					while (ODTCtrlReq_tb = '0') loop
 						if (CmdReq_tb = '1') then
 							cmd_err := cmd_err + 1;
@@ -476,9 +501,11 @@ begin
 					odt_req := true;
 
 					for i in 0 to odt_cmd_req_ack_delay loop
+						wait for 1 ps;
 						if (i = odt_cmd_req_ack_delay) then
 							odt_cmd_arr_rtl(num_requests_rtl_int, 1) := std_logic_to_bool(ODTDisable_tb);
 							odt_cmd_arr_exp(num_requests_rtl_int, 1) := false;
+							odt_req := false;
 							ODTCtrlAck_tb <= '1';
 						end if;
 
@@ -504,7 +531,9 @@ begin
 				cmd_err_arr(num_requests_rtl_int) := cmd_err; 
 				ctrl_err_arr(num_requests_rtl_int) := ctrl_err; 
 
-				num_requests_rtl_int := num_requests_rtl_int + 1;
+				if (outstanding_ref = false) then
+					num_requests_rtl_int := num_requests_rtl_int + 1;
+				end if;
 
 			end loop;
 
@@ -533,7 +562,7 @@ begin
 			cmd_match := compare_int_arr_2d(cmd_arr_rtl, cmd_arr_exp, num_requests_exp, 2);
 			odt_cmd_match := compare_bool_arr_2d(odt_cmd_arr_rtl, odt_cmd_arr_exp, num_requests_exp, 2);
 
-			if ((num_requests_exp = num_requests_rtl) and (no_cmd_err = true)  and (no_cmd_err = true) and (no_odt_cmd_err = true) and (no_ctrl_err = true) and (odt_cmd_match = true) and (cmd_match = true)) then
+			if ((num_requests_exp = num_requests_rtl) and (no_cmd_err = true)  and (no_odt_cmd_err = true) and (no_ctrl_err = true) and (odt_cmd_match = true) and (cmd_match = true)) then
 				write(file_line, string'( "PHY Refresh Controller: PASS"));
 				writeline(file_pointer, file_line);
 				pass := 1;
@@ -553,7 +582,7 @@ begin
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
-			elsif (no_cmd_err = false) then
+			elsif (no_ctrl_err = false) then
 				write(file_line, string'( "PHY Refresh Controller: FAIL (Controller Handshake Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
@@ -628,7 +657,7 @@ begin
 		reset;
 		file_open(file_pointer, log_file, append_mode);
 
-		write(file_line, string'( "PHY Column Controller Test"));
+		write(file_line, string'( "PHY Refresh Controller Test"));
 		writeline(file_pointer, file_line);
 
 		for i in 0 to NUM_TEST-1 loop
@@ -648,13 +677,13 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "PHY Column Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TEST)));
+		write(file_line, string'( "PHY Refresh Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TEST)));
 		writeline(file_pointer, file_line);
 
 		if (num_pass = TOT_NUM_TEST) then
-			write(file_line, string'( "PHY Column Controller: TEST PASSED"));
+			write(file_line, string'( "PHY Refresh Controller: TEST PASSED"));
 		else
-			write(file_line, string'( "PHY Column Controller: TEST FAILED: " & integer'image(TOT_NUM_TEST-num_pass) & " failures"));
+			write(file_line, string'( "PHY Refresh Controller: TEST FAILED: " & integer'image(TOT_NUM_TEST-num_pass) & " failures"));
 		end if;
 		writeline(file_pointer, file_line);
 
