@@ -12,7 +12,7 @@ use work.type_conversion_pkg.all;
 
 package ddr2_phy_ref_ctrl_pkg is 
 
-	constant STATE_REF_CTRL_L	: positive := 3;
+	constant STATE_REF_CTRL_L	: positive := 4;
 
 	constant REF_CTRL_IDLE			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_REF_CTRL_L));
 	constant FINISH_OUTSTANDING_TX		: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_REF_CTRL_L));
