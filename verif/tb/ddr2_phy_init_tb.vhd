@@ -18,7 +18,9 @@ end entity ddr2_phy_init_tb;
 architecture bench of ddr2_phy_init_tb is
 
 	constant CLK_PERIOD	: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TEST	: integer := 100;
+	constant NUM_TEST	: integer := 20;
+
+	constant MAX_INIT_DELAY_TB	: integer := 100;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;
@@ -72,6 +74,15 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
+		procedure test_param(variable delay: out integer; variable seed1, seed2: inout positive) is
+			variable rand_val	: real;
+		begin
+
+			uniform(seed1, seed2, rand_val);
+			delay := integer(rand_val*real(MAX_INIT_DELAY_TB));
+
+		end procedure test_param;
+
 		procedure verify(file file_pointer : text; variable pass: out integer) is
 			variable file_line	: line;
 		begin
@@ -83,7 +94,11 @@ begin
 
 		end procedure verify;
 
-		variable pass	: integer;
+		variable seed1, seed2	: positive;
+
+		variable delay		: integer;
+
+		variable pass		: integer;
 		variable num_pass	: integer;
 
 		file file_pointer	: text;
@@ -104,13 +119,15 @@ begin
 
 			reset;
 
+			test_param(delay, seed1, seed2);
+
 			wait on InitializationCompleted_tb;
 
 			verify(file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
-			for j in 0 to i loop
+			for j in 0 to delay loop
 				wait until ((clk_tb'event) and (clk_tb = '1'));
 			end loop;
 		end loop;
