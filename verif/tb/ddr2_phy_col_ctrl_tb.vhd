@@ -315,7 +315,7 @@ begin
 						if (CmdReq_tb = '1') then
 							err_arr_int := err_arr_int + 1;
 						end if;
-						if (CmdAck_tb = '1') then
+						if (CtrlAck_tb = '1') then
 							err_arr_int := err_arr_int + 1;
 						end if;
 					end loop;
