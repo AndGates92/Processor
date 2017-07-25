@@ -219,7 +219,7 @@ begin
 
 		end procedure run_cmd_ctrl;
 
-		procedure verify (variable num_bursts_exp, num_bursts_rtl : in integer; variable num_bursts_arr : in int_arr(0 to (BANK_NUM_TB - 1)); variable bank_arr_exp, bank_arr_rtl, rows_arr_exp, rows_arr_rtl, bl_arr_exp, bl_arr_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, start_col_arr_exp : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_arr_exp, read_arr_rtl : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_err_arr_exp, col_err_arr_rtl : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)); file file_pointer : in text; variable pass: out integer)
+		procedure verify (variable num_bursts_exp, num_bursts_rtl : in integer; variable num_bursts_arr : in int_arr(0 to (BANK_NUM_TB - 1)); variable bank_arr_exp, bank_arr_rtl, rows_arr_exp, rows_arr_rtl, bl_arr_exp, bl_arr_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, start_col_arr_exp : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_arr_exp, read_arr_rtl : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_err_arr_exp, col_err_arr_rtl : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)); file file_pointer : text; variable pass: out integer)
 
 			variable file_line		: line;
 		begin
