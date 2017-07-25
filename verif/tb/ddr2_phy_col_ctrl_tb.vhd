@@ -96,7 +96,7 @@ begin
 
 		CtrlAck => CtrlAck_tb
 	);
- 
+
 	clk_gen(CLK_PERIOD, 0 ns, stop, clk_tb);
 
 	test: process
