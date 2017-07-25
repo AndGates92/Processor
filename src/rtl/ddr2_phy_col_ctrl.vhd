@@ -35,7 +35,7 @@ port (
 	CmdOut		: out std_logic_vector(MEM_CMD_L - 1 downto 0);
 	CmdReq		: out std_logic;
 
-	-- Controller
+	-- Transaction Controller
 	CtrlReq		: in std_logic;
 	ReadBurstIn	: in std_logic;
 	ColMemIn	: in std_logic_vector(COL_L - to_integer(unsigned(BURST_LENGTH)) - 1 downto 0);
