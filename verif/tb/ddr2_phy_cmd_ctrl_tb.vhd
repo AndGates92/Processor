@@ -183,6 +183,7 @@ begin
 				if (attempt_num = MAX_ATTEMPTS) then
 					bl_int := 1;
 				end if;
+				bl(i) := bl_int;
 
 				uniform(seed1, seed2, rand_val);
 				rows(i) := integer(rand_val*(2.0**(real(ROW_L_TB)) - 1.0));
@@ -195,6 +196,8 @@ begin
 
 				uniform(seed1, seed2, rand_val);
 				read_burst(i) := rand_bool(rand_val);
+
+				report "Col " & integer'image(col_int) & " BL " & integer'image(bl_int) & " Bank " & integer'image(bank_int);
 
 			end loop;
 
@@ -318,6 +321,8 @@ begin
 
 				exit cmd_loop when ((num_bursts_rtl_int = num_bursts_exp) and (data_phase_num_cmd_int = num_bursts_exp) and (data_phase_num_ctrl_int = num_bursts_exp));
 
+				wait for 1 ps;
+
 				if (num_bursts_rtl_int < num_bursts_exp) then
 					bank_ctrl_bank_int := bank_arr_exp(num_bursts_rtl_int);
 					row_int := rows_arr_exp(num_bursts_rtl_int);
@@ -326,11 +331,19 @@ begin
 					bank_ctrl_delay := ctrl_delay_arr(num_bursts_rtl_int);
 
 					if (bank_ctrl_req = false) then
+
+report "Bank Ctrl: Bank " & integer'image(bank_ctrl_bank_int) & " Row " & integer'image(row_int);
 						-- Arbitrer
 						BankCtrlCmdAck_tb <= (others => '0');
 						if (bank_ctrl_cnt = bank_ctrl_delay) then
 							-- Transaction Controller
-							BankCtrlRowMemIn_tb <= std_logic_vector(to_unsigned(row_int, BANK_NUM_TB));
+							for i in 0 to (BANK_NUM_TB - 1) loop
+								if (i = bank_ctrl_bank_int) then
+									BankCtrlRowMemIn_tb(((i+1)*ROW_L_TB - 1) downto i*ROW_L_TB) <= std_logic_vector(to_unsigned(row_int, ROW_L_TB));
+								else
+									BankCtrlRowMemIn_tb(((i+1)*ROW_L_TB - 1) downto i*ROW_L_TB) <= (others => '0');
+								end if;
+							end loop;
 							BankCtrlCtrlReq_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(bank_ctrl_bank_int))), BANK_NUM_TB));
 							bank_ctrl_cnt := 0;
 							bank_ctrl_req := true;
@@ -370,6 +383,8 @@ begin
 
 								num_bursts_rtl_int := num_bursts_rtl_int + 1;
 
+report "Cmd accepted";
+
 							else
 								bank_ctrl_cnt := bank_ctrl_cnt + 1;
 								BankCtrlCmdAck_tb <= (others => '0');
@@ -393,11 +408,13 @@ begin
 						read_burst_int := read_bursts_arr_exp(data_phase_num_ctrl_int);
 						col_ctrl_delay := ctrl_delay_arr(data_phase_num_ctrl_int);
 
+report " Col Ctrl Col " & integer'image(cols_arr(data_phase_num_ctrl_int)) & " BL " & integer'image(bl_ctrl_int);
+
 						if (col_ctrl_cnt = col_ctrl_delay) then
 							-- Transaction Controller
-							ColCtrlBurstLength_tb <= std_logic_vector(to_unsigned(bl_ctrl_int, BANK_NUM_TB));
-							ColCtrlBankMemIn_tb <= std_logic_vector(to_unsigned(col_ctrl_bank_int, BANK_NUM_TB));
-							ColCtrlColMemIn_tb <= std_logic_vector(to_unsigned(col_ctrl_int, BANK_NUM_TB));
+							ColCtrlBurstLength_tb <= std_logic_vector(to_unsigned(bl_ctrl_int-1, BURST_LENGTH_L_TB));
+							ColCtrlBankMemIn_tb <= std_logic_vector(to_unsigned(col_ctrl_bank_int, int_to_bit_num(BANK_NUM_TB)));
+							ColCtrlColMemIn_tb <= std_logic_vector(to_unsigned(cols_arr(data_phase_num_ctrl_int), (COL_L_TB - to_integer(unsigned(BURST_LENGTH)))));
 							ColCtrlReadBurstIn_tb <= bool_to_std_logic(read_burst_int);
 							ColCtrlCtrlReq_tb <= '1';
 
@@ -441,6 +458,7 @@ begin
 							end if;
 
 							bl_accepted := bl_accepted + 1;
+							report "bl " & integer'image(bl_accepted) & " out of " & integer'image(bl_cmd_int);
 
 							if (bl_accepted = bl_cmd_int) then
 								bank_arr_rtl(data_phase_num_cmd_int) := to_integer(unsigned(ColCtrlBankMemOut_tb));
@@ -452,6 +470,7 @@ begin
 							end if;
 						else
 							ColCtrlCmdAck_tb <= '0';
+							col_cmd_cnt := col_cmd_cnt + 1;
 						end if;
 
 					else
