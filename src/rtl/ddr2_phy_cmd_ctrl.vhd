@@ -5,6 +5,9 @@ use ieee.numeric_std.all;
 library work;
 use work.proc_pkg.all;
 use work.ddr2_phy_pkg.all;
+use work.ddr2_mrs_pkg.all;
+use work.ddr2_phy_col_ctrl_pkg.all;
+use work.ddr2_phy_bank_ctrl_pkg.all;
 
 entity ddr2_phy_cmd_ctrl is
 generic (
@@ -114,13 +117,13 @@ begin
 			-- Arbitrer
 			CmdAck => BankCtrlCmdAck(i),
 
-			RowMemOut => BankCtrlRowMemOut((i+1)*ROW_L downto i*ROW_L),
-			CmdOut => BankCtrlCmdOut((i+1)*MEM_CMD_L downto i*MEM_CMD_L),
+			RowMemOut => BankCtrlRowMemOut(((i+1)*ROW_L - 1) downto i*ROW_L),
+			CmdOut => BankCtrlCmdOut(((i+1)*MEM_CMD_L - 1) downto i*MEM_CMD_L),
 			CmdReq => BankCtrlCmdReq(i),
 
 			-- Transaction Controller
 			CtrlReq => BankCtrlCtrlReq(i),
-			RowMemIn => RowMemIn((i+1)*ROW_L downto i*ROW_L),
+			RowMemIn => BankCtrlRowMemIn(((i+1)*ROW_L - 1) downto i*ROW_L),
 
 			CtrlAck => BankCtrlCtrlAck(i),
 
