@@ -40,6 +40,7 @@ package tb_pkg is
 	function compare_int_arr(arr1, arr2 : int_arr; num_el : integer) return boolean;
 	function compare_int_arr_2d(arr1, arr2 : int_arr_2d; num_el1, num_el2 : integer) return boolean;
 	function compare_int_arr_3d(arr1, arr2 : int_arr_3d; num_el1, num_el2, num_el3 : integer) return boolean;
+	function reset_bool_arr(val : boolean; num_el : integer) return bool_arr;
 	function compare_bool_arr(arr1, arr2 : bool_arr; num_el : integer) return boolean;
 	function compare_bool_arr_2d(arr1, arr2 : bool_arr_2d; num_el1, num_el2 : integer) return boolean;
 	function compare_bool_arr_3d(arr1, arr2 : bool_arr_3d; num_el1, num_el2, num_el3 : integer) return boolean;
@@ -160,6 +161,16 @@ package body tb_pkg is
 		end loop;
 
 		return match;
+	end;
+
+	function reset_bool_arr(val : boolean; num_el : integer) return bool_arr is
+		variable arr : bool_arr(0 to (num_el - 1));
+	begin
+		for i in 0 to (num_el-1) loop
+			arr(i) := val;
+		end loop;
+
+		return arr;
 	end;
 
 	function compare_bool_arr(arr1, arr2 : bool_arr; num_el : integer) return boolean is
