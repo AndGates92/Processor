@@ -160,7 +160,7 @@ begin
 	CtrlAck <= CtrlAckC;
 	CtrlAckN <= 	(CtrlReqValid and (ZeroColCtrlCnt or SameOp))	when (StateC = COL_CTRL_IDLE) else
 			(CtrlReqValid and ZeroColCtrlCnt)		when (StateC = CHANGE_BURST_OP) else
-			(CtrlReqValid and EndDataPhase and SameOp)	when (StateC = DATA_PHASE) else 
+			(CtrlReqValid and EndDataPhase and SameOp)	when (StateC = COL_CTRL_DATA_PHASE) else 
 			'0'; -- accept request if bank is active
 
 	CtrlReqValid <= CtrlReq and BankActiveMuxed;
@@ -197,7 +197,7 @@ begin
 
 	NoOutstandingBurst <= CmdReqC and CmdAck and (SingleBurstC or ZeroBurstCnt);
 
-	EndDataPhase <= NoOutstandingBurst when (StateC = DATA_PHASE) else '0';
+	EndDataPhase <= NoOutstandingBurst when (StateC = COL_CTRL_DATA_PHASE) else '0';
 
 	ReadBurstVec_gen : for i in 0 to integer(ReadBurstVec_comb'length - 1) generate
 		ReadBurstVec_comb(i) <= ReadBurstC when (BankMemC = std_logic_vector(to_unsigned(i, int_to_bit_num(BANK_NUM)))) else '0';
@@ -233,17 +233,17 @@ begin
 	ZeroColCtrlCnt <= '1' when (CntColCtrlC = zero_cnt_col_ctrl_value) else '0';
 	ColCtrlCntInitValue <= to_unsigned(T_RTW_tat - 1, CNT_COL_CTRL_L) when (ReadBurstC = '1') else to_unsigned(T_WTR_tat - 1, CNT_COL_CTRL_L);
 	SetColCtrlCnt <= EndDataPhase;
-	ColCtrlCntEnN <=	EndDataPhase and (ChangeOp or not CtrlReq) when (StateC = DATA_PHASE) else	-- enable counter if diff op next or no outstanding request
+	ColCtrlCntEnN <=	EndDataPhase and (ChangeOp or not CtrlReq) when (StateC = COL_CTRL_DATA_PHASE) else	-- enable counter if diff op next or no outstanding request
 				ColCtrlCntEnC;
 
 	CmdReqValid <=	CtrlAckN			when (StateC = COL_CTRL_IDLE) else
 			ZeroColCtrlCnt and CtrlReqValid	when (StateC = CHANGE_BURST_OP) else
-			'1'				when (StateC = DATA_PHASE) else
+			'1'				when (StateC = COL_CTRL_DATA_PHASE) else
 			'0';
 
 	T_COL_COL_LARGER_1 : if T_COL_COL > 1 generate
 
-		CmdReqN <= ZeroColToColCnt_comb when (CmdReqValid = '1') else '0'; -- Send a Command Request if in DATA_PHASE state or moving into it
+		CmdReqN <= ZeroColToColCnt_comb when (CmdReqValid = '1') else '0'; -- Send a Command Request if in COL_CTRL_DATA_PHASE state or moving into it
 
 		coltocolcnt_reg: process(rst, clk)
 		begin
@@ -269,7 +269,7 @@ begin
 
 	T_COL_COL_EQ_1 : if T_COL_COL = 1 generate
 
-		CmdReqN <= CmdReqValid; -- Send a Command Request if in DATA_PHASE state or moving into it
+		CmdReqN <= CmdReqValid; -- Send a Command Request if in COL_CTRL_DATA_PHASE state or moving into it
 
 	end generate T_COL_COL_EQ_1;
 
@@ -278,11 +278,11 @@ begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = COL_CTRL_IDLE) then
 			if (CtrlAckN = '1') then
-				StateN <= DATA_PHASE;
+				StateN <= COL_CTRL_DATA_PHASE;
 			elsif ((CtrlReq = '1') and (ChangeOp = '1') and (ZeroColCtrlCnt = '0')) then
 				StateN <= CHANGE_BURST_OP;
 			end if;
-		elsif (StateC = DATA_PHASE) then
+		elsif (StateC = COL_CTRL_DATA_PHASE) then
 			if (EndDataPhase = '1') then
 				if (ChangeOp = '1') then -- next burst has a different operation: read - write or write - read transition
 					StateN <= CHANGE_BURST_OP;
@@ -293,7 +293,7 @@ begin
 		elsif (StateC = CHANGE_BURST_OP) then
 			if (ZeroColCtrlCnt = '1') then
 				if (BankActiveMuxed = '1') then
-					StateN <= DATA_PHASE;
+					StateN <= COL_CTRL_DATA_PHASE;
 				else
 					StateN <= Col_CTRL_IDLE;
 				end if;

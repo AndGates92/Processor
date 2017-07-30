@@ -22,7 +22,7 @@ package ddr2_phy_col_ctrl_pkg is
 	constant STATE_COL_CTRL_L	: positive := 2;
 
 	constant COL_CTRL_IDLE		: std_logic_vector(STATE_COL_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_COL_CTRL_L));
-	constant DATA_PHASE		: std_logic_vector(STATE_COL_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_COL_CTRL_L));
+	constant COL_CTRL_DATA_PHASE	: std_logic_vector(STATE_COL_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_COL_CTRL_L));
 	constant CHANGE_BURST_OP	: std_logic_vector(STATE_COL_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_COL_CTRL_L));
 
 	component ddr2_phy_col_ctrl is
