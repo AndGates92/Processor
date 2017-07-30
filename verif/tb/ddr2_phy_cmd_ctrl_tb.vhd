@@ -333,8 +333,8 @@ begin
 
 				wait for 1 ps;
 
---report "Burst cnt: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl_int) & " col ctrl data phase: ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd " & integer'image(data_phase_num_cmd_int);
---report "bank ctrl req: " & bool_to_str(bank_ctrl_req) & " bank cmd ack: " & bool_to_str(bank_cmd_ack) & " col ctrl req: " & bool_to_str(col_ctrl_req);
+report "Burst cnt: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl_int) & " col ctrl data phase: ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd " & integer'image(data_phase_num_cmd_int);
+report "bank ctrl req: " & bool_to_str(bank_ctrl_req) & " bank cmd ack: " & bool_to_str(bank_cmd_ack) & " col ctrl req: " & bool_to_str(col_ctrl_req);
 
 				if (num_bursts_rtl_int < num_bursts_exp) then
 					bank_ctrl_bank_int := bank_arr_exp(num_bursts_rtl_int);
@@ -421,20 +421,22 @@ begin
 							end if;
 						else
 report "Wait CmdReq: cnt" & integer'image(bank_ctrl_cmd_wait_cnt);
-							if (bank_ctrl_cmd_wait_cnt = MAX_BANK_CMD_WAIT) then
+							if (bank_ctrl_handshake = true) then
+								if (bank_ctrl_cmd_wait_cnt = MAX_BANK_CMD_WAIT) then
 report "Cnt reached";
-								bank_ctrl_cnt := 0;
-								row_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(BankCtrlRowMemOut_tb));
+									bank_ctrl_cnt := 0;
+									row_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(BankCtrlRowMemOut_tb));
 
-								bank_ctrl_req := false;
-								bank_ctrl_cnt := 0;
-								bank_ctrl_cmd_wait_cnt := 0;
+									bank_ctrl_req := false;
+									bank_ctrl_cnt := 0;
+									bank_ctrl_cmd_wait_cnt := 0;
 
-								bank_ctrl_err_arr(num_bursts_rtl_int) := bank_ctrl_err_int;
+									bank_ctrl_err_arr(num_bursts_rtl_int) := bank_ctrl_err_int;
 
-								num_bursts_rtl_int := num_bursts_rtl_int + 1;
-							else
-								bank_ctrl_cmd_wait_cnt := bank_ctrl_cmd_wait_cnt + 1;
+									num_bursts_rtl_int := num_bursts_rtl_int + 1;
+								else
+									bank_ctrl_cmd_wait_cnt := bank_ctrl_cmd_wait_cnt + 1;
+								end if;
 							end if;
 
 							BankCtrlCmdAck_tb <= (others => '0');
