@@ -32,6 +32,7 @@ architecture bench of ddr2_phy_cmd_ctrl_tb is
 
 	constant MAX_BURST_DELAY	: integer := 20;
 	constant MAX_CMD_DELAY		: integer := 20;
+	constant MAX_BANK_CMD_WAIT	: integer := 5;
 	constant MAX_CMD_ACK_ACK_DELAY	: integer := 4;
 
 	constant BURST_LENGTH_L_TB	: integer := COL_L_TB;
@@ -197,7 +198,7 @@ begin
 				uniform(seed1, seed2, rand_val);
 				read_burst(i) := rand_bool(rand_val);
 
-				report "Col " & integer'image(col_int) & " BL " & integer'image(bl_int) & " Bank " & integer'image(bank_int);
+--report "Col " & integer'image(col_int) & " BL " & integer'image(bl_int) & " Bank " & integer'image(bank_int);
 
 			end loop;
 
@@ -230,9 +231,12 @@ begin
 			variable bank_cmd_ack		: boolean;
 			variable col_ctrl_req		: boolean;
 
-			variable bank_ctrl_cnt		: integer;
-			variable col_ctrl_cnt		: integer;
-			variable col_cmd_cnt		: integer;
+			variable bank_ctrl_handshake	: boolean;
+
+			variable bank_ctrl_cnt			: integer;
+			variable bank_ctrl_cmd_wait_cnt		: integer;
+			variable col_ctrl_cnt			: integer;
+			variable col_cmd_cnt			: integer;
 
 			variable bank_ctrl_bank_int	: integer;
 			variable row_int		: integer;
@@ -267,7 +271,10 @@ begin
 			bank_cmd_ack := false;
 			col_ctrl_req := false;
 
+			bank_ctrl_handshake := false;
+
 			bank_ctrl_cnt := 0;
+			bank_ctrl_cmd_wait_cnt := 0;
 			col_ctrl_cnt := 0;
 			col_cmd_cnt := 0;
 
@@ -320,8 +327,14 @@ begin
 				wait until ((clk_tb = '1') and (clk_tb'event));
 
 				exit cmd_loop when ((num_bursts_rtl_int = num_bursts_exp) and (data_phase_num_cmd_int = num_bursts_exp) and (data_phase_num_ctrl_int = num_bursts_exp));
+				if (bank_ctrl_handshake = true) then -- Emulate Register BankCtrlCtrlReq
+					BankCtrlCtrlReq_tb <= (others => '0');
+				end if;
 
 				wait for 1 ps;
+
+--report "Burst cnt: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl_int) & " col ctrl data phase: ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd " & integer'image(data_phase_num_cmd_int);
+--report "bank ctrl req: " & bool_to_str(bank_ctrl_req) & " bank cmd ack: " & bool_to_str(bank_cmd_ack) & " col ctrl req: " & bool_to_str(col_ctrl_req);
 
 				if (num_bursts_rtl_int < num_bursts_exp) then
 					bank_ctrl_bank_int := bank_arr_exp(num_bursts_rtl_int);
@@ -332,7 +345,9 @@ begin
 
 					if (bank_ctrl_req = false) then
 
-report "Bank Ctrl: Bank " & integer'image(bank_ctrl_bank_int) & " Row " & integer'image(row_int);
+						bank_ctrl_handshake := false;
+
+--report "Bank Ctrl: Bank " & integer'image(bank_ctrl_bank_int) & " Row " & integer'image(row_int);
 						-- Arbitrer
 						BankCtrlCmdAck_tb <= (others => '0');
 						if (bank_ctrl_cnt = bank_ctrl_delay) then
@@ -357,10 +372,27 @@ report "Bank Ctrl: Bank " & integer'image(bank_ctrl_bank_int) & " Row " & intege
 						if (BankCtrlCmdReq_tb /= ZERO_BANK_VEC) then
 							bank_ctrl_err_int := bank_ctrl_err_int + 1;
 						end if;
+
+						wait for 1 ps;
+
+						if (BankCtrlCtrlAck_tb(bank_ctrl_bank_int) = '1') then
+							if (BankCtrlCtrlReq_tb(bank_ctrl_bank_int) = '1') then 
+								bank_ctrl_handshake := true;
+--								BankCtrlCtrlReq_tb <= (others => '0');
+							else
+								bank_ctrl_err_int := bank_ctrl_err_int + 1;
+							end if; 
+						else
+							if ((BankCtrlCtrlAck_tb /= ZERO_BANK_VEC) and (BankCtrlCtrlReq_tb = ZERO_BANK_VEC)) then
+								bank_ctrl_err_int := bank_ctrl_err_int + 1;
+							end if;
+						end if;
+
 					else
 						if (BankCtrlCtrlAck_tb(bank_ctrl_bank_int) = '1') then
 							if (BankCtrlCtrlReq_tb(bank_ctrl_bank_int) = '1') then 
-								BankCtrlCtrlReq_tb <= (others => '0');
+								bank_ctrl_handshake := true;
+--								BankCtrlCtrlReq_tb <= (others => '0');
 							else
 								bank_ctrl_err_int := bank_ctrl_err_int + 1;
 							end if; 
@@ -372,24 +404,39 @@ report "Bank Ctrl: Bank " & integer'image(bank_ctrl_bank_int) & " Row " & intege
 
 						if (BankCtrlCmdReq_tb(bank_ctrl_bank_int) = '1') then
 							if (bank_ctrl_cnt = bank_cmd_delay) then
-								bank_ctrl_cnt := 0;
 								row_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(BankCtrlRowMemOut_tb));
 								BankCtrlCmdAck_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(bank_ctrl_bank_int))), BANK_NUM_TB));
 
 								bank_ctrl_req := false;
 								bank_ctrl_cnt := 0;
+								bank_ctrl_cmd_wait_cnt := 0;
 
 								bank_ctrl_err_arr(num_bursts_rtl_int) := bank_ctrl_err_int;
 
 								num_bursts_rtl_int := num_bursts_rtl_int + 1;
-
-report "Cmd accepted";
 
 							else
 								bank_ctrl_cnt := bank_ctrl_cnt + 1;
 								BankCtrlCmdAck_tb <= (others => '0');
 							end if;
 						else
+report "Wait CmdReq: cnt" & integer'image(bank_ctrl_cmd_wait_cnt);
+							if (bank_ctrl_cmd_wait_cnt = MAX_BANK_CMD_WAIT) then
+report "Cnt reached";
+								bank_ctrl_cnt := 0;
+								row_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(BankCtrlRowMemOut_tb));
+
+								bank_ctrl_req := false;
+								bank_ctrl_cnt := 0;
+								bank_ctrl_cmd_wait_cnt := 0;
+
+								bank_ctrl_err_arr(num_bursts_rtl_int) := bank_ctrl_err_int;
+
+								num_bursts_rtl_int := num_bursts_rtl_int + 1;
+							else
+								bank_ctrl_cmd_wait_cnt := bank_ctrl_cmd_wait_cnt + 1;
+							end if;
+
 							BankCtrlCmdAck_tb <= (others => '0');
 						end if;
 					end if;
@@ -408,7 +455,7 @@ report "Cmd accepted";
 						read_burst_int := read_bursts_arr_exp(data_phase_num_ctrl_int);
 						col_ctrl_delay := ctrl_delay_arr(data_phase_num_ctrl_int);
 
-report " Col Ctrl Col " & integer'image(cols_arr(data_phase_num_ctrl_int)) & " BL " & integer'image(bl_ctrl_int);
+--report " Col Ctrl Col " & integer'image(cols_arr(data_phase_num_ctrl_int)) & " BL " & integer'image(bl_ctrl_int);
 
 						if (col_ctrl_cnt = col_ctrl_delay) then
 							-- Transaction Controller
@@ -457,8 +504,10 @@ report " Col Ctrl Col " & integer'image(cols_arr(data_phase_num_ctrl_int)) & " B
 								col_err := col_err + 1;
 							end if;
 
+							col_cmd_cnt := 0;
+
 							bl_accepted := bl_accepted + 1;
-							report "bl " & integer'image(bl_accepted) & " out of " & integer'image(bl_cmd_int);
+--report "bl " & integer'image(bl_accepted) & " out of " & integer'image(bl_cmd_int);
 
 							if (bl_accepted = bl_cmd_int) then
 								bank_arr_rtl(data_phase_num_cmd_int) := to_integer(unsigned(ColCtrlBankMemOut_tb));
@@ -634,6 +683,8 @@ report " Col Ctrl Col " & integer'image(cols_arr(data_phase_num_ctrl_int)) & " B
 		for i in 0 to NUM_TEST-1 loop
 
 			test_param(num_bursts_exp, num_bursts_arr, bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, seed1, seed2);
+
+report "test #" & integer'image(i) & " out of " & integer'image(NUM_TEST) & " num burst " & integer'image(num_bursts_exp);
 
 			run_cmd_ctrl (num_bursts_exp,  bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, num_bursts_rtl, read_bursts_arr_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, rows_arr_rtl, bank_arr_rtl, start_col_arr_exp, col_err_arr_exp, col_err_arr_rtl, seed1, seed2);
 
