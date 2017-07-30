@@ -61,7 +61,7 @@ architecture rtl of ddr2_phy_bank_ctrl is
 	signal BankIdleC, BankIdleN	: std_logic;
 	signal BankActiveC, BankActiveN	: std_logic;
 
-	signal ProcActCmdC, ProcActCmdN	: std_logic;
+	signal ReqInPrechargeC, ReqInPrechargeN	: std_logic;
 
 	signal TActColReached		: std_logic;
 	signal TRASReached		: std_logic;
@@ -100,7 +100,7 @@ begin
 
 			RowMemC <= (others => '0');
 
-			ProcActCmdC <= '0';
+			ReqInPrechargeC <= '0';
 
 			BankActiveC <= '0';
 			BankIdleC <= '1';
@@ -121,7 +121,7 @@ begin
 
 			RowMemC <= RowMemN;
 
-			ProcActCmdC <= ProcActCmdN;
+			ReqInPrechargeC <= ReqInPrechargeN;
 
 			BankActiveC <= BankActiveN;
 			BankIdleC <= BankIdleN;
@@ -148,27 +148,26 @@ begin
 	RowMemOut <= RowMemC;
 	CtrlAck <= CtrlAck_comb;
 	ZeroOutstandingBursts <= ZeroOutstandingBursts_comb;
-	CtrlAck_comb <= CtrlReq and (not ProcActCmdC) when ((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) else (DataPhase and ReqActSameRow); -- return ack only when arbitrer gives the ack or during the data phase
-
-	ProcActCmdN <=	(not ProcActCmdC) and CtrlReq and CtrlAck_comb when ((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) else
-			'0';
+	CtrlAck_comb <=	CtrlReq				when (StateC = BANK_CTRL_IDLE) else
+			(CtrlReq and ReqInPrechargeC)	when (StateC = WAIT_ACT_ACK) else
+			(DataPhase and ReqActSameRow); -- return ack only when arbitrer gives the ack or during the data phase
 
 	-- If same row is requested to be activate, accept immediately the request
 	ReqActSameRow <= '1' when ((RowMemC = RowMemIn) and (CtrlReq = '1')) else '0';
 
 	-- Store Row open for future comparison
-	RowMemN <= RowMemIn when (((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) and (CtrlReq = '1') and (CtrlAck_comb = '1')) else RowMemC;
+	RowMemN <= RowMemIn when (((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) and (CtrlAck_comb = '1')) else RowMemC;
 
 	-- Bank in data phase
 	DataPhase <= '1' when ((StateC = ELAPSE_T_ACT_COL) or ((BankActiveC = '1') and  (ExitDataPhase = '0'))) else '0';
 
-	CmdReqN <=	'1'	when (((StateC = WAIT_ACT_ACK) or (StateC = BANK_CTRL_IDLE)) and (CtrlReq = '1') and (CtrlAck_comb = '1')) else
+	CmdReqN <=	'1'	when (((StateC = WAIT_ACT_ACK) or (StateC = BANK_CTRL_IDLE)) and (CtrlAck_comb = '1')) else
 			'0'	when ((StateC = WAIT_ACT_ACK) and (CmdAck = '1')) else
 			CmdReqC;
 
 	-- Bank active after time between activate and column command is elapsed
 	BankActiveN <=	'1' when ((StateC = ELAPSE_T_ACT_COL) and (TActColReached = '1')) else
-			'0' when ((StateC = DATA_PHASE) and (ExitDataPhase = '1')) else
+			'0' when ((StateC = BANK_CTRL_DATA_PHASE) and (ExitDataPhase = '1')) else
 			BankActiveC;
 
 	-- Reached flag
@@ -178,7 +177,7 @@ begin
 
 	-- Outstanding burst ctrl
 	DecrOutstandingBurstsCnt <= EndDataPhase and (not ZeroOutstandingBursts_comb);
-	IncrOutstandingBurstsCnt <= DataPhase and ReqActSameRow;
+	IncrOutstandingBurstsCnt <= (DataPhase and ReqActSameRow) or (CmdReqC and CtrlAck_comb);
 
 	OutstandingBurstsN <=	(OutstandingBurstsC - decr_outstanding_bursts_value)	when ((DecrOutstandingBurstsCnt = '1') and (IncrOutstandingBurstsCnt = '0')) else
 				(OutstandingBurstsC + incr_outstanding_bursts_value)	when ((DecrOutstandingBurstsCnt = '0') and (IncrOutstandingBurstsCnt = '1')) else
@@ -196,7 +195,7 @@ begin
 
 	ZeroDelayCnt <= '1' when (CntDelayC = zero_delay_cnt_value) else '0';
 
-	SetDelayCnt <= '1' when (((StateC = DATA_PHASE) and (ExitDataPhase = '1')) or (StartPrecharge = '1')) else '0';
+	SetDelayCnt <= '1' when (((StateC = BANK_CTRL_DATA_PHASE) and (ExitDataPhase = '1')) or (StartPrecharge = '1')) else '0';
 
 	StartPrecharge <= '1' when ((TRASReached = '1') and ((StateC = ELAPSE_T_RAS) or ((StateC = PROCESS_COL_CMD) and (ZeroDelayCnt = '1')))) else '0';
 
@@ -218,6 +217,10 @@ begin
 
 	ResetBankCtrlCnt <= '1' when ((CmdReqC = '1') and (CmdAck = '1') and (StateC = WAIT_ACT_ACK)) else '0';
 
+	ReqInPrechargeN <= 	CtrlReq		when (StateC = ELAPSE_T_RP) else
+				not CmdAck	when (StateC = WAIT_ACT_ACK) else
+				ReqInPrechargeC;
+
 	state_det: process(StateC, CtrlReq, CmdAck, TActColReached, ExitDataPhase, OutstandingBurstsC, TRASReached, TRCReached, ZeroDelayCnt)
 	begin
 		StateN <= StateC; -- avoid latched
@@ -231,9 +234,9 @@ begin
 			end if;
 		elsif (StateC = ELAPSE_T_ACT_COL) then
 			if (TActColReached = '1') then
-				StateN <= DATA_PHASE;
+				StateN <= BANK_CTRL_DATA_PHASE;
 			end if;
-		elsif (StateC = DATA_PHASE) then
+		elsif (StateC = BANK_CTRL_DATA_PHASE) then
 			if (ExitDataPhase = '1') then
 				StateN <= PROCESS_COL_CMD;
 			end if;
