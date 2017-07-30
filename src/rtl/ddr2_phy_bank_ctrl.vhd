@@ -67,7 +67,7 @@ architecture rtl of ddr2_phy_bank_ctrl is
 	signal TRASReached		: std_logic;
 	signal TRCReached		: std_logic;
 
-	signal ReqActSameRow			: std_logic;
+	signal ReqActSameRow		: std_logic;
 	signal StartPrecharge		: std_logic;
 
 	signal DataPhase		: std_logic;
@@ -156,12 +156,12 @@ begin
 	ReqActSameRow <= '1' when ((RowMemC = RowMemIn) and (CtrlReq = '1')) else '0';
 
 	-- Store Row open for future comparison
-	RowMemN <= RowMemIn when (((StateC = BANK_CTRL_IDLE) or (StateC = WAIT_ACT_ACK)) and (CtrlAck_comb = '1')) else RowMemC;
+	RowMemN <= RowMemIn when (((StateC = BANK_CTRL_IDLE) or ((StateC = WAIT_ACT_ACK) and (ReqInPrechargeC = '1'))) and (CtrlAck_comb = '1')) else RowMemC;
 
 	-- Bank in data phase
 	DataPhase <= '1' when ((StateC = ELAPSE_T_ACT_COL) or ((BankActiveC = '1') and  (ExitDataPhase = '0'))) else '0';
 
-	CmdReqN <=	'1'	when (((StateC = WAIT_ACT_ACK) or (StateC = BANK_CTRL_IDLE)) and (CtrlAck_comb = '1')) else
+	CmdReqN <=	'1'	when ((((StateC = WAIT_ACT_ACK) and (ReqInPrechargeC = '1')) or (StateC = BANK_CTRL_IDLE)) and (CtrlAck_comb = '1')) else
 			'0'	when ((StateC = WAIT_ACT_ACK) and (CmdAck = '1')) else
 			CmdReqC;
 
@@ -177,7 +177,7 @@ begin
 
 	-- Outstanding burst ctrl
 	DecrOutstandingBurstsCnt <= EndDataPhase and (not ZeroOutstandingBursts_comb);
-	IncrOutstandingBurstsCnt <= (DataPhase and ReqActSameRow) or (CmdReqC and CtrlAck_comb);
+	IncrOutstandingBurstsCnt <= (DataPhase and ReqActSameRow);
 
 	OutstandingBurstsN <=	(OutstandingBurstsC - decr_outstanding_bursts_value)	when ((DecrOutstandingBurstsCnt = '1') and (IncrOutstandingBurstsCnt = '0')) else
 				(OutstandingBurstsC + incr_outstanding_bursts_value)	when ((DecrOutstandingBurstsCnt = '0') and (IncrOutstandingBurstsCnt = '1')) else
@@ -217,8 +217,8 @@ begin
 
 	ResetBankCtrlCnt <= '1' when ((CmdReqC = '1') and (CmdAck = '1') and (StateC = WAIT_ACT_ACK)) else '0';
 
-	ReqInPrechargeN <= 	CtrlReq		when (StateC = ELAPSE_T_RP) else
-				not CmdAck	when (StateC = WAIT_ACT_ACK) else
+	ReqInPrechargeN <= 	CtrlReq			when (StateC = ELAPSE_T_RP) else
+				not CtrlAck_comb	when (StateC = WAIT_ACT_ACK) else
 				ReqInPrechargeC;
 
 	state_det: process(StateC, CtrlReq, CmdAck, TActColReached, ExitDataPhase, OutstandingBurstsC, TRASReached, TRCReached, ZeroDelayCnt)
