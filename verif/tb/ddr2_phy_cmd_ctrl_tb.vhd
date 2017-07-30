@@ -21,8 +21,8 @@ end entity ddr2_phy_cmd_ctrl_tb;
 architecture bench of ddr2_phy_cmd_ctrl_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TEST		: integer := 1000;
-	constant NUM_EXTRA_TEST		: integer := 2;
+	constant NUM_TEST		: integer := 10; --1000;
+	constant NUM_EXTRA_TEST		: integer := 0;
 	constant TOT_NUM_TEST		: integer := NUM_TEST + NUM_EXTRA_TEST;
 	constant MAX_ATTEMPTS		: integer := 20;
 
@@ -198,8 +198,6 @@ begin
 				uniform(seed1, seed2, rand_val);
 				read_burst(i) := rand_bool(rand_val);
 
---report "Col " & integer'image(col_int) & " BL " & integer'image(bl_int) & " Bank " & integer'image(bank_int);
-
 			end loop;
 
 			for i in num_bursts_int to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1) loop
@@ -217,7 +215,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_cmd_ctrl (variable num_bursts_exp : in integer; variable bank_arr_exp, cols_arr, rows_arr_exp : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_bursts_arr_exp : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl_arr_exp, cmd_delay_arr, ctrl_delay_arr : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable num_bursts_rtl : out integer; variable read_bursts_arr_rtl : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, row_arr_rtl, bank_arr_rtl, start_col_arr_exp : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_err_arr_exp, col_err_arr_rtl : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); variable seed1, seed2 : inout positive) is
+		procedure run_cmd_ctrl (variable num_bursts_exp : in integer; variable bank_arr_exp, cols_arr, rows_arr_exp : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_bursts_arr_exp : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl_arr_exp, cmd_delay_arr, ctrl_delay_arr : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable num_bursts_rtl : out integer; variable bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, row_arr_rtl, bank_arr_rtl, start_col_arr_exp : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_err_arr_exp, col_err_arr_rtl : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); variable seed1, seed2 : inout positive) is
 
 			variable rand_val			: real;
 			variable num_bursts_rtl_int		: integer;
@@ -333,9 +331,6 @@ begin
 
 				wait for 1 ps;
 
-report "Burst cnt: exp " & integer'image(num_bursts_exp) & " rtl " & integer'image(num_bursts_rtl_int) & " col ctrl data phase: ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd " & integer'image(data_phase_num_cmd_int);
-report "bank ctrl req: " & bool_to_str(bank_ctrl_req) & " bank cmd ack: " & bool_to_str(bank_cmd_ack) & " col ctrl req: " & bool_to_str(col_ctrl_req);
-
 				if (num_bursts_rtl_int < num_bursts_exp) then
 					bank_ctrl_bank_int := bank_arr_exp(num_bursts_rtl_int);
 					row_int := rows_arr_exp(num_bursts_rtl_int);
@@ -347,7 +342,6 @@ report "bank ctrl req: " & bool_to_str(bank_ctrl_req) & " bank cmd ack: " & bool
 
 						bank_ctrl_handshake := false;
 
---report "Bank Ctrl: Bank " & integer'image(bank_ctrl_bank_int) & " Row " & integer'image(row_int);
 						-- Arbitrer
 						BankCtrlCmdAck_tb <= (others => '0');
 						if (bank_ctrl_cnt = bank_ctrl_delay) then
@@ -404,7 +398,7 @@ report "bank ctrl req: " & bool_to_str(bank_ctrl_req) & " bank cmd ack: " & bool
 
 						if (BankCtrlCmdReq_tb(bank_ctrl_bank_int) = '1') then
 							if (bank_ctrl_cnt = bank_cmd_delay) then
-								row_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(BankCtrlRowMemOut_tb));
+								row_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(BankCtrlRowMemOut_tb(((bank_ctrl_bank_int + 1)*ROW_L_TB - 1) downto (bank_ctrl_bank_int*ROW_L_TB))));
 								BankCtrlCmdAck_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(bank_ctrl_bank_int))), BANK_NUM_TB));
 
 								bank_ctrl_req := false;
@@ -420,10 +414,8 @@ report "bank ctrl req: " & bool_to_str(bank_ctrl_req) & " bank cmd ack: " & bool
 								BankCtrlCmdAck_tb <= (others => '0');
 							end if;
 						else
-report "Wait CmdReq: cnt" & integer'image(bank_ctrl_cmd_wait_cnt);
 							if (bank_ctrl_handshake = true) then
 								if (bank_ctrl_cmd_wait_cnt = MAX_BANK_CMD_WAIT) then
-report "Cnt reached";
 									bank_ctrl_cnt := 0;
 									row_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(BankCtrlRowMemOut_tb));
 
@@ -456,8 +448,6 @@ report "Cnt reached";
 						bl_ctrl_int := bl_arr_exp(data_phase_num_ctrl_int);
 						read_burst_int := read_bursts_arr_exp(data_phase_num_ctrl_int);
 						col_ctrl_delay := ctrl_delay_arr(data_phase_num_ctrl_int);
-
---report " Col Ctrl Col " & integer'image(cols_arr(data_phase_num_ctrl_int)) & " BL " & integer'image(bl_ctrl_int);
 
 						if (col_ctrl_cnt = col_ctrl_delay) then
 							-- Transaction Controller
@@ -509,7 +499,6 @@ report "Cnt reached";
 							col_cmd_cnt := 0;
 
 							bl_accepted := bl_accepted + 1;
---report "bl " & integer'image(bl_accepted) & " out of " & integer'image(bl_cmd_int);
 
 							if (bl_accepted = bl_cmd_int) then
 								bank_arr_rtl(data_phase_num_cmd_int) := to_integer(unsigned(ColCtrlBankMemOut_tb));
@@ -536,7 +525,7 @@ report "Cnt reached";
 			num_bursts_rtl := num_bursts_rtl_int;
 		end procedure run_cmd_ctrl;
 
-		procedure verify (variable num_bursts_exp, num_bursts_rtl : in integer; variable num_bursts_arr : in int_arr(0 to (BANK_NUM_TB - 1)); variable bank_arr_exp, bank_arr_rtl, rows_arr_exp, rows_arr_rtl, bl_arr_exp, bl_arr_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, start_col_arr_exp : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_bursts_arr_exp, read_bursts_arr_rtl : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_err_arr_exp, col_err_arr_rtl : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); file file_pointer : text; variable pass: out integer) is
+		procedure verify (variable num_bursts_exp, num_bursts_rtl : in integer; variable num_bursts_arr : in int_arr(0 to (BANK_NUM_TB - 1)); variable bank_arr_exp, bank_arr_rtl, rows_arr_exp, rows_arr_rtl, bl_arr_exp, bl_arr_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, start_col_arr_exp : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_bursts_arr_exp : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_err_arr_exp, col_err_arr_rtl : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); file file_pointer : text; variable pass: out integer) is
 
 			variable match_banks		: boolean;
 			variable match_bl		: boolean;
@@ -558,10 +547,9 @@ report "Cnt reached";
 			col_ctrl_no_errors := compare_int_arr(reset_int_arr(0, num_bursts_exp), col_ctrl_err_arr, num_bursts_exp);
 			match_rows := compare_int_arr(rows_arr_exp, rows_arr_rtl, num_bursts_exp);
 			match_banks := compare_int_arr(bank_arr_exp, bank_arr_rtl, num_bursts_exp);
-			match_read_burst := compare_bool_arr(read_bursts_arr_exp, read_bursts_arr_rtl, num_bursts_exp);
 			match_bl := compare_int_arr(bl_arr_exp, bl_arr_rtl, num_bursts_exp);
 
-			if ((match_bl = true) and (match_read_burst = true) and (match_banks = true) and (match_rows = true) and (bank_ctrl_no_errors = true) and (col_ctrl_no_errors = true) and (num_bursts_exp = num_bursts_rtl)) then
+			if ((match_bl = true) and (match_banks = true) and (match_rows = true) and (bank_ctrl_no_errors = true) and (col_ctrl_no_errors = true) and (num_bursts_exp = num_bursts_rtl)) then
 				for i in 0 to (num_bursts_exp - 1) loop
 					write(file_line, string'( "PHY Command Controller: Burst #" & integer'image(i) & " details: Bank " & integer'image(bank_arr_exp(i)) & "  " & integer'image(rows_arr_exp(i)) & " Start Col " & integer'image(start_col_arr_exp(i)) & " Read Burst " & bool_to_str(read_bursts_arr_exp(i)) & " Burst Length " & integer'image(bl_arr_exp(i))));
 					writeline(file_pointer, file_line);
@@ -573,7 +561,7 @@ report "Cnt reached";
 				write(file_line, string'( "PHY Command Controller: FAIL (Rows mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Command Controller: Burst #" & integer'image(i) & " Beats: exp " & integer'image(rows_arr_exp(i)) & " vs rtl " & integer'image(rows_arr_rtl(i))));
+					write(file_line, string'( "PHY Command Controller: Burst #" & integer'image(i) & " Row: exp " & integer'image(rows_arr_exp(i)) & " vs rtl " & integer'image(rows_arr_rtl(i))));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
@@ -582,14 +570,6 @@ report "Cnt reached";
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_bursts_exp - 1) loop
 					write(file_line, string'( "PHY Command Controller: Burst #" & integer'image(i) & " Beats: exp " & integer'image(bl_arr_exp(i)) & " vs rtl " & integer'image(bl_arr_rtl(i))));
-					writeline(file_pointer, file_line);
-				end loop;
-				pass := 0;
-			elsif (match_read_burst = false) then
-				write(file_line, string'( "PHY Command Controller: FAIL (Read Burst count mismatch)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Command Controller: Read Burst #" & integer'image(i) & " exp " & bool_to_str(read_bursts_arr_exp(i)) & " vs rtl " & bool_to_str(read_bursts_arr_rtl(i))));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
@@ -659,7 +639,6 @@ report "Cnt reached";
 		variable ctrl_delay_arr		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 
 		variable read_bursts_arr_exp	: bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable read_bursts_arr_rtl	: bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 
 		variable col_err_arr_exp	: int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)));
 		variable col_err_arr_rtl	: int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)));
@@ -686,11 +665,9 @@ report "Cnt reached";
 
 			test_param(num_bursts_exp, num_bursts_arr, bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, seed1, seed2);
 
-report "test #" & integer'image(i) & " out of " & integer'image(NUM_TEST) & " num burst " & integer'image(num_bursts_exp);
+			run_cmd_ctrl (num_bursts_exp,  bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, num_bursts_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, rows_arr_rtl, bank_arr_rtl, start_col_arr_exp, col_err_arr_exp, col_err_arr_rtl, seed1, seed2);
 
-			run_cmd_ctrl (num_bursts_exp,  bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, num_bursts_rtl, read_bursts_arr_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, rows_arr_rtl, bank_arr_rtl, start_col_arr_exp, col_err_arr_exp, col_err_arr_rtl, seed1, seed2);
-
-			verify (num_bursts_exp, num_bursts_rtl, num_bursts_arr, bank_arr_exp, bank_arr_rtl, rows_arr_exp, rows_arr_rtl, bl_arr_exp, bl_arr_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, start_col_arr_exp, read_bursts_arr_exp, read_bursts_arr_rtl, col_err_arr_exp, col_err_arr_rtl, file_pointer, pass);
+			verify (num_bursts_exp, num_bursts_rtl, num_bursts_arr, bank_arr_exp, bank_arr_rtl, rows_arr_exp, rows_arr_rtl, bl_arr_exp, bl_arr_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, start_col_arr_exp, read_bursts_arr_exp, col_err_arr_exp, col_err_arr_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
