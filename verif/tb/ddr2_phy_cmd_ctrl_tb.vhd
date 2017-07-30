@@ -21,7 +21,7 @@ end entity ddr2_phy_cmd_ctrl_tb;
 architecture bench of ddr2_phy_cmd_ctrl_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TEST		: integer := 1000;
+	constant NUM_TEST		: integer := 10;
 	constant NUM_EXTRA_TEST		: integer := 0;
 	constant TOT_NUM_TEST		: integer := NUM_TEST + NUM_EXTRA_TEST;
 	constant MAX_ATTEMPTS		: integer := 20;
@@ -219,6 +219,7 @@ begin
 
 			variable rand_val			: real;
 			variable bank_ctrl_bursts_int		: integer;
+			variable bank_cmd_bursts_int		: integer;
 			variable data_phase_num_ctrl_int	: integer;
 			variable data_phase_num_cmd_int		: integer;
 
@@ -229,17 +230,20 @@ begin
 			variable bank_cmd_ack		: boolean;
 			variable col_ctrl_req		: boolean;
 
-			variable bank_ctrl_handshake	: boolean;
+			variable bank_ctrl_handshake	: bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 
-			variable bank_ctrl_cnt			: integer;
-			variable bank_ctrl_cmd_wait_cnt		: integer;
-			variable col_ctrl_cnt			: integer;
-			variable col_cmd_cnt			: integer;
+			variable bank_ctrl_cnt		: integer;
+			variable bank_cmd_cnt		: integer;
+			variable bank_cmd_wait_cnt	: integer;
+			variable col_ctrl_cnt		: integer;
+			variable col_cmd_cnt		: integer;
 
 			variable bank_ctrl_bank_int	: integer;
 			variable row_int		: integer;
 			variable bank_ctrl_delay	: integer;
 			variable bank_cmd_delay		: integer;
+
+			variable bank_cmd_bank_int	: integer;
 
 			variable col_ctrl_bank_int	: integer;
 			variable bl_ctrl_int		: integer;
@@ -262,6 +266,7 @@ begin
 		begin
 
 			bank_ctrl_bursts_int := 0;
+			bank_cmd_bursts_int := 0;
 			data_phase_num_cmd_int := 0;
 			data_phase_num_ctrl_int := 0;
 
@@ -269,10 +274,11 @@ begin
 			bank_cmd_ack := false;
 			col_ctrl_req := false;
 
-			bank_ctrl_handshake := false;
+			bank_ctrl_handshake := reset_bool_arr(false, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 
 			bank_ctrl_cnt := 0;
-			bank_ctrl_cmd_wait_cnt := 0;
+			bank_cmd_cnt := 0;
+			bank_cmd_wait_cnt := 0;
 			col_ctrl_cnt := 0;
 			col_cmd_cnt := 0;
 
@@ -280,6 +286,8 @@ begin
 			row_int := rows_arr_exp(bank_ctrl_bursts_int);
 			bank_cmd_delay := cmd_delay_arr(bank_ctrl_bursts_int);
 			bank_ctrl_delay := ctrl_delay_arr(bank_ctrl_bursts_int);
+
+			bank_cmd_bank_int := bank_arr_exp(bank_cmd_bursts_int);
 
 			col_ctrl_bank_int := bank_arr_exp(data_phase_num_ctrl_int);
 			col_ctrl_int := cols_arr(data_phase_num_ctrl_int);
@@ -324,10 +332,15 @@ begin
 
 				wait until ((clk_tb = '1') and (clk_tb'event));
 
-				exit cmd_loop when ((bank_ctrl_bursts_int = num_bursts_exp) and (data_phase_num_cmd_int = num_bursts_exp) and (data_phase_num_ctrl_int = num_bursts_exp));
-				if (bank_ctrl_handshake = true) then -- Emulate Register BankCtrlCtrlReq
+				exit cmd_loop when ((bank_ctrl_bursts_int = num_bursts_exp) and (bank_cmd_bursts_int = num_bursts_exp) and (data_phase_num_cmd_int = num_bursts_exp) and (data_phase_num_ctrl_int = num_bursts_exp));
+
+				if (bank_ctrl_handshake(bank_ctrl_bursts_int) = true) then -- Emulate Register BankCtrlCtrlReq
 					BankCtrlCtrlReq_tb <= (others => '0');
+					bank_ctrl_bursts_int := bank_ctrl_bursts_int + 1;
 				end if;
+
+report "Burst cnt: Bank ctrl " & integer'image(bank_ctrl_bursts_int) & " cmd " & integer'image(bank_cmd_bursts_int) & " exp " & integer'image(num_bursts_exp);
+report "Burst cnt: Col ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd " & integer'image(data_phase_num_cmd_int) & " exp " & integer'image(num_bursts_exp);
 
 				wait for 1 ps;
 
@@ -335,12 +348,9 @@ begin
 					bank_ctrl_bank_int := bank_arr_exp(bank_ctrl_bursts_int);
 					row_int := rows_arr_exp(bank_ctrl_bursts_int);
 
-					bank_cmd_delay := cmd_delay_arr(bank_ctrl_bursts_int);
 					bank_ctrl_delay := ctrl_delay_arr(bank_ctrl_bursts_int);
 
 					if (bank_ctrl_req = false) then
-
-						bank_ctrl_handshake := false;
 
 						-- Arbitrer
 						BankCtrlCmdAck_tb <= (others => '0');
@@ -371,8 +381,9 @@ begin
 
 						if (BankCtrlCtrlAck_tb(bank_ctrl_bank_int) = '1') then
 							if (BankCtrlCtrlReq_tb(bank_ctrl_bank_int) = '1') then 
-								bank_ctrl_handshake := true;
---								BankCtrlCtrlReq_tb <= (others => '0');
+								bank_ctrl_handshake(bank_ctrl_bursts_int) := true;
+								bank_ctrl_req := false;
+								bank_ctrl_err_arr(bank_ctrl_bursts_int) := bank_ctrl_err_int;
 							else
 								bank_ctrl_err_int := bank_ctrl_err_int + 1;
 							end if; 
@@ -385,8 +396,9 @@ begin
 					else
 						if (BankCtrlCtrlAck_tb(bank_ctrl_bank_int) = '1') then
 							if (BankCtrlCtrlReq_tb(bank_ctrl_bank_int) = '1') then 
-								bank_ctrl_handshake := true;
---								BankCtrlCtrlReq_tb <= (others => '0');
+								bank_ctrl_handshake(bank_ctrl_bursts_int) := true;
+								bank_ctrl_req := false;
+								bank_ctrl_err_arr(bank_ctrl_bursts_int) := bank_ctrl_err_int;
 							else
 								bank_ctrl_err_int := bank_ctrl_err_int + 1;
 							end if; 
@@ -395,47 +407,49 @@ begin
 								bank_ctrl_err_int := bank_ctrl_err_int + 1;
 							end if;
 						end if;
-
-						if (BankCtrlCmdReq_tb(bank_ctrl_bank_int) = '1') then
-							if (bank_ctrl_cnt = bank_cmd_delay) then
-								row_arr_rtl(bank_ctrl_bursts_int) := to_integer(unsigned(BankCtrlRowMemOut_tb(((bank_ctrl_bank_int + 1)*ROW_L_TB - 1) downto (bank_ctrl_bank_int*ROW_L_TB))));
-								BankCtrlCmdAck_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(bank_ctrl_bank_int))), BANK_NUM_TB));
-
-								bank_ctrl_req := false;
-								bank_ctrl_cnt := 0;
-								bank_ctrl_cmd_wait_cnt := 0;
-
-								bank_ctrl_err_arr(bank_ctrl_bursts_int) := bank_ctrl_err_int;
-
-								bank_ctrl_bursts_int := bank_ctrl_bursts_int + 1;
-
-							else
-								bank_ctrl_cnt := bank_ctrl_cnt + 1;
-								BankCtrlCmdAck_tb <= (others => '0');
-							end if;
-						else
-							if (bank_ctrl_handshake = true) then
-								if (bank_ctrl_cmd_wait_cnt = MAX_BANK_CMD_WAIT) then
-									bank_ctrl_cnt := 0;
-									row_arr_rtl(bank_ctrl_bursts_int) := to_integer(unsigned(BankCtrlRowMemOut_tb));
-
-									bank_ctrl_req := false;
-									bank_ctrl_cnt := 0;
-									bank_ctrl_cmd_wait_cnt := 0;
-
-									bank_ctrl_err_arr(bank_ctrl_bursts_int) := bank_ctrl_err_int;
-
-									bank_ctrl_bursts_int := bank_ctrl_bursts_int + 1;
-								else
-									bank_ctrl_cmd_wait_cnt := bank_ctrl_cmd_wait_cnt + 1;
-								end if;
-							end if;
-
-							BankCtrlCmdAck_tb <= (others => '0');
-						end if;
 					end if;
 				else
 					BankCtrlCmdAck_tb <= (others => '0');
+				end if;
+
+				if ((bank_cmd_bursts_int < bank_ctrl_bursts_int) and (bank_cmd_bursts_int < num_bursts_exp)) then
+
+					bank_cmd_bank_int := bank_arr_exp(bank_cmd_bursts_int);
+					bank_cmd_delay := cmd_delay_arr(bank_cmd_bursts_int);
+
+					if (BankCtrlCmdReq_tb(bank_cmd_bank_int) = '1') then
+						if (bank_cmd_cnt = bank_cmd_delay) then
+							row_arr_rtl(bank_cmd_bursts_int) := to_integer(unsigned(BankCtrlRowMemOut_tb(((bank_cmd_bank_int + 1)*ROW_L_TB - 1) downto (bank_cmd_bank_int*ROW_L_TB))));
+							BankCtrlCmdAck_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(bank_cmd_bank_int))), BANK_NUM_TB));
+
+							bank_cmd_cnt := 0;
+							bank_cmd_wait_cnt := 0;
+
+							bank_ctrl_err_arr(bank_cmd_bursts_int) := bank_ctrl_err_int;
+
+							bank_cmd_bursts_int := bank_cmd_bursts_int + 1;
+
+						else
+							bank_cmd_cnt := bank_cmd_cnt + 1;
+							BankCtrlCmdAck_tb <= (others => '0');
+						end if;
+					else
+						if (bank_ctrl_handshake(bank_cmd_bursts_int) = true) then
+							if (bank_cmd_wait_cnt = MAX_BANK_CMD_WAIT) then
+								row_arr_rtl(bank_cmd_bursts_int) := to_integer(unsigned(BankCtrlRowMemOut_tb));
+
+								bank_cmd_cnt := 0;
+								bank_cmd_wait_cnt := 0;
+
+								bank_cmd_bursts_int := bank_cmd_bursts_int + 1;
+
+							else
+								bank_cmd_wait_cnt := bank_cmd_wait_cnt + 1;
+							end if;
+						end if;
+
+						BankCtrlCmdAck_tb <= (others => '0');
+					end if;
 				end if;
 
 				if ((data_phase_num_ctrl_int < bank_ctrl_bursts_int) and (data_phase_num_ctrl_int < num_bursts_exp)) then
@@ -551,7 +565,7 @@ begin
 
 			if ((match_bl = true) and (match_banks = true) and (match_rows = true) and (bank_ctrl_no_errors = true) and (col_ctrl_no_errors = true) and (num_bursts_exp = bank_ctrl_bursts)) then
 				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Command Controller: Burst #" & integer'image(i) & " details: Bank " & integer'image(bank_arr_exp(i)) & "  " & integer'image(rows_arr_exp(i)) & " Start Col " & integer'image(start_col_arr_exp(i)) & " Read Burst " & bool_to_str(read_bursts_arr_exp(i)) & " Burst Length " & integer'image(bl_arr_exp(i))));
+					write(file_line, string'( "PHY Command Controller: Burst #" & integer'image(i) & " details: Bank " & integer'image(bank_arr_exp(i)) & " Row " & integer'image(rows_arr_exp(i)) & " Start Col " & integer'image(start_col_arr_exp(i)) & " Read Burst " & bool_to_str(read_bursts_arr_exp(i)) & " Burst Length " & integer'image(bl_arr_exp(i))));
 					writeline(file_pointer, file_line);
 				end loop;
 				write(file_line, string'( "PHY Command Controller: PASS"));
