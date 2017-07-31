@@ -21,9 +21,9 @@ end entity ddr2_phy_cmd_ctrl_tb;
 architecture bench of ddr2_phy_cmd_ctrl_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TEST		: integer := 10;
-	constant NUM_EXTRA_TEST		: integer := 0;
-	constant TOT_NUM_TEST		: integer := NUM_TEST + NUM_EXTRA_TEST;
+	constant NUM_TESTS		: integer := 1000;
+	constant NUM_EXTRA_TESTS	: integer := 8;
+	constant TOT_NUM_TESTS		: integer := NUM_TESTS + NUM_EXTRA_TESTS;
 	constant MAX_ATTEMPTS		: integer := 20;
 
 	constant BURST_LENGTH_MRS	: real := (2.0**(real(to_integer(unsigned(BURST_LENGTH)))));
@@ -138,6 +138,101 @@ begin
 			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '0';
 		end procedure reset;
+
+		procedure setup_extra_tests(variable ordered_bursts, same_row : in boolean; variable num_bursts : out integer; variable num_bursts_arr : out int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2 : inout positive) is
+			variable rand_val		: real;
+			variable num_bursts_arr_int	: int_arr(0 to (BANK_NUM_TB - 1));
+			variable num_bursts_int		: integer;
+			variable bl_int			: integer;
+			variable col_int		: integer;
+			variable row_int		: integer;
+			variable row_arr		: int_arr(0 to (BANK_NUM_TB - 1));
+			variable bank_int		: integer;
+			variable attempt_num		: integer;
+		begin
+			num_bursts_int := 0;
+			num_bursts_arr_int := reset_int_arr(0, BANK_NUM_TB);
+			for i in 0 to (BANK_NUM_TB - 1) loop
+				while (num_bursts_arr_int(i) = 0) loop
+					uniform(seed1, seed2, rand_val);
+					num_bursts_arr_int(i) := integer(rand_val*real(MAX_OUTSTANDING_BURSTS_TB));
+					uniform(seed1, seed2, rand_val);
+					row_arr(i) := integer(rand_val*(2.0**(real(ROW_L_TB)) - 1.0));
+				end loop;
+				num_bursts_int := num_bursts_int + num_bursts_arr_int(i);
+			end loop;
+			num_bursts := num_bursts_int;
+			num_bursts_arr := num_bursts_arr_int;
+
+			for i in 0 to (num_bursts_int - 1) loop
+				-- select bank
+				if (ordered_bursts = true) then
+					if (i = 0) then
+						bank_int := 0;
+					end if;
+					if (num_bursts_arr_int(bank_int) = 0) then
+						bank_int := bank_int + 1;
+					end if;
+				else
+					uniform(seed1, seed2, rand_val);
+					bank_int := integer(rand_val*real(BANK_NUM_TB - 1));
+					while (num_bursts_arr_int(bank_int) = 0) loop
+						uniform(seed1, seed2, rand_val);
+						bank_int := integer(rand_val*real(BANK_NUM_TB - 1));
+					end loop;
+				end if;
+				bank(i) := bank_int;
+				num_bursts_arr_int(bank_int) := num_bursts_arr_int(bank_int) - 1;
+
+				uniform(seed1, seed2, rand_val);
+				col_int := integer(rand_val*(2.0**(real(COL_L_TB - to_integer(unsigned(BURST_LENGTH)))) - 1.0));
+				cols(i) := col_int;
+				bl_int := 0;
+				attempt_num := 0;
+				while ((bl_int <= 0) and (attempt_num < MAX_ATTEMPTS)) loop
+					uniform(seed1, seed2, rand_val);
+					bl_int := round(rand_val*((2.0**(real(COL_L_TB - to_integer(unsigned(BURST_LENGTH))))) - real(col_int) - 1.0));
+					attempt_num := attempt_num + 1;
+				end loop;
+				if (attempt_num = MAX_ATTEMPTS) then
+					bl_int := 1;
+				end if;
+				bl(i) := bl_int;
+
+				if (same_row = true) then
+					row_int := row_arr(bank_int);
+				else
+					uniform(seed1, seed2, rand_val);
+					row_int := integer(rand_val*(2.0**(real(ROW_L_TB)) - 1.0));
+				end if;
+
+				rows(i) := row_int;
+
+				uniform(seed1, seed2, rand_val);
+				cmd_delay(i) := integer(rand_val*real(MAX_CMD_DELAY));
+
+				uniform(seed1, seed2, rand_val);
+				ctrl_delay(i) := integer(rand_val*real(MAX_BURST_DELAY));
+
+				uniform(seed1, seed2, rand_val);
+				read_burst(i) := rand_bool(rand_val);
+
+			end loop;
+
+			for i in num_bursts_int to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1) loop
+
+				bank(i) := int_arr_def;
+				rows(i) := int_arr_def;
+				cols(i) := int_arr_def;
+				bl(i) := int_arr_def;
+
+				cmd_delay(i) := int_arr_def;
+				ctrl_delay(i) := int_arr_def;
+				read_burst(i) := false;
+
+			end loop;
+
+		end procedure setup_extra_tests;
 
 		procedure test_param(variable num_bursts : out integer; variable num_bursts_arr : out int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2 : inout positive) is
 			variable rand_val		: real;
@@ -339,9 +434,6 @@ begin
 					bank_ctrl_bursts_int := bank_ctrl_bursts_int + 1;
 				end if;
 
-report "Burst cnt: Bank ctrl " & integer'image(bank_ctrl_bursts_int) & " cmd " & integer'image(bank_cmd_bursts_int) & " exp " & integer'image(num_bursts_exp);
-report "Burst cnt: Col ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd " & integer'image(data_phase_num_cmd_int) & " exp " & integer'image(num_bursts_exp);
-
 				wait for 1 ps;
 
 				if (bank_ctrl_bursts_int < num_bursts_exp) then
@@ -373,10 +465,6 @@ report "Burst cnt: Col ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd "
 							bank_ctrl_cnt := bank_ctrl_cnt + 1;
 						end if;
 
-						if (BankCtrlCmdReq_tb /= ZERO_BANK_VEC) then
-							bank_ctrl_err_int := bank_ctrl_err_int + 1;
-						end if;
-
 						wait for 1 ps;
 
 						if (BankCtrlCtrlAck_tb(bank_ctrl_bank_int) = '1') then
@@ -399,6 +487,7 @@ report "Burst cnt: Col ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd "
 								bank_ctrl_handshake(bank_ctrl_bursts_int) := true;
 								bank_ctrl_req := false;
 								bank_ctrl_err_arr(bank_ctrl_bursts_int) := bank_ctrl_err_int;
+								bank_ctrl_err_int := 0;
 							else
 								bank_ctrl_err_int := bank_ctrl_err_int + 1;
 							end if; 
@@ -425,8 +514,6 @@ report "Burst cnt: Col ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd "
 							bank_cmd_cnt := 0;
 							bank_cmd_wait_cnt := 0;
 
-							bank_ctrl_err_arr(bank_cmd_bursts_int) := bank_ctrl_err_int;
-
 							bank_cmd_bursts_int := bank_cmd_bursts_int + 1;
 
 						else
@@ -436,7 +523,7 @@ report "Burst cnt: Col ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd "
 					else
 						if (bank_ctrl_handshake(bank_cmd_bursts_int) = true) then
 							if (bank_cmd_wait_cnt = MAX_BANK_CMD_WAIT) then
-								row_arr_rtl(bank_cmd_bursts_int) := to_integer(unsigned(BankCtrlRowMemOut_tb));
+								row_arr_rtl(bank_cmd_bursts_int) := to_integer(unsigned(BankCtrlRowMemOut_tb(((bank_cmd_bank_int + 1)*ROW_L_TB - 1) downto (bank_cmd_bank_int*ROW_L_TB))));
 
 								bank_cmd_cnt := 0;
 								bank_cmd_wait_cnt := 0;
@@ -607,8 +694,7 @@ report "Burst cnt: Col ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd "
 				write(file_line, string'( "PHY Command Controller: FAIL (Bank Controller Handshake Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_bursts_exp - 1) loop
-					writeline(file_pointer, file_line);
-					write(file_line, string'( "PHY Command Controller: Burst #" & integer'image(i) & " Errors " & integer'image(bank_ctrl_err_arr(i)) & " Burst Length " & integer'image(bl_arr_exp(i))));
+					write(file_line, string'( "PHY Command Controller: Burst #" & integer'image(i) & " Errors " & integer'image(bank_ctrl_err_arr(i))));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
@@ -635,9 +721,12 @@ report "Burst cnt: Col ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd "
 
 		variable seed1, seed2	: positive;
 
-		variable num_bursts_exp	: integer;
-		variable num_bursts_arr	: int_arr(0 to (BANK_NUM_TB - 1));
+		variable num_bursts_exp		: integer;
+		variable num_bursts_arr		: int_arr(0 to (BANK_NUM_TB - 1));
 		variable bank_ctrl_bursts	: integer;
+
+		variable ordered_bursts		: boolean;
+		variable same_row		: boolean;
 
 		variable bank_arr_exp		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 		variable bank_arr_rtl		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
@@ -675,7 +764,7 @@ report "Burst cnt: Col ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd "
 		write(file_line, string'( "PHY Command Controller Test"));
 		writeline(file_pointer, file_line);
 
-		for i in 0 to NUM_TEST-1 loop
+		for i in 0 to NUM_TESTS-1 loop
 
 			test_param(num_bursts_exp, num_bursts_arr, bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, seed1, seed2);
 
@@ -690,20 +779,48 @@ report "Burst cnt: Col ctrl " & integer'image(data_phase_num_ctrl_int) & " cmd "
 		end loop;
 
 
-		if (NUM_EXTRA_TEST > 0) then
+		if (NUM_EXTRA_TESTS > 0) then
+
+			for i in 0 to NUM_EXTRA_TESTS-1 loop
+
+				if ((i mod 4) = 0) then
+					ordered_bursts := false;
+					same_row := false;
+				elsif ((i mod 4) = 1) then
+					ordered_bursts := true;
+					same_row := false;
+				elsif ((i mod 4) = 2) then
+					ordered_bursts := true;
+					same_row := true;
+				else
+					ordered_bursts := false;
+					same_row := true;
+				end if;
+
+				setup_extra_tests(ordered_bursts, same_row, num_bursts_exp, num_bursts_arr, bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, seed1, seed2);
+
+				run_cmd_ctrl (num_bursts_exp,  bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, bank_ctrl_bursts, bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, rows_arr_rtl, bank_arr_rtl, start_col_arr_exp, col_err_arr_exp, col_err_arr_rtl, seed1, seed2);
+
+				verify (num_bursts_exp, bank_ctrl_bursts, num_bursts_arr, bank_arr_exp, bank_arr_rtl, rows_arr_exp, rows_arr_rtl, bl_arr_exp, bl_arr_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, start_col_arr_exp, read_bursts_arr_exp, col_err_arr_exp, col_err_arr_rtl, file_pointer, pass);
+
+				num_pass := num_pass + pass;
+
+				wait until ((clk_tb'event) and (clk_tb = '1'));
+
+			end loop;
 
 		end if;
 
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "PHY Command Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TEST)));
+		write(file_line, string'( "PHY Command Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TESTS)));
 		writeline(file_pointer, file_line);
 
-		if (num_pass = TOT_NUM_TEST) then
+		if (num_pass = TOT_NUM_TESTS) then
 			write(file_line, string'( "PHY Command Controller: TEST PASSED"));
 		else
-			write(file_line, string'( "PHY Command Controller: TEST FAILED: " & integer'image(TOT_NUM_TEST-num_pass) & " failures"));
+			write(file_line, string'( "PHY Command Controller: TEST FAILED: " & integer'image(TOT_NUM_TESTS-num_pass) & " failures"));
 		end if;
 		writeline(file_pointer, file_line);
 
