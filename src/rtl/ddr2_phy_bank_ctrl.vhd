@@ -217,8 +217,8 @@ begin
 
 	ResetBankCtrlCnt <= '1' when ((CmdReqC = '1') and (CmdAck = '1') and (StateC = WAIT_ACT_ACK)) else '0';
 
-	ReqInPrechargeN <= 	CtrlReq			when (StateC = ELAPSE_T_RP) else
-				not CtrlAck_comb	when (StateC = WAIT_ACT_ACK) else
+	ReqInPrechargeN <= 	CtrlReq	when (StateC = ELAPSE_T_RP) else
+				'0'	when ((StateC = WAIT_ACT_ACK) and (CtrlAck_comb = '1')) else
 				ReqInPrechargeC;
 
 	state_det: process(StateC, CtrlReq, CmdAck, TActColReached, ExitDataPhase, OutstandingBurstsC, TRASReached, TRCReached, ZeroDelayCnt)
