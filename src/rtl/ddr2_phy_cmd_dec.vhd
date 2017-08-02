@@ -20,7 +20,7 @@ port (
 	clk	: in std_logic;
 
 	ColIn	: in std_logic_vector(COL_L - 1 downto 0);
-	RowIn	: in std_logic_vector(BANK_NUM*ROW_L - 1 downto 0);
+	RowIn	: in std_logic_vector(ROW_L - 1 downto 0);
 	BankIn	: in std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	CmdIn	: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 	MRSCmd	: in std_logic_vector(ADDR_L - 1 downto 0)
@@ -42,8 +42,8 @@ architecture rtl of ddr2_phy_cmd_dec is
 	signal nRowAccessStrobeN, nRowAccessStrobeC	: std_logic;
 	signal nColAccessStrobeN, nColAccessStrobeC	: std_logic;
 	signal nWriteEnableN, nWriteEnableC		: std_logic;
-	signal BankN, BankC				: std_logic;
-	signal AddressN, AddressC			: std_logic;
+	signal BankN, BankC				: std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
+	signal AddressN, AddressC			: std_logic_vector(ADDR_L - 1 downto 0);
 
 begin
 
@@ -83,6 +83,30 @@ begin
 	ClkEnableN <= '0' when ((CmdIn = CMD_SELF_REF_ENTRY) or (CmdIn = CMD_POWER_DOWN_ENTRY)) else '1';
 	nChpSelectN <= '1' when ((CmdIn = CMD_DESEL) or (CmdIn = CMD_SELF_REF_EXIT) or (CmdIn = CMD_POWER_DOWN_ENTRY) or (CmdIn = CMD_POWER_DOWN_EXIT)) else '0';
 	nRowAccessStrobeN <= '1' when ((CmdIn = CMD_WRITE) or (CmdIn = CMD_READ) or (CmdIn = CMD_WRITE_PRECHARGE) or (CmdIn = CMD_READ_PRECHARGE) or (CmdIn = CMD_NOP)) else '0';
-	
+	nColAccessStrobeN <= '1' when ((CmdIn = CMD_NOP) or (CmdIn = CMD_BANK_ACT) or (CmdIn = CMD_ALL_BANKS_PRECHARGE) or (CmdIn = CMD_BANK_PRECHARGE)) else '0';
+	nWriteEnableN <= '1' when ((CmdIn = CMD_NOP) or (CmdIn = CMD_AUTO_REF) or (CmdIn = CMD_SELF_REF_ENTRY) or (CmdIn = CMD_BANK_ACT) or (CmdIn = CMD_READ) or (CmdIn = CMD_READ_PRECHARGE)) else '0';
+	BankSelMemN <=	(0 => '0', 1 => '1', 2 => '0', others => '0')	when (CmdIn = CMD_EXT_MODE_REG_SET_2) else
+			(0 => '0', 1 => '1', 2 => '1', others => '0')	when (CmdIn = CMD_EXT_MODE_REG_SET_3) else
+			(0 => '1', 1 => '0', 2 => '0', others => '0')	when (CmdIn = CMD_EXT_MODE_REG_SET_1) else
+			(others => '0')					when (CmdIn = CMD_MODE_REG_SET) else
+			BankIn ;
+
+	COL_L_LARGER_10 : if (COL_L > 10) generate
+		AddressN <=	((9 downto 0) => ColIn(9 downto 0), 10 => '0', (COL_L downto 11) => ColIn(COL_L - 1 downto 10), others => '0')	when ((CmdIn = CMD_READ) or (CmdIn = CMD_WRITE)) else
+				((9 downto 0) => ColIn(9 downto 0), 10 => '1', (COL_L downto 11) => ColIn(COL_L - 1 downto 10), others => '0')	when ((CmdIn = CMD_READ_PRECHARGE) or (CmdIn = CMD_WRITE_PRECHARGE)) else
+				((ROW_L - 1 downto 0) => RowIn, others => '0')									when (CmdIn = CMD_BANK_ACT) else
+				(others => '0')													when (CmdIn = CMD_BANK_PRECHARGE) else
+				(others => '1')													when (CmdIn = CMD_ALL_BANK_PRECHARGE) else
+				MRSCmd;
+	end generate COL_L_LARGER_10; 
+
+	COL_L_SMALLER_EQUAL_10 : if (COL_L <= 10) generate
+		AddressN <=	((COL_L - 1 downto 0) => ColIn, 10 => '0', others => '0')	when ((CmdIn = CMD_READ) or (CmdIn = CMD_WRITE)) else
+				((COL_L - 1 downto 0) => ColIn, 10 => '1', others => '0')	when ((CmdIn = CMD_READ_PRECHARGE) or (CmdIn = CMD_WRITE_PRECHARGE)) else
+				((ROW_L - 1 downto 0) => RowIn, others => '0')			when (CmdIn = CMD_BANK_ACT) else
+				(others => '0')							when (CmdIn = CMD_BANK_PRECHARGE) else
+				(others => '1')							when (CmdIn = CMD_ALL_BANK_PRECHARGE) else
+				MRSCmd;
+	end generate COL_L_SMALLER_EQUAL_10; 
 
 end rtl;
