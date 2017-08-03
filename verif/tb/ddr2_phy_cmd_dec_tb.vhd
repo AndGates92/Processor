@@ -169,84 +169,180 @@ begin
 
 		end procedure run_cmd_dec;
 
-		procedure verify(variable num_commands_exp, num_commands_rtl : in integer; variable odt_cmd_arr_rtl, odt_cmd_arr_exp : in bool_arr_2d(0 to (MAX_COMMANDS_PER_TEST - 1), 0 to 1); variable cmd_arr_rtl, cmd_arr_exp : in int_arr_2d(0 to (MAX_COMMANDS_PER_TEST - 1), 0 to 1); variable ctrl_err_arr, cmd_err_arr, odt_err_arr : in int_arr(0 to (MAX_COMMANDS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable num_commands_exp, num_commands_rtl : in integer; variable clk_enable, chip_sel_n, ras_n, cas_n, wr_en_n : in bool_arr(0 to (MAX_COMMANDS_PER_TEST - 1)); variable bank_exp, bank_rtl, address_rtl, cmd : in int_arr(0 to (MAX_COMMANDS_PER_TEST - 1), 0 to 1); file file_pointer : text; variable pass: out integer) is
 			variable file_line	: line;
 
-			variable no_cmd_err	: boolean;
-			variable no_ctrl_err	: boolean;
-			variable no_odt_cmd_err	: boolean;
+			variable errors		: integer;
 
-			variable odt_cmd_match	: boolean;
-			variable cmd_match	: boolean;
 		begin
 
-			write(file_line, string'( "PHY Refresh Controller: Number of commands: " & integer'image(num_commands_exp)));
+			errors := 0;
+
+			write(file_line, string'( "PHY Command Decoder: Number of commands: " & integer'image(num_commands_exp)));
 			writeline(file_pointer, file_line);
 
-			no_cmd_err := compare_int_arr(reset_int_arr(0, num_commands_exp), cmd_err_arr, num_commands_exp);
-			no_odt_cmd_err := compare_int_arr(reset_int_arr(0, num_commands_exp), odt_err_arr, num_commands_exp);
-			no_ctrl_err := compare_int_arr(reset_int_arr(0, num_commands_exp), ctrl_err_arr, num_commands_exp);
-
-			cmd_match := compare_int_arr_2d(cmd_arr_rtl, cmd_arr_exp, num_commands_exp, 2);
-			odt_cmd_match := compare_bool_arr_2d(odt_cmd_arr_rtl, odt_cmd_arr_exp, num_commands_exp, 2);
-
-			if ((num_commands_exp = num_commands_rtl) and (no_cmd_err = true)  and (no_odt_cmd_err = true) and (no_ctrl_err = true) and (odt_cmd_match = true) and (cmd_match = true)) then
-				write(file_line, string'( "PHY Refresh Controller: PASS"));
-				writeline(file_pointer, file_line);
-				pass := 1;
-			elsif (no_cmd_err = false) then
-				write(file_line, string'( "PHY Refresh Controller: FAIL (Command Handshake Error)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_commands_exp - 1) loop
-					write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & ": " & integer'image(cmd_err_arr(i)) & " Error(s)"));
-					writeline(file_pointer, file_line);
-				end loop;
-				pass := 0;
-			elsif (no_odt_cmd_err = false) then
-				write(file_line, string'( "PHY Refresh Controller: FAIL (ODT Command Handshake Error)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_commands_exp - 1) loop
-					write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & ": " & integer'image(odt_err_arr(i)) & " Error(s)"));
-					writeline(file_pointer, file_line);
-				end loop;
-				pass := 0;
-			elsif (no_ctrl_err = false) then
-				write(file_line, string'( "PHY Refresh Controller: FAIL (Controller Handshake Error)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_commands_exp - 1) loop
-					write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & ": " & integer'image(ctrl_err_arr(i)) & " Error(s)"));
-					writeline(file_pointer, file_line);
-				end loop;
-				pass := 0;
-			elsif (num_commands_exp /= num_commands_rtl) then
-				write(file_line, string'( "PHY Refresh Controller: FAIL (Number commands mismatch): exp " & integer'image(num_commands_exp) & " vs rtl " & integer'image(num_commands_rtl)));
-				writeline(file_pointer, file_line);
-				pass := 0;
-			elsif (cmd_match = false) then
-				write(file_line, string'( "PHY Refresh Controller: FAIL (Command mismatch)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_commands_exp - 1) loop
-					for j in 0 to 1 loop
-						write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & " Command # " & integer'image(j) & ": exp " & integer'image(cmd_arr_exp(i, j)) & " vs rtl " & integer'image(cmd_arr_rtl(i, j))));
+			for i in 0 to (num_commands_exp - 1) loop
+				if (cmd = to_integer(unsigned(CMD_NOP))) then
+					if ((chip_sel_n(i) = false) and (ras_n(i) = true) and (cas_n(i) = true) and (wr_en_n(i) = true)) then
+						write(file_line, string'("PHY Command Decoder: NOP Command correctly decoded"));
 						writeline(file_pointer, file_line);
-					end loop;
-				end loop;
-				pass := 0;
-			elsif (odt_cmd_match = false) then
-				write(file_line, string'( "PHY Refresh Controller: FAIL (ODT Command mismatch)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_commands_exp - 1) loop
-					for j in 0 to 1 loop
-						write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & " Command # " & integer'image(j) & ": exp " & bool_to_str(odt_cmd_arr_exp(i, j)) & " vs rtl " & bool_to_str(odt_cmd_arr_rtl(i, j))));
+					else
+						write(file_line, string'("PHY Command Decoder: NOP Command: cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp true rtl " & bool_to_str(ras_n(i)) & " cas_n exp true rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp true rtl " & bool_to_str(wr_en_n(i))));
 						writeline(file_pointer, file_line);
-					end loop;
-				end loop;
-				pass := 0;
-			else
-				write(file_line, string'( "PHY Refresh Controller: FAIL (Unknown error)"));
-				writeline(file_pointer, file_line);
-				pass := 0;
-			end if;
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_DESEL))) then
+					if (chip_sel_n(i) = true) then
+						write(file_line, string'("PHY Command Decoder: DESEL Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: DESEL Command: cs_n exp true rtl " & bool_to_str(chip_sel_n(i))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_BANK_ACT))) then
+					if ((clk_enable(i) = true) and (chip_sel_n(i) = false) and (ras_n(i) = false) and (cas_n(i) = true) and (wr_en_n(i) = true) and (bank_rtl(i) = bank_exp(i))) then
+						write(file_line, string'("PHY Command Decoder: Activate Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: Activate Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp false rtl " & bool_to_str(ras_n(i)) & " cas_n exp true rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp true rtl " & bool_to_str(wr_en_n(i)) & " bank exp " & integer'image(bank_exp(i)) & " rtl " & integer'image(bank_rtl(i))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_MODE_REG_SET))) then
+					if ((clk_enable(i) = true) and (chip_sel_n(i) = false) and (ras_n(i) = false) and (cas_n(i) = false) and (wr_en_n(i) = false) and (bank_rtl(i) = 0))) then
+						write(file_line, string'("PHY Command Decoder: MRS Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: MRS Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp false rtl " & bool_to_str(ras_n(i)) & " cas_n exp false rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp false rtl " & bool_to_str(wr_en_n(i)) & " bank exp 0 rtl " & integer'image(bank_rtl(i))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_EXT_MODE_REG_SET_1))) then
+					if ((clk_enable(i) = true) and (chip_sel_n(i) = false) and (ras_n(i) = false) and (cas_n(i) = false) and (wr_en_n(i) = false) and (bank_rtl(i) = 1))) then
+						write(file_line, string'("PHY Command Decoder: EMRS1 Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: EMRS1 Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp false rtl " & bool_to_str(ras_n(i)) & " cas_n exp false rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp false rtl " & bool_to_str(wr_en_n(i)) & " bank exp 1 rtl " & integer'image(bank_rtl(i))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_EXT_MODE_REG_SET_2))) then
+					if ((clk_enable(i) = true) and (chip_sel_n(i) = false) and (ras_n(i) = false) and (cas_n(i) = false) and (wr_en_n(i) = false) and (bank_rtl(i) = 2))) then
+						write(file_line, string'("PHY Command Decoder: EMRS2 Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: EMRS2 Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp false rtl " & bool_to_str(ras_n(i)) & " cas_n exp false rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp false rtl " & bool_to_str(wr_en_n(i)) & " bank exp 2 rtl " & integer'image(bank_rtl(i))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_EXT_MODE_REG_SET_3))) then
+					if ((clk_enable(i) = true) and (chip_sel_n(i) = false) and (ras_n(i) = false) and (cas_n(i) = false) and (wr_en_n(i) = false) and (bank_rtl(i) = 3))) then
+						write(file_line, string'("PHY Command Decoder: EMRS3 Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: EMRS3 Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp false rtl " & bool_to_str(ras_n(i)) & " cas_n exp false rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp false rtl " & bool_to_str(wr_en_n(i)) & " bank exp 3 rtl " & integer'image(bank_rtl(i))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_AUTO_REF))) then
+					if ((clk_enable(i) = true) and (chip_sel_n(i) = false) and (ras_n(i) = false) and (cas_n(i) = false) and (wr_en_n(i) = true)) then
+						write(file_line, string'("PHY Command Decoder: Auto-Refresh Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: Auto-Refresh Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp false rtl " & bool_to_str(ras_n(i)) & " cas_n exp false rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp true rtl " & bool_to_str(wr_en_n(i))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_SELF_REF_ENTRY))) then
+					if ((clk_enable(i) = false) and (chip_sel_n(i) = false) and (ras_n(i) = false) and (cas_n(i) = false) and (wr_en_n(i) = true)) then
+						write(file_line, string'("PHY Command Decoder: Self-Refresh Entry Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: Self-Refresh Entry Command: clk_enable exp false " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp false rtl " & bool_to_str(ras_n(i)) & " cas_n exp false rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp true rtl " & bool_to_str(wr_en_n(i))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_POWER_DOWN_ENTRY))) then
+					if ((clk_enable(i) = true) and (chip_sel_n(i) = true)) then
+						write(file_line, string'("PHY Command Decoder: Self-Refresh Exit Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					elsif ((clk_enable(i) = true) and (chip_sel_n(i) = false) and (ras_n(i) = true) and (cas_n(i) = true) and (wr_en_n(i) = true)) then
+						write(file_line, string'("PHY Command Decoder: Self-Refresh Exit Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: Self-Refresh Exit Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp true rtl " & bool_to_str(ras_n(i)) & " cas_n exp true rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp true rtl " & bool_to_str(wr_en_n(i))));
+						writeline(file_pointer, file_line);
+
+						write(file_line, string'("PHY Command Decoder: Self-Refresh Exit Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp true rtl " & bool_to_str(chip_sel_n(i))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_POWER_DOWN_ENTRY))) then
+					if ((clk_enable(i) = false) and (chip_sel_n(i) = true)) then
+						write(file_line, string'("PHY Command Decoder: Power Down Entry Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					elsif ((clk_enable(i) = false) and (chip_sel_n(i) = false) and (ras_n(i) = true) and (cas_n(i) = true) and (wr_en_n(i) = true)) then
+						write(file_line, string'("PHY Command Decoder: Power Down Entry Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: Power Down Entry Command: clk_enable exp false " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp true rtl " & bool_to_str(ras_n(i)) & " cas_n exp true rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp true rtl " & bool_to_str(wr_en_n(i))));
+						writeline(file_pointer, file_line);
+
+						write(file_line, string'("PHY Command Decoder: Power Down Entry Command: clk_enable exp false " & bool_to_str(clk_enable(i)) & " cs_n exp true rtl " & bool_to_str(chip_sel_n(i))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_POWER_DOWN_EXIT))) then
+					if ((clk_enable(i) = true) and (chip_sel_n(i) = true)) then
+						write(file_line, string'("PHY Command Decoder: Power Down Exit Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					elsif ((clk_enable(i) = true) and (chip_sel_n(i) = false) and (ras_n(i) = true) and (cas_n(i) = true) and (wr_en_n(i) = true)) then
+						write(file_line, string'("PHY Command Decoder: Power Down Exit Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: Power Down Exit Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp true rtl " & bool_to_str(ras_n(i)) & " cas_n exp true rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp true rtl " & bool_to_str(wr_en_n(i))));
+						writeline(file_pointer, file_line);
+
+						write(file_line, string'("PHY Command Decoder: Power Down Exit Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp true rtl " & bool_to_str(chip_sel_n(i))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_BANK_PRECHARGE))) then
+					address_bit_vec := std_logic_vector(to_unsigned(address_rtl, ADDR_MEM_L_TB));
+					if ((clk_enable(i) = true) and (chip_sel_n(i) = false) and (ras_n(i) = false) and (cas_n(i) = true) and (wr_en_n(i) = false) and (bank_rtl(i) = bank_exp(i)) and (address_bit_vec(10) = '0') ) then
+						write(file_line, string'("PHY Command Decoder: Single Bank Precharge Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: Single Bank Precharge Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp false rtl " & bool_to_str(ras_n(i)) & " cas_n exp true rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp false rtl " & bool_to_str(wr_en_n(i)) & " bank exp " & integer'image(bank_exp(i)) & " rtl " & integer'image(bank_rtl(i)) & "Bit 10 address: exp false rtl " & std_logic_to_str(address_rtl(10))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+				elsif (cmd = to_integer(unsigned(CMD_BANK_PRECHARGE))) then
+					address_bit_vec := std_logic_vector(to_unsigned(address_rtl, ADDR_MEM_L_TB));
+					if ((clk_enable(i) = true) and (chip_sel_n(i) = false) and (ras_n(i) = false) and (cas_n(i) = true) and (wr_en_n(i) = false) and (address_bit_vec(10) = '1') ) then
+						write(file_line, string'("PHY Command Decoder: Single Bank Precharge Command correctly decoded"));
+						writeline(file_pointer, file_line);
+					else
+						write(file_line, string'("PHY Command Decoder: Single Bank Precharge Command: clk_enable exp true " & bool_to_str(clk_enable(i)) & " cs_n exp false rtl " & bool_to_str(chip_sel_n(i)) & " ras_n exp false rtl " & bool_to_str(ras_n(i)) & " cas_n exp true rtl " & bool_to_str(cas_n(i))  & " wr_en_n exp false rtl " & bool_to_str(wr_en_n(i)) & "Bit 10 address: exp true rtl " & std_logic_to_str(address_rtl(10))));
+						writeline(file_pointer, file_line);
+
+						errors := errors + 1;
+					end if;
+
 		end procedure verify;
 
 		variable seed1, seed2	: positive;
@@ -285,7 +381,7 @@ begin
 		reset;
 		file_open(file_pointer, log_file, append_mode);
 
-		write(file_line, string'( "PHY Refresh Controller Test"));
+		write(file_line, string'( "PHY Command Decoder Test"));
 		writeline(file_pointer, file_line);
 
 		for i in 0 to NUM_TEST-1 loop
@@ -305,13 +401,13 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "PHY Refresh Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TEST)));
+		write(file_line, string'( "PHY Command Decoder => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TEST)));
 		writeline(file_pointer, file_line);
 
 		if (num_pass = TOT_NUM_TEST) then
-			write(file_line, string'( "PHY Refresh Controller: TEST PASSED"));
+			write(file_line, string'( "PHY Command Decoder: TEST PASSED"));
 		else
-			write(file_line, string'( "PHY Refresh Controller: TEST FAILED: " & integer'image(TOT_NUM_TEST-num_pass) & " failures"));
+			write(file_line, string'( "PHY Command Decoder: TEST FAILED: " & integer'image(TOT_NUM_TEST-num_pass) & " failures"));
 		end if;
 		writeline(file_pointer, file_line);
 
