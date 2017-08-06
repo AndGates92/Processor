@@ -14,9 +14,9 @@ package ddr2_pkg_tb is
 	constant BANK_L_TB	: positive := positive(int_to_bit_num(BANK_NUM_TB));
 
 	constant COL_L_TB	: positive := 10;
-	constant ROW_L_TB	: positive := 13;
+	constant ROW_L_TB	: positive := 14;
 
-	constant ADDR_MEM_L_TB	: positive := 13;
+	constant ADDR_MEM_L_TB	: positive := 14;
 	constant DDR2_ADDR_L_TB	: positive := ROW_L_TB + COL_L_TB + BANK_L_TB;
 
 	constant DDR2_DATA_L_TB	: positive := 16;
