@@ -31,6 +31,8 @@ package ddr2_phy_ref_ctrl_pkg is
 	constant AUTO_REF_CNT_L		: integer;
 	constant AUTO_REF_TIME		: integer;
 
+	constant MAX_OUTSTANDING_REF	: positive := 8;
+
 	constant OUTSTANDING_REF_CNT_L	: positive := int_to_bit_num(MAX_OUTSTANDING_REF);
 
 	function sel_param (param_sel_true, param_sel_false : integer; sel : boolean) return integer;

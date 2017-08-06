@@ -5,6 +5,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.proc_pkg.all;
+use work.ddr2_define_pkg.all;
 use work.ddr2_mrs_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 

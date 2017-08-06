@@ -4,11 +4,10 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
+use work.ddr2_define_pkg.all;
 use work.proc_pkg.all;
 
 package ddr2_gen_ac_timing_pkg is 
-
-	constant DDR2_CLK_PERIOD	: positive := 1;
 
 	-- Timing parameter (in ns)
 	constant T_WTR_ns		: real := max_real(7.5, (real(2*DDR2_CLK_PERIOD)));
