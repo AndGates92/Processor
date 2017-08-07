@@ -44,21 +44,21 @@ architecture bench of ddr2_phy_cmd_ctrl_tb is
 
 	-- Column Controller
 	-- Arbitrer
-	signal ColCtrlCmdAck_tb		: std_logic;
+	signal ColCtrlCmdAck_tb		: std_logic_vector(COL_CTRL_NUM_TB - 1 downto 0);
 
-	signal ColCtrlColMemOut_tb	: std_logic_vector(COL_L_TB - 1 downto 0);
-	signal ColCtrlBankMemOut_tb	: std_logic_vector(int_to_bit_num(BANK_NUM_TB) - 1 downto 0);
-	signal ColCtrlCmdOut_tb		: std_logic_vector(MEM_CMD_L - 1 downto 0);
-	signal ColCtrlCmdReq_tb		: std_logic;
+	signal ColCtrlColMemOut_tb	: std_logic_vector(COL_CTRL_NUM_TB*COL_L_TB - 1 downto 0);
+	signal ColCtrlBankMemOut_tb	: std_logic_vector(COL_CTRL_NUM_TB*(int_to_bit_num(BANK_NUM_TB)) - 1 downto 0);
+	signal ColCtrlCmdOut_tb		: std_logic_vector(COL_CTRL_NUM_TB*MEM_CMD_L - 1 downto 0);
+	signal ColCtrlCmdReq_tb		: std_logic_vector(COL_CTRL_NUM_TB - 1 downto 0);
 
 	-- Controller
-	signal ColCtrlCtrlReq_tb	: std_logic;
-	signal ColCtrlReadBurstIn_tb	: std_logic;
-	signal ColCtrlColMemIn_tb	: std_logic_vector(COL_L_TB - to_integer(unsigned(BURST_LENGTH)) - 1 downto 0);
-	signal ColCtrlBankMemIn_tb	: std_logic_vector(int_to_bit_num(BANK_NUM_TB) - 1 downto 0);
-	signal ColCtrlBurstLength_tb	: std_logic_vector(BURST_LENGTH_L_TB - 1 downto 0);
+	signal ColCtrlCtrlReq_tb	: std_logic_vector(COL_CTRL_NUM_TB - 1 downto 0);
+	signal ColCtrlReadBurstIn_tb	: std_logic_vector(COL_CTRL_NUM_TB - 1 downto 0);
+	signal ColCtrlColMemIn_tb	: std_logic_vector(COL_CTRL_NUM_TB*(COL_L_TB - to_integer(unsigned(BURST_LENGTH))) - 1 downto 0);
+	signal ColCtrlBankMemIn_tb	: std_logic_vector(COL_CTRL_NUM_TB*(int_to_bit_num(BANK_NUM_TB)) - 1 downto 0);
+	signal ColCtrlBurstLength_tb	: std_logic_vector(COL_CTRL_NUM_TB*BURST_LENGTH_L_TB - 1 downto 0);
 
-	signal ColCtrlCtrlAck_tb	: std_logic;
+	signal ColCtrlCtrlAck_tb	: std_logic_vector(COL_CTRL_NUM_TB - 1 downto 0);
 
 	-- Bank Controllers
 	-- Arbitrer
@@ -80,6 +80,8 @@ architecture bench of ddr2_phy_cmd_ctrl_tb is
 begin
 
 	DUT: ddr2_phy_cmd_ctrl generic map (
+		BANK_CTRL_NUM => BANK_CTRL_NUM_TB,
+		COL_CTRL_NUM => COL_CTRL_NUM_TB,
 		BURST_LENGTH_L => BURST_LENGTH_L_TB,
 		BANK_NUM => BANK_NUM_TB,
 		COL_L => COL_L_TB,
@@ -403,11 +405,11 @@ begin
 
 			-- Column Controller
 			-- Arbitrer
-			ColCtrlCmdAck_tb <= '0';
+			ColCtrlCmdAck_tb <= (others => '0');
 
 			-- Controller
-			ColCtrlCtrlReq_tb <= '0';
-			ColCtrlReadBurstIn_tb <= '0';
+			ColCtrlCtrlReq_tb <= (others => '0');
+			ColCtrlReadBurstIn_tb <= (others => '0');
 			ColCtrlColMemIn_tb <= (others => '0');
 			ColCtrlBankMemIn_tb <= (others => '0');
 			ColCtrlBurstLength_tb <= (others => '0');
@@ -556,8 +558,8 @@ begin
 							ColCtrlBurstLength_tb <= std_logic_vector(to_unsigned(bl_ctrl_int-1, BURST_LENGTH_L_TB));
 							ColCtrlBankMemIn_tb <= std_logic_vector(to_unsigned(col_ctrl_bank_int, int_to_bit_num(BANK_NUM_TB)));
 							ColCtrlColMemIn_tb <= std_logic_vector(to_unsigned(cols_arr(data_phase_num_ctrl_int), (COL_L_TB - to_integer(unsigned(BURST_LENGTH)))));
-							ColCtrlReadBurstIn_tb <= bool_to_std_logic(read_burst_int);
-							ColCtrlCtrlReq_tb <= '1';
+							ColCtrlReadBurstIn_tb(0) <= bool_to_std_logic(read_burst_int);
+							ColCtrlCtrlReq_tb(0) <= '1';
 
 							start_col_arr_exp(bank_ctrl_bursts_int) := col_ctrl_int;
 
@@ -566,30 +568,30 @@ begin
 						else
 							-- Transaction Controller
 							ColCtrlColMemIn_tb <= (others => '0');
-							ColCtrlCtrlReq_tb <= '0';
+							ColCtrlCtrlReq_tb(0) <= '0';
 							col_ctrl_cnt := col_ctrl_cnt + 1;
 						end if;
 
 					else
-						if (ColCtrlCtrlAck_tb = '1') then
-							ColCtrlCtrlReq_tb <= '0';
+						if (ColCtrlCtrlAck_tb(0) = '1') then
+							ColCtrlCtrlReq_tb(0) <= '0';
 							col_ctrl_req := false;
 							data_phase_num_ctrl_int := data_phase_num_ctrl_int + 1;
 						end if;
 					end if;
 				else
-					ColCtrlCtrlReq_tb <= '0';
+					ColCtrlCtrlReq_tb(0) <= '0';
 				end if;
 
 				if ((data_phase_num_cmd_int < bank_ctrl_bursts_int) and (data_phase_num_cmd_int < num_bursts_exp)) then
-					if (ColCtrlCmdReq_tb = '1') then
+					if (ColCtrlCmdReq_tb(0) = '1') then
 						col_cmd_bank_int := bank_arr_exp(data_phase_num_cmd_int);
 						col_cmd_int := integer(real(cols_arr(data_phase_num_cmd_int) + bl_accepted) * BURST_LENGTH_MRS);
 						bl_cmd_int := bl_arr_exp(data_phase_num_cmd_int);
 						col_cmd_delay := cmd_delay_arr(data_phase_num_cmd_int);
 
 						if (col_cmd_cnt = col_cmd_delay) then
-							ColCtrlCmdAck_tb <= '1';
+							ColCtrlCmdAck_tb(0) <= '1';
 							col_rtl := to_integer(unsigned(ColCtrlColMemOut_tb));
 							col_exp := integer(real(cols_arr(data_phase_num_cmd_int) + bl_accepted) * BURST_LENGTH_MRS);
 							if (col_rtl /= col_exp) then
@@ -611,15 +613,15 @@ begin
 								data_phase_num_cmd_int := data_phase_num_cmd_int + 1;
 							end if;
 						else
-							ColCtrlCmdAck_tb <= '0';
+							ColCtrlCmdAck_tb(0) <= '0';
 							col_cmd_cnt := col_cmd_cnt + 1;
 						end if;
 
 					else
-						ColCtrlCmdAck_tb <= '0';
+						ColCtrlCmdAck_tb(0) <= '0';
 					end if;
 				else
-					ColCtrlCmdAck_tb <= '0';
+					ColCtrlCmdAck_tb(0) <= '0';
 				end if;
 
 			end loop;

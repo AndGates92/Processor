@@ -13,6 +13,10 @@ package ddr2_pkg_tb is
 	constant BANK_NUM_TB	: positive := 8;
 	constant BANK_L_TB	: positive := positive(int_to_bit_num(BANK_NUM_TB));
 
+	constant BANK_CTRL_NUM_TB	: positive := BANK_NUM_TB;
+	constant COL_CTRL_NUM_TB	: positive := 1;
+	constant REF_CTRL_NUM_TB	: positive := 1;
+
 	constant COL_L_TB	: positive := 10;
 	constant ROW_L_TB	: positive := 14;
 
