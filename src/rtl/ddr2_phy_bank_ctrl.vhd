@@ -11,6 +11,8 @@ use work.ddr2_phy_bank_ctrl_pkg.all;
 entity ddr2_phy_bank_ctrl is
 generic (
 	ROW_L			: positive := 13;
+	BANK_ID			: integer := 0;
+	BANK_NUM		: positive := 8;
 	MAX_OUTSTANDING_BURSTS	: positive := 10
 );
 port (
@@ -22,6 +24,7 @@ port (
 	CmdAck		: in std_logic;
 
 	RowMemOut	: out std_logic_vector(ROW_L - 1 downto 0);
+	BankMemOut	: out std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	CmdOut		: out std_logic_vector(MEM_CMD_L - 1 downto 0);
 	CmdReq		: out std_logic;
 
@@ -141,6 +144,7 @@ begin
 		end if;
 	end process reg;
 
+	BankMemOut <= std_logic_vector(to_unsigned(BANK_ID, int_to_bit_num(BANK_NUM)));
 	BankActive <= BankActiveC;
 	BankIdle <= BankIdleC;
 	CmdOut <= CMD_BANK_ACT;

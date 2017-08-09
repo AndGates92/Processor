@@ -46,6 +46,7 @@ port (
 	BankCtrlCmdAck		: in std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
 	BankCtrlRowMemOut	: out std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
+	BankCtrlBankMemOut	: out std_logic_vector(BANK_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
 	BankCtrlCmdOut		: out std_logic_vector(BANK_CTRL_NUM*MEM_CMD_L - 1 downto 0);
 	BankCtrlCmdReq		: out std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
@@ -114,6 +115,8 @@ begin
 
 		bank_ctrl: ddr2_phy_bank_ctrl generic map (
 			ROW_L => ROW_L,
+			BANK_ID => i,
+			BANK_NUM => BANK_NUM,
 			MAX_OUTSTANDING_BURSTS => MAX_OUTSTANDING_BURSTS
 		)
 		port map (
@@ -124,6 +127,7 @@ begin
 			CmdAck => BankCtrlCmdAck(i),
 
 			RowMemOut => BankCtrlRowMemOut(((i+1)*ROW_L - 1) downto i*ROW_L),
+			BankMemOut => BankCtrlBankMemOut(((i+1)*(int_to_bit_num(BANK_NUM)) - 1) downto i*(int_to_bit_num(BANK_NUM))),
 			CmdOut => BankCtrlCmdOut(((i+1)*MEM_CMD_L - 1) downto i*MEM_CMD_L),
 			CmdReq => BankCtrlCmdReq(i),
 

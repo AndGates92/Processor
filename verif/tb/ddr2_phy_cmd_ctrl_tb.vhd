@@ -65,6 +65,7 @@ architecture bench of ddr2_phy_cmd_ctrl_tb is
 	signal BankCtrlCmdAck_tb	: std_logic_vector(BANK_NUM_TB - 1 downto 0);
 
 	signal BankCtrlRowMemOut_tb	: std_logic_vector(BANK_NUM_TB*ROW_L_TB - 1 downto 0);
+	signal BankCtrlBankMemOut_tb	: std_logic_vector(BANK_NUM_TB*(int_to_bit_num(BANK_NUM_TB)) - 1 downto 0);
 	signal BankCtrlCmdOut_tb	: std_logic_vector(BANK_NUM_TB*MEM_CMD_L - 1 downto 0);
 	signal BankCtrlCmdReq_tb	: std_logic_vector(BANK_NUM_TB - 1 downto 0);
 
@@ -115,6 +116,7 @@ begin
 		BankCtrlCmdAck => BankCtrlCmdAck_tb,
 
 		BankCtrlRowMemOut => BankCtrlRowMemOut_tb,
+		BankCtrlBankMemOut => BankCtrlBankMemOut_tb,
 		BankCtrlCmdOut => BankCtrlCmdOut_tb,
 		BankCtrlCmdReq => BankCtrlCmdReq_tb,
 

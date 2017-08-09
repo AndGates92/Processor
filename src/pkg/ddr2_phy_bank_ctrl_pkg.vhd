@@ -33,6 +33,8 @@ package ddr2_phy_bank_ctrl_pkg is
 	component ddr2_phy_bank_ctrl
 	generic (
 		ROW_L			: positive := 13;
+		BANK_ID			: integer := 0;
+		BANK_NUM		: positive := 8;
 		MAX_OUTSTANDING_BURSTS	: positive := 10
 	);
 	port (
@@ -44,6 +46,7 @@ package ddr2_phy_bank_ctrl_pkg is
 		CmdAck		: in std_logic;
 
 		RowMemOut	: out std_logic_vector(ROW_L - 1 downto 0);
+		BankMemOut	: out std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 		CmdOut		: out std_logic_vector(MEM_CMD_L - 1 downto 0);
 		CmdReq		: out std_logic;
 

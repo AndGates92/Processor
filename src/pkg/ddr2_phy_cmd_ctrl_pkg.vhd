@@ -47,6 +47,7 @@ package ddr2_phy_cmd_ctrl_pkg is
 		BankCtrlCmdAck		: in std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
 		BankCtrlRowMemOut	: out std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
+		BankCtrlBankMemOut	: out std_logic_vector(BANK_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
 		BankCtrlCmdOut		: out std_logic_vector(BANK_CTRL_NUM*MEM_CMD_L - 1 downto 0);
 		BankCtrlCmdReq		: out std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 

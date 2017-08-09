@@ -6,6 +6,7 @@ use ieee.math_real.all;
 use std.textio.all;
 
 library work;
+use work.proc_pkg.all;
 use work.ddr2_define_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 use work.ddr2_phy_pkg.all;
@@ -25,6 +26,7 @@ architecture bench of ddr2_phy_bank_ctrl_tb is
 	constant TOT_NUM_TEST	: integer := NUM_TEST + NUM_EXTRA_TEST;
 
 	constant MAX_BURST_DELAY	: integer := 20;
+	constant BANK_ID_TB		: integer := 0;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;
@@ -38,6 +40,7 @@ architecture bench of ddr2_phy_bank_ctrl_tb is
 
 	-- Arbitrer
 	signal RowMemOut_tb	: std_logic_vector(ROW_L_TB - 1 downto 0);
+	signal BankMemOut_tb	: std_logic_vector(int_to_bit_num(BANK_NUM_TB) - 1 downto 0);
 	signal CmdOut_tb	: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal CmdReq_tb	: std_logic;
 
@@ -55,6 +58,8 @@ begin
 
 	DUT: ddr2_phy_bank_ctrl generic map (
 		ROW_L => ROW_L_TB,
+		BANK_ID => BANK_ID_TB,
+		BANK_NUM => BANK_NUM_TB,
 		MAX_OUTSTANDING_BURSTS => MAX_OUTSTANDING_BURSTS_TB
 	)
 	port map (
@@ -66,6 +71,7 @@ begin
 		CmdAck => CmdAck_tb,
 
 		RowMemOut => RowMemOut_tb,
+		BankMemOut => BankMemOut_tb,
 		CmdOut => CmdOut_tb,
 		CmdReq => CmdReq_tb,
 
@@ -164,7 +170,7 @@ begin
 			end loop;
 		end procedure test_param;
 
-		procedure run_bank_ctrl (variable num_bursts_exp: in integer; variable cmd_delay_arr, rows_arr_exp, bl_arr : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_arr : in bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable num_bursts_rtl : out integer; variable err_arr, rows_arr_rtl : out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1))) is
+		procedure run_bank_ctrl (variable num_bursts_exp: in integer; variable cmd_delay_arr, rows_arr_exp, bl_arr : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_arr : in bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable num_bursts_rtl : out integer; variable err_arr, rows_arr_rtl, bank_arr_rtl : out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1))) is
 			variable row_cmd_cnt		: integer;
 			variable data_phase_cnt		: integer;
 			variable data_phase_burst_num	: integer;
@@ -237,6 +243,7 @@ begin
 					end if;
 					CmdAck_tb <= '1';
 					rows_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(RowMemOut_tb));
+					bank_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(BankMemOut_tb));
 					if (cmd_req = false) then
 						err_arr_int := err_arr_int + 1;
 					else
@@ -280,6 +287,7 @@ begin
 									CtrlReq_tb <= '0';
 									ctrl_req := false;
 									rows_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(RowMemOut_tb));
+									bank_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(BankMemOut_tb));
 									err_arr(num_bursts_rtl_int) := err_arr_int;
 									num_bursts_rtl_int := num_bursts_rtl_int + 1;
 									cmd_delay := cmd_delay_arr(num_bursts_rtl_int);
@@ -325,8 +333,9 @@ begin
 
 		end procedure run_bank_ctrl;
 
-		procedure verify(variable num_bursts_exp, num_bursts_rtl: in integer; variable err_arr, rows_arr_exp, rows_arr_rtl : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable num_bursts_exp, num_bursts_rtl: in integer; variable err_arr, rows_arr_exp, rows_arr_rtl, bank_arr_rtl : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); file file_pointer : text; variable pass: out integer) is
 			variable match_rows	: boolean;
+			variable match_banks	: boolean;
 			variable no_errors	: boolean;
 			variable file_line	: line;
 		begin
@@ -335,9 +344,10 @@ begin
 			writeline(file_pointer, file_line);
 
 			match_rows := compare_int_arr(rows_arr_exp, rows_arr_rtl, num_bursts_exp);
+			match_banks := compare_int_arr(reset_int_arr(BANK_ID_TB, num_bursts_exp), bank_arr_rtl, num_bursts_exp);
 			no_errors := compare_int_arr(reset_int_arr(0, num_bursts_exp), err_arr, num_bursts_exp);
 
-			if ((BankActive_tb = '0') and (ZeroOutstandingBursts_tb = '1') and (BankIdle_tb = '1') and (match_rows = true) and (no_errors = true) and (num_bursts_exp = num_bursts_rtl)) then
+			if ((BankActive_tb = '0') and (ZeroOutstandingBursts_tb = '1') and (BankIdle_tb = '1') and (match_rows = true) and (match_banks = true) and (no_errors = true) and (num_bursts_exp = num_bursts_rtl)) then
 				write(file_line, string'( "PHY Bank Controller: PASS"));
 				writeline(file_pointer, file_line);
 				pass := 1;
@@ -361,7 +371,15 @@ begin
 				write(file_line, string'( "PHY Bank Controller: FAIL (Row mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Bank Controller: Burst #" & integer'image(i) & " exp " & integer'image(rows_arr_exp(i))) & " vs rtl " & integer'image(rows_arr_rtl(i)));
+					write(file_line, string'( "PHY Bank Controller: Burst #" & integer'image(i) & " exp " & integer'image(rows_arr_exp(i)) & " vs rtl " & integer'image(rows_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_banks = false) then
+				write(file_line, string'( "PHY Bank Controller: FAIL (Bank mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_bursts_exp - 1) loop
+					write(file_line, string'( "PHY Bank Controller: Burst #" & integer'image(i) & " exp " & integer'image(BANK_ID_TB) & " vs rtl " & integer'image(bank_arr_rtl(i))));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
@@ -387,6 +405,7 @@ begin
 
 		variable num_bursts_rtl	: integer;
 		variable rows_arr_rtl	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable bank_arr_rtl	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
 
 		variable read_arr	: bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
 
@@ -399,6 +418,7 @@ begin
 
 		variable num_bursts_rtl_extra	: integer;
 		variable rows_arr_rtl_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable bank_arr_rtl_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
 
 		variable read_arr_extra	: bool_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS_TB) - 1));
 
@@ -429,9 +449,9 @@ begin
 
 			test_param(num_bursts_exp, rows_arr_exp, read_arr, bl_arr, cmd_delay_arr, seed1, seed2);
 
-			run_bank_ctrl(num_bursts_exp, cmd_delay_arr, rows_arr_exp, bl_arr, read_arr, num_bursts_rtl, err_arr, rows_arr_rtl);
+			run_bank_ctrl(num_bursts_exp, cmd_delay_arr, rows_arr_exp, bl_arr, read_arr, num_bursts_rtl, err_arr, rows_arr_rtl, bank_arr_rtl);
 
-			verify(num_bursts_exp, num_bursts_rtl, err_arr, rows_arr_exp, rows_arr_rtl, file_pointer, pass);
+			verify(num_bursts_exp, num_bursts_rtl, err_arr, rows_arr_exp, rows_arr_rtl, bank_arr_rtl, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
@@ -444,9 +464,9 @@ begin
 
 			for i in 0 to NUM_EXTRA_TEST-1 loop
 
-				run_bank_ctrl(num_bursts_exp_extra(i), cmd_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), rows_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), bl_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), read_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), num_bursts_rtl_extra, err_arr_extra, rows_arr_rtl_extra);
+				run_bank_ctrl(num_bursts_exp_extra(i), cmd_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), rows_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), bl_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), read_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), num_bursts_rtl_extra, err_arr_extra, rows_arr_rtl_extra, bank_arr_rtl_extra);
 
-				verify(num_bursts_exp_extra(i), num_bursts_rtl_extra, err_arr_extra, rows_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), rows_arr_rtl_extra, file_pointer, pass);
+				verify(num_bursts_exp_extra(i), num_bursts_rtl_extra, err_arr_extra, rows_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), rows_arr_rtl_extra, bank_arr_rtl_extra, file_pointer, pass);
 
 				num_pass := num_pass + pass;
 
