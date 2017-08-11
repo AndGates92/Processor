@@ -76,7 +76,7 @@ architecture rtl of ddr2_phy_bank_ctrl is
 	signal DataPhase		: std_logic;
 	signal ExitDataPhase		: std_logic;
 
-	signal CtrlAck_comb		: std_logic;
+	signal CtrlAckC, CtrlAckN	: std_logic;
 
 	signal CntBankCtrlC, CntBankCtrlN	: unsigned(CNT_BANK_CTRL_L - 1 downto 0);
 	signal BankCtrlCntEnC, BankCtrlCntEnN	: std_logic;
@@ -120,6 +120,8 @@ begin
 
 			CmdReqC <= '0';
 
+			CtrlAckC <= '0';
+
 		elsif ((clk'event) and (clk = '1')) then
 
 			RowMemC <= RowMemN;
@@ -141,6 +143,8 @@ begin
 
 			CmdReqC <= CmdReqN;
 
+			CtrlAckC <= CtrlAckN;
+
 		end if;
 	end process reg;
 
@@ -150,9 +154,9 @@ begin
 	CmdOut <= CMD_BANK_ACT;
 	CmdReq <= CmdReqC;
 	RowMemOut <= RowMemC;
-	CtrlAck <= CtrlAck_comb;
+	CtrlAck <= CtrlAckC;
 	ZeroOutstandingBursts <= ZeroOutstandingBursts_comb;
-	CtrlAck_comb <=	CtrlReq				when (StateC = BANK_CTRL_IDLE) else
+	CtrlAckN <=	CtrlReq				when (StateC = BANK_CTRL_IDLE) else
 			(CtrlReq and ReqInPrechargeC)	when (StateC = WAIT_ACT_ACK) else
 			(DataPhase and ReqActSameRow); -- return ack only when arbitrer gives the ack or during the data phase
 
@@ -160,12 +164,12 @@ begin
 	ReqActSameRow <= '1' when ((RowMemC = RowMemIn) and (CtrlReq = '1')) else '0';
 
 	-- Store Row open for future comparison
-	RowMemN <= RowMemIn when (((StateC = BANK_CTRL_IDLE) or ((StateC = WAIT_ACT_ACK) and (ReqInPrechargeC = '1'))) and (CtrlAck_comb = '1')) else RowMemC;
+	RowMemN <= RowMemIn when (((StateC = BANK_CTRL_IDLE) or ((StateC = WAIT_ACT_ACK) and (ReqInPrechargeC = '1'))) and (CtrlAckN = '1')) else RowMemC;
 
 	-- Bank in data phase
 	DataPhase <= '1' when ((StateC = ELAPSE_T_ACT_COL) or ((BankActiveC = '1') and  (ExitDataPhase = '0'))) else '0';
 
-	CmdReqN <=	'1'	when ((((StateC = WAIT_ACT_ACK) and (ReqInPrechargeC = '1')) or (StateC = BANK_CTRL_IDLE)) and (CtrlAck_comb = '1')) else
+	CmdReqN <=	'1'	when ((((StateC = WAIT_ACT_ACK) and (ReqInPrechargeC = '1')) or (StateC = BANK_CTRL_IDLE)) and (CtrlAckN = '1')) else
 			'0'	when ((StateC = WAIT_ACT_ACK) and (CmdAck = '1')) else
 			CmdReqC;
 
@@ -222,7 +226,7 @@ begin
 	ResetBankCtrlCnt <= '1' when ((CmdReqC = '1') and (CmdAck = '1') and (StateC = WAIT_ACT_ACK)) else '0';
 
 	ReqInPrechargeN <= 	CtrlReq	when (StateC = ELAPSE_T_RP) else
-				'0'	when ((StateC = WAIT_ACT_ACK) and (CtrlAck_comb = '1')) else
+				'0'	when ((StateC = WAIT_ACT_ACK) and (CtrlAckN = '1')) else
 				ReqInPrechargeC;
 
 	state_det: process(StateC, CtrlReq, CmdAck, TActColReached, ExitDataPhase, OutstandingBurstsC, TRASReached, TRCReached, ZeroDelayCnt)
