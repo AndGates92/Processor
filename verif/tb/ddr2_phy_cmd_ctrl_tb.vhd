@@ -434,8 +434,7 @@ begin
 
 				exit cmd_loop when ((bank_ctrl_bursts_int = num_bursts_exp) and (bank_cmd_bursts_int = num_bursts_exp) and (data_phase_num_cmd_int = num_bursts_exp) and (data_phase_num_ctrl_int = num_bursts_exp));
 
-				if (bank_ctrl_handshake(bank_ctrl_bursts_int) = true) then -- Emulate Register BankCtrlCtrlReq
-					BankCtrlCtrlReq_tb <= (others => '0');
+				if (bank_ctrl_handshake(bank_ctrl_bursts_int) = true) then
 					bank_ctrl_bursts_int := bank_ctrl_bursts_int + 1;
 				end if;
 
@@ -474,6 +473,7 @@ begin
 
 						if (BankCtrlCtrlAck_tb(bank_ctrl_bank_int) = '1') then
 							if (BankCtrlCtrlReq_tb(bank_ctrl_bank_int) = '1') then 
+								BankCtrlCtrlReq_tb <= (others => '0');
 								bank_ctrl_handshake(bank_ctrl_bursts_int) := true;
 								bank_ctrl_req := false;
 								bank_ctrl_err_arr(bank_ctrl_bursts_int) := bank_ctrl_err_int;
@@ -489,6 +489,7 @@ begin
 					else
 						if (BankCtrlCtrlAck_tb(bank_ctrl_bank_int) = '1') then
 							if (BankCtrlCtrlReq_tb(bank_ctrl_bank_int) = '1') then 
+								BankCtrlCtrlReq_tb <= (others => '0');
 								bank_ctrl_handshake(bank_ctrl_bursts_int) := true;
 								bank_ctrl_req := false;
 								bank_ctrl_err_arr(bank_ctrl_bursts_int) := bank_ctrl_err_int;
