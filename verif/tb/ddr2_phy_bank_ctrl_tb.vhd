@@ -209,12 +209,8 @@ begin
 
 				wait for 1 ps;
 
---report "Burst cnt: exp " & integer'image(num_bursts_exp) & " act " & integer'image(num_bursts_rtl_int) & " cmd " & integer'image(num_cmd_rtl_int) & " data phase " & integer'image(data_phase_burst_num); 
-
 				-- Controller Row Request
 				if (num_bursts_rtl_int < num_bursts_exp) then
-
---report "Row " & integer'image(rows_arr_exp(num_bursts_rtl_int));
 
 					ctrl_delay := cmd_delay_arr(num_bursts_rtl_int);
 
@@ -278,7 +274,6 @@ begin
 				-- Data phase
 				if (data_phase_burst_num < num_bursts_exp) then
 
---report "Data phase cnt: exp " & integer'image(bl_arr(data_phase_burst_num)) & " act " & integer'image(data_phase_cnt) & " bank active " & std_logic_to_str(BankActive_tb); 
 					if (BankActive_tb = '1') then
 						if (data_phase_cnt = bl_arr(data_phase_burst_num)) then
 							data_phase_cnt := 0;
@@ -420,8 +415,6 @@ begin
 
 		for i in 0 to NUM_TEST-1 loop
 
-report "test #" & integer'image(i);
-
 			test_param(num_bursts_exp, rows_arr_exp, read_arr, bl_arr, cmd_delay_arr, seed1, seed2);
 
 			run_bank_ctrl(num_bursts_exp, cmd_delay_arr, rows_arr_exp, bl_arr, read_arr, num_bursts_rtl, err_arr, rows_arr_rtl, bank_arr_rtl);
@@ -438,8 +431,6 @@ report "test #" & integer'image(i);
 			setup_extra_tests(num_bursts_exp_extra, rows_arr_exp_extra, read_arr_extra, bl_arr_extra, cmd_delay_arr_extra, seed1, seed2);
 
 			for i in 0 to NUM_EXTRA_TEST-1 loop
-
-report "test #" & integer'image(i);
 
 				run_bank_ctrl(num_bursts_exp_extra(i), cmd_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), rows_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), bl_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), read_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), num_bursts_rtl_extra, err_arr_extra, rows_arr_rtl_extra, bank_arr_rtl_extra);
 
