@@ -172,17 +172,21 @@ begin
 
 		procedure run_bank_ctrl (variable num_bursts_exp: in integer; variable cmd_delay_arr, rows_arr_exp, bl_arr : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_arr : in bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable num_bursts_rtl : out integer; variable err_arr, rows_arr_rtl, bank_arr_rtl : out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1))) is
 			variable row_cmd_cnt		: integer;
+			variable row_ctrl_cnt		: integer;
 			variable data_phase_cnt		: integer;
 			variable data_phase_burst_num	: integer;
 			variable num_bursts_rtl_int	: integer;
+			variable num_cmd_rtl_int	: integer;
 			variable err_arr_int		: integer;
 			variable ctrl_req		: boolean;
-			variable cmd_req		: boolean;
 			variable cmd_delay		: integer;
+			variable ctrl_delay		: integer;
 		begin
 			num_bursts_rtl_int := 0;
+			num_cmd_rtl_int := 0;
 			data_phase_burst_num := 0;
 			row_cmd_cnt := 0;
+			row_ctrl_cnt := 0;
 			data_phase_cnt := 0;
 
 			ReadBurst_tb <= '0';
@@ -195,133 +199,102 @@ begin
 
 			RowMemIn_tb <= std_logic_vector(to_unsigned(rows_arr_exp(num_bursts_rtl_int), ROW_L_TB));
 			cmd_delay := cmd_delay_arr(num_bursts_rtl_int);
+			ctrl_delay := cmd_delay_arr(num_cmd_rtl_int);
 
 			act_loop: loop
 
+				wait until ((clk_tb = '1') and (clk_tb'event));
+
 				exit act_loop when ((num_bursts_rtl_int = num_bursts_exp) and (data_phase_burst_num = num_bursts_exp));
 
-				if (ctrl_req = false) then
-					for i in row_cmd_cnt to cmd_delay loop
-						wait until ((clk_tb = '1') and (clk_tb'event));
-						if (i = cmd_delay) then
+				wait for 1 ps;
+
+--report "Burst cnt: exp " & integer'image(num_bursts_exp) & " act " & integer'image(num_bursts_rtl_int) & " cmd " & integer'image(num_cmd_rtl_int) & " data phase " & integer'image(data_phase_burst_num); 
+
+				-- Controller Row Request
+				if (num_bursts_rtl_int < num_bursts_exp) then
+
+--report "Row " & integer'image(rows_arr_exp(num_bursts_rtl_int));
+
+					ctrl_delay := cmd_delay_arr(num_bursts_rtl_int);
+
+					if (ctrl_req = false) then
+						if (CtrlAck_tb = '1') then
+							err_arr_int := err_arr_int + 1;
+						end if;
+						if (row_ctrl_cnt = ctrl_delay) then
 							CtrlReq_tb <= '1';
 							ctrl_req := true;
 							RowMemIn_tb <= std_logic_vector(to_unsigned(rows_arr_exp(num_bursts_rtl_int), ROW_L_TB));
-							row_cmd_cnt := 0;
-						end if;
-					end loop;
-				end if;
-
-				-- wait bank to be in the idle state
-				while (BankIdle_tb = '0') loop
-					if (CtrlAck_tb = '1') then
-						CtrlReq_tb <= '0';
-						ctrl_req := false;
-					end if;
-					wait until ((clk_tb = '1') and (clk_tb'event));
-				end loop;
-
-				while (CmdReq_tb = '0') loop
-					if (CtrlAck_tb = '1') then
-						CtrlReq_tb <= '0';
-						ctrl_req := false;
-					end if;
-					wait until ((clk_tb = '1') and (clk_tb'event));
-				end loop;
-
-				cmd_req := true;
-
-				while(CmdReq_tb = '1' and CmdAck_tb = '0') loop
-					if (CtrlAck_tb = '1') then
-						if (ctrl_req = false) then
-							err_arr_int := err_arr_int + 1;
+							row_ctrl_cnt := 0;
 						else
-							CtrlReq_tb <= '0';
-							ctrl_req := false;
-							err_arr_int := 0;
+							row_ctrl_cnt := row_ctrl_cnt + 1;
 						end if;
-					end if;
-					CmdAck_tb <= '1';
-					rows_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(RowMemOut_tb));
-					bank_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(BankMemOut_tb));
-					if (cmd_req = false) then
-						err_arr_int := err_arr_int + 1;
 					else
-						cmd_req := false;
-					end if;
-					wait until ((clk_tb = '1') and (clk_tb'event));
-				end loop;
-
-				err_arr(num_bursts_rtl_int) := err_arr_int;
-				num_bursts_rtl_int := num_bursts_rtl_int + 1;
-
-				if (num_bursts_rtl_int < num_bursts_exp) then
-					cmd_delay := cmd_delay_arr(num_bursts_rtl_int);
-				end if;
-
-				err_arr_int := 0;
-				CmdAck_tb <= '0';
-
-				while((ZeroOutstandingBursts_tb = '0') or (EndDataPhase_tb = '0')) loop
-					wait until ((clk_tb = '1') and (clk_tb'event));
-					-- Controller Row Request
-					if (num_bursts_rtl_int < num_bursts_exp) then
-						if (ctrl_req = false) then
-							if (CtrlAck_tb = '1') then
+						if (CtrlAck_tb = '1') then
+							if (ctrl_req = false) then
 								err_arr_int := err_arr_int + 1;
-							end if;
-							if (row_cmd_cnt = cmd_delay) then
-								CtrlReq_tb <= '1';
-								ctrl_req := true;
-								RowMemIn_tb <= std_logic_vector(to_unsigned(rows_arr_exp(num_bursts_rtl_int), ROW_L_TB));
-								cmd_req := true;
-								row_cmd_cnt := 0;
 							else
-								row_cmd_cnt := row_cmd_cnt + 1;
-							end if;
-						else
-							if (CtrlAck_tb = '1') then
-								if (ctrl_req = false) then
-									err_arr_int := err_arr_int + 1;
-								else
-									CtrlReq_tb <= '0';
-									ctrl_req := false;
-									rows_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(RowMemOut_tb));
-									bank_arr_rtl(num_bursts_rtl_int) := to_integer(unsigned(BankMemOut_tb));
-									err_arr(num_bursts_rtl_int) := err_arr_int;
-									num_bursts_rtl_int := num_bursts_rtl_int + 1;
-									cmd_delay := cmd_delay_arr(num_bursts_rtl_int);
-									err_arr_int := 0;
-								end if;
+								CtrlReq_tb <= '0';
+								ctrl_req := false;
+								err_arr(num_bursts_rtl_int) := err_arr_int;
+								num_bursts_rtl_int := num_bursts_rtl_int + 1;
+								err_arr_int := 0;
 							end if;
 						end if;
-					else
-						CtrlReq_tb <= '0';
-						ctrl_req := false;
 					end if;
-					-- Data phase
-					if (data_phase_burst_num < num_bursts_exp) then
+				else
+					CtrlReq_tb <= '0';
+					ctrl_req := false;
+				end if;
 
-						if (BankActive_tb = '1') then
-							if (data_phase_cnt = bl_arr(data_phase_burst_num)) then
-								data_phase_cnt := 0;
-								ReadBurst_tb <= bool_to_std_logic(read_arr(data_phase_burst_num));
-								data_phase_burst_num := data_phase_burst_num + 1;
-								EndDataPhase_tb <= '1';
-							else
-								data_phase_cnt := data_phase_cnt + 1;
-								EndDataPhase_tb <= '0';
-							end if;
+				-- Activate Request
+				if (num_cmd_rtl_int < num_bursts_exp) then
+
+					cmd_delay := cmd_delay_arr(num_cmd_rtl_int);
+
+					if (CmdReq_tb = '1') then
+						if (row_cmd_cnt = cmd_delay) then
+							CmdAck_tb <= '1';
+							rows_arr_rtl(num_cmd_rtl_int) := to_integer(unsigned(RowMemOut_tb));
+							bank_arr_rtl(num_cmd_rtl_int) := to_integer(unsigned(BankMemOut_tb));
+							num_cmd_rtl_int := num_cmd_rtl_int + 1;
+							row_cmd_cnt := 0;
 						else
+							row_cmd_cnt := row_cmd_cnt + 1;
+						end if;
+					else
+						CmdAck_tb <= '0';
+						if (rows_arr_exp(num_cmd_rtl_int) = rows_arr_exp(num_cmd_rtl_int - 1)) then
+							rows_arr_rtl(num_cmd_rtl_int) := rows_arr_exp(num_cmd_rtl_int);
+							bank_arr_rtl(num_cmd_rtl_int) := BANK_ID_TB;
+							num_cmd_rtl_int := num_cmd_rtl_int + 1;
+						end if;
+					end if;
+				else
+					CmdAck_tb <= '0';
+				end if;
+
+				-- Data phase
+				if (data_phase_burst_num < num_bursts_exp) then
+
+--report "Data phase cnt: exp " & integer'image(bl_arr(data_phase_burst_num)) & " act " & integer'image(data_phase_cnt) & " bank active " & std_logic_to_str(BankActive_tb); 
+					if (BankActive_tb = '1') then
+						if (data_phase_cnt = bl_arr(data_phase_burst_num)) then
+							data_phase_cnt := 0;
+							ReadBurst_tb <= bool_to_std_logic(read_arr(data_phase_burst_num));
+							data_phase_burst_num := data_phase_burst_num + 1;
+							EndDataPhase_tb <= '1';
+						else
+							data_phase_cnt := data_phase_cnt + 1;
 							EndDataPhase_tb <= '0';
 						end if;
 					else
 						EndDataPhase_tb <= '0';
 					end if;
-				end loop;
-
-				wait until ((clk_tb = '1') and (clk_tb'event));
-				EndDataPhase_tb <= '0';
+				else
+					EndDataPhase_tb <= '0';
+				end if;
 
 			end loop;
 
@@ -447,6 +420,8 @@ begin
 
 		for i in 0 to NUM_TEST-1 loop
 
+report "test #" & integer'image(i);
+
 			test_param(num_bursts_exp, rows_arr_exp, read_arr, bl_arr, cmd_delay_arr, seed1, seed2);
 
 			run_bank_ctrl(num_bursts_exp, cmd_delay_arr, rows_arr_exp, bl_arr, read_arr, num_bursts_rtl, err_arr, rows_arr_rtl, bank_arr_rtl);
@@ -463,6 +438,8 @@ begin
 			setup_extra_tests(num_bursts_exp_extra, rows_arr_exp_extra, read_arr_extra, bl_arr_extra, cmd_delay_arr_extra, seed1, seed2);
 
 			for i in 0 to NUM_EXTRA_TEST-1 loop
+
+report "test #" & integer'image(i);
 
 				run_bank_ctrl(num_bursts_exp_extra(i), cmd_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), rows_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), bl_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), read_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), num_bursts_rtl_extra, err_arr_extra, rows_arr_rtl_extra, bank_arr_rtl_extra);
 
