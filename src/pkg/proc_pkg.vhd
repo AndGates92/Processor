@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 
 package proc_pkg is 
 
-	function int_to_bit_num(op2_l : integer) return integer;
+	function int_to_bit_num(arg : integer) return integer;
 	function min_int(x, y : integer) return integer;
 	function max_int(x, y : integer) return integer;
 	function max_real(x, y : real) return real;
@@ -28,10 +28,14 @@ end package proc_pkg;
 
 package body proc_pkg is
 
-	function int_to_bit_num(op2_l : integer) return integer is
+	function int_to_bit_num(arg : integer) return integer is
 		variable nbit, tmp	: integer;
 	begin
-		tmp := integer(ceil(log2(real(op2_l))));
+		if (arg = 1) then
+			tmp := 1;
+		else
+			tmp := integer(ceil(log2(real(arg))));
+		end if;
 		nbit := tmp;
 
 		return nbit;
