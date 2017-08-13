@@ -13,11 +13,11 @@ package ddr2_gen_ac_timing_pkg is
 	constant T_WTR_ns		: real := max_real(7.5, (real(2*DDR2_CLK_PERIOD)));
 	constant T_RTP_ns		: real := 7.5;
 	constant T_RCD_ns		: real := 12.5;
-	constant T_RP_ns		: real := 12.5;
-	constant T_RC_ns		: real := 57.5;
 	constant T_RAP_ns		: real := T_RCD_ns;
 	constant T_RAS_ns_min		: real := 45.0;
 	constant T_RAS_ns_max		: real := 7.0e4;
+	constant T_RP_ns		: real := T_RAS_ns_min + T_RP_ns;
+	constant T_RC_ns		: real := 57.5;
 	constant T_RRD_ns		: real := 10.0;
 	constant T_FAW_ns		: real := 45.0;
 	constant T_WR_ns		: real := 15.0;
