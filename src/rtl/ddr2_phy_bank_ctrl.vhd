@@ -229,7 +229,7 @@ begin
 				'0'	when ((StateC = WAIT_ACT_ACK) and (CtrlAckN = '1')) else
 				ReqInPrechargeC;
 
-	state_det: process(StateC, CtrlReq, CmdAck, TActColReached, ExitDataPhase, OutstandingBurstsC, TRASReached, TRCReached, ZeroDelayCnt)
+	state_det: process(StateC, CtrlReq, CmdAck, TActColReached, ExitDataPhase, TRASReached, TRCReached, ZeroDelayCnt)
 	begin
 		StateN <= StateC; -- avoid latched
 		if (StateC = BANK_CTRL_IDLE) then
