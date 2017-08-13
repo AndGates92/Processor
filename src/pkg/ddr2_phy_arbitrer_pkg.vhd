@@ -6,27 +6,59 @@ use ieee.numeric_std.all;
 library work;
 use work.proc_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_phy_bank_ctrl_pkg.all;
-use work.ddr2_mrs_pkg.all;
-use work.ddr2_gen_ac_timing_pkg.all;
 
-package ddr2_phy_data_ctrl_pkg is 
+package ddr2_phy_arbitrer_pkg is 
 
-	constant T_WRITE_TO_PRE_DIFF_BANK	: positive := 1;
-	constant T_WRITE_TO_ACT_DIFF_BANK	: positive := 1;
-	constant T_READ_TO_PRE_DIFF_BANK	: positive := 1;
-	constant T_READ_TO_ACT_DIFF_BANK	: positive := 1;
+	component ddr2_phy_arbitrer is
+	generic (
+		BANK_CTRL_NUM	: positive := 8;
+		COL_CTRL_NUM	: positive := 1;
+		REF_CTRL_NUM	: positive := 1;
+		BANK_NUM	: positive := 8;
+		COL_L		: positive := 10;
+		ROW_L		: positive := 14;
+		ADDR_L		: positive := 14
 
-	constant T_WRITE_TO_PRE_SAME_BANK	: positive := T_WRITE_PRE;
-	constant T_WRITE_TO_ACT_SAME_BANK	: positive := T_WRITE_ACT;
-	constant T_READ_TO_PRE_SAME_BANK	: positive := T_READ_PRE;
-	constant T_READ_TO_ACT_SAME_BANK	: positive := T_READ_ACT;
+	);
+	port (
 
-	constant CNT_BANK_CTRL_L	: integer := int_to_bit_num(max_int(T_RAS_min, max_int(T_RC, T_ACT_COL)));
-	constant CNT_DELAY_L		: integer := int_to_bit_num(max_int(T_READ_PRE, max_int(T_WRITE_PRE, T_RP)));
+		rst		: in std_logic;
+		clk		: in std_logic;
 
-	constant STATE_BANK_CTRL_L	: positive := 3;
+		-- Bank Controllers
+		BankCtrlBankMem		: in std_logic_vector(BANK_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
+		BankCtrlRowMem		: in std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
+		BankCtrlCmdMem		: in std_logic_vector(BANK_CTRL_NUM*MEM_CMD_L - 1 downto 0);
+		BankCtrlCmdReq		: in std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
-	constant DATA_CTRL_IDLE		: std_logic_vector(STATE_BANK_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_BANK_CTRL_L));
+		BankCtrlCmdAck		: out std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
-end package ddr2_phy_data_ctrl_pkg;
+		-- Column Controller
+		ColCtrlColMem		: in std_logic_vector(COL_CTRL_NUM*COL_L - 1 downto 0);
+		ColCtrlBankMem		: in std_logic_vector(COL_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
+		ColCtrlCmdMem		: in std_logic_vector(COL_CTRL_NUM*MEM_CMD_L - 1 downto 0);
+		ColCtrlCmdReq		: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
+
+		ColCtrlCmdAck		: out std_logic_vector(COL_CTRL_NUM - 1 downto 0);
+
+		-- Refresh Controller
+		RefCtrlCmdMem		: in std_logic_vector(REF_CTRL_NUM*MEM_CMD_L - 1 downto 0);
+		RefCtrlCmdReq		: in std_logic_vector(REF_CTRL_NUM - 1 downto 0);
+
+		RefCtrlCmdAck		: out std_logic_vector(REF_CTRL_NUM - 1 downto 0);
+
+		-- Arbitrer Controller
+		AllowBankActivate	: in std_logic;
+
+		BankActOut		: out std_logic;
+
+		-- Command Decoder
+		CmdDecColMem		: out std_logic_vector(COL_L - 1 downto 0);
+		CmdDecRowMem		: out std_logic_vector(ROW_L - 1 downto 0);
+		CmdDecBankMem		: out std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
+		CmdDecCmdMem		: out std_logic_vector(MEM_CMD_L - 1 downto 0);
+		CmdDecMRSCmd		: out std_logic_vector(ADDR_L - 1 downto 0);
+	);
+	end component;
+
+end package ddr2_phy_arbitrer_pkg;
