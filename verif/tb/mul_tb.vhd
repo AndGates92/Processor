@@ -153,7 +153,7 @@ begin
 		mpnd := (0, 10, 0);
 
 		reset;
-		file_open(file_pointer, log_file, append_mode);
+		file_open(file_pointer, mul_log_file, append_mode);
 
 		write(file_line, string'( "Multiplier Test"));
 		writeline(file_pointer, file_line);

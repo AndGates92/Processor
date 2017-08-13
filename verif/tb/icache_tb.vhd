@@ -202,7 +202,7 @@ begin
 
 		reset(ICacheOut_mem, IAddrCacheOut_mem, IValidCacheOut_mem);
 
-		file_open(file_pointer, log_file, append_mode);
+		file_open(file_pointer, icache_log_file, append_mode);
 
 		write(file_line, string'( "Instruction cache Test"));
 		writeline(file_pointer, file_line);

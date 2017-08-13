@@ -232,7 +232,7 @@ begin
 
 		num_pass := 0;
 
-		file_open(file_pointer, log_file, append_mode);
+		file_open(file_pointer, fifo_1clk_log_file, append_mode);
 
 		reset_rd(RdPtrOut_int, emptyOut_bool);
 

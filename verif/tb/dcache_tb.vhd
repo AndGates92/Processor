@@ -256,7 +256,7 @@ begin
 
 		reset(DCacheOut_mem, DAddrCacheOut_mem, DValidCacheOut_mem, DDirtyCacheOut_mem);
 
-		file_open(file_pointer, log_file, append_mode);
+		file_open(file_pointer, dcache_log_file, append_mode);
 
 		write(file_line, string'( "Data cache Test"));
 		writeline(file_pointer, file_line);

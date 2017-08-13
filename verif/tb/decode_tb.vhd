@@ -328,7 +328,7 @@ begin
 		reset;
 
 		PCCallIn := 0;
-		file_open(file_pointer, log_file, append_mode);
+		file_open(file_pointer, decode_log_file, append_mode);
 
 		write(file_line, string'( "Decode stage Test"));
 		writeline(file_pointer, file_line);

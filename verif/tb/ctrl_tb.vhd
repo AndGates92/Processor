@@ -485,7 +485,7 @@ begin
 
 		reset;
 
-		file_open(file_pointer, log_file, append_mode);
+		file_open(file_pointer, ctrl_log_file, append_mode);
 
 		write(file_line, string'( "Control stage Test"));
 		writeline(file_pointer, file_line);

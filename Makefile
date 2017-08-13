@@ -20,7 +20,7 @@ GHDL = ghdl
 GHDL_ARGS = -g --workdir=${WORK_DIR}
 GHDL_RUN_ARGS = --vcd=${WAVES_DIR}/
 
-LOG_FILE = ${WORK_DIR}/summary.log
+LOG_FILES = ${WORK_DIR}/*.log
 SUMMARY_FILE = ${WORK_DIR}/summary
 
 WAVE_READER = gtkwave
@@ -46,7 +46,7 @@ all:
 	make ddr2_phy_cmd_dec_all
 
 clean:
-	rm -rf ${LOG_FILE} ${SUMMARY_FILE} ${WORK_DIR}/*
+	rm -rf ${LOG_FILES} ${SUMMARY_FILE} ${WORK_DIR}/*
 
 work_dir:
 	mkdir -p ${WORK_DIR}

@@ -181,7 +181,7 @@ begin
 		dvd := (0, 10, -10, 0);
 
 		reset;
-		file_open(file_pointer, log_file, append_mode);
+		file_open(file_pointer, div_log_file, append_mode);
 
 		write(file_line, string'( "Divider Test"));
 		writeline(file_pointer, file_line);

@@ -8,8 +8,25 @@ use work.proc_pkg.all;
 
 package tb_pkg is 
 
-	constant log_file	: string := "summary.log";
-	constant summary_file	: string := "summary";
+	constant alu_log_file			: string := "alu.log";
+	constant ctrl_log_file			: string := "ctrl.log";
+	constant dcache_log_file		: string := "dcache.log";
+	constant icache_log_file		: string := "icache.log";
+	constant ddr2_phy_bank_ctrl_log_file	: string := "ddr2_phy_bank_ctrl.log";
+	constant ddr2_phy_col_ctrl_log_file	: string := "ddr2_phy_col_ctrl.log";
+	constant ddr2_phy_cmd_ctrl_log_file	: string := "ddr2_phy_cmd_ctrl.log";
+	constant ddr2_phy_ref_ctrl_log_file	: string := "ddr2_phy_ref_ctrl.log";
+	constant ddr2_phy_cmd_dec_log_file	: string := "ddr2_phy_cmd_dec.log";
+	constant ddr2_phy_init_log_file		: string := "ddr2_phy_init.log";
+	constant decode_log_file		: string := "decode.log";
+	constant div_log_file			: string := "div.log";
+	constant mul_log_file			: string := "mul.log";
+	constant execute_dcache_log_file	: string := "execute_dcache.log";
+	constant execute_log_file		: string := "execute.log";
+	constant fifo_1clk_log_file		: string := "fifo_1clk.log";
+	constant fifo_2clk_log_file		: string := "fifo_2clk.log";
+	constant reg_file_log_file		: string := "reg_file.log";
+	constant summary_file			: string := "summary";
 
 	constant STAT_REG_L_TB	: positive := 8;
 	constant EN_REG_FILE_L_TB	: positive := 3;

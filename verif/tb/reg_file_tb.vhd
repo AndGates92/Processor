@@ -168,7 +168,7 @@ begin
 		num_pass := 0;
 
 		reset(RegFileOut);
-		file_open(file_pointer, log_file, append_mode);
+		file_open(file_pointer, reg_file_log_file, append_mode);
 
 		write(file_line, string'( "Register File Test"));
 		writeline(file_pointer, file_line);

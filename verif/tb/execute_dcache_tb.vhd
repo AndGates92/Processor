@@ -226,7 +226,7 @@ begin
 		num_pass := 0;
 
 		reset(RegFileOut_int, StatusReg_ideal);
-		file_open(file_pointer, log_file, append_mode);
+		file_open(file_pointer, execute_dcache_log_file, append_mode);
 
 		write(file_line, string'( "Execute stage with dcache Test"));
 		writeline(file_pointer, file_line);

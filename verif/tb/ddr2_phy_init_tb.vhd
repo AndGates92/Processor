@@ -111,7 +111,7 @@ begin
 
 		num_pass := 0;
 
-		file_open(file_pointer, log_file, append_mode);
+		file_open(file_pointer, ddr2_phy_init_log_file, append_mode);
 
 		write(file_line, string'( "PHY Init Test"));
 		writeline(file_pointer, file_line);

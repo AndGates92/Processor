@@ -585,7 +585,7 @@ begin
 		num_pass := 0;
 
 		reset;
-		file_open(file_pointer, log_file, append_mode);
+		file_open(file_pointer, ddr2_phy_col_ctrl_log_file, append_mode);
 
 		write(file_line, string'( "PHY Column Controller Test"));
 		writeline(file_pointer, file_line);
