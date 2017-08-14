@@ -125,7 +125,7 @@ begin
 			DataIn_tb <= std_logic_vector(to_unsigned(data_in_in, DATA_L));
 
 			uniform(seed1, seed2, rand_val);
-			read_in := rand_bool(rand_val);
+			read_in := rand_bool(rand_val, 0.5);
 			read_bool := read_in;
 			Read_tb <= bool_to_std_logic(read_in);
 

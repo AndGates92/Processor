@@ -130,7 +130,7 @@ begin
 				uniform(seed1, seed2, rand_val);
 				cmd_delay(i) := integer(rand_val*real(MAX_BURST_DELAY));
 				uniform(seed1, seed2, rand_val);
-				read_burst(i) := rand_bool(rand_val);
+				read_burst(i) := rand_bool(rand_val, 0.5);
 			end loop;
 
 
@@ -160,7 +160,7 @@ begin
 				uniform(seed1, seed2, rand_val);
 				cmd_delay(i) := integer(rand_val*real(MAX_BURST_DELAY));
 				uniform(seed1, seed2, rand_val);
-				read_burst(i) := rand_bool(rand_val);
+				read_burst(i) := rand_bool(rand_val, 0.5);
 			end loop;
 			for i in num_bursts to (MAX_OUTSTANDING_BURSTS_TB - 1) loop
 				rows(i) := int_arr_def;

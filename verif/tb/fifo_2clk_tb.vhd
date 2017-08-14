@@ -155,7 +155,7 @@ begin
 
 			if (full_tb = '0') then
 				uniform(seed1, seed2, rand_val);
-				En_wr_in := rand_bool(rand_val);
+				En_wr_in := rand_bool(rand_val, 0.5);
 				En_wr_tb <= bool_to_std_logic(En_wr_in), '0' after CLK_WR_PERIOD;
 				En_wr_bool := En_wr_in;
 			else
@@ -165,7 +165,7 @@ begin
 
 			if (empty_tb = '0') then
 				uniform(seed1, seed2, rand_val);
-				En_rd_in := rand_bool(rand_val);
+				En_rd_in := rand_bool(rand_val, 0.5);
 				En_rd_tb <= bool_to_std_logic(En_rd_in), '0' after CLK_RD_PERIOD;
 				En_rd_bool := En_rd_in;
 			else

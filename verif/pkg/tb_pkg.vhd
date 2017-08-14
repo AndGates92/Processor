@@ -50,8 +50,8 @@ package tb_pkg is
 	function max_time(time1, time2 : time) return time;
 	function round(val : real) return integer;
 
-	function rand_bool(rand_val : real) return boolean;
-	function rand_sign(sign_val : real) return real;
+	function rand_bool(rand_val, weight : real) return boolean;
+	function rand_sign(sign_val, weight : real) return real;
 
 	function reset_int_arr(val, num_el : integer) return int_arr;
 	function compare_int_arr(arr1, arr2 : int_arr; num_el : integer) return boolean;
@@ -95,10 +95,11 @@ package body tb_pkg is
 		return max;
 	end function;
 
-	function rand_sign(sign_val : real) return real is
+	function rand_sign(sign_val, weight : real) return real is
 		variable sign 	: real;
 	begin
-		if (sign_val > 0.5) then
+		assert (weight <= 1.0) report "weight must be less 1.0" severity FAILURE;
+		if (sign_val > weight) then
 			sign := -1.0;
 		else
 			sign := 1.0;
@@ -107,10 +108,11 @@ package body tb_pkg is
 		return sign;
 	end function;
 
-	function rand_bool(rand_val : real) return boolean is
+	function rand_bool(rand_val, weight : real) return boolean is
 		variable bool	: boolean;
 	begin
-		if (rand_val > 0.5) then
+		assert (weight <= 1.0) report "weight must be less 1.0" severity FAILURE;
+		if (rand_val > weight) then
 			bool := True;
 		else
 			bool := False;

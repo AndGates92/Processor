@@ -29,7 +29,7 @@ package body fifo_pkg_tb is
 
 		if (ctrl_flag = '0') then
 			uniform(seed1, seed2, rand_val);
-			En_in := rand_bool(rand_val);
+			En_in := rand_bool(rand_val, 0.5);
 			Enable <= bool_to_std_logic(En_in), '0' after PERIOD;
 		else
 			Enable <= '0';

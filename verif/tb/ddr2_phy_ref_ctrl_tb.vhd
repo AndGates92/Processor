@@ -143,7 +143,7 @@ begin
 				uniform(seed1, seed2, rand_val);
 				bank_idle_delay(i) := integer(rand_val*real(MAX_BANK_IDLE_DELAY));
 				uniform(seed1, seed2, rand_val);
-				self_refresh(i) := rand_bool(rand_val);
+				self_refresh(i) := rand_bool(rand_val, 0.5);
 			end loop;
 			for i in num_requests_int to (MAX_REQUESTS_PER_TEST - 1) loop
 				cmd_req_ack_delay(i) := int_arr_def;

@@ -153,7 +153,7 @@ begin
 					cmd_act_delay(j*MAX_OUTSTANDING_BURSTS_TB+i) := integer(rand_val*real(MAX_BURST_DELAY));
 					read_burst(j*MAX_OUTSTANDING_BURSTS_TB+i) := read_burst_set;
 					uniform(seed1, seed2, rand_val);
-					last_burst(j*MAX_OUTSTANDING_BURSTS_TB+i) := rand_bool(rand_val);
+					last_burst(j*MAX_OUTSTANDING_BURSTS_TB+i) := rand_bool(rand_val, 0.5);
 				end loop;
 				for i in num_bursts_int to (MAX_OUTSTANDING_BURSTS_TB - 1) loop
 					cols(j*MAX_OUTSTANDING_BURSTS_TB+i) := int_arr_def;
@@ -208,9 +208,9 @@ begin
 				uniform(seed1, seed2, rand_val);
 				cmd_act_delay(i) := integer(rand_val*real(MAX_BURST_DELAY));
 				uniform(seed1, seed2, rand_val);
-				read_burst(i) := rand_bool(rand_val);
+				read_burst(i) := rand_bool(rand_val, 0.5);
 				uniform(seed1, seed2, rand_val);
-				last_burst(i) := rand_bool(rand_val);
+				last_burst(i) := rand_bool(rand_val, 0.5);
 			end loop;
 			for i in num_bursts_int to (MAX_OUTSTANDING_BURSTS_TB - 1) loop
 				cols(i) := int_arr_def;

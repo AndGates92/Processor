@@ -146,7 +146,7 @@ begin
 
 			if (CtrlCmd_in = to_integer(unsigned(CTRL_CMD_ALU))) then
 				uniform(seed1, seed2, rand_val);
-				EnableRegFile_in := rand_bool(rand_val);
+				EnableRegFile_in := rand_bool(rand_val, 0.5);
 				EnableRegFile_vec(2) := bool_to_std_logic(EnableRegFile_in);
 				EnableRegFile_vec(1 downto 0) := "11";
 				EnableRegFile_In_tb(2) <= bool_to_std_logic(EnableRegFile_in);

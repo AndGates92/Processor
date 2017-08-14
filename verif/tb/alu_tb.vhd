@@ -88,10 +88,10 @@ begin
 			if (Cmd_int = CMD_ALU_SSUM) or (Cmd_int = CMD_ALU_SSUB) or (Cmd_int = CMD_ALU_SCMP) then
 				uniform(seed1, seed2, rand_val);
 				uniform(seed1, seed2, sign_val);
-				Op1_in := integer(rand_sign(sign_val)*rand_val*(2.0**(real(OP1_L_TB) - 1.0) - 1.0));
+				Op1_in := integer(rand_sign(sign_val, 0.5)*rand_val*(2.0**(real(OP1_L_TB) - 1.0) - 1.0));
 				uniform(seed1, seed2, rand_val);
 				uniform(seed1, seed2, sign_val);
-				Op2_in := integer(rand_sign(sign_val)*rand_val*(2.0**(real(OP2_L_TB) - 1.0) - 1.0));
+				Op2_in := integer(rand_sign(sign_val, 0.5)*rand_val*(2.0**(real(OP2_L_TB) - 1.0) - 1.0));
 
 				Op1_tb <= std_logic_vector(to_signed(Op1_in, OP1_L_TB));
 				Op2_tb <= std_logic_vector(to_signed(Op2_in, OP2_L_TB));
