@@ -56,7 +56,8 @@ port (
 	CmdDecRowMem		: out std_logic_vector(ROW_L - 1 downto 0);
 	CmdDecBankMem		: out std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	CmdDecCmdMem		: out std_logic_vector(MEM_CMD_L - 1 downto 0);
-	CmdDecMRSCmd		: out std_logic_vector(ADDR_L - 1 downto 0);
+	CmdDecMRSCmd		: out std_logic_vector(ADDR_L - 1 downto 0)
+
 );
 end entity ddr2_phy_arbitrer;
 
