@@ -12,6 +12,7 @@ package tb_pkg is
 	constant ctrl_log_file			: string := "ctrl.log";
 	constant dcache_log_file		: string := "dcache.log";
 	constant icache_log_file		: string := "icache.log";
+	constant ddr2_phy_arbitrer_log_file	: string := "ddr2_phy_arbitrer.log";
 	constant ddr2_phy_bank_ctrl_log_file	: string := "ddr2_phy_bank_ctrl.log";
 	constant ddr2_phy_col_ctrl_log_file	: string := "ddr2_phy_col_ctrl.log";
 	constant ddr2_phy_cmd_ctrl_log_file	: string := "ddr2_phy_cmd_ctrl.log";
