@@ -262,8 +262,6 @@ begin
 		end loop;
 	end process priority_mux;
 
-
-
 	CmdDecColMem <=	PriorityColMem		when (PriorityCmdReq = '1') else
 			ColPriorityColMem	when (ColPriorityCmdReq = '1') else
 			BankPriorityColMem	when (BankPriorityCmdReq = '1') else
