@@ -63,15 +63,18 @@ end entity ddr2_phy_arbitrer;
 
 architecture rtl of ddr2_phy_arbitrer is
 
-	constant MAX_VALUE_PRIORITY		: unsigned(int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0) := to_unsigned((COL_CTRL_NUM+BANK_CTRL_NUM-1), int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM));
-	constant MAX_VALUE_BANK_PRIORITY	: unsigned(int_to_bit_num(BANK_CTRL_NUM - 1 downto 0) := to_unsigned((BANK_CTRL_NUM-1), int_to_bit_num(BANK_CTRL_NUM));
-	constant MAX_VALUE_COL_PRIORITY		: unsigned(int_to_bit_num(COL_CTRL_NUM - 1 downto 0) := to_unsigned((COL_CTRL_NUM-1), int_to_bit_num(COL_CTRL_NUM));
-	constant MAX_VALUE_REF_PRIORITY		: unsigned(int_to_bit_num(REF_CTRL_NUM - 1 downto 0) := to_unsigned((REF_CTRL_NUM-1), int_to_bit_num(REF_CTRL_NUM));
+	constant MAX_VALUE_PRIORITY		: unsigned(int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0) := to_unsigned((COL_CTRL_NUM+BANK_CTRL_NUM), int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM));
+	constant MAX_VALUE_BANK_PRIORITY	: unsigned(int_to_bit_num(BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(BANK_CTRL_NUM, int_to_bit_num(BANK_CTRL_NUM));
+	constant MAX_VALUE_COL_PRIORITY		: unsigned(int_to_bit_num(COL_CTRL_NUM) - 1 downto 0) := to_unsigned(COL_CTRL_NUM, int_to_bit_num(COL_CTRL_NUM));
+	constant MAX_VALUE_REF_PRIORITY		: unsigned(int_to_bit_num(REF_CTRL_NUM) - 1 downto 0) := to_unsigned(REF_CTRL_NUM, int_to_bit_num(REF_CTRL_NUM));
 
-	constant incr_value_priority		: unsigned(int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM));
-	constant incr_value_bank_priority	: unsigned(int_to_bit_num(BANK_CTRL_NUM - 1 downto 0) := to_unsigned(1, int_to_bit_num(BANK_CTRL_NUM));
-	constant incr_value_col_priority	: unsigned(int_to_bit_num(COL_CTRL_NUM - 1 downto 0) := to_unsigned(1, int_to_bit_num(COL_CTRL_NUM));
-	constant incr_value_ref_priority	: unsigned(int_to_bit_num(REF_CTRL_NUM - 1 downto 0) := to_unsigned(1, int_to_bit_num(REF_CTRL_NUM));
+	constant incr_value_priority		: unsigned(int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM - 1));
+	constant incr_value_bank_priority	: unsigned(int_to_bit_num(BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(BANK_CTRL_NUM));
+	constant incr_value_col_priority	: unsigned(int_to_bit_num(COL_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(COL_CTRL_NUM));
+	constant incr_value_ref_priority	: unsigned(int_to_bit_num(REF_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(REF_CTRL_NUM));
+
+	constant ZeroColCtrlRowMem		: std_logic_vector(COL_CTRL_NUM*ROW_L - 1 downto 0) := (others => '0');
+	constant ZeroBankCtrlColMem		: std_logic_vector(BANK_CTRL_NUM*COL_L - 1 downto 0) := (others => '0');
 
 	signal PriorityC, PriorityN		: unsigned(int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0);
 	signal BankPriorityC, BankPriorityN	: unsigned(int_to_bit_num(BANK_CTRL_NUM) - 1 downto 0);
@@ -145,7 +148,7 @@ begin
 				PriorityN <= (PriorityC + incr_value_priority);
 			end if;
 		else -- increment priority only if activate is allowed through (i.e. tFAW exceeded and tRRD exceeded)
-			if (AllowBankActivate) then
+			if (AllowBankActivate = '1') then
 				if (PriorityC = MAX_VALUE_PRIORITY) then
 					PriorityN <= (others => '0');
 				else
@@ -159,7 +162,7 @@ begin
 
 	bank_priority_next: process(BankPriorityC, AllowBankActivate)
 	begin
-		if (AllowBankActivate) then -- increment priority only if activate is allowed through (i.e. tFAW exceeded and tRRD exceeded)
+		if (AllowBankActivate = '1') then -- increment priority only if activate is allowed through (i.e. tFAW exceeded and tRRD exceeded)
 			if (BankPriorityC = MAX_VALUE_BANK_PRIORITY) then
 				BankPriorityN <= (others => '0');
 			else
@@ -174,9 +177,9 @@ begin
 
 	RefPriorityN <= (others => '0') when (RefPriorityC = MAX_VALUE_REF_PRIORITY) else (RefPriorityC + incr_value_ref_priority);
 
-	ColMem <= (COL_CTRL_NUM*COL_L - 1 downto 0 => ColCtrlColMem, others => '0');
+	ColMem <= ZeroBankCtrlColMem & ColCtrlColMem;
 	BankMem <= BankCtrlBankMem & ColCtrlBankMem;
-	RowMem <= ((BANK_CTRL_NUM+COL_CTRL_NUM)*ROW_L - 1 downto COL_CTRL_NUM*ROW_L => BankCtrlRowMem, others => '0');
+	RowMem <= BankCtrlRowMem & ZeroColCtrlRowMem;
 	CmdMem <= BankCtrlCmdMem & ColCtrlCmdMem;
 	CmdReq <= BankCtrlCmdReq & ColCtrlCmdReq;
 
@@ -260,7 +263,7 @@ begin
 				RefPriorityCmdReq <= RefCtrlCmdReq(i);
 			end if;
 		end loop;
-	end process priority_mux;
+	end process ref_priority_mux;
 
 	CmdDecColMem <=	PriorityColMem		when (PriorityCmdReq = '1') else
 			ColPriorityColMem	when (ColPriorityCmdReq = '1') else
