@@ -29,13 +29,13 @@ package ddr2_pkg_tb is
 	constant MAX_OUTSTANDING_BURSTS_TB		: positive := 10;
 	constant MAX_OUTSTANDING_BURSTS_L_TB		: positive := int_to_bit_num(MAX_OUTSTANDING_BURSTS_TB);
 
-	function ddr2_cmd_std_vect_to_txt (Cmd: std_logic_vector(MEM_CMD_L-1 downto 0)) return string;
+	function ddr2_cmd_std_logic_vector_to_txt (Cmd: std_logic_vector(MEM_CMD_L-1 downto 0)) return string;
 
 end package ddr2_pkg_tb;
 
 package body ddr2_pkg_tb is
 
-	function ddr2_cmd_std_vect_to_txt(Cmd: std_logic_vector(MEM_CMD_L-1 downto 0)) return string is
+	function ddr2_cmd_std_logic_vector_to_txt(Cmd: std_logic_vector(MEM_CMD_L-1 downto 0)) return string is
 		variable Cmd_txt : string(1 to 18);
 	begin
 		if (Cmd = CMD_NOP) then
