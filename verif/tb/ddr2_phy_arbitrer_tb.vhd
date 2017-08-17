@@ -9,18 +9,19 @@ library work;
 use work.proc_pkg.all;
 use work.ddr2_define_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_phy_bank_ctrl_pkg.all;
+use work.ddr2_phy_arbitrer_pkg.all;
+use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
 use work.ddr2_pkg_tb.all;
 
-entity ddr2_phy_bank_ctrl_tb is
-end entity ddr2_phy_bank_ctrl_tb;
+entity ddr2_phy_arbitrer_tb is
+end entity ddr2_phy_arbitrer_tb;
 
-architecture bench of ddr2_phy_bank_ctrl_tb is
+architecture bench of ddr2_phy_arbitrer_tb is
 
 	constant CLK_PERIOD	: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TEST	: integer := 1000;
-	constant TOT_NUM_TEST	: integer := NUM_TEST;
+	constant NUM_TESTS	: integer := 1000;
+	constant TOT_NUM_TESTS	: integer := NUM_TESTS;
 
 	constant MAX_REQUESTS_PER_TEST		: integer := 50;
 
@@ -203,7 +204,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_arbitrer(variable num_requests_exp : in integer; variable bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable bank_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable col_ctrl_bank, col_ctrl_col, col_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable col_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable allow_act : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_ack, col_arr_err, bank_arr_err, ref_arr_err : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
+		procedure run_arbitrer(variable num_requests_exp : in integer; variable bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable bank_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable col_ctrl_bank, col_ctrl_col, col_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable col_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable allow_act : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_ack, col_ack_err, bank_ack_err, ref_ack_err : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
 
 			variable num_requests_rtl_int	: integer;
 			variable num_cmd_rtl_int	: integer;
@@ -225,9 +226,9 @@ begin
 			col_priority := 0;
 			ref_priority := 0;
 
-			col_arr_err := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
-			bank_arr_err := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
-			ref_arr_err := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			col_ack_err := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			bank_ack_err := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			ref_ack_err := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
 
 			bank_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
 			col_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
@@ -254,15 +255,15 @@ begin
 					for i in 0 to (BANK_CTRL_NUM_TB - 1) loop
 						BankCtrlBankMem_tb((i+1)*int_to_bit_num(BANK_NUM_TB) - 1 downto i*int_to_bit_num(BANK_NUM_TB)) <= std_logic_vector(to_unsigned(bank_ctrl_bank(num_requests_rtl_int, i), int_to_bit_num(BANK_NUM_TB)));
 						BankCtrlRowMem_tb((i+1)*ROW_L_TB - 1 downto i*ROW_L_TB) <= std_logic_vector(to_unsigned(bank_ctrl_row(num_requests_rtl_int, i), ROW_L_TB));
-						BankCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= std_logic_vector(to_unsigned(bank_ctrl_cmd(num_requests_rtl_int, i). MEM_CMD_L));
-						BankCtrlCmdMReq_tb(i) <= bool_to_std_logic(bank_ctrl_cmd_req(num_requests_rtl_int, i));
+						BankCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= std_logic_vector(to_unsigned(bank_ctrl_cmd(num_requests_rtl_int, i), MEM_CMD_L));
+						BankCtrlCmdReq_tb(i) <= bool_to_std_logic(bank_ctrl_cmd_req(num_requests_rtl_int, i));
 					end loop;
 
 					for i in 0 to (COL_CTRL_NUM_TB - 1) loop
 						ColCtrlBankMem_tb((i+1)*int_to_bit_num(BANK_NUM_TB) - 1 downto i*int_to_bit_num(BANK_NUM_TB)) <= std_logic_vector(to_unsigned(col_ctrl_bank(num_requests_rtl_int, i), int_to_bit_num(BANK_NUM_TB)));
 						ColCtrlColMem_tb((i+1)*COL_L_TB - 1 downto i*COL_L_TB) <= std_logic_vector(to_unsigned(col_ctrl_col(num_requests_rtl_int, i), COL_L_TB));
-						ColCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= std_logic_vector(to_unsigned(col_ctrl_cmd(num_requests_rtl_int, i), MEM_CMD_L);
-						ColCtrlCmdMReq_tb(i) <= bool_to_std_logic(col_ctrl_cmd_req(num_requests_rtl_int, i));
+						ColCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= std_logic_vector(to_unsigned(col_ctrl_cmd(num_requests_rtl_int, i), MEM_CMD_L));
+						ColCtrlCmdReq_tb(i) <= bool_to_std_logic(col_ctrl_cmd_req(num_requests_rtl_int, i));
 					end loop;
 
 					for i in 0 to (REF_CTRL_NUM_TB - 1) loop
@@ -310,10 +311,10 @@ begin
 								cmd_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecCmdMem_tb));
 								cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(ColCtrlCmdAck_tb(priority));
 
-								bank_exp(num_cmd_rtl_int) := col_ctrl_bank(num_requests_rtl_int, priority);
-								col_exp(num_cmd_rtl_int) := col_ctrl_col(num_requests_rtl_int, priority);
+								bank_exp(num_cmd_rtl_int) := col_ctrl_bank(num_cmd_rtl_int, priority);
+								col_exp(num_cmd_rtl_int) := col_ctrl_col(num_cmd_rtl_int, priority);
 								row_exp(num_cmd_rtl_int) := 0;
-								cmd_exp(num_cmd_rtl_int) := col_ctrl_cmd(num_requests_rtl_int, priority);
+								cmd_exp(num_cmd_rtl_int) := col_ctrl_cmd(num_cmd_rtl_int, priority);
 
 								for i in 0 to (COL_CTRL_NUM_TB - 1) loop
 									if (i /= priority) then
@@ -322,28 +323,28 @@ begin
 								end loop;
 
 								if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
-									bank_ack_arr(num_cmd_rtl_int) := true;
+									bank_ack_err(num_cmd_rtl_int) := true;
 								end if;
 
 								if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
-									ref_ack_arr(num_cmd_rtl_int) := true;
+									ref_ack_err(num_cmd_rtl_int) := true;
 								end if;
 
 								cmd_found := true;
 							end if;
-						elsif ((priority >= COL_CTRL_NUM_TB) and (priority < BANK_CTRL_NUM_TB)) then
+						elsif ((priority >= COL_CTRL_NUM_TB) and (priority < (COL_CTRL_NUM_TB + BANK_CTRL_NUM_TB))) then
 							if (allow_act(num_cmd_rtl_int) = true) then
 								if (bank_ctrl_cmd_req(num_cmd_rtl_int, (priority - COL_CTRL_NUM_TB))) then
 									bank_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecBankMem_tb));
 									col_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecColMem_tb));
 									row_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecRowMem_tb));
 									cmd_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecCmdMem_tb));
-									cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(ColCtrlCmdAck_tb(priority));
+									cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(BankCtrlCmdAck_tb(priority - COL_CTRL_NUM_TB));
 
-									bank_exp(num_cmd_rtl_int) := bank_ctrl_bank(num_requests_rtl_int, priority);
+									bank_exp(num_cmd_rtl_int) := bank_ctrl_bank(num_cmd_rtl_int, priority - COL_CTRL_NUM_TB);
 									col_exp(num_cmd_rtl_int) := 0;
-									row_exp(num_cmd_rtl_int) := bank_ctrl_col(num_requests_rtl_int, priority);
-									cmd_exp(num_cmd_rtl_int) := bank_ctrl_cmd(num_requests_rtl_int, priority);
+									row_exp(num_cmd_rtl_int) := bank_ctrl_row(num_cmd_rtl_int, priority - COL_CTRL_NUM_TB);
+									cmd_exp(num_cmd_rtl_int) := bank_ctrl_cmd(num_cmd_rtl_int, priority - COL_CTRL_NUM_TB);
 
 
 									for i in 0 to (BANK_CTRL_NUM_TB - 1) loop
@@ -353,37 +354,37 @@ begin
 									end loop;
 
 									if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
-										col_ack_arr(num_cmd_rtl_int) := true;
+										col_ack_err(num_cmd_rtl_int) := true;
 									end if;
 
 									if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
-										ref_ack_arr(num_cmd_rtl_int) := true;
+										ref_ack_err(num_cmd_rtl_int) := true;
 									end if;
 
 									cmd_found := true;
 								end if;
 							end if;
 						else
-							bank_ack_arr(num_cmd_rtl_int) := true;
-							col_ack_arr(num_cmd_rtl_int) := true;
-							ref_ack_arr(num_cmd_rtl_int) := true;
+							bank_ack_err(num_cmd_rtl_int) := true;
+							col_ack_err(num_cmd_rtl_int) := true;
+							ref_ack_err(num_cmd_rtl_int) := true;
 						end if;
 					end if;
 
 					-- Command
 					if (cmd_found = false) then
 						if (col_priority < COL_CTRL_NUM_TB) then
-							if (col_ctrl_cmd_req(num_cmd_rtl_int, col_priority)) then
+							if (col_ctrl_cmd_req(num_cmd_rtl_int, col_priority) = true) then
 								bank_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecBankMem_tb));
 								col_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecColMem_tb));
 								row_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecRowMem_tb));
 								cmd_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecCmdMem_tb));
 								cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(ColCtrlCmdAck_tb(col_priority));
 
-								bank_exp(num_cmd_rtl_int) := col_ctrl_bank(num_requests_rtl_int, col_priority);
-								col_exp(num_cmd_rtl_int) := col_ctrl_col(num_requests_rtl_int, col_priority);
+								bank_exp(num_cmd_rtl_int) := col_ctrl_bank(num_cmd_rtl_int, col_priority);
+								col_exp(num_cmd_rtl_int) := col_ctrl_col(num_cmd_rtl_int, col_priority);
 								row_exp(num_cmd_rtl_int) := 0;
-								cmd_exp(num_cmd_rtl_int) := col_ctrl_cmd(num_requests_rtl_int, col_priority);
+								cmd_exp(num_cmd_rtl_int) := col_ctrl_cmd(num_cmd_rtl_int, col_priority);
 
 								for i in 0 to (COL_CTRL_NUM_TB - 1) loop
 									if (i /= col_priority) then
@@ -392,19 +393,19 @@ begin
 								end loop;
 
 								if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
-									bank_ack_arr(num_cmd_rtl_int) := true;
+									bank_ack_err(num_cmd_rtl_int) := true;
 								end if;
 
 								if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
-									ref_ack_arr(num_cmd_rtl_int) := true;
+									ref_ack_err(num_cmd_rtl_int) := true;
 								end if;
 
 								cmd_found := true;
 							end if;
 						else
-							bank_ack_arr(num_cmd_rtl_int) := true;
-							col_ack_arr(num_cmd_rtl_int) := true;
-							ref_ack_arr(num_cmd_rtl_int) := true;
+							bank_ack_err(num_cmd_rtl_int) := true;
+							col_ack_err(num_cmd_rtl_int) := true;
+							ref_ack_err(num_cmd_rtl_int) := true;
 						end if;
 					end if;
 
@@ -412,17 +413,17 @@ begin
 					if (cmd_found = false) then
 						if (allow_act(num_cmd_rtl_int) = true) then
 							if (bank_priority < BANK_CTRL_NUM_TB) then
-								if (col_ctrl_cmd_req(num_cmd_rtl_int, bank_priority)) then
+								if (bank_ctrl_cmd_req(num_cmd_rtl_int, bank_priority) = true) then
 									bank_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecBankMem_tb));
 									col_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecColMem_tb));
 									row_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecRowMem_tb));
 									cmd_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecCmdMem_tb));
-									cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(ColCtrlCmdAck_tb(bank_priority));
+									cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(BankCtrlCmdAck_tb(bank_priority));
 
-									bank_exp(num_cmd_rtl_int) := col_ctrl_bank(num_requests_rtl_int, bank_priority);
-									col_exp(num_cmd_rtl_int) := col_ctrl_col(num_requests_rtl_int, bank_priority);
-									row_exp(num_cmd_rtl_int) := 0;
-									cmd_exp(num_cmd_rtl_int) := col_ctrl_cmd(num_requests_rtl_int, bank_priority);
+									bank_exp(num_cmd_rtl_int) := bank_ctrl_bank(num_cmd_rtl_int, bank_priority);
+									row_exp(num_cmd_rtl_int) := bank_ctrl_row(num_cmd_rtl_int, bank_priority);
+									col_exp(num_cmd_rtl_int) := 0;
+									cmd_exp(num_cmd_rtl_int) := bank_ctrl_cmd(num_cmd_rtl_int, bank_priority);
 
 									for i in 0 to (BANK_CTRL_NUM_TB - 1) loop
 										if (i /= bank_priority) then
@@ -431,19 +432,19 @@ begin
 									end loop;
 
 									if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
-										col_ack_arr(num_cmd_rtl_int) := true;
+										col_ack_err(num_cmd_rtl_int) := true;
 									end if;
 
 									if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
-										ref_ack_arr(num_cmd_rtl_int) := true;
+										ref_ack_err(num_cmd_rtl_int) := true;
 									end if;
 
 									cmd_found := true;
 								end if;
 							else
-								bank_ack_arr(num_cmd_rtl_int) := true;
-								col_ack_arr(num_cmd_rtl_int) := true;
-								ref_ack_arr(num_cmd_rtl_int) := true;
+								bank_ack_err(num_cmd_rtl_int) := true;
+								col_ack_err(num_cmd_rtl_int) := true;
+								ref_ack_err(num_cmd_rtl_int) := true;
 							end if;
 						end if;
 					end if;
@@ -451,17 +452,17 @@ begin
 					-- Refresh
 					if (cmd_found = false) then
 						if (ref_priority < BANK_CTRL_NUM_TB) then
-							if (ref_ctrl_cmd_req(num_cmd_rtl_int, bank_priority)) then
+							if (ref_ctrl_cmd_req(num_cmd_rtl_int, ref_priority) = true) then
 								bank_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecBankMem_tb));
 								col_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecColMem_tb));
 								row_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecRowMem_tb));
 								cmd_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecCmdMem_tb));
-								cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(ColCtrlCmdAck_tb(ref_priority));
+								cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(RefCtrlCmdAck_tb(ref_priority));
 
-								bank_exp(num_cmd_rtl_int) := ref_ctrl_bank(num_requests_rtl_int, ref_priority);
+								bank_exp(num_cmd_rtl_int) := 0;
 								col_exp(num_cmd_rtl_int) := 0;
 								row_exp(num_cmd_rtl_int) := 0;
-								cmd_exp(num_cmd_rtl_int) := ref_ctrl_cmd(num_requests_rtl_int, ref_priority);
+								cmd_exp(num_cmd_rtl_int) := ref_ctrl_cmd(num_cmd_rtl_int, ref_priority);
 
 								for i in 0 to (REF_CTRL_NUM_TB - 1) loop
 									if (i /= ref_priority) then
@@ -470,19 +471,19 @@ begin
 								end loop;
 
 								if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
-									col_ack_arr(num_cmd_rtl_int) := true;
+									col_ack_err(num_cmd_rtl_int) := true;
 								end if;
 
 								if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
-									ref_ack_arr(num_cmd_rtl_int) := true;
+									ref_ack_err(num_cmd_rtl_int) := true;
 								end if;
 
 								cmd_found := true;
 							end if;
 						else
-							bank_ack_arr(num_cmd_rtl_int) := true;
-							col_ack_arr(num_cmd_rtl_int) := true;
-							ref_ack_arr(num_cmd_rtl_int) := true;
+							bank_ack_err(num_cmd_rtl_int) := true;
+							col_ack_err(num_cmd_rtl_int) := true;
+							ref_ack_err(num_cmd_rtl_int) := true;
 						end if;
 					end if;
 
@@ -532,7 +533,7 @@ begin
 
 		end procedure run_arbitrer;
 
-		procedure verify(variable num_requests_exp, num_requests_rtl : in integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_ack, col_arr_err, bank_arr_err, ref_arr_err : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable num_requests_exp, num_requests_rtl : in integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_ack, col_ack_err, bank_ack_err, ref_ack_err : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
 
 			variable match_bank		: boolean;
 			variable match_row		: boolean;
@@ -553,19 +554,19 @@ begin
 			match_col := compare_int_arr(col_exp, col_rtl, num_requests_exp);
 			match_cmd := compare_int_arr(cmd_exp, cmd_rtl, num_requests_exp);
 
-			match_bank_err := compare_int_arr(reset_int_arr(0, num_requests_exp), bank_arr_err, num_requests_exp);
-			match_col_err := compare_int_arr(reset_int_arr(0, num_requests_exp), col_arr_err, num_requests_exp);
-			match_ref_err := compare_int_arr(reset_int_arr(0, num_requests_exp), ref_arr_err, num_requests_exp);
+			match_bank_err := compare_bool_arr(reset_bool_arr(false, num_requests_exp), bank_ack_err, num_requests_exp);
+			match_col_err := compare_bool_arr(reset_bool_arr(false, num_requests_exp), col_ack_err, num_requests_exp);
+			match_ref_err := compare_bool_arr(reset_bool_arr(false, num_requests_exp), ref_ack_err, num_requests_exp);
 
 			match_ack := false;
 			for i in 0 to (num_requests_exp - 1) loop
-				if ((cmd_ack(i) = false) and (cmd_exp /= to_integer(unsigned(CMD_NOP)))) then
+				if ((cmd_ack(i) = false) and (cmd_exp(i) /= to_integer(unsigned(CMD_NOP)))) then
 					match_ack := true;
 				end if;
 			end loop;
 
 			for i in 0 to (num_requests_exp - 1) loop
-				write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " details: Bank " & integer'image(bank_exp(i)) & " Row " & integer'image(row_exp(i)) & " Col " & integer'image(col_exp(i)) & " Cmd " & ddr2_cmd_std_logic_to_str(cmd_exp(i))));
+				write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " details: Bank " & integer'image(bank_exp(i)) & " Row " & integer'image(row_exp(i)) & " Col " & integer'image(col_exp(i)) & " Cmd " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_exp(i), MEM_CMD_L)))));
 				writeline(file_pointer, file_line);
 			end loop;
 
@@ -605,7 +606,7 @@ begin
 				write(file_line, string'( "PHY Arbitrer: FAIL (Command mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
-					write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " exp " & ddr2_cmd_std_logic_to_str(cmd_exp(i)) & " vs rtl " & ddr2_cmd_std_logic_to_str(cmd_rtl(i))));
+					write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_rtl(i), MEM_CMD_L)))));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
@@ -613,7 +614,7 @@ begin
 				write(file_line, string'( "PHY Arbitrer: FAIL (Bank Controller Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
-					write(file_line, string'( "PHY Arbitrer: Error Request #" & integer'image(i) & ": " & integer'image(bank_arr_err(i))));
+					write(file_line, string'( "PHY Arbitrer: Error Request #" & integer'image(i) & ": " & bool_to_str(bank_ack_err(i))));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
@@ -621,7 +622,7 @@ begin
 				write(file_line, string'( "PHY Arbitrer: FAIL (Column Controller Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
-					write(file_line, string'( "PHY Arbitrer: Error Request #" & integer'image(i) & ": " & integer'image(col_arr_err(i))));
+					write(file_line, string'( "PHY Arbitrer: Error Request #" & integer'image(i) & ": " & bool_to_str(col_ack_err(i))));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
@@ -629,7 +630,7 @@ begin
 				write(file_line, string'( "PHY Arbitrer: FAIL (Refresh Controller Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
-					write(file_line, string'( "PHY Arbitrer: Error Request #" & integer'image(i) & ": " & integer'image(ref_arr_err(i))));
+					write(file_line, string'( "PHY Arbitrer: Error Request #" & integer'image(i) & ": " & bool_to_str(ref_ack_err(i))));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
@@ -637,7 +638,7 @@ begin
 				write(file_line, string'( "PHY Arbitrer: FAIL (Handshake Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
-					write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " Command Ack " & std_logic_to_str(cmd_ack(i)) & " Cmd exp " & ddr2_cmd_std_logic_to_str(cmd_exp(i)) & " vs rtl " & ddr2_cmd_std_logic_to_str(cmd_rtl(i))));
+					write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " Command Ack " & bool_to_str(cmd_ack(i)) & " Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_rtl(i), MEM_CMD_L)))));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
@@ -649,9 +650,6 @@ begin
 		end procedure verify;
 
 		variable seed1, seed2	: positive;
-
-		variable num_requests_exp	: integer;
-		variable num_requests_rtl	: integer;
 
 		variable num_requests_exp	: integer;
 		variable num_requests_rtl	: integer;
@@ -686,9 +684,9 @@ begin
 
 		variable cmd_ack		: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
-		variable col_arr_err		: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
-		variable bank_arr_err		: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
-		variable ref_arr_err		: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable col_ack_err		: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable bank_ack_err		: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable ref_ack_err		: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
 		variable pass		: integer;
 		variable num_pass	: integer;
@@ -711,11 +709,11 @@ begin
 
 		for i in 0 to NUM_TESTS-1 loop
 
-			test_param(num_requests, bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd, bank_ctrl_cmd_req, col_ctrl_bank, col_ctrl_col, col_ctrl_cmd, col_ctrl_cmd_req, ref_ctrl_cmd, ref_ctrl_cmd_req, allow_act, seed1, seed2);
+			test_param(num_requests_exp, bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd, bank_ctrl_cmd_req, col_ctrl_bank, col_ctrl_col, col_ctrl_cmd, col_ctrl_cmd_req, ref_ctrl_cmd, ref_ctrl_cmd_req, allow_act, seed1, seed2);
 
-			run_arbitrer(num_requests_exp, bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd, bank_ctrl_cmd_req, col_ctrl_bank, col_ctrl_col, col_ctrl_cmd, col_ctrl_cmd_req, ref_ctrl_cmd, ref_ctrl_cmd_req, allow_act, num_requests_rtl, bank_rtl, row_rtl, col_rtl, cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, cmd_ack, col_arr_err, bank_arr_err, ref_arr_err);
+			run_arbitrer(num_requests_exp, bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd, bank_ctrl_cmd_req, col_ctrl_bank, col_ctrl_col, col_ctrl_cmd, col_ctrl_cmd_req, ref_ctrl_cmd, ref_ctrl_cmd_req, allow_act, num_requests_rtl, bank_rtl, row_rtl, col_rtl, cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, cmd_ack, col_ack_err, bank_ack_err, ref_ack_err);
 
-			verify(num_requests_exp, num_requests_rtl, bank_rtl, row_rtl, col_rtl, cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, cmd_ack, col_arr_err, bank_arr_err, ref_arr_err, file_pointer, pass);
+			verify(num_requests_exp, num_requests_rtl, bank_rtl, row_rtl, col_rtl, cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
@@ -740,9 +738,5 @@ begin
 		stop <= true;
 
 	end process test;
-
-
-
-
 
 end bench;
