@@ -68,7 +68,7 @@ architecture rtl of ddr2_phy_arbitrer is
 	constant MAX_VALUE_COL_PRIORITY		: unsigned(int_to_bit_num(COL_CTRL_NUM) - 1 downto 0) := to_unsigned(COL_CTRL_NUM, int_to_bit_num(COL_CTRL_NUM));
 	constant MAX_VALUE_REF_PRIORITY		: unsigned(int_to_bit_num(REF_CTRL_NUM) - 1 downto 0) := to_unsigned(REF_CTRL_NUM, int_to_bit_num(REF_CTRL_NUM));
 
-	constant incr_value_priority		: unsigned(int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM - 1));
+	constant incr_value_priority		: unsigned(int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM));
 	constant incr_value_bank_priority	: unsigned(int_to_bit_num(BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(BANK_CTRL_NUM));
 	constant incr_value_col_priority	: unsigned(int_to_bit_num(COL_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(COL_CTRL_NUM));
 	constant incr_value_ref_priority	: unsigned(int_to_bit_num(REF_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(REF_CTRL_NUM));
@@ -82,7 +82,7 @@ architecture rtl of ddr2_phy_arbitrer is
 	signal RefPriorityC, RefPriorityN	: unsigned(int_to_bit_num(REF_CTRL_NUM) - 1 downto 0);
 
 	signal ColMem				: std_logic_vector((COL_CTRL_NUM+BANK_CTRL_NUM)*COL_L - 1 downto 0);
-	signal BankMem				: std_logic_vector((COL_CTRL_NUM+BANK_CTRL_NUM)*ROW_L - 1 downto 0);
+	signal BankMem				: std_logic_vector((COL_CTRL_NUM+BANK_CTRL_NUM)*int_to_bit_num(BANK_NUM) - 1 downto 0);
 	signal RowMem				: std_logic_vector((COL_CTRL_NUM+BANK_CTRL_NUM)*ROW_L - 1 downto 0);
 	signal CmdMem				: std_logic_vector((COL_CTRL_NUM+BANK_CTRL_NUM)*MEM_CMD_L - 1 downto 0);
 	signal CmdReq				: std_logic_vector((COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0);
@@ -90,19 +90,19 @@ architecture rtl of ddr2_phy_arbitrer is
 	signal CmdAck				: std_logic_vector((COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0);
 
 	signal PriorityColMem			: std_logic_vector(COL_L - 1 downto 0);
-	signal PriorityBankMem			: std_logic_vector(ROW_L - 1 downto 0);
+	signal PriorityBankMem			: std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	signal PriorityRowMem			: std_logic_vector(ROW_L - 1 downto 0);
 	signal PriorityCmdMem			: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal PriorityCmdReq			: std_logic;
 
 	signal BankPriorityColMem		: std_logic_vector(COL_L - 1 downto 0);
-	signal BankPriorityBankMem		: std_logic_vector(ROW_L - 1 downto 0);
+	signal BankPriorityBankMem		: std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	signal BankPriorityRowMem		: std_logic_vector(ROW_L - 1 downto 0);
 	signal BankPriorityCmdMem		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal BankPriorityCmdReq		: std_logic;
 
 	signal ColPriorityColMem		: std_logic_vector(COL_L - 1 downto 0);
-	signal ColPriorityBankMem		: std_logic_vector(ROW_L - 1 downto 0);
+	signal ColPriorityBankMem		: std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	signal ColPriorityRowMem		: std_logic_vector(ROW_L - 1 downto 0);
 	signal ColPriorityCmdMem		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal ColPriorityCmdReq		: std_logic;
