@@ -31,6 +31,8 @@ package body proc_pkg is
 	function int_to_bit_num(arg : integer) return integer is
 		variable nbit, tmp	: integer;
 	begin
+
+		assert (arg > 0) report "arg of int_to_bit_num must nbe larger than 0" severity ERROR;
 		if (arg = 1) then
 			tmp := 1;
 		else
