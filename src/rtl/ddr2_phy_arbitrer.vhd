@@ -63,10 +63,10 @@ end entity ddr2_phy_arbitrer;
 
 architecture rtl of ddr2_phy_arbitrer is
 
-	constant MAX_VALUE_PRIORITY		: unsigned(int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0) := to_unsigned((COL_CTRL_NUM+BANK_CTRL_NUM), int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM));
-	constant MAX_VALUE_BANK_PRIORITY	: unsigned(int_to_bit_num(BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(BANK_CTRL_NUM, int_to_bit_num(BANK_CTRL_NUM));
-	constant MAX_VALUE_COL_PRIORITY		: unsigned(int_to_bit_num(COL_CTRL_NUM) - 1 downto 0) := to_unsigned(COL_CTRL_NUM, int_to_bit_num(COL_CTRL_NUM));
-	constant MAX_VALUE_REF_PRIORITY		: unsigned(int_to_bit_num(REF_CTRL_NUM) - 1 downto 0) := to_unsigned(REF_CTRL_NUM, int_to_bit_num(REF_CTRL_NUM));
+	constant MAX_VALUE_PRIORITY		: unsigned(int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0) := to_unsigned((COL_CTRL_NUM+BANK_CTRL_NUM - 1), int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM));
+	constant MAX_VALUE_BANK_PRIORITY	: unsigned(int_to_bit_num(BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(BANK_CTRL_NUM - 1, int_to_bit_num(BANK_CTRL_NUM));
+	constant MAX_VALUE_COL_PRIORITY		: unsigned(int_to_bit_num(COL_CTRL_NUM) - 1 downto 0) := to_unsigned(COL_CTRL_NUM - 1, int_to_bit_num(COL_CTRL_NUM));
+	constant MAX_VALUE_REF_PRIORITY		: unsigned(int_to_bit_num(REF_CTRL_NUM) - 1 downto 0) := to_unsigned(REF_CTRL_NUM - 1, int_to_bit_num(REF_CTRL_NUM));
 
 	constant incr_value_priority		: unsigned(int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM));
 	constant incr_value_bank_priority	: unsigned(int_to_bit_num(BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(1, int_to_bit_num(BANK_CTRL_NUM));
@@ -182,6 +182,7 @@ begin
 	RowMem <= BankCtrlRowMem & ZeroColCtrlRowMem;
 	CmdMem <= BankCtrlCmdMem & ColCtrlCmdMem;
 	CmdReq <= BankCtrlCmdReq & ColCtrlCmdReq;
+	CmdDecMRSCmd <= (others => '0');
 
 	BankCtrlCmdAck <= CmdAck((COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto COL_CTRL_NUM);
 	ColCtrlCmdAck <= CmdAck(COL_CTRL_NUM - 1 downto 0);
@@ -302,7 +303,7 @@ begin
 		end if;
 	end process bank_act_out;
 
-	ack_mux: process(PriorityC, BankPriorityC, ColPriorityC, PriorityCmdReq, BankPriorityCmdReq, ColPriorityCmdReq)
+	ack_mux: process(PriorityC, BankPriorityC, ColPriorityC, RefPriorityC, PriorityCmdReq, BankPriorityCmdReq, ColPriorityCmdReq, RefPriorityCmdReq)
 	begin
 		CmdAck <= (others => '0');
 		RefCtrlCmdAck <= (others => '0');
@@ -328,7 +329,7 @@ begin
 			for i in COL_CTRL_NUM to ((COL_CTRL_NUM+BANK_CTRL_NUM) - 1) loop
 				CmdAck(i) <= '0';
 			end loop;
-		elsif (ColPriorityCmdReq = '1') then
+		elsif (BankPriorityCmdReq = '1') then
 			RefCtrlCmdAck <= (others => '0');
 			for i in 0 to (COL_CTRL_NUM - 1) loop
 				CmdAck(i) <= '0';
