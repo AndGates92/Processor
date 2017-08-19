@@ -14,6 +14,7 @@ package ddr2_phy_arbitrer_pkg is
 		BANK_CTRL_NUM	: positive := 8;
 		COL_CTRL_NUM	: positive := 1;
 		REF_CTRL_NUM	: positive := 1;
+		MRS_CTRL_NUM	: positive := 1;
 		BANK_NUM	: positive := 8;
 		COL_L		: positive := 10;
 		ROW_L		: positive := 14;
@@ -46,6 +47,13 @@ package ddr2_phy_arbitrer_pkg is
 		RefCtrlCmdReq		: in std_logic_vector(REF_CTRL_NUM - 1 downto 0);
 
 		RefCtrlCmdAck		: out std_logic_vector(REF_CTRL_NUM - 1 downto 0);
+
+		-- MRS Controller
+		MRSCtrlMRSCmd		: in std_logic_vector(MRS_CTRL_NUM*ADDR_L - 1 downto 0);
+		MRSCtrlCmdMem		: in std_logic_vector(MRS_CTRL_NUM*MEM_CMD_L - 1 downto 0);
+		MRSCtrlCmdReq		: in std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
+
+		MRSCtrlCmdAck		: out std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
 
 		-- Arbitrer Controller
 		AllowBankActivate	: in std_logic;
