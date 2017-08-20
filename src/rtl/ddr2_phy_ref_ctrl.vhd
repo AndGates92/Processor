@@ -108,8 +108,7 @@ begin
 
 			StateC <= REF_CTRL_IDLE;
 
-			-- Initialize at T_REFI - 2 because count down until 0 and enable signal is registered out
-			CntAutoRefC <= to_unsigned(AUTO_REF_TIME - 2, AUTO_REF_CNT_L);
+			CntAutoRefC <= to_unsigned(AUTO_REF_TIME - 1, AUTO_REF_CNT_L);
 			AutoRefCntEnC <= '0';
 
 			CntOutstandingRefC <= (others => '0');
@@ -273,7 +272,7 @@ begin
 				StateN <= ENABLE_OP;
 			end if;
 		elsif (StateC = ODT_DISABLE) then
-			if (ODTCtrlAck = '1') then
+			if (ODTCtrlAck = '1') then -- Receive ODT Ack after turn off delay
 				StateN <= SELF_REF_ENTRY_REQUEST;
 			end if;
 		elsif (StateC = SELF_REF_ENTRY_REQUEST) then
