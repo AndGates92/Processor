@@ -44,7 +44,7 @@ all:
 	make ddr2_phy_ref_ctrl_all
 	make ddr2_phy_cmd_ctrl_all
 	make ddr2_phy_cmd_dec_all
-	make ddr2_phy_arbitrer_all
+	make ddr2_phy_arbiter_all
 
 clean:
 	rm -rf ${LOG_FILES} ${SUMMARY_FILE} ${WORK_DIR}/*
@@ -83,8 +83,8 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ddr2_phy_ref_ctrl_pkg.vhd
 	@echo "Analysing ${RTL_PKG_DIR}/ddr2_phy_cmd_ctrl_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ddr2_phy_cmd_ctrl_pkg.vhd
-	@echo "Analysing ${RTL_PKG_DIR}/ddr2_phy_arbitrer_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ddr2_phy_arbitrer_pkg.vhd
+	@echo "Analysing ${RTL_PKG_DIR}/ddr2_phy_arbiter_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ddr2_phy_arbiter_pkg.vhd
 	@echo "Analysing ${RTL_PKG_DIR}/ddr2_phy_cmd_dec_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${RTL_PKG_DIR}/ddr2_phy_cmd_dec_pkg.vhd
 	@echo "Analysing ${RTL_PKG_DIR}/alu_pkg.vhd"
@@ -554,23 +554,23 @@ ddr2_phy_cmd_dec_all:
 	make ddr2_phy_cmd_dec
 	make simulate_ddr2_phy_cmd_dec
 
-ddr2_phy_arbitrer: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_arbitrer_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+ddr2_phy_arbiter: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_arbiter_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 
-	@echo "Analysing ${RTL_DIR}/ddr2_phy_arbitrer.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/ddr2_phy_arbitrer.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_arbitrer_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ddr2_phy_arbitrer_tb.vhd
-	@echo "Elaborating ddr2_phy_arbitrer_tb"
-	${GHDL} -e ${GHDL_ARGS} ddr2_phy_arbitrer_tb
-	rm -r e~ddr2_phy_arbitrer_tb.o
-	mv ddr2_phy_arbitrer_tb ${WORK_DIR}
+	@echo "Analysing ${RTL_DIR}/ddr2_phy_arbiter.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${RTL_DIR}/ddr2_phy_arbiter.vhd
+	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_arbiter_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ddr2_phy_arbiter_tb.vhd
+	@echo "Elaborating ddr2_phy_arbiter_tb"
+	${GHDL} -e ${GHDL_ARGS} ddr2_phy_arbiter_tb
+	rm -r e~ddr2_phy_arbiter_tb.o
+	mv ddr2_phy_arbiter_tb ${WORK_DIR}
 
-simulate_ddr2_phy_arbitrer: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_arbitrer.o ${WORK_DIR}/ddr2_phy_arbitrer_pkg.o ${WORK_DIR}/ddr2_phy_arbitrer_tb.o
-	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_arbitrer_tb ${GHDL_RUN_ARGS}ddr2_phy_arbitrer.vcd
+simulate_ddr2_phy_arbiter: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_arbiter.o ${WORK_DIR}/ddr2_phy_arbiter_pkg.o ${WORK_DIR}/ddr2_phy_arbiter_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_arbiter_tb ${GHDL_RUN_ARGS}ddr2_phy_arbiter.vcd
 
-ddr2_phy_arbitrer_all:
+ddr2_phy_arbiter_all:
 	make work_dir
 	make libraries
-	make ddr2_phy_arbitrer
-	make simulate_ddr2_phy_arbitrer
+	make ddr2_phy_arbiter
+	make simulate_ddr2_phy_arbiter
 
