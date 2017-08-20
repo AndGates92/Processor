@@ -7,9 +7,9 @@ library work;
 use work.proc_pkg.all;
 use work.ddr2_phy_pkg.all;
 
-package ddr2_phy_arbitrer_pkg is 
+package ddr2_phy_arbiter_pkg is 
 
-	component ddr2_phy_arbitrer is
+	component ddr2_phy_arbiter is
 	generic (
 		BANK_CTRL_NUM	: positive := 8;
 		COL_CTRL_NUM	: positive := 1;
@@ -55,7 +55,7 @@ package ddr2_phy_arbitrer_pkg is
 
 		MRSCtrlCmdAck		: out std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
 
-		-- Arbitrer Controller
+		-- Arbiter Controller
 		AllowBankActivate	: in std_logic;
 
 		BankActOut		: out std_logic;
@@ -69,4 +69,4 @@ package ddr2_phy_arbitrer_pkg is
 	);
 	end component;
 
-end package ddr2_phy_arbitrer_pkg;
+end package ddr2_phy_arbiter_pkg;

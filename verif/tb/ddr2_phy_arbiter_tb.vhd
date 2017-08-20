@@ -9,15 +9,15 @@ library work;
 use work.proc_pkg.all;
 use work.ddr2_define_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_phy_arbitrer_pkg.all;
+use work.ddr2_phy_arbiter_pkg.all;
 use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
 use work.ddr2_pkg_tb.all;
 
-entity ddr2_phy_arbitrer_tb is
-end entity ddr2_phy_arbitrer_tb;
+entity ddr2_phy_arbiter_tb is
+end entity ddr2_phy_arbiter_tb;
 
-architecture bench of ddr2_phy_arbitrer_tb is
+architecture bench of ddr2_phy_arbiter_tb is
 
 	constant CLK_PERIOD	: time := DDR2_CLK_PERIOD * 1 ns;
 	constant NUM_TESTS	: integer := 1000;
@@ -65,7 +65,7 @@ architecture bench of ddr2_phy_arbitrer_tb is
 
 	signal MRSCtrlCmdAck_tb		: std_logic_vector(MRS_CTRL_NUM_TB - 1 downto 0);
 
-	-- Arbitrer Controller
+	-- Arbiter Controller
 	signal AllowBankActivate_tb	: std_logic;
 
 	signal BankActOut_tb		: std_logic;
@@ -79,7 +79,7 @@ architecture bench of ddr2_phy_arbitrer_tb is
 
 begin
 
-	DUT: ddr2_phy_arbitrer generic map (
+	DUT: ddr2_phy_arbiter generic map (
 		ROW_L => ROW_L_TB,
 		COL_L => COL_L_TB,
 		ADDR_L => ADDR_MEM_L_TB,
@@ -122,7 +122,7 @@ begin
 
 		MRSCtrlCmdAck => MRSCtrlCmdAck_tb,
 
-		-- Arbitrer Controller
+		-- Arbiter Controller
 		AllowBankActivate => AllowBankActivate_tb,
 
 		BankActOut => BankActOut_tb,
@@ -246,7 +246,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_arbitrer(variable num_requests_exp : in integer; variable bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable bank_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable col_ctrl_bank, col_ctrl_col, col_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable col_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable mrs_ctrl_mrs_cmd, mrs_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable mrs_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable allow_act : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, mrs_cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, mrs_cmd_exp : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, mrs_ack_err : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
+		procedure run_arbiter(variable num_requests_exp : in integer; variable bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable bank_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable col_ctrl_bank, col_ctrl_col, col_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable col_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable mrs_ctrl_mrs_cmd, mrs_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable mrs_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable allow_act : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, mrs_cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, mrs_cmd_exp : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, mrs_ack_err : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
 
 			variable num_requests_rtl_int	: integer;
 			variable num_cmd_rtl_int	: integer;
@@ -659,7 +659,7 @@ begin
 
 			num_requests_rtl := num_requests_rtl_int;
 
-		end procedure run_arbitrer;
+		end procedure run_arbiter;
 
 		procedure verify(variable num_requests_exp, num_requests_rtl : in integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, mrs_cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, mrs_cmd_exp : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, mrs_ack_err : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
 
@@ -698,120 +698,120 @@ begin
 			end loop;
 
 			for i in 0 to (num_requests_exp - 1) loop
-				write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " details: Bank " & integer'image(bank_exp(i)) & " Row " & integer'image(row_exp(i)) & " Col " & integer'image(col_exp(i)) & " MRS " & integer'image(mrs_cmd_exp(i)) & " Cmd " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_exp(i), MEM_CMD_L)))));
+				write(file_line, string'( "PHY Arbiter: Request #" & integer'image(i) & " details: Bank " & integer'image(bank_exp(i)) & " Row " & integer'image(row_exp(i)) & " Col " & integer'image(col_exp(i)) & " MRS " & integer'image(mrs_cmd_exp(i)) & " Cmd " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_exp(i), MEM_CMD_L)))));
 				writeline(file_pointer, file_line);
 			end loop;
 
 			if ((match_bank = true) and (match_row = true) and (match_col = true) and (match_cmd = true)  and (match_mrs_cmd = true) and (match_ack = true) and (num_requests_exp = num_requests_rtl) and (match_bank_err = true) and (match_col_err = true) and (match_ref_err = true) and (match_mrs_err = true)) then
-				write(file_line, string'( "PHY Arbitrer: PASS"));
+				write(file_line, string'( "PHY Arbiter: PASS"));
 				writeline(file_pointer, file_line);
 				pass := 1;
 			elsif (num_requests_exp /= num_requests_rtl) then
-				write(file_line, string'( "PHY Arbitrer: FAIL (Number of requests mismatch): exp " & integer'image(num_requests_exp) & " rtl " & integer'image(num_requests_rtl)));
+				write(file_line, string'( "PHY Arbiter: FAIL (Number of requests mismatch): exp " & integer'image(num_requests_exp) & " rtl " & integer'image(num_requests_rtl)));
 				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (match_bank = false) then
-				write(file_line, string'( "PHY Arbitrer: FAIL (Bank mismatch)"));
+				write(file_line, string'( "PHY Arbiter: FAIL (Bank mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
 					if (row_exp(i) /= row_rtl(i)) then
-						write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " exp " & integer'image(bank_exp(i)) & " vs rtl " & integer'image(bank_rtl(i))));
+						write(file_line, string'( "PHY Arbiter: Request #" & integer'image(i) & " exp " & integer'image(bank_exp(i)) & " vs rtl " & integer'image(bank_rtl(i))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 				pass := 0;
 			elsif (match_row = false) then
-				write(file_line, string'( "PHY Arbitrer: FAIL (Row mismatch)"));
+				write(file_line, string'( "PHY Arbiter: FAIL (Row mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
 					if (row_exp(i) /= row_rtl(i)) then
-						write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " exp " & integer'image(row_exp(i)) & " vs rtl " & integer'image(row_rtl(i))));
+						write(file_line, string'( "PHY Arbiter: Request #" & integer'image(i) & " exp " & integer'image(row_exp(i)) & " vs rtl " & integer'image(row_rtl(i))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 				pass := 0;
 			elsif (match_mrs_cmd = false) then
-				write(file_line, string'( "PHY Arbitrer: FAIL (MRS Command mismatch)"));
+				write(file_line, string'( "PHY Arbiter: FAIL (MRS Command mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
 					if (mrs_cmd_exp(i) /= mrs_cmd_rtl(i)) then
-						write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " exp " & integer'image(mrs_cmd_exp(i)) & " vs rtl " & integer'image(mrs_cmd_rtl(i))));
+						write(file_line, string'( "PHY Arbiter: Request #" & integer'image(i) & " exp " & integer'image(mrs_cmd_exp(i)) & " vs rtl " & integer'image(mrs_cmd_rtl(i))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 				pass := 0;
 			elsif (match_col = false) then
-				write(file_line, string'( "PHY Arbitrer: FAIL (Column mismatch)"));
+				write(file_line, string'( "PHY Arbiter: FAIL (Column mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
 					if (col_exp(i) /= col_rtl(i)) then
-						write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " exp " & integer'image(col_exp(i)) & " vs rtl " & integer'image(col_rtl(i))));
+						write(file_line, string'( "PHY Arbiter: Request #" & integer'image(i) & " exp " & integer'image(col_exp(i)) & " vs rtl " & integer'image(col_rtl(i))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 				pass := 0;
 			elsif (match_cmd = false) then
-				write(file_line, string'( "PHY Arbitrer: FAIL (Command mismatch)"));
+				write(file_line, string'( "PHY Arbiter: FAIL (Command mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
 					if (cmd_exp(i) /= cmd_rtl(i)) then
-						write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_rtl(i), MEM_CMD_L)))));
+						write(file_line, string'( "PHY Arbiter: Request #" & integer'image(i) & " exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_rtl(i), MEM_CMD_L)))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 				pass := 0;
 			elsif (match_bank_err = false) then
-				write(file_line, string'( "PHY Arbitrer: FAIL (Bank Controller Error)"));
+				write(file_line, string'( "PHY Arbiter: FAIL (Bank Controller Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
 					if (bank_ack_err(i) = true) then
-						write(file_line, string'( "PHY Arbitrer: Error Request #" & integer'image(i) & ": " & bool_to_str(bank_ack_err(i))));
+						write(file_line, string'( "PHY Arbiter: Error Request #" & integer'image(i) & ": " & bool_to_str(bank_ack_err(i))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 				pass := 0;
 			elsif (match_col_err = false) then
-				write(file_line, string'( "PHY Arbitrer: FAIL (Column Controller Error)"));
+				write(file_line, string'( "PHY Arbiter: FAIL (Column Controller Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
 					if (bank_ack_err(i) = true) then
-						write(file_line, string'( "PHY Arbitrer: Error Request #" & integer'image(i) & ": " & bool_to_str(col_ack_err(i))));
+						write(file_line, string'( "PHY Arbiter: Error Request #" & integer'image(i) & ": " & bool_to_str(col_ack_err(i))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 				pass := 0;
 			elsif (match_ref_err = false) then
-				write(file_line, string'( "PHY Arbitrer: FAIL (Refresh Controller Error)"));
+				write(file_line, string'( "PHY Arbiter: FAIL (Refresh Controller Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
 					if (ref_ack_err(i) = true) then
-						write(file_line, string'( "PHY Arbitrer: Error Request #" & integer'image(i) & ": " & bool_to_str(ref_ack_err(i))));
+						write(file_line, string'( "PHY Arbiter: Error Request #" & integer'image(i) & ": " & bool_to_str(ref_ack_err(i))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 				pass := 0;
 			elsif (match_mrs_err = false) then
-				write(file_line, string'( "PHY Arbitrer: FAIL (MRS Controller Error)"));
+				write(file_line, string'( "PHY Arbiter: FAIL (MRS Controller Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
 					if (mrs_ack_err(i) = true) then
-						write(file_line, string'( "PHY Arbitrer: Error Request #" & integer'image(i) & ": " & bool_to_str(mrs_ack_err(i))));
+						write(file_line, string'( "PHY Arbiter: Error Request #" & integer'image(i) & ": " & bool_to_str(mrs_ack_err(i))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 				pass := 0;
 			elsif (match_ack = false) then
-				write(file_line, string'( "PHY Arbitrer: FAIL (Handshake Error)"));
+				write(file_line, string'( "PHY Arbiter: FAIL (Handshake Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
 					if ((cmd_ack(i) = false) and (cmd_exp(i) /= to_integer(unsigned(CMD_NOP)))) then
-						write(file_line, string'( "PHY Arbitrer: Request #" & integer'image(i) & " Command Ack " & bool_to_str(cmd_ack(i)) & " Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_rtl(i), MEM_CMD_L)))));
+						write(file_line, string'( "PHY Arbiter: Request #" & integer'image(i) & " Command Ack " & bool_to_str(cmd_ack(i)) & " Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_rtl(i), MEM_CMD_L)))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 				pass := 0;
 			else
-				write(file_line, string'( "PHY Arbitrer: FAIL (Unknown error)"));
+				write(file_line, string'( "PHY Arbiter: FAIL (Unknown error)"));
 				writeline(file_pointer, file_line);
 				pass := 0;
 			end if;
@@ -877,9 +877,9 @@ begin
 
 		num_pass := 0;
 
-		file_open(file_pointer, ddr2_phy_arbitrer_log_file, append_mode);
+		file_open(file_pointer, ddr2_phy_arbiter_log_file, append_mode);
 
-		write(file_line, string'( "PHY Arbitrer Test"));
+		write(file_line, string'( "PHY Arbiter Test"));
 		writeline(file_pointer, file_line);
 
 		for i in 0 to NUM_TESTS-1 loop
@@ -888,7 +888,7 @@ begin
 
 			test_param(num_requests_exp, bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd, bank_ctrl_cmd_req, col_ctrl_bank, col_ctrl_col, col_ctrl_cmd, col_ctrl_cmd_req, ref_ctrl_cmd, ref_ctrl_cmd_req, mrs_ctrl_mrs_cmd, mrs_ctrl_cmd, mrs_ctrl_cmd_req, allow_act, seed1, seed2);
 
-			run_arbitrer(num_requests_exp, bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd, bank_ctrl_cmd_req, col_ctrl_bank, col_ctrl_col, col_ctrl_cmd, col_ctrl_cmd_req, ref_ctrl_cmd, ref_ctrl_cmd_req, mrs_ctrl_mrs_cmd, mrs_ctrl_cmd, mrs_ctrl_cmd_req, allow_act, num_requests_rtl, bank_rtl, row_rtl, col_rtl, cmd_rtl, mrs_cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, mrs_cmd_exp,  cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, mrs_ack_err);
+			run_arbiter(num_requests_exp, bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd, bank_ctrl_cmd_req, col_ctrl_bank, col_ctrl_col, col_ctrl_cmd, col_ctrl_cmd_req, ref_ctrl_cmd, ref_ctrl_cmd_req, mrs_ctrl_mrs_cmd, mrs_ctrl_cmd, mrs_ctrl_cmd_req, allow_act, num_requests_rtl, bank_rtl, row_rtl, col_rtl, cmd_rtl, mrs_cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, mrs_cmd_exp,  cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, mrs_ack_err);
 
 			verify(num_requests_exp, num_requests_rtl, bank_rtl, row_rtl, col_rtl, cmd_rtl, mrs_cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, mrs_cmd_exp,  cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, mrs_ack_err, file_pointer, pass);
 
@@ -901,13 +901,13 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "PHY Arbitrer Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TESTS)));
+		write(file_line, string'( "PHY Arbiter Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TESTS)));
 		writeline(file_pointer, file_line);
 
 		if (num_pass = TOT_NUM_TESTS) then
-			write(file_line, string'( "PHY Arbitrer Controller: TEST PASSED"));
+			write(file_line, string'( "PHY Arbiter Controller: TEST PASSED"));
 		else
-			write(file_line, string'( "PHY Arbitrer Controller: TEST FAILED: " & integer'image(TOT_NUM_TESTS-num_pass) & " failures"));
+			write(file_line, string'( "PHY Arbiter Controller: TEST FAILED: " & integer'image(TOT_NUM_TESTS-num_pass) & " failures"));
 		end if;
 		writeline(file_pointer, file_line);
 

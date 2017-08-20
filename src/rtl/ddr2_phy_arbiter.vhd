@@ -6,9 +6,9 @@ library work;
 use work.proc_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_phy_arbitrer_pkg.all;
+use work.ddr2_phy_arbiter_pkg.all;
 
-entity ddr2_phy_arbitrer is
+entity ddr2_phy_arbiter is
 generic (
 	BANK_CTRL_NUM	: positive := 8;
 	COL_CTRL_NUM	: positive := 1;
@@ -54,7 +54,7 @@ port (
 
 	MRSCtrlCmdAck		: out std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
 
-	-- Arbitrer Controller
+	-- Arbiter Controller
 	AllowBankActivate	: in std_logic;
 
 	BankActOut		: out std_logic;
@@ -67,9 +67,9 @@ port (
 	CmdDecMRSCmd		: out std_logic_vector(ADDR_L - 1 downto 0)
 
 );
-end entity ddr2_phy_arbitrer;
+end entity ddr2_phy_arbiter;
 
-architecture rtl of ddr2_phy_arbitrer is
+architecture rtl of ddr2_phy_arbiter is
 
 	constant MAX_VALUE_PRIORITY		: unsigned(int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM) - 1 downto 0) := to_unsigned((COL_CTRL_NUM+BANK_CTRL_NUM - 1), int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM));
 	constant MAX_VALUE_BANK_PRIORITY	: unsigned(int_to_bit_num(BANK_CTRL_NUM) - 1 downto 0) := to_unsigned(BANK_CTRL_NUM - 1, int_to_bit_num(BANK_CTRL_NUM));
