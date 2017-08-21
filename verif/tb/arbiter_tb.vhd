@@ -116,7 +116,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_arbitrer(variable num_requests_exp : in integer; variable req_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable data_arr, ack_delay_arr : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable req_arr, stop_arb_arr : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable num_requests_rtl : integer; variable data_arr_exp, data_arr_rtl : in int_arr(0 to (DATA_L_TB*MAX_REQUESTS_PER_TEST - 1)); variable ack_err_arr, req_err_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
+		procedure run_arbitrer(variable num_requests_exp : in integer; variable req_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable data_arr, ack_delay_arr : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable req_arr, stop_arb_arr : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable num_requests_rtl : out integer; variable data_arr_exp, data_arr_rtl : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable ack_err_arr, req_err_arr : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
 			variable num_requests_rtl_int	: integer;
 
 			variable priority		: integer;
@@ -158,12 +158,16 @@ begin
 				StopArb <= bool_to_std_logic(stop_arb);
 
 				ReqIn_tb <= (others => '0');
+				DataIn_tb <= (others => '0');
+
+				AckIn_tb <= '0';
 
 				for i in 0 to req_delay loop
 					wait until ((clk_tb = '1') and (clk_tb'event));
 					if (i = req_delay) then
 						for j in 0 to (NUM_REQ_TB - 1) loop
 							ReqIn_tb(j) <= bool_to_std_logic(req_arr(num_requests_rtl_int, j));
+							DataIn_tb((j+1)*DATA_L_TB - 1 downto j*DATA_L_TB) <= std_logic_vector(to_unsigned(data_arr(num_requests_rtl_int, j), DATA_L_TB));
 						end for;
 					else
 						if (AckOut /= ZERO_REQ_ACK_VEC) then
@@ -175,22 +179,122 @@ begin
 					end if;
 				end loop;
 
-				if (ack_delay = 0) then
-					AckIn_tb <= '1';
-				else
-					for i in 0 to ack_delay loop
-						wait until ((clk_tb = '1') and (clk_tb'event));
-						if (i = ack_delay) then
-							AckIn_tb <= '1';
-						else
-							if (AckOut /= ZERO_REQ_ACK_VEC) then
-								ack_err := true;
-							end if;
-							if (ReqOut = '1') then
-								req_err := true;
-							end if;
+				wait until ((clk_tb = '0') and (clk_tb'event));
+
+				for i in 0 to (NUM_REQ - 1) loop
+					data_arr_rtl(num_requests_rtl_int, i) := to_integer(unsigned(DataOut_tb));
+					data_arr_exp(num_requests_rtl_int, i) := data_arr(num_requests_rtl_int, priority);
+					if (req_arr(num_requests_rtl_int, priority) = true) then
+						if (ReqOut_tb = '0') then
+							req_err := true;
 						end if;
-					end loop;
+
+						for j in 0 to ack_delay loop
+							if (j = ack_delay) then
+								AckIn_tb <= '1';
+							else
+								AckIn_tb <= '0';
+							end if;
+
+							wait until ((clk_tb = '1') and (clk_tb'event));
+						end loop;
+
+						wait until ((clk_tb = '0') and (clk_tb'event));
+
+						if (AckOut_tb(priority) = '0') then
+							ack_err := true;
+						end if;
+					else
+						AckIn_tb <= '0';
+					end if;
+
+					if ((stop_arb = false) and (AckIn_tb = '1')) then
+
+						ReqIn_tb(priority)  <= '0';
+
+						if (priority = (MAX_VALUE_PRIORITY_TB - 1)) then
+							priority := 0;
+						else
+							priority := priority + 1;
+						end if;
+					end if;
+
 				end if;
 
-				
+				ReqIn_tb <= (others => '0');
+
+				req_err_arr(num_requests_rtl_int) := req_err;
+				ack_err_arr(num_requests_rtl_int) := ack_err;
+
+				num_requests_rtl_int := num_requests_rtl_int + 1;
+
+			end loop;
+
+			num_requests_rtl := num_requests_rtl_int;
+
+		end procedure run_arbiter;
+
+		procedure verify (variable num_requests_exp, num_requests_rtl : in integer; variable req_arr, data_in : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable data_arr_exp, data_arr_rtl : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable ack_err_arr, req_err_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
+
+			variable match_data	: boolean;
+			variable no_req_err	: boolean;
+			variable no_ack_err	: boolean;
+
+			variable file_line	: line;
+
+		begin
+
+			match_data := compare_int_arr_2d(data_arr_exp, data_arr_rtl, num_requests_exp, NUM_REQ_TB);
+
+			no_req_err := compare_bool_arr(reset_bool_arr(false, num_requests_exp), req_err_arr, num_requests_exp);
+			no_ack_err := compare_bool_arr(reset_bool_arr(false, num_requests_exp), ack_err_arr, num_requests_exp);
+
+			for i in 0 to (num_requests_exp - 1) loop
+				for j in 0 to (NUM_REQ_TB - 1) loop
+					write(file_line, string'( "Arbiter: Request #" & integer'image(i) & " Port #" & integer'image(j) & ": Req " & bool_to_str(req_arr(i, j)) & " Data " & integer'image(data_in(i, j));
+					writeline(file_pointer, file_line);
+				end loop;
+			end loop;
+
+			if ((num_requests_exp = num_requests_rtl) and (match_data = true) and (no_req_arr = true) and (no_ack_err = true)) then
+				write(file_line, string'( "Arbiter: PASS"));
+				writeline(file_pointer, file_line);
+			elsif (num_requests_exp /= num_requests_rtl) then
+				write(file_line, string'( "Arbiter: FAIL (Burst number mismatch)"));
+				writeline(file_pointer, file_line);
+			elsif (match_data = false) then
+				write(file_line, string'( "Arbiter: FAIL (Data mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_requests_exp - 1) loop
+					for j in 0 to (NUM_REQ_TB - 1) loop
+						write(file_line, string'( "Arbiter: Request #" & integer'image(i) & " Port #" & integer'image(j) & " Data exp " & integer'image(data_arr_exp(i, j)) & " vs rtl " & integer'image(data_arr_rtl(i, j));
+						writeline(file_pointer, file_line);
+					end loop;
+				end loop;
+			elsif (no_req_err = false) then
+				write(file_line, string'( "Arbiter: FAIL (Request Error)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_requests_exp - 1) loop
+					write(file_line, string'( "Arbiter: Request #" & integer'image(i) & " Request Error: " & bool_to_str(req_err_arr(i));
+					writeline(file_pointer, file_line);
+				end loop;
+			elsif (no_ack_err = false) then
+				write(file_line, string'( "Arbiter: FAIL (Acknoledge Error)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_requests_exp - 1) loop
+					write(file_line, string'( "Arbiter: Request #" & integer'image(i) & " Acknowledge Error: " & bool_to_str(ack_err_arr(i));
+					writeline(file_pointer, file_line);
+				end loop;
+			else
+				write(file_line, string'( "Arbiter: FAIL (Unknown Error)"));
+				writeline(file_pointer, file_line);
+			end if;
+
+		end procedure verify;
+
+		variable seed1, seed2	: positive;
+
+		variable num_requests_exp	: integer;
+		variable num_requests_rtl	: integer;
+
+
