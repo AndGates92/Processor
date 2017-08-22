@@ -24,7 +24,7 @@ architecture bench of dcache_tb is
 	signal rst_tb	: std_logic;
 
 --	constant ADDR_MEM_L_TB	: positive := 20;
-	constant ADDR_MEM_L_TB	: positive := int_to_bit_num(PROGRAM_MEMORY)+INCR_PC_L;
+	constant ADDR_MEM_L_TB	: positive := int_to_bit_num(DATA_MEMORY)+INCR_PC_L;
 
 	signal Hit_tb		: std_logic;
 	signal EnDRst_tb	: std_logic;
