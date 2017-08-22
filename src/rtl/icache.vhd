@@ -9,8 +9,7 @@ use work.proc_pkg.all;
 
 entity icache is
 generic (
-	ADDR_MEM_L	: positive := 32;
-	INCR_PC_L	: positive := 2
+	ADDR_MEM_L	: positive := 32
 );
 port (
 	rst		: in std_logic;
@@ -77,9 +76,7 @@ begin
 	begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = ICACHE_IDLE) then
-			if (rst = '1') then
-				StateN <= RESET;
-			elsif (Start = '0') then
+			if (Start = '0') then
 				StateN <= ICACHE_IDLE;
 			else
 				StateN <= BRAM_FWD;
@@ -122,7 +119,7 @@ begin
 
 			InstrC <= (others => '0');
 			HitC <= '0';
-			StateC <= ICACHE_IDLE;
+			StateC <= RESET;
 			AddressC <= (others => '0');
 
 			PortA_AddressC <= (others => '0');
@@ -176,6 +173,8 @@ begin
 			InstrMemOut when (StateC = MEMORY_ACCESS) else
 			InstrC;
 
+	-- MSB is the valid signal
+	-- Store only relevant address bits depending on the data memory size
 	PortA_DataInN <=	"1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0) & InstrMemOut when (StateC = MEMORY_ACCESS) else
 				(others => '0') when (StateC = ICACHE_IDLE) or (StateC = RESET) else
 				PortA_DataInC;
@@ -299,9 +298,7 @@ begin
 	begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = ICACHE_IDLE) then
-			if (rst = '1') then
-				StateN <= RESET;
-			elsif (Start = '0') then
+			if (Start = '0') then
 				StateN <= ICACHE_IDLE;
 			else
 				StateN <= BRAM_FWD;
@@ -344,7 +341,7 @@ begin
 
 			InstrC <= (others => '0');
 			HitC <= '0';
-			StateC <= ICACHE_IDLE;
+			StateC <= RESET;
 			AddressC <= (others => '0');
 
 			PortA_AddressC <= (others => '0');
@@ -387,6 +384,8 @@ begin
 			InstrMemOut when (StateC = MEMORY_ACCESS) else
 			InstrC;
 
+	-- MSB is the valid signal
+	-- Store only relevant address bits depending on the data memory size
 	PortA_DataInN <=	"1" & AddressC(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0) & InstrMemOut when (StateC = MEMORY_ACCESS) else
 				(others => '0') when (StateC = ICACHE_IDLE) or (StateC = RESET) else
 				PortA_DataInC;

@@ -24,8 +24,7 @@ architecture bench of icache_tb is
 	signal rst_tb	: std_logic;
 
 --	constant ADDR_MEM_L_TB	: positive := 20;
-	constant INCR_PC_L_TB	: positive := 2;
-	constant ADDR_MEM_L_TB	: positive := int_to_bit_num(PROGRAM_MEMORY)+INCR_PC_L_TB;
+	constant ADDR_MEM_L_TB	: positive := int_to_bit_num(PROGRAM_MEMORY)+INCR_PC_L;
 
 	signal Hit_tb	: std_logic;
 	signal EnDRst_tb	: std_logic;
@@ -46,8 +45,7 @@ architecture bench of icache_tb is
 begin
 
 	DUT: icache generic map(
-		ADDR_MEM_L => ADDR_MEM_L_TB,
-		INCR_PC_L => INCR_PC_L_TB
+		ADDR_MEM_L => ADDR_MEM_L_TB
 	)
 	port map (
 		rst => rst_tb,
@@ -103,7 +101,7 @@ begin
 			address_full_vec := std_logic_vector(to_unsigned(address_full, ADDR_MEM_L_TB));
 			Address_tb <= std_logic_vector(to_unsigned(address_full, ADDR_MEM_L_TB));
 			address_int := to_integer(unsigned(address_full_vec(int_to_bit_num(PROGRAM_MEMORY) - 1 downto 0)));
-			address_bram_vec := address_full_vec(ADDR_BRAM_L + INCR_PC_L_TB - 1 downto INCR_PC_L_TB);
+			address_bram_vec := address_full_vec(ADDR_BRAM_L + INCR_PC_L - 1 downto INCR_PC_L);
 			address_bram := to_integer(unsigned(address_bram_vec));
 
 			DoneMemory_tb <= '0';
