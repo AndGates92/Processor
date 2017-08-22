@@ -65,13 +65,11 @@ architecture rtl_bram_1port of dcache is
 
 begin
 
-	state_det: process(StateC, Start, PortA_DataOut, AddressC, DoneMemory, DoneReset)
+	state_det: process(StateC, Start, PortA_DataOut, AddressC, DoneMemory, DoneReset, ReadC)
 	begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = DCACHE_IDLE) then
-			if (rst = '1') then
-				StateN <= RESET;
-			elsif (Start = '0') then
+			if (Start = '0') then
 				StateN <= DCACHE_IDLE;
 			else
 				StateN <= BRAM_FWD;
@@ -119,7 +117,7 @@ begin
 			DataOutC <= (others => '0');
 			DataInC <= (others => '0');
 			HitC <= '0';
-			StateC <= DCACHE_IDLE;
+			StateC <= RESET;
 			AddressC <= (others => '0');
 			ReadC <= '0';
 
@@ -175,6 +173,8 @@ begin
 	Done <= '1' when (StateC = DCACHE_OUTPUT) else '0';
 	Hit <= '0' when (StateC = DCACHE_IDLE) else HitC;
 
+	-- MSB is dirty bit and MSB-1 is valid bit
+	-- Store only relevant address bits depending on the data memory size
 	PortA_DataInN <=	"11" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0) & DataInC when (StateC = WRITE_BRAM) or ((StateC = MEMORY_ACCESS) and (ReadC = '0')) else
 				"01" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0) & DataMemOut when (StateC = MEMORY_ACCESS) and (ReadC = '1') else
 				(others => '0') when (StateC = DCACHE_IDLE) or (StateC = RESET) else
@@ -269,13 +269,11 @@ architecture rtl_bram_2port of dcache is
 
 begin
 
-	state_det: process(StateC, Start, PortA_DataOut, AddressC, DoneMemory, DoneReset)
+	state_det: process(StateC, Start, PortA_DataOut, AddressC, DoneMemory, DoneReset, ReadC)
 	begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = DCACHE_IDLE) then
-			if (rst = '1') then
-				StateN <= RESET;
-			elsif (Start = '0') then
+			if (Start = '0') then
 				StateN <= DCACHE_IDLE;
 			else
 				StateN <= BRAM_FWD;
@@ -323,7 +321,7 @@ begin
 			DataOutC <= (others => '0');
 			DataInC <= (others => '0');
 			HitC <= '0';
-			StateC <= DCACHE_IDLE;
+			StateC <= RESET;
 			AddressC <= (others => '0');
 			ReadC <= '0';
 
@@ -390,6 +388,8 @@ begin
 	Done <= '1' when (StateC = DCACHE_OUTPUT) else '0';
 	Hit <= '0' when (StateC = DCACHE_IDLE) else HitC;
 
+	-- MSB is dirty bit and MSB-1 is valid bit
+	-- Store only relevant address bits depending on the data memory size
 	PortA_DataInN <=	"11" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0) & DataInC when (StateC = WRITE_BRAM) or ((StateC = MEMORY_ACCESS) and (ReadC = '0')) else
 				"01" & AddressC(int_to_bit_num(DATA_MEMORY) - 1 downto 0) & DataMemOut when (StateC = MEMORY_ACCESS) and (ReadC = '1') else
 				(others => '0') when (StateC = DCACHE_IDLE) or (StateC = RESET) else
