@@ -34,10 +34,10 @@ end entity arbiter;
 
 architecture rtl of arbiter is
 
-	constant MAX_VALUE_PRIORITY		: unsigned(int_to_bit_num(NUM_REQ - 1 downto 0) := to_unsigned((NUM_REQ - 1), int_to_bit_num(NUM_REQ));
-	constant incr_value_priority		: unsigned(int_to_bit_num(NUM_REQ - 1 downto 0) := to_unsigned(1, int_to_bit_num(NUM_REQ));
+	constant MAX_VALUE_PRIORITY		: unsigned(int_to_bit_num(NUM_REQ) - 1 downto 0) := to_unsigned((NUM_REQ - 1), int_to_bit_num(NUM_REQ));
+	constant incr_value_priority		: unsigned(int_to_bit_num(NUM_REQ) - 1 downto 0) := to_unsigned(1, int_to_bit_num(NUM_REQ));
 
-	signal PriorityC, PriorityN		: unsigned(int_to_bit_num(NUM_REQ - 1 downto 0);
+	signal PriorityC, PriorityN		: unsigned(int_to_bit_num(NUM_REQ) - 1 downto 0);
 
 	signal PriorityReq			: std_logic;
 	signal PriorityData			: std_logic_vector(DATA_L - 1 downto 0);
