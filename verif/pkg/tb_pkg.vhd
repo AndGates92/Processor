@@ -12,6 +12,7 @@ package tb_pkg is
 	constant ctrl_log_file			: string := "ctrl.log";
 	constant dcache_log_file		: string := "dcache.log";
 	constant icache_log_file		: string := "icache.log";
+	constant arbiter_log_file		: string := "arbiter.log";
 	constant ddr2_phy_arbiter_log_file	: string := "ddr2_phy_arbiter.log";
 	constant ddr2_phy_bank_ctrl_log_file	: string := "ddr2_phy_bank_ctrl.log";
 	constant ddr2_phy_col_ctrl_log_file	: string := "ddr2_phy_col_ctrl.log";
@@ -55,10 +56,14 @@ package tb_pkg is
 	function rand_sign(sign_val, weight : real) return real;
 
 	function reset_int_arr(val, num_el : integer) return int_arr;
+	function reset_int_arr_2d(val, num_el1, num_el2 : integer) return int_arr_2d;
+	function reset_int_arr_3d(val, num_el1, num_el2, num_el3 : integer) return int_arr_3d;
 	function compare_int_arr(arr1, arr2 : int_arr; num_el : integer) return boolean;
 	function compare_int_arr_2d(arr1, arr2 : int_arr_2d; num_el1, num_el2 : integer) return boolean;
 	function compare_int_arr_3d(arr1, arr2 : int_arr_3d; num_el1, num_el2, num_el3 : integer) return boolean;
 	function reset_bool_arr(val : boolean; num_el : integer) return bool_arr;
+	function reset_bool_arr_2d(val : boolean; num_el1, num_el2 : integer) return bool_arr_2d;
+	function reset_bool_arr_3d(val : boolean; num_el1, num_el2, num_el3 : integer) return bool_arr_3d;
 	function compare_bool_arr(arr1, arr2 : bool_arr; num_el : integer) return boolean;
 	function compare_bool_arr_2d(arr1, arr2 : bool_arr_2d; num_el1, num_el2 : integer) return boolean;
 	function compare_bool_arr_3d(arr1, arr2 : bool_arr_3d; num_el1, num_el2, num_el3 : integer) return boolean;
@@ -132,6 +137,32 @@ package body tb_pkg is
 		return arr;
 	end;
 
+	function reset_int_arr_2d(val, num_el1, num_el2 : integer) return int_arr_2d is
+		variable arr : int_arr_2d(0 to (num_el1 - 1), 0 to (num_el2 - 1));
+	begin
+		for i in 0 to (num_el1-1) loop
+			for j in 0 to (num_el2-1) loop
+				arr(i, j) := val;
+			end loop;
+		end loop;
+
+		return arr;
+	end;
+
+	function reset_int_arr_3d(val, num_el1, num_el2, num_el3 : integer) return int_arr_3d is
+		variable arr : int_arr_3d(0 to (num_el1 - 1), 0 to (num_el2-1), 0 to (num_el3-1));
+	begin
+		for i in 0 to (num_el1-1) loop
+			for j in 0 to (num_el2-1) loop
+				for z in 0 to (num_el3-1) loop
+					arr(i, j, z) := val;
+				end loop;
+			end loop;
+		end loop;
+
+		return arr;
+	end;
+
 	function compare_int_arr(arr1, arr2 : int_arr; num_el : integer) return boolean is
 		variable match	: boolean;
 	begin
@@ -188,6 +219,32 @@ package body tb_pkg is
 	begin
 		for i in 0 to (num_el-1) loop
 			arr(i) := val;
+		end loop;
+
+		return arr;
+	end;
+
+	function reset_bool_arr_2d(val : boolean; num_el1, num_el2 : integer) return bool_arr_2d is
+		variable arr : bool_arr_2d(0 to (num_el1 - 1), 0 to (num_el2 - 1));
+	begin
+		for i in 0 to (num_el1-1) loop
+			for j in 0 to (num_el2-1) loop
+				arr(i, j) := val;
+			end loop;
+		end loop;
+
+		return arr;
+	end;
+
+	function reset_bool_arr_3d(val : boolean; num_el1, num_el2, num_el3 : integer) return bool_arr_3d is
+		variable arr : bool_arr_3d(0 to (num_el1 - 1), 0 to (num_el2-1), 0 to (num_el3-1));
+	begin
+		for i in 0 to (num_el1-1) loop
+			for j in 0 to (num_el2-1) loop
+				for z in 0 to (num_el3-1) loop
+					arr(i, j, z) := val;
+				end loop;
+			end loop;
 		end loop;
 
 		return arr;
