@@ -64,10 +64,10 @@ begin
 
 	AckOut <= PriorityAck;
 
-	priority_next: process(PriorityC, StopArb, AckIn)
+	priority_next: process(PriorityC, StopArb, AckIn, PriorityReq)
 	begin
 		if ((StopArb = '0') and (AckIn = '1')) then -- increment priority only if arbitrer is not stopped
-			if (PriorityC = MAX_VALUE_PRIORITY) then
+			if (PriorityC = (MAX_VALUE_PRIORITY - 1)) then
 				PriorityN <= (others => '0');
 			else
 				PriorityN <= (PriorityC + incr_value_priority);

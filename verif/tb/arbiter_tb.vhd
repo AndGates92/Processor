@@ -17,7 +17,7 @@ end entity arbiter_tb;
 architecture bench of arbiter_tb is
 
 	constant CLK_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
-	constant NUM_TESTS	: integer := 1000;
+	constant NUM_TESTS	: integer := 2; -- 1000;
 	constant TOT_NUM_TESTS	: integer := NUM_TESTS;
 
 	constant NUM_REQ_TB	: integer := 8;
@@ -132,6 +132,9 @@ begin
 
 			variable ack_err		: boolean;
 			variable req_err		: boolean;
+
+			variable req_arr_int		: bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1));
+
 		begin
 
 			num_requests_rtl_int := 0;
@@ -143,6 +146,8 @@ begin
 
 			req_err_arr := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
 			ack_err_arr := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+
+			req_arr_int := req_arr;
 
 			ReqIn_tb <= (others => '0');
 			AckIn_tb <= '0';
@@ -170,12 +175,13 @@ begin
 					wait until ((clk_tb = '1') and (clk_tb'event));
 					if (i = req_delay) then
 						for j in 0 to (NUM_REQ_TB - 1) loop
-							ReqIn_tb(j) <= bool_to_std_logic(req_arr(num_requests_rtl_int, j));
+							ReqIn_tb(j) <= bool_to_std_logic(req_arr_int(num_requests_rtl_int, j));
 							DataIn_tb((j+1)*DATA_L_TB - 1 downto j*DATA_L_TB) <= std_logic_vector(to_unsigned(data_arr(num_requests_rtl_int, j), DATA_L_TB));
 						end loop;
 					else
 						if (AckOut_tb /= ZERO_REQ_ACK_VEC) then
 							ack_err := true;
+report "Ack " & integer'image(num_requests_rtl_int) & " ack_err" & INTEGER'IMAGE(PRIORITY);
 						end if;
 						if (ReqOut_tb = '1') then
 							req_err := true;
@@ -189,33 +195,53 @@ begin
 					ack_delay := ack_delay_arr(num_requests_rtl_int, i);
 					data_arr_rtl(num_requests_rtl_int, i) := to_integer(unsigned(DataOut_tb));
 					data_arr_exp(num_requests_rtl_int, i) := data_arr(num_requests_rtl_int, priority);
-					if (req_arr(num_requests_rtl_int, priority) = true) then
+					if (req_arr_int(num_requests_rtl_int, priority) = true) then
 						if (ReqOut_tb = '0') then
 							req_err := true;
 						end if;
 
-						for j in 0 to ack_delay loop
-							if (j = ack_delay) then
-								AckIn_tb <= '1';
-							else
-								AckIn_tb <= '0';
+						if (ack_delay > 0) then
+							for j in 0 to ack_delay loop
+								if (j = ack_delay) then
+									AckIn_tb <= '1';
+								else
+									AckIn_tb <= '0';
+								end if;
+
+								wait until ((clk_tb = '1') and (clk_tb'event));
+							end loop;
+
+							wait until ((clk_tb = '0') and (clk_tb'event));
+
+							if (AckOut_tb(priority) = '0') then
+								ack_err := true;
+
+	report "Ack " & integer'image(num_requests_rtl_int) & " ack_err" & INTEGER'IMAGE(PRIORITY);
+							end if;
+
+						else
+							AckIn_tb <= '1';
+
+							if (AckOut_tb(priority) = '0') then
+								ack_err := true;
+
+	report "Ack " & integer'image(num_requests_rtl_int) & " ack_err" & INTEGER'IMAGE(PRIORITY);
 							end if;
 
 							wait until ((clk_tb = '1') and (clk_tb'event));
-						end loop;
 
-						wait until ((clk_tb = '0') and (clk_tb'event));
-
-						if (AckOut_tb(priority) = '0') then
-							ack_err := true;
 						end if;
+
 					else
 						AckIn_tb <= '0';
+						wait until ((clk_tb = '1') and (clk_tb'event));
 					end if;
 
 					if ((stop_arb = false) and (AckIn_tb = '1')) then
 
 						ReqIn_tb(priority)  <= '0';
+
+						req_arr_int(num_requests_rtl_int, priority) := false;
 
 						if (priority = (MAX_VALUE_PRIORITY_TB - 1)) then
 							priority := 0;
@@ -264,18 +290,23 @@ begin
 			if ((num_requests_exp = num_requests_rtl) and (match_data = true) and (no_req_err = true) and (no_ack_err = true)) then
 				write(file_line, string'( "Arbiter: PASS"));
 				writeline(file_pointer, file_line);
+				pass := 1;
 			elsif (num_requests_exp /= num_requests_rtl) then
 				write(file_line, string'( "Arbiter: FAIL (Burst number mismatch)"));
 				writeline(file_pointer, file_line);
+				pass := 0;
 			elsif (match_data = false) then
 				write(file_line, string'( "Arbiter: FAIL (Data mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
 					for j in 0 to (NUM_REQ_TB - 1) loop
-						write(file_line, string'( "Arbiter: Request #" & integer'image(i) & " Port #" & integer'image(j) & " Data exp " & integer'image(data_arr_exp(i, j)) & " vs rtl " & integer'image(data_arr_rtl(i, j))));
+						if (data_arr_exp(i, j) /= data_arr_rtl(i, j)) then
+							write(file_line, string'( "Arbiter: Request #" & integer'image(i) & " Port #" & integer'image(j) & " Data exp " & integer'image(data_arr_exp(i, j)) & " vs rtl " & integer'image(data_arr_rtl(i, j))));
 						writeline(file_pointer, file_line);
+						end if;
 					end loop;
 				end loop;
+				pass := 0;
 			elsif (no_req_err = false) then
 				write(file_line, string'( "Arbiter: FAIL (Request Error)"));
 				writeline(file_pointer, file_line);
@@ -283,6 +314,7 @@ begin
 					write(file_line, string'( "Arbiter: Request #" & integer'image(i) & " Request Error: " & bool_to_str(req_err_arr(i))));
 					writeline(file_pointer, file_line);
 				end loop;
+				pass := 0;
 			elsif (no_ack_err = false) then
 				write(file_line, string'( "Arbiter: FAIL (Acknoledge Error)"));
 				writeline(file_pointer, file_line);
@@ -290,9 +322,11 @@ begin
 					write(file_line, string'( "Arbiter: Request #" & integer'image(i) & " Acknowledge Error: " & bool_to_str(ack_err_arr(i))));
 					writeline(file_pointer, file_line);
 				end loop;
+				pass := 0;
 			else
 				write(file_line, string'( "Arbiter: FAIL (Unknown Error)"));
 				writeline(file_pointer, file_line);
+				pass := 0;
 			end if;
 
 		end procedure verify;
