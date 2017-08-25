@@ -376,5 +376,7 @@ begin
 
 		stop <= true;
 
+		wait;
+
 	end process test;
 end bench;

@@ -691,6 +691,8 @@ begin
 		file_close(file_pointer);
 		stop <= true;
 
+		wait;
+
 	end process test;
 
 end bench;
