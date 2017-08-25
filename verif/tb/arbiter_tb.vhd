@@ -17,7 +17,7 @@ end entity arbiter_tb;
 architecture bench of arbiter_tb is
 
 	constant CLK_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
-	constant NUM_TESTS	: integer := 2; -- 1000;
+	constant NUM_TESTS	: integer := 1000;
 	constant TOT_NUM_TESTS	: integer := NUM_TESTS;
 
 	constant NUM_REQ_TB	: integer := 8;
@@ -164,7 +164,7 @@ begin
 				req_err := false;
 				ack_err := false;
 
-				StopArb_tb <= bool_to_std_logic(stop_arb);
+				StopArb_tb <= '1';
 
 				ReqIn_tb <= (others => '0');
 				DataIn_tb <= (others => '0');
@@ -174,6 +174,9 @@ begin
 				for i in 0 to req_delay loop
 					wait until ((clk_tb = '1') and (clk_tb'event));
 					if (i = req_delay) then
+
+						StopArb_tb <= bool_to_std_logic(stop_arb);
+
 						for j in 0 to (NUM_REQ_TB - 1) loop
 							ReqIn_tb(j) <= bool_to_std_logic(req_arr_int(num_requests_rtl_int, j));
 							DataIn_tb((j+1)*DATA_L_TB - 1 downto j*DATA_L_TB) <= std_logic_vector(to_unsigned(data_arr(num_requests_rtl_int, j), DATA_L_TB));
@@ -181,7 +184,6 @@ begin
 					else
 						if (AckOut_tb /= ZERO_REQ_ACK_VEC) then
 							ack_err := true;
-report "Ack " & integer'image(num_requests_rtl_int) & " ack_err" & INTEGER'IMAGE(PRIORITY);
 						end if;
 						if (ReqOut_tb = '1') then
 							req_err := true;
@@ -211,33 +213,31 @@ report "Ack " & integer'image(num_requests_rtl_int) & " ack_err" & INTEGER'IMAGE
 								wait until ((clk_tb = '1') and (clk_tb'event));
 							end loop;
 
-							wait until ((clk_tb = '0') and (clk_tb'event));
-
 							if (AckOut_tb(priority) = '0') then
 								ack_err := true;
-
-	report "Ack " & integer'image(num_requests_rtl_int) & " ack_err" & INTEGER'IMAGE(PRIORITY);
 							end if;
+
+							wait until ((clk_tb = '0') and (clk_tb'event));
 
 						else
 							AckIn_tb <= '1';
 
+							wait until ((clk_tb = '1') and (clk_tb'event));
+
 							if (AckOut_tb(priority) = '0') then
 								ack_err := true;
-
-	report "Ack " & integer'image(num_requests_rtl_int) & " ack_err" & INTEGER'IMAGE(PRIORITY);
 							end if;
 
-							wait until ((clk_tb = '1') and (clk_tb'event));
+							wait until ((clk_tb = '0') and (clk_tb'event));
 
 						end if;
 
 					else
 						AckIn_tb <= '0';
-						wait until ((clk_tb = '1') and (clk_tb'event));
+						wait until ((clk_tb = '0') and (clk_tb'event));
 					end if;
 
-					if ((stop_arb = false) and (AckIn_tb = '1')) then
+					if ((stop_arb = false) and ((AckIn_tb = '1') or (req_arr_int(num_requests_rtl_int, priority) = false))) then
 
 						ReqIn_tb(priority)  <= '0';
 
@@ -265,7 +265,7 @@ report "Ack " & integer'image(num_requests_rtl_int) & " ack_err" & INTEGER'IMAGE
 
 		end procedure run_arbiter;
 
-		procedure verify (variable num_requests_exp, num_requests_rtl : in integer; variable req_arr : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable data_in : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable data_arr_exp, data_arr_rtl : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable ack_err_arr, req_err_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
+		procedure verify (variable num_requests_exp, num_requests_rtl : in integer; variable req_arr : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable data_in : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable data_arr_exp, data_arr_rtl : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (NUM_REQ_TB - 1)); variable stop_arb_arr,  ack_err_arr, req_err_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
 
 			variable match_data	: boolean;
 			variable no_req_err	: boolean;
@@ -281,6 +281,8 @@ report "Ack " & integer'image(num_requests_rtl_int) & " ack_err" & INTEGER'IMAGE
 			no_ack_err := compare_bool_arr(reset_bool_arr(false, num_requests_exp), ack_err_arr, num_requests_exp);
 
 			for i in 0 to (num_requests_exp - 1) loop
+				write(file_line, string'( "Arbiter: Request #" & integer'image(i) & ": Stop Arbiter " & bool_to_str(stop_arb_arr(i))));
+				writeline(file_pointer, file_line);
 				for j in 0 to (NUM_REQ_TB - 1) loop
 					write(file_line, string'( "Arbiter: Request #" & integer'image(i) & " Port #" & integer'image(j) & ": Req " & bool_to_str(req_arr(i, j)) & " Data " & integer'image(data_in(i, j))));
 					writeline(file_pointer, file_line);
@@ -376,7 +378,7 @@ report "Ack " & integer'image(num_requests_rtl_int) & " ack_err" & INTEGER'IMAGE
 
 			run_arbiter(num_requests_exp, req_delay_arr, data_arr, ack_delay_arr, req_arr, stop_arb_arr, num_requests_rtl, data_arr_exp, data_arr_rtl, ack_err_arr, req_err_arr);
 
-			verify (num_requests_exp, num_requests_rtl, req_arr, data_arr, data_arr_exp, data_arr_rtl, ack_err_arr, req_err_arr, file_pointer, pass);
+			verify (num_requests_exp, num_requests_rtl, req_arr, data_arr, data_arr_exp, data_arr_rtl, stop_arb_arr, ack_err_arr, req_err_arr, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
@@ -399,6 +401,8 @@ report "Ack " & integer'image(num_requests_rtl_int) & " ack_err" & INTEGER'IMAGE
 
 		file_close(file_pointer);
 		stop <= true;
+
+		wait;
 
 	end process test;
 

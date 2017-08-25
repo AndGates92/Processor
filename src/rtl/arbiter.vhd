@@ -66,7 +66,7 @@ begin
 
 	priority_next: process(PriorityC, StopArb, AckIn, PriorityReq)
 	begin
-		if ((StopArb = '0') and (AckIn = '1')) then -- increment priority only if arbitrer is not stopped
+		if ((StopArb = '0') and ((AckIn = '1') or (PriorityReq = '0'))) then -- increment priority only if arbitrer is not stopped
 			if (PriorityC = (MAX_VALUE_PRIORITY - 1)) then
 				PriorityN <= (others => '0');
 			else
