@@ -32,6 +32,7 @@ all:
 	make div_all
 	make alu_all
 	make decode_stage_all
+	make arbiter_all
 	make ctrl_all
 	make icache_all
 	make dcache_all
@@ -45,7 +46,6 @@ all:
 	make ddr2_phy_cmd_ctrl_all
 	make ddr2_phy_cmd_dec_all
 	make ddr2_phy_arbiter_all
-	make arbiter_all
 
 clean:
 	rm -rf ${LOG_FILES} ${SUMMARY_FILE} ${WORK_DIR}/*
