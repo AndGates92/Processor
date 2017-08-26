@@ -15,6 +15,9 @@ package ddr2_phy_odt_ctrl_pkg is
 	constant STATE_ODT_CTRL_L	: positive := 2;
 
 	constant ODT_CTRL_IDLE		: std_logic_vector(STATE_ODT_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_ODT_CTRL_L));
+	constant ODT_TURN_OFF		: std_logic_vector(STATE_ODT_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_ODT_CTRL_L));
+	constant ODT_REF_REQ		: std_logic_vector(STATE_ODT_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_ODT_CTRL_L));
+	constant ODT_MRS_UPD		: std_logic_vector(STATE_ODT_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_ODT_CTRL_L));
 
 	component ddr2_phy_odt_ctrl is
 	generic (
