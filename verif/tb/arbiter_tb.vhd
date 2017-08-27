@@ -389,13 +389,13 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "Arbiter => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TESTS)));
+		write(file_line, string'( "ARBITER => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TESTS)));
 		writeline(file_pointer, file_line);
 
 		if (num_pass = TOT_NUM_TESTS) then
-			write(file_line, string'( "Arbiter: TEST PASSED"));
+			write(file_line, string'( "ARBITER: TEST PASSED"));
 		else
-			write(file_line, string'( "Arbiter: TEST FAILED: " & integer'image(TOT_NUM_TESTS-num_pass) & " failures"));
+			write(file_line, string'( "ARBITER: TEST FAILED: " & integer'image(TOT_NUM_TESTS-num_pass) & " failures"));
 		end if;
 		writeline(file_pointer, file_line);
 
