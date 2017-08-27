@@ -26,6 +26,9 @@ architecture bench of ctrl_tb is
 	constant OUT_NUM_TB	: positive := 2;
 	constant BASE_STACK_TB	: positive := 16#8000#;
 
+	constant MAX_DONE_NUM	: positive := 3;
+	constant MAX_DELAY	: positive := 3;
+
 	signal rst_tb	: std_logic;
 	signal stop	: boolean := false;
 	signal clk_tb	: std_logic := '0';
@@ -187,10 +190,15 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure push_op(variable CmdALU_vec : out std_logic_vector(CMD_ALU_L - 1 downto 0); variable CtrlCmd_vec : out std_logic_vector(CTRL_CMD_L - 1 downto 0); variable EnableRegFile_vec : out std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0); variable seed1, seed2: inout positive) is
+		procedure push_op(variable CmdALU_vec : out std_logic_vector(CMD_ALU_L - 1 downto 0); variable CtrlCmd_vec : out std_logic_vector(CTRL_CMD_L - 1 downto 0); variable EnableRegFile_vec : out std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0); variable wait_done : out int_arr(0 to (MAX_DONE_NUM - 1)); variable seed1, seed2: inout positive) is
 			variable CmdALU_in, Immediate_in, CtrlCmd_in, AddressRegFileIn_in, AddressRegFileOut1_in, AddressRegFileOut2_in, EnableRegFile_in	: integer;
 			variable rand_val	: real;
 		begin
+
+			for i in 0 to (MAX_DONE_NUM - 1) loop
+				uniform(seed1, seed2, rand_val);
+				wait_done(i) := integer(rand_val*real(MAX_DELAY));
+			end loop;
 
 			uniform(seed1, seed2, rand_val);
 			CtrlCmd_in := integer(rand_val*(2.0**(real(CTRL_CMD_L)) - 1.0));
@@ -245,7 +253,7 @@ begin
 			EndDecoding_tb <= '0';
 		end procedure push_op;
 
-		procedure ctrl_ref(variable CtrlCmd_vec : in std_logic_vector(CTRL_CMD_L - 1 downto 0); variable CmdALU_vec : in std_logic_vector(CMD_ALU_L - 1 downto 0); variable EnableRegFile_vec : in std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0); variable ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess : out integer) is
+		procedure ctrl_ref(variable wait_done : out int_arr(0 to (MAX_DONE_NUM - 1)); variable CtrlCmd_vec : in std_logic_vector(CTRL_CMD_L - 1 downto 0); variable CmdALU_vec : in std_logic_vector(CMD_ALU_L - 1 downto 0); variable EnableRegFile_vec : in std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0); variable ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess : out integer) is
 		begin
 			Mul := 0;
 			Div := 0;
@@ -292,7 +300,7 @@ begin
 				else
 					ReadRegFile := 0;
 				end if;
-				for clk_cycle in 0 to 2 loop
+				for clk_cycle in 0 to wait_done(0) loop
 					wait until ((clk_tb'event) and (clk_tb = '1'));
 				end loop;
 				DoneRegFile_tb <= '1';
@@ -303,7 +311,7 @@ begin
 					else
 						Mul := 0;
 					end if;
-					for clk_cycle in 0 to 15 loop
+					for clk_cycle in 0 to wait_done(1) loop
 						wait until ((clk_tb'event) and (clk_tb = '1'));
 						DoneRegFile_tb <= '0';
 					end loop;
@@ -315,7 +323,7 @@ begin
 					else
 						Div := 0;
 					end if;
-					for clk_cycle in 0 to 31 loop
+					for clk_cycle in 0 to wait_done(1) loop
 						wait until ((clk_tb'event) and (clk_tb = '1'));
 						DoneRegFile_tb <= '0';
 					end loop;
@@ -327,7 +335,7 @@ begin
 					else
 						ALUOp := 0;
 					end if;
-					for clk_cycle in 0 to 3 loop
+					for clk_cycle in 0 to wait_done(1) loop
 						wait until ((clk_tb'event) and (clk_tb = '1'));
 						DoneRegFile_tb <= '0';
 					end loop;
@@ -339,7 +347,7 @@ begin
 				else
 					WriteRegFile := 0;
 				end if;
-				for clk_cycle in 0 to 2 loop
+				for clk_cycle in 0 to wait_done(2) loop
 					wait until ((clk_tb'event) and (clk_tb = '1'));
 					DoneALU_tb <= '0';
 				end loop;
@@ -351,7 +359,7 @@ begin
 				else
 					ReadRegFile := 0;
 				end if;
-				for clk_cycle in 0 to 2 loop
+				for clk_cycle in 0 to wait_done(0) loop
 					wait until ((clk_tb'event) and (clk_tb = '1'));
 				end loop;
 				DoneRegFile_tb <= '1';
@@ -361,7 +369,7 @@ begin
 				else
 					MemAccess := 0;
 				end if;
-				for clk_cycle in 0 to 7 loop
+				for clk_cycle in 0 to wait_done(1) loop
 					wait until ((clk_tb'event) and (clk_tb = '1'));
 					DoneRegFile_tb <= '0';
 				end loop;
@@ -373,7 +381,7 @@ begin
 				else
 					MemAccess := 0;
 				end if;
-				for clk_cycle in 0 to 7 loop
+				for clk_cycle in 0 to wait_done(0) loop
 					wait until ((clk_tb'event) and (clk_tb = '1'));
 				end loop;
 				DoneMemory_tb <= '1';
@@ -383,7 +391,7 @@ begin
 				else
 					WriteRegFile := 0;
 				end if;
-				for clk_cycle in 0 to 2 loop
+				for clk_cycle in 0 to wait_done(1) loop
 					wait until ((clk_tb'event) and (clk_tb = '1'));
 					DoneMemory_tb <= '0';
 				end loop;
@@ -396,7 +404,7 @@ begin
 					else
 						WriteRegFile := 0;
 					end if;
-					for clk_cycle in 0 to 2 loop
+					for clk_cycle in 0 to wait_done(0) loop
 						wait until ((clk_tb'event) and (clk_tb = '1'));
 					end loop;
 					DoneRegFile_tb <= '1';
@@ -407,7 +415,7 @@ begin
 					else
 						ReadRegFile := 0;
 					end if;
-					for clk_cycle in 0 to 2 loop
+					for clk_cycle in 0 to wait_done(0) loop
 						wait until ((clk_tb'event) and (clk_tb = '1'));
 					end loop;
 					DoneRegFile_tb <= '1';
@@ -417,7 +425,7 @@ begin
 					else
 						WriteRegFile := 0;
 					end if;
-					for clk_cycle in 0 to 2 loop
+					for clk_cycle in 0 to wait_done(1) loop
 						wait until ((clk_tb'event) and (clk_tb = '1'));
 						DoneRegFile_tb <= '0';
 					end loop;
@@ -473,6 +481,7 @@ begin
 		variable CtrlCmd_vec	: std_logic_vector(CTRL_CMD_L - 1 downto 0); 
 		variable EnableRegFile_vec	: std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0);
 		variable ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess	: integer;
+		variable wait_done	: int_arr(0 to (MAX_DONE_NUM - 1));
 		variable seed1, seed2	: positive;
 		variable pass		: integer;
 		variable num_pass	: integer;
@@ -492,8 +501,8 @@ begin
 
 		for i in 0 to NUM_TEST-1 loop
 
-			push_op(CmdALU_vec, CtrlCmd_vec, EnableRegFile_vec, seed1, seed2);
-			ctrl_ref(CtrlCmd_vec,CmdALU_vec, EnableRegFile_vec, ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess);
+			push_op(CmdALU_vec, CtrlCmd_vec, EnableRegFile_vec, wait_done, seed1, seed2);
+			ctrl_ref(wait_done, CtrlCmd_vec,CmdALU_vec, EnableRegFile_vec, ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess);
 			verify(CtrlCmd_vec, ctrl_cmd_std_vect_to_txt(CtrlCmd_vec), CmdALU_vec, full_alu_cmd_std_vect_to_txt(CmdALU_vec), EnableRegFile_vec, ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess, file_pointer,  pass);
 
 			num_pass := num_pass + pass;
