@@ -100,6 +100,7 @@ architecture rtl of ctrl is
 
 	signal StateC, StateN	: std_logic_vector(STATE_CTRL_L - 1 downto 0);
 	signal NextStateC, NextStateN	: std_logic_vector(STATE_CTRL_L - 1 downto 0);
+	signal State_tmp	: std_logic_vector(STATE_CTRL_L - 1 downto 0);
 
 begin
 
@@ -140,95 +141,88 @@ begin
 		end if;
 	end process reg;
 
-	state_det: process(StateC, NextStateC, CtrlCmdC, CtrlCmd, EnableRegFile_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
-		variable State_tmp	: std_logic_vector(STATE_CTRL_L - 1 downto 0);
+	state_tmp_det: process(StateC, CtrlCmdC, CtrlCmd, EnableRegFile_In)
+	begin
+		State_tmp <= StateC;
+		if (StateC = REG_FILE_READ) then
+			if (CtrlCmdC = CTRL_CMD_ALU) then
+				if (CmdALUC = CMD_ALU_MUL) then
+					State_tmp <= MULTIPLICATION;
+				elsif (CmdALUC = CMD_ALU_DIV) then
+					State_tmp <= DIVISION;
+				else
+					State_tmp <= ALU_OP;
+				end if;
+			elsif (CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) then
+				State_tmp <= MEMORY_ACCESS;
+			elsif (CtrlCmdC = CTRL_CMD_MOV) and (EnableRegFileC(1) = '1') then
+				State_tmp <= REG_FILE_WRITE;
+			else
+				State_tmp <= StateC;
+			end if;
+		elsif (StateC = MEMORY_ACCESS) then
+			if (CtrlCmd = CTRL_CMD_RD_S) or (CtrlCmd = CTRL_CMD_RD_M) then
+				State_tmp <= REG_FILE_WRITE;
+			elsif (CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)  then
+				State_tmp <= CTRL_IDLE;
+			else
+				State_tmp <= StateC;
+			end if;
+		else
+			State_tmp <= StateC;
+		end if;
+	end process state_tmp_det;
+
+
+	state_det: process(StateC, CtrlCmdC, CtrlCmd, EnableRegFile_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
 	begin
 		StateN <= StateC; -- avoid latches
-		NextStateN <= NextStateC;
-		State_tmp := StateC;
 		if (StateC = CTRL_IDLE) then
 			if (EndDecoding = '1') then
 				if (CtrlCmd = CTRL_CMD_ALU) or (CtrlCmd = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) or ((CtrlCmd = CTRL_CMD_MOV) and (EnableRegFile_In(1) = '1')) then
 					StateN <= REG_FILE_READ;
-					NextStateN <= REG_FILE_READ;
 				elsif (CtrlCmd = CTRL_CMD_RD_S) or (CtrlCmd = CTRL_CMD_RD_M) then
 					StateN <= MEMORY_ACCESS;
-					NextStateN <= MEMORY_ACCESS;
 				elsif ((CtrlCmd = CTRL_CMD_MOV) and EnableRegFile_In(1) = '0') then
 					StateN <= REG_FILE_WRITE;
-					NextStateN <= REG_FILE_WRITE;
 				else
 					StateN <= UNKNOWN_COMMAND;
-					NextStateN <= UNKNOWN_COMMAND;
 				end if;
 			end if;
 		elsif (StateC = ALU_OP) then
 			if (DoneALU = '1') then
 				StateN <= REG_FILE_WRITE;
-				NextStateN <= NextStateC;
 			else
 				StateN <= StateC;
-				NextStateN <= REG_FILE_WRITE;
 			end if;
 		elsif (StateC = MULTIPLICATION) then
 			if (DoneMul = '1') then
 				StateN <= REG_FILE_WRITE;
-				NextStateN <= NextStateC;
 			else
 				StateN <= StateC;
-				NextStateN <= REG_FILE_WRITE;
 			end if;
 		elsif (StateC = DIVISION) then
 			if (DoneDiv = '1') then
 				StateN <= REG_FILE_WRITE;
-				NextStateN <= NextStateC;
 			else
 				StateN <= StateC;
-				NextStateN <= REG_FILE_WRITE;
 			end if;
 		elsif (StateC = REG_FILE_WRITE) then
-			NextStateN <= CTRL_IDLE;
 			if (DoneRegFile = '1') then
 				StateN <= CTRL_IDLE;
 			else
 				StateN <= StateC;
 			end if;
 		elsif (StateC = REG_FILE_READ) then
-			if (CtrlCmdC = CTRL_CMD_ALU) then
-				if (CmdALUC = CMD_ALU_MUL) then
-					State_tmp := MULTIPLICATION;
-				elsif (CmdALUC = CMD_ALU_DIV) then
-					State_tmp := DIVISION;
-				else
-					State_tmp := ALU_OP;
-				end if;
-			elsif (CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) then
-				State_tmp := MEMORY_ACCESS;
-			elsif (CtrlCmdC = CTRL_CMD_MOV) and (EnableRegFileC(1) = '1') then
-				State_tmp := REG_FILE_WRITE;
-			else
-				State_tmp := StateC;
-			end if;
 			if (DoneRegFile = '1') then
 				StateN <= State_tmp;
-				NextStateN <= NextStateC;
 			else
-				NextStateN <= State_tmp;
 				StateN <= StateC;
 			end if;
 		elsif (StateC = MEMORY_ACCESS) then
-			if (CtrlCmd = CTRL_CMD_RD_S) or (CtrlCmd = CTRL_CMD_RD_M) then
-				State_tmp := REG_FILE_WRITE;
-			elsif (CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)  then
-				State_tmp := CTRL_IDLE;
-			else
-				State_tmp := StateC;
-			end if;
 			if (DoneMemory = '1') then
 				StateN <= State_tmp;
-				NextStateN <= NextStateC;
 			else
-				NextStateN <= State_tmp;
 				StateN <= StateC;
 			end if;
 		elsif (StateC = UNKNOWN_COMMAND) then
@@ -238,6 +232,58 @@ begin
 		end if;
 	end process state_det;
 
+
+	next_state_det: process(NextStateC, StateC, CtrlCmdC, CtrlCmd, EnableRegFile_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
+	begin
+		NextStateN <= NextStateC;
+		if (StateC = CTRL_IDLE) then
+			if (EndDecoding = '1') then
+				if (CtrlCmd = CTRL_CMD_ALU) or (CtrlCmd = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) or ((CtrlCmd = CTRL_CMD_MOV) and (EnableRegFile_In(1) = '1')) then
+					NextStateN <= REG_FILE_READ;
+				elsif (CtrlCmd = CTRL_CMD_RD_S) or (CtrlCmd = CTRL_CMD_RD_M) then
+					NextStateN <= MEMORY_ACCESS;
+				elsif ((CtrlCmd = CTRL_CMD_MOV) and EnableRegFile_In(1) = '0') then
+					NextStateN <= REG_FILE_WRITE;
+				else
+					NextStateN <= UNKNOWN_COMMAND;
+				end if;
+			end if;
+		elsif (StateC = ALU_OP) then
+			if (DoneALU = '1') then
+				NextStateN <= NextStateC;
+			else
+				NextStateN <= REG_FILE_WRITE;
+			end if;
+		elsif (StateC = MULTIPLICATION) then
+			if (DoneMul = '1') then
+				NextStateN <= NextStateC;
+			else
+				NextStateN <= REG_FILE_WRITE;
+			end if;
+		elsif (StateC = DIVISION) then
+			if (DoneDiv = '1') then
+				NextStateN <= NextStateC;
+			else
+				NextStateN <= REG_FILE_WRITE;
+			end if;
+		elsif (StateC = REG_FILE_WRITE) then
+			NextStateN <= CTRL_IDLE;
+		elsif (StateC = REG_FILE_READ) then
+			if (DoneRegFile = '1') then
+				NextStateN <= NextStateC;
+			else
+				NextStateN <= State_tmp;
+			end if;
+		elsif (StateC = MEMORY_ACCESS) then
+			if (DoneMemory = '1') then
+				NextStateN <= NextStateC;
+			else
+				NextStateN <= State_tmp;
+			end if;
+		else
+			NextStateN <= NextStateC;
+		end if;
+	end process next_state_det;
 
 	EndExecution <= '1' when (StateC = UNKNOWN_COMMAND) or ((NextStateC = CTRL_IDLE) and (DoneRegFile = '1')) or (((CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)) and (StateC = MEMORY_ACCESS) and (DoneMemory = '1')) else '0';
 

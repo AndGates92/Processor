@@ -150,101 +150,141 @@ begin
 		BNot(k) <= not Op1C(k);
 	end generate not_bit;
 
-	data : process(StateC, SSum, SSubN, USum, USubN, SCmp, UCmp, BNot, BAnd, BOr, BXor, ResC, Op1, Op2, Op1C, Op2C, OvflC, UnflC, UnCmdC, CmdC)
+	result_proc : process(StateC, SSum, SSubN, USum, USubN, SCmp, UCmp, BNot, BAnd, BOr, BXor, ResC, CmdC)
 	begin
 		ResN <= ResC;
-		Op1N <= Op1C;
-		Op2N <= Op2C;
-		CmdN <= CmdC;
-		OvflN <= OvflC;
-		UnflN <= UnflC;
-		UnCmdN <= UnCmdC;
-		DoneOp <= '0';
-
-		if (StateC = ALU_IDLE) then
-			Op1N <= unsigned(Op1);
-			Op2N <= unsigned(Op2);
-			CmdN <= Cmd;
-			UnflN <= '0';
-			OvflN <= '0';
-			UnCmdN <= UnCmdInt;
-		elsif (StateC = COMPUTE) then
+		if (StateC = COMPUTE) then
 			if (CmdC = CMD_ALU_USUM) then
 				ResN <= USum(USum'length-1 - 1 downto 0);
-				if (USum(USum'length-1) = '1') then
-					OvflN <= '1';
-				else
-					OvflN <= '0';
-				end if;
-				DoneOp <= '1';
 			elsif (CmdC = CMD_ALU_SSUM) then
 				ResN <= SSum(SSum'length-1 - 1 downto 0);
-				if ((Op1C(Op1C'length-1) = '0') and ((Op2C(Op2C'length-1)) = '0') and (SSum(SSum'length-2) = '1')) then
-					OvflN <= '1';
-					UnflN <= '0';
-				elsif (((Op1C(Op1C'length-1) and Op2C(Op2C'length-1)) = '1') and (SSum(SSum'length-2) = '0')) then
-					UnflN <= '1';
-					OvflN <= '0';
-				else
-					OvflN <= '0';
-					UnflN <= '0';
-				end if;
-				DoneOp <= '1';
 			elsif (CmdC = CMD_ALU_USUB) then
 				ResN <= USubN(USubN'length-1 - 1 downto 0);
-				if (USubN(USubN'length-1) = '1') then
-					UnflN <= '1';
-				else
-					UnflN <= '0';
-				end if;
-				DoneOp <= '1';
 			elsif (CmdC = CMD_ALU_SSUB) then
 				ResN <= SSubN(SSubN'length-1 - 1 downto 0);
-				if (((Op2C(Op2C'length-1) or SSubN(SSubN'length-2)) = '0') and (Op1C(Op1C'length-1) = '1')) then
-					OvflN <= '0';
-					UnflN <= '1';
-				elsif (((SSubN(SSubN'length-2) and Op2C(Op2C'length-1)) = '1') and (Op1C(Op1C'length-1) = '0')) then
-					UnflN <= '0';
-					OvflN <= '1';
-				else
-					UnflN <= '0';
-					OvflN <= '0';
-				end if;
-				DoneOp <= '1';
 			elsif(CmdC = CMD_ALU_AND) then
 				ResN <= BAnd;
-				DoneOp <= '1';
 			elsif(CmdC = CMD_ALU_NOT) then
 				ResN <= BNot;
-				DoneOp <= '1';
 			elsif(CmdC = CMD_ALU_OR) then
 				ResN <= BOr;
-				DoneOp <= '1';
 			elsif(CmdC = CMD_ALU_XOR) then
 				ResN <= BXor;
-				DoneOp <= '1';
 			else
 				ResN <= (others => '0');
-				DoneOp <= '0';
 			end if;
 		elsif (StateC = COMPARE) then
 			if (CmdC = CMD_ALU_SCMP) then
 				ResN <= SCmp;
-				DoneOp <= '1';
 			elsif (CmdC = CMD_ALU_UCMP) then
 				ResN <= UCmp;
-				DoneOp <= '1';
 			else
 				ResN <= (others => '0');
 			end if;
 		elsif (StateC = ALU_OUTPUT) then
 			ResN <= ResC;
-			DoneOp <= '0';
 		else
 			ResN <= ResC;
+		end if;
+	end process result_proc;
+
+	unfl_proc : process(StateC, SSum, SSubN, USubN, Op1C, Op2C, UnflC, CmdC)
+	begin
+		UnflN <= UnflC;
+
+		if (StateC = ALU_IDLE) then
+			UnflN <= '0';
+		elsif (StateC = COMPUTE) then
+			if (CmdC = CMD_ALU_SSUM) then
+				if ((Op1C(Op1C'length-1) = '0') and ((Op2C(Op2C'length-1)) = '0') and (SSum(SSum'length-2) = '1')) then
+					UnflN <= '0';
+				elsif (((Op1C(Op1C'length-1) and Op2C(Op2C'length-1)) = '1') and (SSum(SSum'length-2) = '0')) then
+					UnflN <= '1';
+				else
+					UnflN <= '0';
+				end if;
+			elsif (CmdC = CMD_ALU_USUB) then
+				if (USubN(USubN'length-1) = '1') then
+					UnflN <= '1';
+				else
+					UnflN <= '0';
+				end if;
+			elsif (CmdC = CMD_ALU_SSUB) then
+				if (((Op2C(Op2C'length-1) or SSubN(SSubN'length-2)) = '0') and (Op1C(Op1C'length-1) = '1')) then
+					UnflN <= '1';
+				elsif (((SSubN(SSubN'length-2) and Op2C(Op2C'length-1)) = '1') and (Op1C(Op1C'length-1) = '0')) then
+					UnflN <= '0';
+				else
+					UnflN <= '0';
+				end if;
+			end if;
+		else
+			UnflN <= UnflC;
+		end if;
+	end process unfl_proc;
+
+	ovfl_proc : process(StateC, SSum, SSubN, USum, Op1C, Op2C, OvflC, CmdC)
+	begin
+		OvflN <= OvflC;
+
+		if (StateC = ALU_IDLE) then
+			OvflN <= '0';
+		elsif (StateC = COMPUTE) then
+			if (CmdC = CMD_ALU_USUM) then
+				if (USum(USum'length-1) = '1') then
+					OvflN <= '1';
+				else
+					OvflN <= '0';
+				end if;
+			elsif (CmdC = CMD_ALU_SSUM) then
+				if ((Op1C(Op1C'length-1) = '0') and ((Op2C(Op2C'length-1)) = '0') and (SSum(SSum'length-2) = '1')) then
+					OvflN <= '1';
+				elsif (((Op1C(Op1C'length-1) and Op2C(Op2C'length-1)) = '1') and (SSum(SSum'length-2) = '0')) then
+					OvflN <= '0';
+				else
+					OvflN <= '0';
+				end if;
+			elsif (CmdC = CMD_ALU_SSUB) then
+				if (((Op2C(Op2C'length-1) or SSubN(SSubN'length-2)) = '0') and (Op1C(Op1C'length-1) = '1')) then
+					OvflN <= '0';
+				elsif (((SSubN(SSubN'length-2) and Op2C(Op2C'length-1)) = '1') and (Op1C(Op1C'length-1) = '0')) then
+					OvflN <= '1';
+				else
+					OvflN <= '0';
+				end if;
+			end if;
+		else
+			OvflN <= OvflC;
+		end if;
+	end process ovfl_proc;
+
+	done_proc : process(StateC, CmdC)
+	begin
+		DoneOp <= '0';
+
+		if (StateC = COMPUTE) then
+			if ((CmdC = CMD_ALU_USUM) or (CmdC = CMD_ALU_SSUM) or (CmdC = CMD_ALU_USUB) or (CmdC = CMD_ALU_SSUB) or (CmdC = CMD_ALU_AND) or (CmdC = CMD_ALU_NOT) or (CmdC = CMD_ALU_OR) or (CmdC = CMD_ALU_XOR)) then
+				DoneOp <= '1';
+			else
+				DoneOp <= '0';
+			end if;
+		elsif (StateC = COMPARE) then
+			if ((CmdC = CMD_ALU_SCMP) or (CmdC = CMD_ALU_UCMP)) then
+				DoneOp <= '1';
+			else
+				DoneOp <= '0';
+			end if;
+		elsif (StateC = ALU_OUTPUT) then
+			DoneOp <= '0';
+		else
 			DoneOp <= '0';
 		end if;
-	end process data;
+	end process done_proc;
+
+	Op1N <= unsigned(Op1) when (StateC = ALU_IDLE) else Op1C;
+	Op2N <= unsigned(Op2) when (StateC = ALU_IDLE) else Op2C;
+	CmdN <= Cmd when (StateC = ALU_IDLE) else CmdC;
+	UnCmdN <= UnCmdInt when (StateC = ALU_IDLE) else UnCmdC;
 
 	-- Assert flags when result is put on the output line
 	Unfl <= UnflC when (StateC = ALU_OUTPUT) else '0';
