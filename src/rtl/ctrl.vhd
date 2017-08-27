@@ -141,7 +141,7 @@ begin
 		end if;
 	end process reg;
 
-	state_tmp_det: process(StateC, CtrlCmdC, CtrlCmd, EnableRegFile_In)
+	state_tmp_det: process(StateC, CtrlCmdC)
 	begin
 		State_tmp <= StateC;
 		if (StateC = REG_FILE_READ) then
@@ -153,7 +153,7 @@ begin
 				else
 					State_tmp <= ALU_OP;
 				end if;
-			elsif (CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M) then
+			elsif (CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmdC = CTRL_CMD_WR_M) then
 				State_tmp <= MEMORY_ACCESS;
 			elsif (CtrlCmdC = CTRL_CMD_MOV) and (EnableRegFileC(1) = '1') then
 				State_tmp <= REG_FILE_WRITE;
@@ -161,9 +161,9 @@ begin
 				State_tmp <= StateC;
 			end if;
 		elsif (StateC = MEMORY_ACCESS) then
-			if (CtrlCmd = CTRL_CMD_RD_S) or (CtrlCmd = CTRL_CMD_RD_M) then
+			if (CtrlCmdC = CTRL_CMD_RD_S) or (CtrlCmdC = CTRL_CMD_RD_M) then
 				State_tmp <= REG_FILE_WRITE;
-			elsif (CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)  then
+			elsif (CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmdC = CTRL_CMD_WR_M)  then
 				State_tmp <= CTRL_IDLE;
 			else
 				State_tmp <= StateC;
@@ -233,7 +233,7 @@ begin
 	end process state_det;
 
 
-	next_state_det: process(NextStateC, StateC, CtrlCmdC, CtrlCmd, EnableRegFile_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
+	next_state_det: process(NextStateC, StateC, CtrlCmd, EnableRegFile_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
 	begin
 		NextStateN <= NextStateC;
 		if (StateC = CTRL_IDLE) then
@@ -285,7 +285,7 @@ begin
 		end if;
 	end process next_state_det;
 
-	EndExecution <= '1' when (StateC = UNKNOWN_COMMAND) or ((NextStateC = CTRL_IDLE) and (DoneRegFile = '1')) or (((CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmd = CTRL_CMD_WR_M)) and (StateC = MEMORY_ACCESS) and (DoneMemory = '1')) else '0';
+	EndExecution <= '1' when (StateC = UNKNOWN_COMMAND) or ((NextStateC = CTRL_IDLE) and (DoneRegFile = '1')) or (((CtrlCmdC = CTRL_CMD_WR_S) or (CtrlCmdC = CTRL_CMD_WR_M)) and (StateC = MEMORY_ACCESS) and (DoneMemory = '1')) else '0';
 
 	ImmediateN <= Immediate when (EndDecoding = '1') else ImmediateC;
 	CmdALUN <= CmdALU_In when (EndDecoding = '1') else CmdALUC;

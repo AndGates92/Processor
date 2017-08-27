@@ -144,36 +144,26 @@ begin
 	-- Sign bit
 	Sign <=  ext_divd(OP_L - 1) xor ext_divr(OP_L - 1);
 
-	data: process(QuotC, RemC, SignC, SignDvdC, StateC, CountC, DivisorC, RemProp, DivisorProp, DividendProp, Sign, ext_divd, ZeroDvdC, ZeroDvsC, ZeroDvd, ZeroDvs)
+	DivisorN <= DivisorProp when (StateC = ALU_IDLE) else DivisorC;
+	SignN <= Sign when (StateC = ALU_IDLE) else SignC;
+	SignDvdN <= ext_divd(OP_L - 1) when (StateC = ALU_IDLE) else SignDvdC;
+	ZeroDvsN <= ZeroDvs when (StateC = ALU_IDLE) else ZeroDvsC;
+	ZeroDvdN <= ZeroDvd when (StateC = ALU_IDLE) else ZeroDvdC;
+
+	CountN <= (CountC + 1) when (StateC = COMPUTE) else (others => '0');
+
+	rem_proc: process(RemC, StateC, DivisorC, RemProp)
 	begin
 		-- avoid latches
-		DivisorN <= DivisorC;
-		SignN <= SignC;
-		SignDvdN <= SignDvdC;
-		CountN <= CountC;
-		QuotN <= QuotC;
 		RemN <= RemC;
-		ZeroDvsN <= ZeroDvsC;
-		ZeroDvdN <= ZeroDvdC;
 
 		if (StateC = ALU_IDLE) then
-			DivisorN <= DivisorProp;
-			QuotN <= DividendProp(DividendProp'length -1 downto 0);
 			RemN <= (others => '0');
-			SignN <= Sign;
-			SignDvdN <= ext_divd(OP_L - 1);
-			CountN <= (others => '0');
-			ZeroDvdN <= ZeroDvd;
-			ZeroDvsN <= ZeroDvs;
 		elsif (StateC = COMPUTE_FIRST) then
 			RemN <= RemProp;
-			QuotN <= QuotC(QuotC'length-1 - 1 downto 0) & "0";
 		elsif (StateC = COMPUTE) then
-			CountN <= CountC + 1;
-			QuotN <= QuotC(QuotC'length-1 - 1 downto 1) & (not unsigned(RemC(RemC'length - 1 downto RemC'length - 1))) & "0";
 			RemN <= RemProp;
 		elsif (StateC = COMPUTE_LAST) then
-			QuotN <= QuotC(QuotC'length - 1 downto 1) & (not unsigned(RemC(RemC'length - 1 downto RemC'length - 1)));
 			if RemC(RemC'length - 1) = '1' then
 				RemN <= RemC + signed("0" & DivisorC);
 			else
@@ -181,15 +171,30 @@ begin
 			end if;
 		elsif (StateC = ALU_OUTPUT) then
 			RemN <= RemC;
-			QuotN <= QuotC;
 		else
-			DivisorN <= DivisorC;
-			SignN <= SignC;
-			CountN <= CountC;
-			QuotN <= QuotC;
 			RemN <= RemC;
 		end if;
-	end process data;
+	end process rem_proc;
+
+	quot_proc: process(QuotC, RemC, StateC, DividendProp)
+	begin
+		-- avoid latches
+		QuotN <= QuotC;
+
+		if (StateC = ALU_IDLE) then
+			QuotN <= DividendProp(DividendProp'length -1 downto 0);
+		elsif (StateC = COMPUTE_FIRST) then
+			QuotN <= QuotC(QuotC'length-1 - 1 downto 0) & "0";
+		elsif (StateC = COMPUTE) then
+			QuotN <= QuotC(QuotC'length-1 - 1 downto 1) & (not unsigned(RemC(RemC'length - 1 downto RemC'length - 1))) & "0";
+		elsif (StateC = COMPUTE_LAST) then
+			QuotN <= QuotC(QuotC'length - 1 downto 1) & (not unsigned(RemC(RemC'length - 1 downto RemC'length - 1)));
+		elsif (StateC = ALU_OUTPUT) then
+			QuotN <= QuotC;
+		else
+			QuotN <= QuotC;
+		end if;
+	end process quot_proc;
 
 	Done <=	'1' when StateC = ALU_OUTPUT else 
 		'0';

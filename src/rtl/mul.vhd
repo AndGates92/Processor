@@ -24,15 +24,18 @@ end entity mul;
 
 architecture booth_radix2 of mul is
 
-	constant MULTD_L : integer := min_int(OP1_L, OP2_L);
-	constant MULTR_L : integer := calc_length_multiplier(OP1_L, OP2_L, 2, MULTD_L);
+	constant MULTD_L	: integer := min_int(OP1_L, OP2_L);
+	constant MULTR_L	: integer := calc_length_multiplier(OP1_L, OP2_L, 2, MULTD_L);
+	constant PROD_INT_L	: integer := MULTD_L+MULTR_L+1;
 
 	constant zero_multd : unsigned(MULTD_L-1 downto 0) := (others => '0');
 	constant zero_multr : unsigned(MULTR_L-1 downto 0) := (others => '0');
 
-	signal AddN, AddC, SubN, SubC, ProdN, ProdC	: unsigned(MULTD_L+MULTR_L+1 - 1 downto 0);
-	signal Sum, Diff, Sum_Shift, Diff_Shift		: unsigned(MULTD_L+MULTR_L+1 - 1 downto 0);
-	signal tmp 					: unsigned(MULTD_L+MULTR_L+1 - 1 downto 0);
+	constant zero_add_sub_lsb	: unsigned((PROD_INT_L-MULTD_L-1) downto 0) := (others => '0');
+
+	signal AddN, AddC, SubN, SubC, ProdN, ProdC	: unsigned(PROD_INT_L - 1 downto 0);
+	signal Sum, Diff, Sum_Shift, Diff_Shift		: unsigned(PROD_INT_L - 1 downto 0);
+	signal tmp 					: unsigned(PROD_INT_L - 1 downto 0);
 
 	signal ProdLSB		: unsigned(1 downto 0);
 
@@ -115,45 +118,33 @@ begin
 
 	ProdLowIdle <= (others => '0') when (unsigned(multiplicand) = zero_multd) else unsigned(multiplier);
 
-	data: process(ProdC, StateC, CountC, multiplicand, multiplier, tmp, multd_2comp, ProdLowIdle, Sum, Diff)
+	prod_proc: process(ProdC, StateC, tmp, ProdLowIdle)
 	begin
 		-- avoid latches
 		ProdN <= ProdC;
-		AddN <= AddC;
-		SubN <= SubC;
-		CountN <= CountC;
-		tmp <= (others => '0');
-		ProdLSB <= ProdC(1 downto 0);
 
 		if (StateC = ALU_IDLE) then
-			AddN(AddN'length-1 downto (AddN'length-MULTD_L)) <= unsigned(multiplicand);
-			AddN((AddN'length-MULTD_L-1) downto 0) <= to_unsigned(0, AddN'length-MULTD_L);
-			SubN(SubN'length-1 downto (SubN'length-MULTD_L)) <= multd_2comp;
-			SubN((SubN'length-MULTD_L-1) downto 0) <= to_unsigned(0, SubN'length-MULTD_L);
 			ProdN(MULTR_L downto 0) <= ProdLowIdle & "0";
-			ProdN(ProdN'length-1 downto MULTR_L + 1) <= to_unsigned(0,MULTD_L);
-			CountN <= (others => '0');
+			ProdN(ProdN'length-1 downto MULTR_L + 1) <= to_unsigned(0,(ProdN'length - MULTR_L - 1));
 		elsif (StateC = COMPUTE) then
-			CountN <= CountC + 1;
-			case ProdLSB is
-				when "00"|"11" =>
-					tmp <= ProdC;
-				when "01" =>
-					tmp <= Sum;
-				when "10" =>
-					tmp <= Diff;
-				when others =>
-					tmp <= ProdC;
-			end case;
-
 			ProdN <= tmp(tmp'length-1 downto tmp'length-1) & tmp(tmp'length-1 downto 1);
-
 		elsif (StateC = ALU_OUTPUT) then
 			ProdN <= ProdC;
 		else
 			ProdN <= ProdC;
 		end if;
-	end process data;
+	end process prod_proc;
+
+	ProdLSB <= ProdC(1 downto 0);
+
+	tmp <=	Sum when (ProdLSB = "01") else
+		Diff when (ProdLSB = "10") else
+		ProdC;
+
+	AddN <= unsigned(multiplicand) & zero_add_sub_lsb when (StateC = ALU_IDLE) else AddC;
+	SubN <= multd_2comp & zero_add_sub_lsb when (StateC = ALU_IDLE) else SubC;
+
+	CountN <= (CountC + 1) when (StateC = COMPUTE) else (others => '0');
 
 	Done <= '1' when StateC = ALU_OUTPUT else '0';
 	Res <= std_logic_vector(ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(OP1_L+OP2_L-1 downto 1)) when StateC = ALU_OUTPUT else (others => '0');
@@ -254,45 +245,36 @@ begin
 
 	ProdLowIdle <= (others => '0') when (unsigned(multiplicand) = zero_multd) else unsigned(multiplier);
 
-	data: process(ProdC, StateC, CountC, multiplicand, multiplier, tmp, AddC, SubC, Sum, Sum_Shift, Diff, Diff_shift, multd_2comp, ProdLowIdle)
+	prod_proc: process(ProdC, StateC, tmp, ProdLowIdle)
 	begin
 		-- avoid latches
 		ProdN <= ProdC;
-		AddN <= AddC;
-		SubN <= SubC;
-		CountN <= CountC;
-		tmp <= (others => '0');
-		ProdLSB <= ProdC(2 downto 0);
 
 		if (StateC = ALU_IDLE) then
-			AddN <= unsigned(multiplicand);
-			SubN <= multd_2comp;
 			ProdN(MULTR_L downto 0) <= ProdLowIdle & "0";
 			ProdN(ProdN'length-1 downto MULTR_L + 1) <= to_unsigned(0,MULTD_L);
-			CountN <= (others => '0');
 		elsif (StateC = COMPUTE) then
-			CountN <= CountC + 1;
-			case ProdLSB is
-				when "000"|"111" =>
-					tmp <= ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto 1);
-				when "001"|"010" =>
-					tmp <= Sum & ProdC(MULTR_L downto 1);
-				when "011" =>
-					tmp <= Sum_Shift & ProdC(MULTR_L downto 1);
-				when "100" =>
-					tmp <= Diff_Shift & ProdC(MULTR_L downto 1);
-				when "101"|"110" =>
-					tmp <= Diff & ProdC(MULTR_L downto 1);
-				when others =>
-					tmp <= ProdC;
-			end case;
 			ProdN <= tmp(tmp'length-1 downto tmp'length-1) & tmp(tmp'length-1 downto 1);
 		elsif (StateC = ALU_OUTPUT) then
 			ProdN <= ProdC;
 		else
 			ProdN <= ProdC;
 		end if;
-	end process data;
+	end process prod_proc;
+
+	ProdLSB <= ProdC(2 downto 0);
+
+	tmp <=	Sum & ProdC(MULTR_L downto 1) when ((ProdLSB = "010") or (ProdLSB = "001")) else
+		Sum_Shift & ProdC(MULTR_L downto 1) when (ProdLSB = "011") else
+		Diff & ProdC(MULTR_L downto 1) when ((ProdLSB = "101") or (ProdLSB = "110")) else
+		Diff_Shift & ProdC(MULTR_L downto 1) when (ProdLSB = "100") else
+		ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(ProdC'length-1 downto 1);
+
+	AddN <= unsigned(multiplicand) when (StateC = ALU_IDLE) else AddC;
+	SubN <= multd_2comp when (StateC = ALU_IDLE) else SubC;
+
+	CountN <= (CountC + 1) when (StateC = COMPUTE) else (others => '0');
+
 
 	Done <= '1' when StateC = ALU_OUTPUT else '0';
 	Res <= std_logic_vector(ProdC(ProdC'length-1 downto ProdC'length-1) & ProdC(OP1_L+OP2_L-1 downto 1)) when StateC = ALU_OUTPUT else (others => '0');
