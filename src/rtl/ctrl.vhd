@@ -141,7 +141,7 @@ begin
 		end if;
 	end process reg;
 
-	state_tmp_det: process(StateC, CtrlCmdC)
+	state_tmp_det: process(StateC, CtrlCmdC, EnableRegFileC, CmdALUC)
 	begin
 		State_tmp <= StateC;
 		if (StateC = REG_FILE_READ) then
@@ -174,7 +174,7 @@ begin
 	end process state_tmp_det;
 
 
-	state_det: process(StateC, CtrlCmdC, CtrlCmd, EnableRegFile_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
+	state_det: process(StateC, State_tmp, CtrlCmdC, CtrlCmd, EnableRegFile_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
 	begin
 		StateN <= StateC; -- avoid latches
 		if (StateC = CTRL_IDLE) then
@@ -233,7 +233,7 @@ begin
 	end process state_det;
 
 
-	next_state_det: process(NextStateC, StateC, CtrlCmd, EnableRegFile_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
+	next_state_det: process(NextStateC, StateC, State_tmp, CtrlCmd, EnableRegFile_In, DoneDiv, DoneMul, DoneALU, DoneRegFile, DoneMemory, EndDecoding)
 	begin
 		NextStateN <= NextStateC;
 		if (StateC = CTRL_IDLE) then
