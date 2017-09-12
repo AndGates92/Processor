@@ -13,8 +13,10 @@ package ctrl_pkg is
 
 	constant CTRL_CMD_DISABLE	: std_logic_vector(CTRL_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(0, CTRL_CMD_L));
 	constant CTRL_CMD_ALU		: std_logic_vector(CTRL_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(1, CTRL_CMD_L));
+	-- Memory commands
 	constant CTRL_CMD_WR_M		: std_logic_vector(CTRL_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(2, CTRL_CMD_L));
 	constant CTRL_CMD_RD_M		: std_logic_vector(CTRL_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(3, CTRL_CMD_L));
+	-- Stack commands
 	constant CTRL_CMD_WR_S		: std_logic_vector(CTRL_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(4, CTRL_CMD_L));
 	constant CTRL_CMD_RD_S		: std_logic_vector(CTRL_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(5, CTRL_CMD_L));
 	constant CTRL_CMD_MOV		: std_logic_vector(CTRL_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(6, CTRL_CMD_L));
