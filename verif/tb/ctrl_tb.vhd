@@ -20,13 +20,13 @@ end entity ctrl_tb;
 architecture bench of ctrl_tb is
 
 	constant CLK_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
-	constant NUM_TEST	: integer := 10000;
+	constant NUM_TEST	: integer := 10; -- 10000;
 
 	constant ADDR_L_TB	: positive := 16;
 	constant OUT_NUM_TB	: positive := 2;
 	constant BASE_STACK_TB	: positive := 16#8000#;
 
-	constant MAX_DONE_NUM	: positive := 3;
+	constant MAX_DONE_NUM	: positive := 4;
 	constant MAX_DELAY	: positive := 3;
 
 	signal rst_tb	: std_logic;
@@ -246,7 +246,6 @@ begin
 			DoneMemory_tb <= '0';
 			DoneReadStatus_tb <= (others => '0');
 
-
 			EndDecoding_tb <= '1';
 
 			wait until ((clk_tb'event) and (clk_tb = '1'));
@@ -261,6 +260,13 @@ begin
 			ReadRegFile := 0;
 			WriteRegFile := 0;
 			MemAccess := 0;
+
+			for clk_cycle in 0 to wait_done(3) loop
+				wait until ((clk_tb'event) and (clk_tb = '1'));
+			end loop;
+
+			wait for 1 fs;
+
 			if (CtrlCmd_vec = CTRL_CMD_DISABLE) then
 				if (EnableALU_tb = '0') then
 					ALUOp := 0;
@@ -306,6 +312,7 @@ begin
 				DoneRegFile_tb <= '1';
 				if (CmdALU_vec = CMD_ALU_MUL) then
 					wait on EnableMul_tb;
+					wait for 1 fs;
 					if (EnableMul_tb = '1') then
 						Mul := 1;
 					else
@@ -318,6 +325,7 @@ begin
 					DoneMul_tb <= '1';
 				elsif (CmdALU_vec = CMD_ALU_DIV) then
 					wait on EnableDiv_tb;
+					wait for 1 fs;
 					if (EnableDiv_tb = '1') then
 						Div := 1;
 					else
@@ -330,6 +338,7 @@ begin
 					DoneDiv_tb <= '1';
 				else
 					wait on EnableALU_tb;
+					wait for 1 fs;
 					if ((CmdALU_vec = CmdALU_tb) and (EnableALU_tb = '1')) then
 						ALUOp := 1;
 					else
@@ -342,6 +351,7 @@ begin
 					DoneALU_tb <= '1';
 				end if;
 				wait until ((clk_tb'event) and (clk_tb = '1'));
+				wait for 1 fs;
 				if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 					WriteRegFile := 1;
 				else
@@ -364,6 +374,7 @@ begin
 				end loop;
 				DoneRegFile_tb <= '1';
 				wait until ((clk_tb'event) and (clk_tb = '1'));
+				wait for 1 fs;
 				if (EnableMemory_tb = '1') then
 					MemAccess := 1;
 				else
@@ -376,6 +387,7 @@ begin
 				DoneMemory_tb <= '1';
 			elsif (CtrlCmd_vec = CTRL_CMD_RD_M) or (CtrlCmd_vec = CTRL_CMD_RD_S) then
 				wait until ((clk_tb'event) and (clk_tb = '1'));
+				wait for 1 fs;
 				if (EnableMemory_tb = '1') then
 					MemAccess := 1;
 				else
@@ -386,6 +398,7 @@ begin
 				end loop;
 				DoneMemory_tb <= '1';
 				wait until ((clk_tb'event) and (clk_tb = '1'));
+				wait for 1 fs;
 				if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 					WriteRegFile := 1;
 				else
@@ -399,6 +412,7 @@ begin
 			elsif (CtrlCmd_vec = CTRL_CMD_MOV) then
 				if (EnableRegFile_vec(1) = '0') then
 					wait until ((clk_tb'event) and (clk_tb = '1'));
+					wait for 1 fs;
 					if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 						WriteRegFile := 1;
 					else
@@ -410,6 +424,7 @@ begin
 					DoneRegFile_tb <= '1';
 				else
 					wait until ((clk_tb'event) and (clk_tb = '1'));
+					wait for 1 fs;
 					if (EnableRegFile_tb = (EnableRegFile_vec(EN_REG_FILE_L_TB - 1 downto 1) & "0")) then
 						ReadRegFile := 1;
 					else
@@ -420,6 +435,7 @@ begin
 					end loop;
 					DoneRegFile_tb <= '1';
 					wait until ((clk_tb'event) and (clk_tb = '1'));
+					wait for 1 fs;
 					if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 						WriteRegFile := 1;
 					else
