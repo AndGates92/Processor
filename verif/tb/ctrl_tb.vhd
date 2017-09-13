@@ -20,7 +20,7 @@ end entity ctrl_tb;
 architecture bench of ctrl_tb is
 
 	constant CLK_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
-	constant NUM_TEST	: integer := 10; -- 10000;
+	constant NUM_TEST	: integer := 100; -- 10000;
 
 	constant ADDR_L_TB	: positive := 16;
 	constant OUT_NUM_TB	: positive := 2;
@@ -265,6 +265,8 @@ begin
 				wait until ((clk_tb'event) and (clk_tb = '1'));
 			end loop;
 
+			wait until ((clk_tb'event) and (clk_tb = '1'));
+
 			wait for 1 fs;
 
 			if (CtrlCmd_vec = CTRL_CMD_DISABLE) then
@@ -364,6 +366,7 @@ begin
 				DoneRegFile_tb <= '1';
 			elsif (CtrlCmd_vec = CTRL_CMD_WR_M) or (CtrlCmd_vec = CTRL_CMD_WR_S) then
 				wait until ((clk_tb'event) and (clk_tb = '1'));
+				wait for 1 fs;
 				if (EnableRegFile_tb = (EnableRegFile_vec(EN_REG_FILE_L_TB - 1 downto 1) & "0")) then
 					ReadRegFile := 1;
 				else
@@ -435,6 +438,7 @@ begin
 					end loop;
 					DoneRegFile_tb <= '1';
 					wait until ((clk_tb'event) and (clk_tb = '1'));
+					DoneRegFile_tb <= '0';
 					wait for 1 fs;
 					if (EnableRegFile_tb = ("00" & EnableRegFile_vec(0))) then
 						WriteRegFile := 1;
@@ -518,7 +522,7 @@ begin
 		for i in 0 to NUM_TEST-1 loop
 
 			push_op(CmdALU_vec, CtrlCmd_vec, EnableRegFile_vec, wait_done, seed1, seed2);
-			ctrl_ref(wait_done, CtrlCmd_vec,CmdALU_vec, EnableRegFile_vec, ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess);
+			ctrl_ref(wait_done, CtrlCmd_vec, CmdALU_vec, EnableRegFile_vec, ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess);
 			verify(CtrlCmd_vec, ctrl_cmd_std_vect_to_txt(CtrlCmd_vec), CmdALU_vec, full_alu_cmd_std_vect_to_txt(CmdALU_vec), EnableRegFile_vec, ALUOp, Mul, Div, ReadRegFile, WriteRegFile, MemAccess, file_pointer,  pass);
 
 			num_pass := num_pass + pass;
