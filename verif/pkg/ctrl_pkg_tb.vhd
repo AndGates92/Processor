@@ -28,7 +28,7 @@ package body ctrl_pkg_tb is
 		elsif (Cmd = CTRL_CMD_RD_S) then
 			Cmd_txt := "RD_S";
 		elsif (Cmd = CTRL_CMD_WR_M) then
-			Cmd_txt := "WR_S";
+			Cmd_txt := "WR_M";
 		elsif (Cmd = CTRL_CMD_WR_S) then
 			Cmd_txt := "WR_S";
 		elsif (Cmd = CTRL_CMD_MOV) then
