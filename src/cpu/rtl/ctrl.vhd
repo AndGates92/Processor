@@ -46,9 +46,9 @@ port (
 	CmdALU	: out std_logic_vector(CMD_ALU_L - 1 downto 0);
 
 	-- Multiplier
-	DoneMul	: in std_logic;
+	DoneMul		: in std_logic;
 	EnableMul	: out std_logic;
-	ResMul	: in std_logic_vector(OP1_L + OP2_L - 1 downto 0);
+	ResMul		: in std_logic_vector(OP1_L + OP2_L - 1 downto 0);
 
 	-- Divider
 	DoneDiv	: in std_logic;
@@ -243,14 +243,14 @@ begin
 	Op2 <= Op2Internal;
 	Op2Internal <= DataRegOut2 when (DoneReadStatus(1) = '1') else ImmediateC;
 
-	EnableALU <= '1' when ((DoneRegFile = '1') and (CtrlCmdC = CTRL_CMD_ALU) and (CmdALUC /= CMD_ALU_MUL) and (CmdALUC /= CMD_ALU_DIV)) else '0';
+	EnableALU <= '1' when ((StateC = REG_FILE_READ) and (DoneRegFile = '1') and (CtrlCmdC = CTRL_CMD_ALU) and (CmdALUC /= CMD_ALU_MUL) and (CmdALUC /= CMD_ALU_DIV)) else '0';
 	CmdALU <= CmdALUC;
 
 	-- Multiplication
-	EnableMul <= '1' when ((DoneRegFile = '1') and (CtrlCmdC = CTRL_CMD_ALU) and (CmdALUC = CMD_ALU_DIV)) else '0';
+	EnableMul <= '1' when ((StateC = REG_FILE_READ) and (DoneRegFile = '1') and (CtrlCmdC = CTRL_CMD_ALU) and (CmdALUC = CMD_ALU_MUL)) else '0';
 
 	-- Division
-	EnableDiv <= '1' when ((DoneRegFile = '1') and (CtrlCmdC = CTRL_CMD_ALU) and (CmdALUC = CMD_ALU_DIV)) else '0';
+	EnableDiv <= '1' when ((StateC = REG_FILE_READ) and (DoneRegFile = '1') and (CtrlCmdC = CTRL_CMD_ALU) and (CmdALUC = CMD_ALU_DIV)) else '0';
 
 	-- Register File
 	AddressRegFileOut1 <= AddressRegFileOut1C;
