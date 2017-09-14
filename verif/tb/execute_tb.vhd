@@ -36,7 +36,7 @@ architecture bench of execute_tb is
 	signal AddressRegFileIn_In_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal AddressRegFileOut1_In_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
 	signal AddressRegFileOut2_In_tb	: std_logic_vector(int_to_bit_num(REG_NUM_TB) - 1 downto 0);
-	signal Immediate_tb	: std_logic_vector(DATA_L - 1 downto 0);
+	signal Immediate_tb		: std_logic_vector(DATA_L - 1 downto 0);
 	signal EnableRegFile_In_tb	: std_logic_vector(EN_REG_FILE_L_TB - 1 downto 0);
 
 	signal CmdALU_In_tb	: std_logic_vector(CMD_ALU_L - 1 downto 0);
@@ -103,8 +103,8 @@ begin
 			variable AddressIn_in, AddressOut1_in, AddressOut2_in, CmdALU_in, CtrlCmd_in, Immediate_in, EnableRegFile2_in	: integer;
 			variable EnableRegFile_in	: boolean;
 			variable rand_val		: real;
-			variable CmdALU_int: std_logic_vector(CMD_ALU_L-1 downto 0);
-			variable CtrlCmd_int: std_logic_vector(CTRL_CMD_L-1 downto 0);
+			variable CmdALU_int		: std_logic_vector(CMD_ALU_L-1 downto 0);
+			variable CtrlCmd_int		: std_logic_vector(CTRL_CMD_L-1 downto 0);
 		begin
 			uniform(seed1, seed2, rand_val);
 			CmdALU_in := integer(rand_val*(2.0**(real(CMD_ALU_L)) - 1.0));
@@ -179,10 +179,10 @@ begin
 				write(file_line, string'("PASS"));
 				pass := 1;
 			elsif (StatusReg_ideal = StatusReg_rtl) then
-				write(file_line, string'("FAIL (Wrong status register)"));
+				write(file_line, string'("FAIL (Wrong results)"));
 				pass := 0;
 			elsif (ResOp_rtl = ResOp_ideal) then
-				write(file_line, string'("FAIL (Wrong result)"));
+				write(file_line, string'("FAIL (Wrong status register)"));
 				pass := 0;
 			else
 				write(file_line, string'("FAIL (Wrong result and status register)"));
@@ -232,7 +232,11 @@ begin
 
 			push_op(AddressIn_int, AddressOut1_int, AddressOut2_int, Immediate_int, CmdALU, CtrlCmd, EnableRegFile_vec, seed1, seed2);
 
-			wait on Done_tb;
+			while (Done_tb = '0') loop
+				wait until ((clk_tb'event) and (clk_tb = '1'));
+				wait for 1 ps;
+			end loop;
+--			wait on Done_tb;
 
 			ResOp_rtl := to_integer(unsigned(ResDbg_tb));
 
