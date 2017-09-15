@@ -241,7 +241,7 @@ begin
 	-- Use data in register file
 	Op1 <= DataRegOut1;
 	Op2 <= Op2Internal;
-	Op2Internal <= DataRegOut2 when (DoneReadStatus(1) = '1') else ImmediateC;
+	Op2Internal <= DataRegOut2 when (EnableRegFileC(2) = '1') else ImmediateC;
 
 	EnableALU <= '1' when ((StateC = REG_FILE_READ) and (DoneRegFile = '1') and (CtrlCmdC = CTRL_CMD_ALU) and (CmdALUC /= CMD_ALU_MUL) and (CmdALUC /= CMD_ALU_DIV)) else '0';
 	CmdALU <= CmdALUC;
@@ -260,7 +260,7 @@ begin
 			ResALU when ((DoneALU = '1') and (StateC = ALU_OP)) else
 			ResMul(DATA_L - 1 downto 0) when ((DoneMul = '1') and (StateC = MULTIPLICATION)) else
 			ResDiv when ((DoneDiv = '1') and (StateC = DIVISION)) else
-			DataRegOut1C when ((CtrlCmdC = CTRL_CMD_MOV) and (StateC = REG_FILE_READ)) else
+			DataRegOut1C when ((CtrlCmdC = CTRL_CMD_MOV) and (EnableRegFileC(1) = '1')) else
 			ImmediateC;
 
 	DataRegOut1N <= DataRegOut1;
