@@ -236,7 +236,6 @@ begin
 				wait until ((clk_tb'event) and (clk_tb = '1'));
 				wait for 1 ps;
 			end loop;
---			wait on Done_tb;
 
 			ResOp_rtl := to_integer(unsigned(ResDbg_tb));
 

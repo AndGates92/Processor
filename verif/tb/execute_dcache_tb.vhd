@@ -238,7 +238,10 @@ begin
 
 			push_op(AddressIn_int, AddressOut1_int, AddressOut2_int, Immediate_int, CmdALU, CtrlCmd, EnableRegFile_vec, seed1, seed2);
 
-			wait on Done_tb;
+			while (Done_tb = '0') loop
+				wait until ((clk_tb'event) and (clk_tb = '1'));
+				wait for 1 ps;
+			end loop;
 
 			ResOp_rtl := to_integer(unsigned(ResDbg_tb));
 
