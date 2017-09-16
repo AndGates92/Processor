@@ -29,4 +29,6 @@ package ddr2_phy_pkg is
 	constant CMD_WRITE_PRECHARGE		: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(16, MEM_CMD_L));
 	constant CMD_READ_PRECHARGE		: std_logic_vector(MEM_CMD_L - 1 downto 0) := std_logic_vector(to_unsigned(17, MEM_CMD_L));
 
+	constant MAX_MEM_CMD_ID	: positive := max_int(to_integer(unsigned(CMD_NOP)), max_int(to_integer(unsigned(CMD_DESEL)), max_int(to_integer(unsigned(CMD_BANK_ACT)), max_int(to_integer(unsigned(CMD_MODE_REG_SET)), max_int(to_integer(unsigned(CMD_EXT_MODE_REG_SET_1)), max_int(to_integer(unsigned(CMD_EXT_MODE_REG_SET_2)), max_int(to_integer(unsigned(CMD_EXT_MODE_REG_SET_3)), max_int(to_integer(unsigned(CMD_AUTO_REF)), max_int(to_integer(unsigned(CMD_SELF_REF_ENTRY)), max_int(to_integer(unsigned(CMD_SELF_REF_EXIT)), max_int(to_integer(unsigned(CMD_POWER_DOWN_ENTRY)), max_int(to_integer(unsigned(CMD_POWER_DOWN_EXIT)), max_int(to_integer(unsigned(CMD_BANK_PRECHARGE)), max_int(to_integer(unsigned(CMD_ALL_BANK_PRECHARGE)), max_int(to_integer(unsigned(CMD_WRITE)), max_int(to_integer(unsigned(CMD_READ)), max_int(to_integer(unsigned(CMD_WRITE_PRECHARGE)), to_integer(unsigned(CMD_READ_PRECHARGE)))))))))))))))))));
+
 end package ddr2_phy_pkg;
