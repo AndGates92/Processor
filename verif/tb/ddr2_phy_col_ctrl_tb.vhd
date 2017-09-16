@@ -454,12 +454,12 @@ begin
 			match_bl := compare_int_arr(bl_arr_exp, bl_arr_rtl, num_bursts_exp);
 
 			if ((match_bl = true) and (match_read_burst = true) and (match_banks = true) and (match_cols = true) and (no_errors = true) and (num_bursts_exp = num_bursts_rtl)) then
+				write(file_line, string'( "PHY Column Controller: PASS"));
+				writeline(file_pointer, file_line);
 				for i in 0 to (num_bursts_exp - 1) loop
 					write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " details: Bank " & integer'image(bank_arr_exp(i)) & " Start Col " & integer'image(start_col_arr_exp(i)) & " Read Burst " & bool_to_str(read_arr_exp(i)) & " Burst Length " & integer'image(bl_arr_exp(i))));
 					writeline(file_pointer, file_line);
 				end loop;
-				write(file_line, string'( "PHY Column Controller: PASS"));
-				writeline(file_pointer, file_line);
 				pass := 1;
 			elsif (match_bl = false) then
 				write(file_line, string'( "PHY Column Controller: FAIL (Burst Length mismatch)"));
