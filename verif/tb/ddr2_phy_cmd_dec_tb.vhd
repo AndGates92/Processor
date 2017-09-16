@@ -397,8 +397,12 @@ begin
 
 				if (errors = 0) then
 					pass := 1;
+					write(file_line, string'( "PHY Command Decoder Controller: PASS"));
+					writeline(file_pointer, file_line);
 				else
 					pass := 0;
+					write(file_line, string'( "PHY Command Decoder Controller: FAIL"));
+					writeline(file_pointer, file_line);
 				end if;
 
 			end loop;
