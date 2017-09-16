@@ -10,7 +10,7 @@ use work.ddr2_odt_ac_timing_pkg.all;
 
 package ddr2_phy_odt_ctrl_pkg is 
 
-	constant CNT_ODT_CTRL_L		: integer := int_to_bit_num(max_int(T_AOFD, max_int(T_AOFPD_ns_max, max_int(T_AOND, T_AONPD_ns_max))));
+	constant CNT_ODT_CTRL_L		: integer := int_to_bit_num(max_int(T_AOFD, T_AOND));
 
 	constant STATE_ODT_CTRL_L	: positive := 2;
 
