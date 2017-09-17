@@ -7,6 +7,7 @@ SRC_DIR = ${ROOT_DIR}/src
 COMMON_SRC_DIR = ${SRC_DIR}/common
 COMMON_RTL_DIR = ${COMMON_SRC_DIR}/rtl
 COMMON_RTL_PKG_DIR = ${COMMON_SRC_DIR}/pkg
+COMMON_RTL_CFG_DIR = ${COMMON_SRC_DIR}/cfg
 CPU_SRC_DIR = ${SRC_DIR}/cpu
 CPU_RTL_DIR = ${CPU_SRC_DIR}/rtl
 CPU_RTL_PKG_DIR = ${CPU_SRC_DIR}/pkg
@@ -17,9 +18,18 @@ DDR2_RTL_PKG_DIR = ${DDR2_SRC_DIR}/pkg
 DDR2_RTL_CFG_DIR = ${DDR2_SRC_DIR}/cfg
 
 VERIF_DIR = ${ROOT_DIR}/verif
-VERIF_TB_DIR = ${VERIF_DIR}/tb
-VERIF_PKG_DIR = ${VERIF_DIR}/pkg
-VERIF_MODELS_DIR = ${VERIF_DIR}/models
+COMMON_VERIF_DIR = ${VERIF_DIR}/common
+COMMON_VERIF_TB_DIR = ${COMMON_VERIF_DIR}/tb
+COMMON_VERIF_PKG_DIR = ${COMMON_VERIF_DIR}/pkg
+COMMON_VERIF_MODELS_DIR = ${COMMON_VERIF_DIR}/models
+CPU_VERIF_DIR = ${VERIF_DIR}/cpu
+CPU_VERIF_TB_DIR = ${CPU_VERIF_DIR}/tb
+CPU_VERIF_PKG_DIR = ${CPU_VERIF_DIR}/pkg
+CPU_VERIF_MODELS_DIR = ${CPU_VERIF_DIR}/models
+DDR2_VERIF_DIR = ${VERIF_DIR}/ddr2
+DDR2_VERIF_TB_DIR = ${DDR2_VERIF_DIR}/tb
+DDR2_VERIF_PKG_DIR = ${DDR2_VERIF_DIR}/pkg
+DDR2_VERIF_MODELS_DIR = ${DDR2_VERIF_DIR}/models
 
 WAVES_DIR = /tmp
 
@@ -66,10 +76,10 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/type_conversion_pkg.vhd
 	@echo "Analysing ${CPU_RTL_PKG_DIR}/proc_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_PKG_DIR}/proc_pkg.vhd
-	@echo "Analysing ${CPU_RTL_PKG_DIR}/bram_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_PKG_DIR}/bram_pkg.vhd
-	@echo "Analysing ${VERIF_PKG_DIR}/mem_model_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/mem_model_pkg.vhd
+	@echo "Analysing ${COMMON_RTL_PKG_DIR}/bram_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/bram_pkg.vhd
+	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/mem_model_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/mem_model_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_define_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_define_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_gen_ac_timing_pkg.vhd"
@@ -114,34 +124,34 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_PKG_DIR}/dcache_pkg.vhd
 	@echo "Analysing ${COMMON_RTL_PKG_DIR}/arbiter_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/arbiter_pkg.vhd
-	@echo "Analysing ${CPU_RTL_PKG_DIR}/fifo_1clk_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_PKG_DIR}/fifo_1clk_pkg.vhd
-	@echo "Analysing ${CPU_RTL_PKG_DIR}/fifo_2clk_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_PKG_DIR}/fifo_2clk_pkg.vhd
-	@echo "Analysing ${VERIF_PKG_DIR}/tb_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/tb_pkg.vhd
-	@echo "Analysing ${VERIF_PKG_DIR}/alu_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/alu_pkg_tb.vhd
-	@echo "Analysing ${VERIF_PKG_DIR}/reg_file_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/reg_file_pkg_tb.vhd
-	@echo "Analysing ${VERIF_PKG_DIR}/fifo_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/fifo_pkg_tb.vhd
-	@echo "Analysing ${VERIF_PKG_DIR}/ctrl_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/ctrl_pkg_tb.vhd
-	@echo "Analysing ${VERIF_PKG_DIR}/execute_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/execute_pkg_tb.vhd
-	@echo "Analysing ${VERIF_PKG_DIR}/decode_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/decode_pkg_tb.vhd
-	@echo "Analysing ${VERIF_PKG_DIR}/ddr2_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/ddr2_pkg_tb.vhd
-	@echo "Analysing ${VERIF_PKG_DIR}/ddr2_model_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_PKG_DIR}/ddr2_model_pkg.vhd
+	@echo "Analysing ${COMMON_RTL_PKG_DIR}/fifo_1clk_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/fifo_1clk_pkg.vhd
+	@echo "Analysing ${COMMON_RTL_PKG_DIR}/fifo_2clk_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/fifo_2clk_pkg.vhd
+	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/tb_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/tb_pkg.vhd
+	@echo "Analysing ${CPU_VERIF_PKG_DIR}/alu_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/alu_pkg_tb.vhd
+	@echo "Analysing ${CPU_VERIF_PKG_DIR}/reg_file_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/reg_file_pkg_tb.vhd
+	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/fifo_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/fifo_pkg_tb.vhd
+	@echo "Analysing ${CPU_VERIF_PKG_DIR}/ctrl_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/ctrl_pkg_tb.vhd
+	@echo "Analysing ${CPU_VERIF_PKG_DIR}/execute_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/execute_pkg_tb.vhd
+	@echo "Analysing ${CPU_VERIF_PKG_DIR}/decode_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/decode_pkg_tb.vhd
+	@echo "Analysing ${DDR2_VERIF_PKG_DIR}/ddr2_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_PKG_DIR}/ddr2_pkg_tb.vhd
+	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/ddr2_model_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/ddr2_model_pkg.vhd
 
 reg_file: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/reg_file_pkg.o
 	@echo "Analysing ${CPU_RTL_DIR}/reg_file.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/reg_file.vhd
-	@echo "Analysing ${VERIF_TB_DIR}reg_file_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/reg_file_tb.vhd
+	@echo "Analysing ${CPU_VERIF_TB_DIR}reg_file_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_TB_DIR}/reg_file_tb.vhd
 	@echo "Elaborating reg_file_tb"
 	${GHDL} -e ${GHDL_ARGS} reg_file_tb
 	rm -r e~reg_file_tb.o
@@ -159,8 +169,8 @@ reg_file_all:
 alu: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg_tb.o ${WORK_DIR}/alu_pkg.o
 	@echo "Analysing ${CPU_RTL_DIR}/alu.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/alu.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/alu_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/alu_tb.vhd
+	@echo "Analysing ${CPU_VERIF_TB_DIR}/alu_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_TB_DIR}/alu_tb.vhd
 	@echo "Elaborating alu_tb"
 	${GHDL} -e ${GHDL_ARGS} alu_tb
 	rm -r e~alu_tb.o
@@ -178,8 +188,8 @@ alu_all:
 mul: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o
 	@echo "Analysing ${CPU_RTL_DIR}/mul.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/mul.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/mul_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/mul_tb.vhd
+	@echo "Analysing ${CPU_VERIF_TB_DIR}/mul_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_TB_DIR}/mul_tb.vhd
 	@echo "Analysing ${CPU_RTL_CFG_DIR}/mul_cfg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_CFG_DIR}/mul_cfg.vhd
 	@echo "Elaborating mul_cfg"
@@ -200,8 +210,8 @@ mul_all:
 div: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o
 	@echo "Analysing ${CPU_RTL_DIR}/div.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/div.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/div_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/div_tb.vhd
+	@echo "Analysing ${CPU_VERIF_TB_DIR}/div_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_TB_DIR}/div_tb.vhd
 	@echo "Analysing ${CPU_RTL_CFG_DIR}/div_cfg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_CFG_DIR}/div_cfg.vhd
 	@echo "Elaborating div_cfg"
@@ -221,8 +231,8 @@ div_all:
 decode_stage: ${WORK_DIR}/decode_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o
 	@echo "Analysing ${CPU_RTL_DIR}/decode.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/decode.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/decode_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/decode_tb.vhd
+	@echo "Analysing ${CPU_VERIF_TB_DIR}/decode_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_TB_DIR}/decode_tb.vhd
 	@echo "Elaborating decode_stage_tb"
 	${GHDL} -e ${GHDL_ARGS} decode_stage_tb
 	rm -r e~decode_stage_tb.o
@@ -240,8 +250,8 @@ decode_stage_all:
 ctrl: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o
 	@echo "Analysing ${CPU_RTL_DIR}/ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/ctrl.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/ctrl_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ctrl_tb.vhd
+	@echo "Analysing ${CPU_VERIF_TB_DIR}/ctrl_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_TB_DIR}/ctrl_tb.vhd
 	@echo "Elaborating ctrl_tb"
 	${GHDL} -e ${GHDL_ARGS} ctrl_tb
 	rm -r e~ctrl_tb.o
@@ -265,14 +275,14 @@ execute: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/execute_pkg_tb.o ${WORK_DIR}/reg_
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/div.vhd
 	@echo "Analysing ${CPU_RTL_DIR}/reg_file.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/reg_file.vhd
-	@echo "Analysing ${VERIF_MODELS_DIR}/mem_model.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_MODELS_DIR}/mem_model.vhd
+	@echo "Analysing ${COMMON_VERIF_MODELS_DIR}/mem_model.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_MODELS_DIR}/mem_model.vhd
 	@echo "Analysing ${CPU_RTL_DIR}/ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/ctrl.vhd
 	@echo "Analysing ${CPU_RTL_DIR}/execute.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/execute.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/execute_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/execute_tb.vhd
+	@echo "Analysing ${CPU_VERIF_TB_DIR}/execute_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_TB_DIR}/execute_tb.vhd
 	@echo "Analysing ${CPU_RTL_CFG_DIR}/execute_cfg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_CFG_DIR}/execute_cfg.vhd
 	@echo "Elaborating execute_cfg"
@@ -290,16 +300,16 @@ execute_all:
 	make simulate_execute
 
 icache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/execute_pkg.o
-	@echo "Analysing ${CPU_RTL_DIR}/bram_1port.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_1port.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/bram_2port.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_2port.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/bram_rst.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_rst.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_1port.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_2port.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_rst.vhd
 	@echo "Analysing ${CPU_RTL_DIR}/icache.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/icache.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/icache_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/icache_tb.vhd
+	@echo "Analysing ${CPU_VERIF_TB_DIR}/icache_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_TB_DIR}/icache_tb.vhd
 	@echo "Analysing ${CPU_RTL_CFG_DIR}/icache_cfg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_CFG_DIR}/icache_cfg.vhd
 	@echo "Elaborating icache_cfg"
@@ -317,16 +327,16 @@ icache_all:
 	make simulate_icache
 
 dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o ${WORK_DIR}/decode_pkg.o ${WORK_DIR}/ctrl_pkg.o ${WORK_DIR}/execute_pkg.o
-	@echo "Analysing ${CPU_RTL_DIR}/bram_1port.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_1port.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/bram_2port.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_2port.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/bram_rst.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_rst.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_1port.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_2port.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_rst.vhd
 	@echo "Analysing ${CPU_RTL_DIR}/dcache.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/dcache.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/dcache_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/dcache_tb.vhd
+	@echo "Analysing ${CPU_VERIF_TB_DIR}/dcache_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_TB_DIR}/dcache_tb.vhd
 	@echo "Analysing ${CPU_RTL_CFG_DIR}/dcache_cfg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_CFG_DIR}/dcache_cfg.vhd
 	@echo "Elaborating dcache_cfg"
@@ -352,22 +362,22 @@ execute_dcache: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/execute_pkg_tb.o ${WORK_DI
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/div.vhd
 	@echo "Analysing ${CPU_RTL_DIR}/reg_file.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/reg_file.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/bram_rst.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_rst.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/bram_1port.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_1port.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/bram_2port.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_2port.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_rst.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_1port.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_2port.vhd
 	@echo "Analysing ${CPU_RTL_DIR}/dcache.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/dcache.vhd
-	@echo "Analysing ${VERIF_MODELS_DIR}/mem_model.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_MODELS_DIR}/mem_model.vhd
+	@echo "Analysing ${COMMON_VERIF_MODELS_DIR}/mem_model.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_MODELS_DIR}/mem_model.vhd
 	@echo "Analysing ${CPU_RTL_DIR}/ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/ctrl.vhd
 	@echo "Analysing ${CPU_RTL_DIR}/execute_dcache.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/execute_dcache.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/execute_dcache_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/execute_dcache_tb.vhd
+	@echo "Analysing ${CPU_VERIF_TB_DIR}/execute_dcache_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_TB_DIR}/execute_dcache_tb.vhd
 	@echo "Analysing ${CPU_RTL_CFG_DIR}/execute_dcache_cfg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_CFG_DIR}/execute_dcache_cfg.vhd
 	@echo "Elaborating execute_dcache_cfg"
@@ -385,18 +395,18 @@ execute_dcache_all:
 	make simulate_execute_dcache
 
 fifo_1clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o
-	@echo "Analysing ${CPU_RTL_DIR}/bram_1port.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_1port.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/bram_2port.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_2port_sim.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/bram_rst.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_rst.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/fifo_1clk.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/fifo_1clk.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/fifo_1pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/fifo_1clk_tb.vhd
-	@echo "Analysing ${CPU_RTL_CFG_DIR}/fifo_1clk_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_CFG_DIR}/fifo_1clk_cfg.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_1port.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_2port_sim.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_rst.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/fifo_1clk.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/fifo_1clk.vhd
+	@echo "Analysing ${COMMON_VERIF_TB_DIR}/fifo_1pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_TB_DIR}/fifo_1clk_tb.vhd
+	@echo "Analysing ${COMMON_RTL_CFG_DIR}/fifo_1clk_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_CFG_DIR}/fifo_1clk_cfg.vhd
 	@echo "Elaborating fifo_1clk_cfg"
 	${GHDL} -e ${GHDL_ARGS} config_fifo_1clk
 	rm -r e~config_fifo_1clk.o
@@ -412,22 +422,22 @@ fifo_1clk_all:
 	make simulate_fifo_1clk
 
 fifo_2clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o
-	@echo "Analysing ${CPU_RTL_DIR}/bram_1port.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_1port.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/bram_2port.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_2port_sim.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/bram_rst.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/bram_rst.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/gray_cnt.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/gray_cnt.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/fifo_ctrl.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/fifo_ctrl.vhd
-	@echo "Analysing ${CPU_RTL_DIR}/fifo_2clk.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_DIR}/fifo_2clk.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/fifo_2pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/fifo_2clk_tb.vhd
-	@echo "Analysing ${CPU_RTL_CFG_DIR}/fifo_2clk_cfg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_CFG_DIR}/fifo_2clk_cfg.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_1port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_1port.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_2port.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_2port_sim.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/bram_rst.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_rst.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/gray_cnt.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/gray_cnt.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/fifo_ctrl.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/fifo_ctrl.vhd
+	@echo "Analysing ${COMMON_RTL_DIR}/fifo_2clk.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/fifo_2clk.vhd
+	@echo "Analysing ${COMMON_VERIF_TB_DIR}/fifo_2pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_TB_DIR}/fifo_2clk_tb.vhd
+	@echo "Analysing ${COMMON_RTL_CFG_DIR}/fifo_2clk_cfg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_CFG_DIR}/fifo_2clk_cfg.vhd
 	@echo "Elaborating fifo_2clk_cfg"
 	${GHDL} -e ${GHDL_ARGS} config_fifo_2clk
 	rm -r e~config_fifo_2clk.o
@@ -445,8 +455,8 @@ fifo_2clk_all:
 ddr2_phy_init: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/ddr2_phy_init_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_init.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_init.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_init_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ddr2_phy_init_tb.vhd
+	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_init_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_phy_init_tb.vhd
 	@echo "Elaborating ddr2_phy_init_tb"
 	${GHDL} -e ${GHDL_ARGS} ddr2_phy_init_tb
 	rm -r e~ddr2_phy_init_tb.o
@@ -465,8 +475,8 @@ ddr2_phy_bank_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DI
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_bank_ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_bank_ctrl.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_bank_ctrl_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ddr2_phy_bank_ctrl_tb.vhd
+	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_bank_ctrl_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_phy_bank_ctrl_tb.vhd
 	@echo "Elaborating ddr2_phy_bank_ctrl_tb"
 	${GHDL} -e ${GHDL_ARGS} ddr2_phy_bank_ctrl_tb
 	rm -r e~ddr2_phy_bank_ctrl_tb.o
@@ -485,8 +495,8 @@ ddr2_phy_col_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_col_ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_col_ctrl.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_col_ctrl_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ddr2_phy_col_ctrl_tb.vhd
+	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_col_ctrl_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_phy_col_ctrl_tb.vhd
 	@echo "Elaborating ddr2_phy_col_ctrl_tb"
 	${GHDL} -e ${GHDL_ARGS} ddr2_phy_col_ctrl_tb
 	rm -r e~ddr2_phy_col_ctrl_tb.o
@@ -505,8 +515,8 @@ ddr2_phy_ref_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_ref_ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_ref_ctrl.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_ref_ctrl_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ddr2_phy_ref_ctrl_tb.vhd
+	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_ref_ctrl_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_phy_ref_ctrl_tb.vhd
 	@echo "Elaborating ddr2_phy_ref_ctrl_tb"
 	${GHDL} -e ${GHDL_ARGS} ddr2_phy_ref_ctrl_tb
 	rm -r e~ddr2_phy_ref_ctrl_tb.o
@@ -529,8 +539,8 @@ ddr2_phy_cmd_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_col_ctrl.vhd
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_cmd_ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_cmd_ctrl.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_cmd_ctrl_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ddr2_phy_cmd_ctrl_tb.vhd
+	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_cmd_ctrl_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_phy_cmd_ctrl_tb.vhd
 	@echo "Elaborating ddr2_phy_cmd_ctrl_tb"
 	${GHDL} -e ${GHDL_ARGS} ddr2_phy_cmd_ctrl_tb
 	rm -r e~ddr2_phy_cmd_ctrl_tb.o
@@ -549,8 +559,8 @@ ddr2_phy_cmd_dec: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_cmd_dec.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_cmd_dec.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_cmd_dec_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ddr2_phy_cmd_dec_tb.vhd
+	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_cmd_dec_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_phy_cmd_dec_tb.vhd
 	@echo "Elaborating ddr2_phy_cmd_dec_tb"
 	${GHDL} -e ${GHDL_ARGS} ddr2_phy_cmd_dec_tb
 	rm -r e~ddr2_phy_cmd_dec_tb.o
@@ -569,8 +579,8 @@ ddr2_phy_arbiter: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_arbiter.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_arbiter.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/ddr2_phy_arbiter_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/ddr2_phy_arbiter_tb.vhd
+	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_arbiter_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_phy_arbiter_tb.vhd
 	@echo "Elaborating ddr2_phy_arbiter_tb"
 	${GHDL} -e ${GHDL_ARGS} ddr2_phy_arbiter_tb
 	rm -r e~ddr2_phy_arbiter_tb.o
@@ -589,8 +599,8 @@ arbiter: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/arbiter_pkg.o
 
 	@echo "Analysing ${COMMON_RTL_DIR}/arbiter.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/arbiter.vhd
-	@echo "Analysing ${VERIF_TB_DIR}/arbiter_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${VERIF_TB_DIR}/arbiter_tb.vhd
+	@echo "Analysing ${COMMON_VERIF_TB_DIR}/arbiter_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_TB_DIR}/arbiter_tb.vhd
 	@echo "Elaborating arbiter_tb"
 	${GHDL} -e ${GHDL_ARGS} arbiter_tb
 	rm -r e~arbiter_tb.o
