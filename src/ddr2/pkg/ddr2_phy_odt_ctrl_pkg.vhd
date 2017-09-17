@@ -10,7 +10,7 @@ use work.ddr2_odt_ac_timing_pkg.all;
 
 package ddr2_phy_odt_ctrl_pkg is 
 
-	constant CNT_ODT_CTRL_L		: integer := int_to_bit_num(max_int(T_AOFD, T_AOND));
+	constant CNT_ODT_CTRL_L		: integer := int_to_bit_num(max_int(T_AOFD, T_AOND_max));
 
 	constant STATE_ODT_CTRL_L	: positive := 2;
 
@@ -20,9 +20,9 @@ package ddr2_phy_odt_ctrl_pkg is
 	constant ODT_MRS_UPD		: std_logic_vector(STATE_ODT_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_ODT_CTRL_L));
 
 	component ddr2_phy_odt_ctrl is
-	generic (
+--	generic (
 
-	);
+--	);
 	port (
 
 		rst			: in std_logic;
