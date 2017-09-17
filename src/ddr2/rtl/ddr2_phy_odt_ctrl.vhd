@@ -9,9 +9,9 @@ use work.ddr2_phy_pkg.all;
 use work.ddr2_phy_odt_ctrl_pkg.all;
 
 entity ddr2_phy_odt_ctrl is
-generic (
+--generic (
 
-);
+--);
 port (
 
 	rst			: in std_logic;

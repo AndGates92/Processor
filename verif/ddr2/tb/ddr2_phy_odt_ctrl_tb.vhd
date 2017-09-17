@@ -52,9 +52,9 @@ architecture bench of ddr2_phy_odt_ctrl_tb is
 
 begin
 
-	DUT: ddr2_phy_odt_ctrl generic map (
+	DUT: ddr2_phy_odt_ctrl -- generic map (
 
-	)
+--	)
 	port map (
 		clk => clk_tb,
 		rst => rst_tb,
