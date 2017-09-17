@@ -295,11 +295,11 @@ begin
 
 				end if;
 
-				num_bursts_rtl_int := num_bursts_rtl_int + 1;
+				num_requests_rtl_int := num_requests_rtl_int + 1;
 
 			end loop;
 
-			num_bursts_rtl := num_bursts_rtl_int;
+			num_requests_rtl := num_requests_rtl_int;
 
 		end procedure run_odt_ctrl;
 
@@ -361,3 +361,72 @@ begin
 				pass := 0;
 			end if;
 		end procedure verify;
+
+		variable seed1, seed2	: positive;
+
+		variable num_requests_exp	: integer;
+		variable num_requests_rtl	: integer;
+
+		variable mem_cmd_arr			: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable req_delay_arr			: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable delay_after_turn_off_arr	: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+
+		variable mrs_ctrl_req_arr	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable ref_ctrl_req_arr	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+
+		variable odt_disabled_arr_rtl	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))
+		variable odt_enabled_arr_rtl	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))
+		variable pause_arb_arr_rtl	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))
+		variable odt_disabled_arr_exp	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))
+		variable odt_enabled_arr_exp	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))
+		variable pause_arb_arr_exp	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))
+
+		variable pass	: integer;
+		variable num_pass	: integer;
+
+		file file_pointer	: text;
+		variable file_line	: line;
+
+	begin
+
+		wait for 1 ns;
+
+		num_pass := 0;
+
+		reset;
+		file_open(file_pointer, ddr2_phy_bank_ctrl_log_file, append_mode);
+
+		write(file_line, string'( "PHY ODT Controller Test"));
+		writeline(file_pointer, file_line);
+
+		for i in 0 to NUM_TEST-1 loop
+
+			test_param(num_requests_exp, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, seed1, seed2);
+
+			run_odt_ctrl (num_requests_exp, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp);
+
+			verify(num_requests_exp, num_requests_rtl, mem_cmd_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp, file_pointer, pass);s
+
+		end loop;
+
+		file_close(file_pointer);
+
+		file_open(file_pointer, summary_file, append_mode);
+		write(file_line, string'( "PHY ODT Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TEST)));
+		writeline(file_pointer, file_line);
+
+		if (num_pass = TOT_NUM_TEST) then
+			write(file_line, string'( "PHY ODT Controller: TEST PASSED"));
+		else
+			write(file_line, string'( "PHY ODT Controller: TEST FAILED: " & integer'image(TOT_NUM_TEST-num_pass) & " failures"));
+		end if;
+		writeline(file_pointer, file_line);
+
+		file_close(file_pointer);
+		stop <= true;
+
+		wait;
+
+	end process test;
+
+end bench;
