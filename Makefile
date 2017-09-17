@@ -106,6 +106,8 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_arbiter_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_cmd_dec_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_cmd_dec_pkg.vhd
+	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_odt_ctrl_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_odt_ctrl_pkg.vhd
 	@echo "Analysing ${CPU_RTL_PKG_DIR}/alu_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_PKG_DIR}/alu_pkg.vhd
 	@echo "Analysing ${CPU_RTL_PKG_DIR}/ctrl_pkg.vhd"
@@ -394,6 +396,26 @@ execute_dcache_all:
 	make execute_dcache
 	make simulate_execute_dcache
 
+arbiter: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/arbiter_pkg.o
+
+	@echo "Analysing ${COMMON_RTL_DIR}/arbiter.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/arbiter.vhd
+	@echo "Analysing ${COMMON_VERIF_TB_DIR}/arbiter_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_TB_DIR}/arbiter_tb.vhd
+	@echo "Elaborating arbiter_tb"
+	${GHDL} -e ${GHDL_ARGS} arbiter_tb
+	rm -r e~arbiter_tb.o
+	mv arbiter_tb ${WORK_DIR}
+
+simulate_arbiter: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/arbiter.o ${WORK_DIR}/arbiter_pkg.o ${WORK_DIR}/arbiter_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r arbiter_tb ${GHDL_RUN_ARGS}arbiter.vcd
+
+arbiter_all:
+	make work_dir
+	make libraries
+	make arbiter
+	make simulate_arbiter
+
 fifo_1clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o
 	@echo "Analysing ${COMMON_RTL_DIR}/bram_1port.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_1port.vhd
@@ -595,23 +617,22 @@ ddr2_phy_arbiter_all:
 	make ddr2_phy_arbiter
 	make simulate_ddr2_phy_arbiter
 
-arbiter: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/arbiter_pkg.o
+ddr2_phy_odt_ctrl: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_odt_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 
-	@echo "Analysing ${COMMON_RTL_DIR}/arbiter.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/arbiter.vhd
-	@echo "Analysing ${COMMON_VERIF_TB_DIR}/arbiter_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_TB_DIR}/arbiter_tb.vhd
-	@echo "Elaborating arbiter_tb"
-	${GHDL} -e ${GHDL_ARGS} arbiter_tb
-	rm -r e~arbiter_tb.o
-	mv arbiter_tb ${WORK_DIR}
+	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_odt_ctrl.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_odt_ctrl.vhd
+	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_odt_ctrl_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_phy_odt_ctrl_tb.vhd
+	@echo "Elaborating ddr2_phy_odt_ctrl_tb"
+	${GHDL} -e ${GHDL_ARGS} ddr2_phy_odt_ctrl_tb
+	rm -r e~ddr2_phy_odt_ctrl_tb.o
+	mv ddr2_phy_odt_ctrl_tb ${WORK_DIR}
 
-simulate_arbiter: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/arbiter.o ${WORK_DIR}/arbiter_pkg.o ${WORK_DIR}/arbiter_tb.o
-	cd ${WORK_DIR} && ${GHDL} -r arbiter_tb ${GHDL_RUN_ARGS}arbiter.vcd
+simulate_ddr2_phy_odt_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_odt_ctrl.o  ${WORK_DIR}/ddr2_phy_odt_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_odt_ctrl_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_odt_ctrl_tb ${GHDL_RUN_ARGS}ddr2_phy_odt_ctrl.vcd
 
-arbiter_all:
+ddr2_phy_odt_ctrl_all:
 	make work_dir
 	make libraries
-	make arbiter
-	make simulate_arbiter
-
+	make ddr2_phy_odt_ctrl
+	make simulate_ddr2_phy_odt_ctrl
