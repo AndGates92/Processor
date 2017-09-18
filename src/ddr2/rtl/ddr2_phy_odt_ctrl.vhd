@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.proc_pkg.all;
-use work.ddr2_gen_ac_timing_pkg.all;
+use work.ddr2_odt_ac_timing_pkg.all;
 use work.ddr2_phy_pkg.all;
 use work.ddr2_phy_odt_ctrl_pkg.all;
 
@@ -105,16 +105,16 @@ begin
 			(ZeroDelayCnt and RefCtrlReq)	when (StateC = ODT_TURN_OFF) else
 			'0';
 
-	DelayCntInitValue <= to_unsigned(T_AOFD, CNT_ODT_CTRL_L) when (StateC = ODT_CTRL_IDLE) else to_unsigned(T_AOND, CNT_ODT_CTRL_L);
+	DelayCntInitValue <= to_unsigned(T_AOFD, CNT_ODT_CTRL_L) when (StateC = ODT_CTRL_IDLE) else to_unsigned(T_AOND_max, CNT_ODT_CTRL_L);
 
-	state_det : process(StateC, MRSCtrlReq, MRSUpdateCompleted, RefCtrlReq)
+	state_det : process(StateC, MRSCtrlReq, MRSUpdateCompleted, RefCtrlReq, Cmd, ZeroDelayCnt)
 	begin
 
 		-- avoid latches
 		StateN <= StateC;
 
 		if (StateC = ODT_CTRL_IDLE) then
-			if (((MRSCtrlReq = '1') or (RefCtrlReq = '1')) and (Cmd /= CMD_READ_PRECHARGE) and (Cmd /= CMD_READ) and (Cmd /= CMD_READ_PRECHARGE) and (Cmd /= CMD_READ) and (Cmd /= CMD_BANK_ACTIVATE)) then
+			if (((MRSCtrlReq = '1') or (RefCtrlReq = '1')) and (Cmd /= CMD_READ_PRECHARGE) and (Cmd /= CMD_READ) and (Cmd /= CMD_READ_PRECHARGE) and (Cmd /= CMD_READ) and (Cmd /= CMD_BANK_ACT)) then
 				StateN <= ODT_TURN_OFF;
 			end if;
 		elsif (StateC = ODT_TURN_OFF) then
@@ -135,6 +135,6 @@ begin
 			end if;
 		end if;
 
-	end process reg;
+	end process state_det;
 
 end rtl;
