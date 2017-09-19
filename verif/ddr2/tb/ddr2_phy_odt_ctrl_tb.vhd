@@ -104,7 +104,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_requests : out integer; variable mem_cmd, req_delay, delay_after_turn_off: out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_req, ref_ctrl_req: out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_requests : out integer; variable mem_cmd, req_delay, delay_after_turn_off: out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_req, ref_ctrl_req, toggle_other_req: out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 			variable num_requests_int	: integer;
 		begin
@@ -126,6 +126,8 @@ begin
 				mrs_ctrl_req(i) := rand_bool(rand_val, 0.5);
 				uniform(seed1, seed2, rand_val);
 				ref_ctrl_req(i) := rand_bool(rand_val, 0.5);
+				uniform(seed1, seed2, rand_val);
+				toggle_other_req(i) := rand_bool(rand_val, 0.5);
 			end loop;
 			for i in num_requests_int to (MAX_OUTSTANDING_BURSTS_TB - 1) loop
 				mem_cmd(i) := to_integer(unsigned(CMD_NOP));
@@ -133,10 +135,11 @@ begin
 				delay_after_turn_off(i) := 0;
 				mrs_ctrl_req(i) := false;
 				ref_ctrl_req(i) := false;
+				toggle_other_req(i) := false;
 			end loop;
 		end procedure test_param;
 
-		procedure run_odt_ctrl (variable num_requests_exp: in integer; variable mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_req_arr, ref_ctrl_req_arr: in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl: out integer; variable odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable odt_ctrl_err_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
+		procedure run_odt_ctrl (variable num_requests_exp: in integer; variable mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_req_arr, ref_ctrl_req_arr, toggle_other_req_arr: in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl: out integer; variable odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable odt_ctrl_err_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
 
 			variable num_requests_rtl_int	: integer;
 			variable req_delay		: integer;
@@ -144,8 +147,10 @@ begin
 			variable mem_cmd		: integer;
 			variable mrs_ctrl_req		: boolean;
 			variable ref_ctrl_req		: boolean;
+			variable toggle_other_req	: boolean;
 
 			variable err			: integer;
+			variable toggle_cnt		: integer;
 
 		begin
 
@@ -157,6 +162,10 @@ begin
 
 			mrs_ctrl_req := mrs_ctrl_req_arr(num_requests_rtl_int);
 			ref_ctrl_req := ref_ctrl_req_arr(num_requests_rtl_int);
+			toggle_other_req := toggle_other_req_arr(num_requests_rtl_int);
+
+			err := 0;
+			toggle_cnt := 0;
 
 			odt_loop: loop
 
@@ -168,6 +177,7 @@ begin
 
 				mrs_ctrl_req := mrs_ctrl_req_arr(num_requests_rtl_int);
 				ref_ctrl_req := ref_ctrl_req_arr(num_requests_rtl_int);
+				toggle_other_req := toggle_other_req_arr(num_requests_rtl_int);
 
 				MRSCtrlReq_tb <= '0';
 				RefCtrlReq_tb <= '0';
@@ -175,6 +185,7 @@ begin
 				MRSUpdateCompleted_tb <= '0';
 
 				err := 0;
+				toggle_cnt := 0;
 
 				for i in 0 to req_delay loop
 					wait until ((clk_tb = '1') and (clk_tb'event));
@@ -242,6 +253,14 @@ begin
 						wait until ((clk_tb = '1') and (clk_tb'event));
 						wait until ((clk_tb = '0') and (clk_tb'event));
 
+						if (toggle_other_req = true) then
+							if (toggle_cnt < req_delay) then
+								toggle_cnt := toggle_cnt + 1;
+							else
+								RefCtrlReq_tb <= '1';
+							end if;
+						end if;
+
 						if (RefCtrlAck_tb = '1') then
 							err := err + 1;
 						end if;
@@ -251,10 +270,20 @@ begin
 						end if;
 					end loop;
 
+					wait until ((clk_tb = '1') and (clk_tb'event));
+
 					MRSCtrlReq_tb <= '0';
 
 					for i in 0 to delay_after_turn_off loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
+
+						if (toggle_other_req = true) then
+							if (toggle_cnt < req_delay) then
+								toggle_cnt := toggle_cnt + 1;
+							else
+								RefCtrlReq_tb <= '1';
+							end if;
+						end if;
 
 						if ((MRSCtrlAck_tb = '1') or (RefCtrlAck_tb = '1')) then
 							err := err + 1;
@@ -289,6 +318,14 @@ begin
 						wait until ((clk_tb = '1') and (clk_tb'event));
 						wait until ((clk_tb = '0') and (clk_tb'event));
 
+						if (toggle_other_req = true) then
+							if (toggle_cnt < req_delay) then
+								toggle_cnt := toggle_cnt + 1;
+							else
+								MRSCtrlReq_tb <= '1';
+							end if;
+						end if;
+
 						if (MRSCtrlAck_tb = '1') then
 							err := err + 1;
 						end if;
@@ -298,10 +335,20 @@ begin
 						end if;
 					end loop;
 
+					wait until ((clk_tb = '1') and (clk_tb'event));
+
 					RefCtrlReq_tb <= '0';
 
 					for i in 0 to delay_after_turn_off loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
+
+						if (toggle_other_req = true) then
+							if (toggle_cnt < req_delay) then
+								toggle_cnt := toggle_cnt + 1;
+							else
+								MRSCtrlReq_tb <= '1';
+							end if;
+						end if;
 
 						if ((MRSCtrlAck_tb = '1') or (RefCtrlAck_tb = '1')) then
 							err := err + 1;
@@ -314,6 +361,14 @@ begin
 
 					while (RefCtrlAck_tb = '0') loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
+
+						if (toggle_other_req = true) then
+							if (toggle_cnt < req_delay) then
+								toggle_cnt := toggle_cnt + 1;
+							else
+								MRSCtrlReq_tb <= '1';
+							end if;
+						end if;
 
 						if (MRSCtrlAck_tb = '1') then
 							err := err + 1;
@@ -422,6 +477,7 @@ begin
 
 		variable mrs_ctrl_req_arr	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 		variable ref_ctrl_req_arr	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable toggle_other_req_arr	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
 		variable odt_disabled_arr_rtl	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 		variable odt_enabled_arr_rtl	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
@@ -452,9 +508,9 @@ begin
 
 		for i in 0 to NUM_TESTS-1 loop
 
-			test_param(num_requests_exp, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, seed1, seed2);
+			test_param(num_requests_exp, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, toggle_other_req_arr, seed1, seed2);
 
-			run_odt_ctrl(num_requests_exp, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, num_requests_rtl, odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp, odt_ctrl_err_arr);
+			run_odt_ctrl(num_requests_exp, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, toggle_other_req_arr, num_requests_rtl, odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp, odt_ctrl_err_arr);
 
 			verify(num_requests_exp, num_requests_rtl, mem_cmd_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp, odt_ctrl_err_arr, file_pointer, pass);
 
