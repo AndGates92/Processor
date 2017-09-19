@@ -20,7 +20,7 @@ end entity ddr2_phy_odt_ctrl_tb;
 architecture bench of ddr2_phy_odt_ctrl_tb is
 
 	constant CLK_PERIOD	: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TESTS	: integer := 1000;
+	constant NUM_TESTS	: integer := 10000;
 	constant TOT_NUM_TESTS	: integer := NUM_TESTS;
 
 	constant MAX_REQUESTS_PER_TEST	: integer := 500;
@@ -294,6 +294,8 @@ begin
 						end if;
 					end loop;
 
+					RefCtrlReq_tb <= '0';
+
 					wait until ((clk_tb = '0') and (clk_tb'event));
 
 					if (ODT_tb = '1') then
@@ -301,6 +303,9 @@ begin
 					else
 						odt_enabled_arr_rtl(num_requests_rtl_int) := false;
 					end if;
+
+					wait until ((clk_tb = '1') and (clk_tb'event));
+
 				elsif (ref_ctrl_req = true) then
 					odt_disabled_arr_exp(num_requests_rtl_int) := true;
 					odt_enabled_arr_exp(num_requests_rtl_int) := true;
@@ -377,6 +382,7 @@ begin
 					end loop;
 
 					RefCtrlReq_tb <= '0';
+					MRSCtrlReq_tb <= '0';
 
 					wait until ((clk_tb = '0') and (clk_tb'event));
 
@@ -385,6 +391,8 @@ begin
 					else
 						odt_enabled_arr_rtl(num_requests_rtl_int) := false;
 					end if;
+
+					wait until ((clk_tb = '1') and (clk_tb'event));
 
 				end if;
 
