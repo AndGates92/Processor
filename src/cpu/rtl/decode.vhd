@@ -48,7 +48,7 @@ architecture rtl of decode_stage is
 
 	signal StateC, StateN	: std_logic_vector(STATE_DECODE_L - 1 downto 0);
 
-	signal InstrN, InstrC	: std_logic_vector(INSTR_L - 1 downto 0);
+	signal InstrC, InstrN	: std_logic_vector(INSTR_L - 1 downto 0);
 
 	signal AddressOut1C, AddressOut1N	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
 	signal AddressOut2C, AddressOut2N	: std_logic_vector(int_to_bit_num(REG_NUM) - 1 downto 0);
