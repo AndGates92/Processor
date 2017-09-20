@@ -74,19 +74,19 @@ begin
 	end process reg;
 
 	-- pause arbiter when updating MRS registers, waiting MRS turn off register or Refresh controller request
-	PauseArbiter <= '1' when ((StateC = ODT_TURN_OFF_REF) or (StateC = ODT_TURN_OFF_MRS) or ((StateC = ODT_MRS_UPD) and (MRSUpdateCompleted = '0')) or ((StateC = ODT_REF_REQ) and (RefCtrlReq = '0'))) else '0';
+	PauseArbiter <= '1' when ((StateC = ODT_CTRL_TURN_OFF_REF) or (StateC = ODT_CTRL_TURN_OFF_MRS) or ((StateC = ODT_CTRL_MRS_UPD) and (MRSUpdateCompleted = '0')) or ((StateC = ODT_CTRL_REF_REQ) and (RefCtrlReq = '0'))) else '0';
 
 	-- Ack MRS controller request after delay has expired
-	MRSCtrlAck <= (ZeroDelayCnt and MRSCtrlReq) when (StateC = ODT_TURN_OFF_MRS) else '0';
+	MRSCtrlAck <= (ZeroDelayCnt and MRSCtrlReq) when (StateC = ODT_CTRL_TURN_OFF_MRS) else '0';
 
 	-- Ack Refresh controller request after delay has expired
-	RefCtrlAck <= (ZeroDelayCnt and RefCtrlReq) when ((StateC = ODT_TURN_OFF_REF) or (StateC = ODT_REF_REQ)) else '0';
+	RefCtrlAck <= (ZeroDelayCnt and RefCtrlReq) when ((StateC = ODT_CTRL_TURN_OFF_REF) or (StateC = ODT_CTRL_REF_REQ)) else '0';
 
 	-- ODT is brought low if:
 	-- Read command
 	-- MRS controller requests and not write or bank act command
 	-- Refresh controller requests
-	ODT <= '0' when (((StateC = ODT_CTRL_IDLE) and ((Cmd = CMD_READ_PRECHARGE) or (Cmd = CMD_READ) or (((MRSCtrlReq = '1') or (RefCtrlReq = '1')) and (Cmd /= CMD_BANK_ACT) and (Cmd /= CMD_WRITE_PRECHARGE) and (Cmd /= CMD_WRITE)))) or (StateC = ODT_TURN_OFF_MRS) or (StateC = ODT_TURN_OFF_REF) or ((StateC = ODT_MRS_UPD) and (MRSUpdateCompleted = '0')) or ((StateC = ODT_REF_REQ) and (RefCtrlReq = '0'))) else '1';
+	ODT <= '0' when (((StateC = ODT_CTRL_IDLE) and ((Cmd = CMD_READ_PRECHARGE) or (Cmd = CMD_READ) or (((MRSCtrlReq = '1') or (RefCtrlReq = '1')) and (Cmd /= CMD_BANK_ACT) and (Cmd /= CMD_WRITE_PRECHARGE) and (Cmd /= CMD_WRITE)))) or (StateC = ODT_CTRL_TURN_OFF_MRS) or (StateC = ODT_CTRL_TURN_OFF_REF) or ((StateC = ODT_CTRL_MRS_UPD) and (MRSUpdateCompleted = '0')) or ((StateC = ODT_CTRL_REF_REQ) and (RefCtrlReq = '0'))) else '1';
 
 	ZeroDelayCnt <= '1' when (DelayCntC = zero_delay_cnt_value) else '0';
 
@@ -96,13 +96,13 @@ begin
 
 	-- Count
 	DelayCntEnN <=	(MRSCtrlReq or RefCtrlReq)		when (StateC = ODT_CTRL_IDLE) else
-			not ZeroDelayCnt			when ((StateC = ODT_TURN_OFF_REF) or (StateC = ODT_TURN_OFF_MRS)) else
-			RefCtrlReq and (not ZeroDelayCnt)	when (StateC = ODT_REF_REQ) else
+			not ZeroDelayCnt			when ((StateC = ODT_CTRL_TURN_OFF_REF) or (StateC = ODT_CTRL_TURN_OFF_MRS)) else
+			RefCtrlReq and (not ZeroDelayCnt)	when (StateC = ODT_CTRL_REF_REQ) else
 			DelayCntEnC;
 
 	-- Set delay counter when toggling ODT signal
 	SetDelayCnt <=	(MRSCtrlReq or RefCtrlReq)	when (StateC = ODT_CTRL_IDLE) else
-			(ZeroDelayCnt and RefCtrlReq)	when (StateC = ODT_TURN_OFF_REF) else
+			(ZeroDelayCnt and RefCtrlReq)	when (StateC = ODT_CTRL_TURN_OFF_REF) else
 			'0';
 
 	DelayCntInitValue <= to_unsigned(T_AOFD, CNT_ODT_CTRL_L) when (StateC = ODT_CTRL_IDLE) else to_unsigned(T_AOND_max, CNT_ODT_CTRL_L);
@@ -116,28 +116,28 @@ begin
 		if (StateC = ODT_CTRL_IDLE) then
 			if ((Cmd /= CMD_WRITE_PRECHARGE) and (Cmd /= CMD_WRITE) and (Cmd /= CMD_READ_PRECHARGE) and (Cmd /= CMD_READ) and (Cmd /= CMD_BANK_ACT)) then
 				if (MRSCtrlReq = '1') then
-					StateN <= ODT_TURN_OFF_MRS;
+					StateN <= ODT_CTRL_TURN_OFF_MRS;
 				elsif (RefCtrlReq = '1') then
-					StateN <= ODT_TURN_OFF_REF;
+					StateN <= ODT_CTRL_TURN_OFF_REF;
 				end if;
 			end if;
-		elsif (StateC = ODT_TURN_OFF_MRS) then
+		elsif (StateC = ODT_CTRL_TURN_OFF_MRS) then
 			if (ZeroDelayCnt = '1') then
 				if (MRSCtrlReq = '1') then
-					StateN <= ODT_MRS_UPD;
+					StateN <= ODT_CTRL_MRS_UPD;
 				end if;
 			end if;
-		elsif (StateC = ODT_TURN_OFF_REF) then
+		elsif (StateC = ODT_CTRL_TURN_OFF_REF) then
 			if (ZeroDelayCnt = '1') then
 				if (RefCtrlReq = '1') then
-					StateN <= ODT_REF_REQ;
+					StateN <= ODT_CTRL_REF_REQ;
 				end if;
 			end if;
-		elsif (StateC = ODT_MRS_UPD) then
+		elsif (StateC = ODT_CTRL_MRS_UPD) then
 			if (MRSUpdateCompleted = '1') then
 				StateN <= ODT_CTRL_IDLE;
 			end if;
-		elsif (StateC = ODT_REF_REQ) then
+		elsif (StateC = ODT_CTRL_REF_REQ) then
 			if ((ZeroDelayCnt = '1') and (RefCtrlReq = '1')) then
 				StateN <= ODT_CTRL_IDLE;
 			end if;
