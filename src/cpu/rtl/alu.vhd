@@ -196,27 +196,15 @@ begin
 			UnflN <= '0';
 		elsif (StateC = COMPUTE) then
 			if (CmdC = CMD_ALU_SSUM) then
-				if ((Op1C(Op1C'length-1) = '0') and ((Op2C(Op2C'length-1)) = '0') and (SSum(SSum'length-2) = '1')) then
-					UnflN <= '0';
-				elsif (((Op1C(Op1C'length-1) and Op2C(Op2C'length-1)) = '1') and (SSum(SSum'length-2) = '0')) then
-					UnflN <= '1';
-				else
-					UnflN <= '0';
-				end if;
+				-- negative operands and sum is positive (MSB = 0)
+				-- looking at second last bit because it is the sign bit or the final result
+				UnflN <= Op1C(Op1C'length-1) and Op2C(Op2C'length-1) and (not SSum(SSum'length-2));
 			elsif (CmdC = CMD_ALU_USUB) then
-				if (USubN(USubN'length-1) = '1') then
-					UnflN <= '1';
-				else
-					UnflN <= '0';
-				end if;
+				-- negative subtraction results with unsigned operands
+				UnflN <= USubN(USubN'length-1);
 			elsif (CmdC = CMD_ALU_SSUB) then
-				if (((Op2C(Op2C'length-1) or SSubN(SSubN'length-2)) = '0') and (Op1C(Op1C'length-1) = '1')) then
-					UnflN <= '1';
-				elsif (((SSubN(SSubN'length-2) and Op2C(Op2C'length-1)) = '1') and (Op1C(Op1C'length-1) = '0')) then
-					UnflN <= '0';
-				else
-					UnflN <= '0';
-				end if;
+				-- negative minuend, positive subtrahend and result
+				UnflN <= (not (Op2C(Op2C'length-1) or SSubN(SSubN'length-2))) and Op1C(Op1C'length-1);
 			end if;
 		else
 			UnflN <= UnflC;
@@ -231,27 +219,15 @@ begin
 			OvflN <= '0';
 		elsif (StateC = COMPUTE) then
 			if (CmdC = CMD_ALU_USUM) then
-				if (USum(USum'length-1) = '1') then
-					OvflN <= '1';
-				else
-					OvflN <= '0';
-				end if;
+				-- negative sum
+				OvflN <= USum(USum'length-1);
 			elsif (CmdC = CMD_ALU_SSUM) then
-				if ((Op1C(Op1C'length-1) = '0') and ((Op2C(Op2C'length-1)) = '0') and (SSum(SSum'length-2) = '1')) then
-					OvflN <= '1';
-				elsif (((Op1C(Op1C'length-1) and Op2C(Op2C'length-1)) = '1') and (SSum(SSum'length-2) = '0')) then
-					OvflN <= '0';
-				else
-					OvflN <= '0';
-				end if;
+				-- positive addends and negative result
+				OvflN <= (not Op1C(Op1C'length-1)) and (not Op2C(Op2C'length-1)) and SSum(SSum'length-2);
 			elsif (CmdC = CMD_ALU_SSUB) then
-				if (((Op2C(Op2C'length-1) or SSubN(SSubN'length-2)) = '0') and (Op1C(Op1C'length-1) = '1')) then
-					OvflN <= '0';
-				elsif (((SSubN(SSubN'length-2) and Op2C(Op2C'length-1)) = '1') and (Op1C(Op1C'length-1) = '0')) then
-					OvflN <= '1';
-				else
-					OvflN <= '0';
-				end if;
+				-- positive minuend and negative subtrahend and result
+				-- looking at second last bit because it is the sign bit or the final result
+				OvflN <= SSubN(SSubN'length-2) and Op2C(Op2C'length-1) and (not Op1C(Op1C'length-1));
 			end if;
 		else
 			OvflN <= OvflC;
