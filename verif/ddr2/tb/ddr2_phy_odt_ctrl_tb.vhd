@@ -88,7 +88,7 @@ begin
 		procedure reset is
 		begin
 			-- Command sent to memory
-			Cmd_tb <= (others => '0');
+			Cmd_tb <= CMD_NOP;
 
 			-- MRS Controller
 			MRSCtrlReq_tb <= '0';
