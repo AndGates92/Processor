@@ -20,25 +20,27 @@ package ddr2_phy_mrs_ctrl_pkg is
 	constant MRS_CTRL_ODT_TURN_ON		: std_logic_vector(STATE_MRS_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_MRS_CTRL_L));
 
 	component ddr2_phy_mrs_ctrl is
-	--generic (
-
-	--);
+	generic (
+		MRS_REG_L	: positive := 13
+	);
 	port (
 
 		rst			: in std_logic;
 		clk			: in std_logic;
 
 		-- Transaction Controller
-		CtrlReq			: out std_logic;
-		CtrlCmd			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
+		CtrlReq			: in std_logic;
+		CtrlCmd			: in std_logic_vector(MEM_CMD_L - 1 downto 0);
+		CtrlData		: in std_logic_vector(MRS_REG_L - 1 downto 0);
 
-		CtrlAck			: in std_logic;
+		CtrlAck			: out std_logic;
 
 		-- Commands
 		CmdAck			: in std_logic;
 
 		CmdReq			: out std_logic;
 		Cmd			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
+		Data			: out std_logic_vector(MRS_REG_L - 1 downto 0);
 
 		-- ODT Controller
 		ODTCtrlAck		: in std_logic;
