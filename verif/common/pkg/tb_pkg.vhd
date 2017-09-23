@@ -27,6 +27,7 @@ package tb_pkg is
 	constant ddr2_phy_cmd_ctrl_log_file	: string := "ddr2_phy_cmd_ctrl.log";
 	constant ddr2_phy_ref_ctrl_log_file	: string := "ddr2_phy_ref_ctrl.log";
 	constant ddr2_phy_odt_ctrl_log_file	: string := "ddr2_phy_odt_ctrl.log";
+	constant ddr2_phy_mrs_ctrl_log_file	: string := "ddr2_phy_mrs_ctrl.log";
 	constant ddr2_phy_cmd_dec_log_file	: string := "ddr2_phy_cmd_dec.log";
 	constant ddr2_phy_init_log_file		: string := "ddr2_phy_init.log";
 
