@@ -9,22 +9,22 @@ library work;
 use work.proc_pkg.all;
 use work.ddr2_define_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_phy_odt_ctrl_pkg.all;
+use work.ddr2_phy_mrs_ctrl_pkg.all;
 use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
 use work.ddr2_pkg_tb.all;
 
-entity ddr2_phy_odt_ctrl_tb is
-end entity ddr2_phy_odt_ctrl_tb;
+entity ddr2_phy_mrs_ctrl_tb is
+end entity ddr2_phy_mrs_ctrl_tb;
 
-architecture bench of ddr2_phy_odt_ctrl_tb is
+architecture bench of ddr2_phy_mrs_ctrl_tb is
 
 	constant CLK_PERIOD	: time := DDR2_CLK_PERIOD * 1 ns;
 	constant NUM_TESTS	: integer := 10000;
 	constant TOT_NUM_TESTS	: integer := NUM_TESTS;
 
 	constant MAX_REQUESTS_PER_TEST	: integer := 500;
-	constant MAX_CMD_PER_REQUESTS	: integer := 500;
+	constant MAX_CMD_PER_REQUEST	: integer := 500;
 	constant MAX_DELAY		: integer := 20;
 
 	constant MRS_REG_L_TB	: positive := 13;
@@ -36,7 +36,7 @@ architecture bench of ddr2_phy_odt_ctrl_tb is
 	-- Transaction Controller
 	signal CtrlReq_tb	: std_logic;
 	signal CtrlCmd_tb	: std_logic_vector(MEM_CMD_L - 1 downto 0);
-	signal CtrlData_tb	: std_logic_vector(MRS_REG_L - 1 downto 0);
+	signal CtrlData_tb	: std_logic_vector(MRS_REG_L_TB - 1 downto 0);
 
 	signal CtrlAck_tb	: std_logic;
 
@@ -45,7 +45,7 @@ architecture bench of ddr2_phy_odt_ctrl_tb is
 
 	signal CmdReq_tb	: std_logic;
 	signal Cmd_tb		: std_logic_vector(MEM_CMD_L - 1 downto 0);
-	signal Data_tb		: std_logic_vector(MRS_REG_L - 1 downto 0);
+	signal Data_tb		: std_logic_vector(MRS_REG_L_TB - 1 downto 0);
 
 	-- ODT Controller
 	signal ODTCtrlAck_tb	: std_logic;
@@ -57,7 +57,7 @@ architecture bench of ddr2_phy_odt_ctrl_tb is
 
 begin
 
-	DUT: ddr2_phy_odt_ctrl generic map (
+	DUT: ddr2_phy_mrs_ctrl generic map (
 		MRS_REG_L => MRS_REG_L_TB
 	)
 	port map (
@@ -112,7 +112,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_requests : out integer; variable num_cmd_per_request : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd, ctrl_data, ctrl_delay, odt_delay, cmd_delay : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1)); variable odt_delay : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_requests : out integer; variable num_cmd_per_request : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd, ctrl_data, ctrl_delay, cmd_delay : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1)); variable odt_delay : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 			variable num_requests_int	: integer;
 			variable num_cmd_per_request_int	: integer;
@@ -133,7 +133,7 @@ begin
 				num_cmd_per_request(i) := num_cmd_per_request_int;
 
 				uniform(seed1, seed2, rand_val);
-				odt_delay(i, j) := integer(rand_val*real(MAX_DELAY));
+				odt_delay(i) := integer(rand_val*real(MAX_DELAY));
 
 				for j in 0 to (num_cmd_per_request_int - 1) loop
 					uniform(seed1, seed2, rand_val);
@@ -149,7 +149,7 @@ begin
 				for j in num_cmd_per_request_int to (MAX_CMD_PER_REQUEST - 1) loop
 					ctrl_delay(i, j) := 0;
 					cmd_delay(i, j) := 0;
-					ctrl_cmd(i, j) := CMD_NOP;
+					ctrl_cmd(i, j) := to_integer(unsigned(CMD_NOP));
 					ctrl_data(i, j) := 0;
 				end loop;
 			end loop;
@@ -160,14 +160,14 @@ begin
 				for j in 0 to (MAX_CMD_PER_REQUEST - 1) loop
 					ctrl_delay(i, j) := 0;
 					cmd_delay(i, j) := 0;
-					ctrl_cmd(i, j) := CMD_NOP;
+					ctrl_cmd(i, j) := to_integer(unsigned(CMD_NOP));
 					ctrl_data(i, j) := 0;
 				end loop;
 			end loop;
 
 		end procedure test_param;
 
-		procedure run_mrs_ctrl(variable num_requests_exp : in integer; variable num_cmd_per_request_arr_exp : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1)); variable odt_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable num_cmd_per_request_arr_rtl, error_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd_arr_rtl, ctrl_data_arr_rtl : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1))) is
+		procedure run_mrs_ctrl(variable num_requests_exp : in integer; variable num_cmd_per_request_arr_exp : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1)); variable odt_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable num_cmd_per_request_arr_rtl, mrs_ctrl_err_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd_arr_rtl, ctrl_data_arr_rtl : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1))) is
 			variable num_requests_rtl_int			: integer;
 			variable num_cmd_per_request_rtl_int		: integer;
 
@@ -201,11 +201,11 @@ begin
 			odt_delay := odt_delay_arr(num_requests_rtl_int);
 			cmd_delay := cmd_delay_arr(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int);
 
-			ctrl_cmd_arr_rtl = reset_int_arr_2d(0, MAX_REQUESTS_PER_TEST, MAX_CMD_PER_REQUEST);
-			ctrl_data_arr_rtl = reset_int_arr_2d(0, MAX_REQUESTS_PER_TEST, MAX_CMD_PER_REQUEST);
+			ctrl_cmd_arr_rtl := reset_int_arr_2d(0, MAX_REQUESTS_PER_TEST, MAX_CMD_PER_REQUEST);
+			ctrl_data_arr_rtl := reset_int_arr_2d(0, MAX_REQUESTS_PER_TEST, MAX_CMD_PER_REQUEST);
 
-			num_cmd_per_request_arr_rtl = reset_int_arr(0, MAX_REQUESTS_PER_TEST);
-			error_arr = reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+			num_cmd_per_request_arr_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+			mrs_ctrl_err_arr := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
 
 			error_int := 0;
 			ctrl_accepted := false;
@@ -358,7 +358,6 @@ begin
 				for cmd_num in 0 to (num_cmd_per_request_rtl_int - 1) loop
 					while (CmdReq_tb = '0') loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
-						ODTCtrlReq_tb <= '0';
 						wait until ((clk_tb = '0') and (clk_tb'event));
 
 						if (ctrl_accepted = false) then
@@ -395,14 +394,14 @@ begin
 							end if;
 						end if;
 
-						CtrlAck_tb <= '0';
+						CmdAck_tb <= '0';
 					end loop;
 
 					for i in 0 to cmd_delay loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
 						wait until ((clk_tb = '0') and (clk_tb'event));
 
-						if (CmdReq_tb = '0') begin
+						if (CmdReq_tb = '0') then
 							error_int := error_int + 1;
 						end if;
 
@@ -441,22 +440,179 @@ begin
 						end if;
 
 						if (i = cmd_delay) then
-							CtrlAck_tb <= '1';
+							CmdAck_tb <= '1';
 							ctrl_cmd_arr_rtl(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int) := to_integer(unsigned(Cmd_tb));
 							ctrl_data_arr_rtl(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int) := to_integer(unsigned(Data_tb));
 							cmd_num_cmd_per_request_rtl_int := cmd_num_cmd_per_request_rtl_int + 1;
 						else
-							CtrlAck_tb <= '0';
+							CmdAck_tb <= '0';
 						end if;
 
 					end loop;
 				end loop;
 
-				error_arr(num_requests_rtl_int) := error_int;
+				mrs_ctrl_err_arr(num_requests_rtl_int) := error_int;
+				num_cmd_per_request_arr_rtl(num_requests_rtl_int) := cmd_num_cmd_per_request_rtl_int;
 				num_requests_rtl_int := num_requests_rtl_int + 1;
 
 			end loop;
 
+			num_requests_rtl := num_requests_rtl_int;
+
 		end procedure run_mrs_ctrl;
 
+		procedure verify (variable num_requests_exp, num_requests_rtl : in integer; variable num_cmd_per_request_arr_exp, num_cmd_per_request_arr_rtl : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_cmd_arr_rtl, ctrl_data_arr_rtl : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1)); variable mrs_ctrl_err_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
 
+			variable file_line	: line;
+
+			variable no_errors		: boolean;
+			variable match_cmd_per_request	: boolean;
+			variable match_ctrl_cmd		: boolean;
+			variable match_ctrl_data	: boolean;
+
+		begin
+
+			write(file_line, string'( "PHY MRS Controller: Number of requests: " & integer'image(num_requests_exp)));
+			writeline(file_pointer, file_line);
+
+			no_errors := compare_int_arr(reset_int_arr(0, num_requests_exp), mrs_ctrl_err_arr, num_requests_exp);
+			match_cmd_per_request := compare_int_arr(num_cmd_per_request_arr_exp, num_cmd_per_request_arr_rtl, num_requests_exp);
+
+			match_ctrl_cmd := compare_int_arr_2d(ctrl_cmd_arr_exp, ctrl_cmd_arr_rtl, num_requests_exp, MAX_CMD_PER_REQUEST);
+
+			match_ctrl_data := compare_int_arr_2d(ctrl_data_arr_exp, ctrl_data_arr_rtl, num_requests_exp, MAX_CMD_PER_REQUEST);
+
+			if ((num_requests_exp = num_requests_rtl) and (no_errors = true) and (match_cmd_per_request = true) and (match_ctrl_cmd = true) and (match_ctrl_data = true)) then
+				write(file_line, string'( "PHY MRS Controller: PASS"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_requests_exp - 1) loop
+					write(file_line, string'( "PHY MRS Controller: Request #" & integer'image(i) & " Number of Commands " & integer'image(num_cmd_per_request_arr_exp(i))));
+					writeline(file_pointer, file_line);
+					for j in 0 to (num_cmd_per_request_arr_exp(i) - 1) loop
+						write(file_line, string'( "PHY MRS Controller: Request #" & integer'image(i) & " Command #" & integer'image(j) & ": " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ctrl_cmd_arr_exp(i, j), MEM_CMD_L))) & " Data " & integer'image(ctrl_data_arr_exp(i, j))));
+						writeline(file_pointer, file_line);
+					end loop;
+				end loop;
+				pass := 1;
+			elsif (match_cmd_per_request = false) then
+				write(file_line, string'( "PHY MRS Controller: FAIL (Number command mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_requests_exp - 1) loop
+					write(file_line, string'( "PHY MRS Controller: Error Request #" & integer'image(i) & ": exp " & integer'image(num_cmd_per_request_arr_exp(i)) & " rtl " & integer'image(num_cmd_per_request_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_ctrl_data = false) then
+				write(file_line, string'( "PHY MRS Controller: FAIL (Command mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_requests_exp - 1) loop
+					write(file_line, string'( "PHY MRS Controller: Request #" & integer'image(i) & " Number of Commands " & integer'image(num_cmd_per_request_arr_exp(i))));
+					writeline(file_pointer, file_line);
+					for j in 0 to (num_cmd_per_request_arr_exp(i) - 1) loop
+						write(file_line, string'( "PHY MRS Controller: Request #" & integer'image(i) & " Command #" & integer'image(j) & ": Data exp "  & integer'image(ctrl_data_arr_exp(i, j)) & " vs rtl "  & integer'image(ctrl_data_arr_rtl(i, j))));
+						writeline(file_pointer, file_line);
+					end loop;
+				end loop;
+			elsif (match_ctrl_cmd = false) then
+				write(file_line, string'( "PHY MRS Controller: FAIL (Command mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_requests_exp - 1) loop
+					write(file_line, string'( "PHY MRS Controller: Request #" & integer'image(i) & " Number of Commands " & integer'image(num_cmd_per_request_arr_exp(i))));
+					writeline(file_pointer, file_line);
+					for j in 0 to (num_cmd_per_request_arr_exp(i) - 1) loop
+						write(file_line, string'( "PHY MRS Controller: Request #" & integer'image(i) & " Command #" & integer'image(j) & ": exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ctrl_cmd_arr_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ctrl_cmd_arr_exp(i, j), MEM_CMD_L)))));
+						writeline(file_pointer, file_line);
+					end loop;
+				end loop;
+			elsif (num_requests_exp /= num_requests_rtl) then 
+				write(file_line, string'( "PHY MRS Controller: FAIL (Number requests mismatch): exp " & integer'image(num_requests_exp) & " rtl " & integer'image(num_requests_rtl)));
+				writeline(file_pointer, file_line);
+				pass := 0;
+			elsif (no_errors = false) then
+				write(file_line, string'( "PHY MRS Controller: FAIL (Handshake Error)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_requests_exp - 1) loop
+					write(file_line, string'( "PHY MRS Controller: Error Request #" & integer'image(i) & ": " & integer'image(mrs_ctrl_err_arr(i)) & " Error(s)"));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			else
+				write(file_line, string'( "PHY MRS Controller: FAIL (Unknown error)"));
+				writeline(file_pointer, file_line);
+				pass := 0;
+			end if;
+		end procedure verify;
+
+		variable seed1, seed2	: positive;
+
+		variable num_requests_exp	: integer;
+		variable num_requests_rtl	: integer;
+
+
+		variable num_cmd_per_request_arr_exp	: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable num_cmd_per_request_arr_rtl	: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+
+		variable ctrl_cmd_arr_exp	: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1));
+		variable ctrl_data_arr_exp	: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1));
+		variable ctrl_cmd_arr_rtl	: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1));
+		variable ctrl_data_arr_rtl	: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1));
+
+		variable ctrl_delay_arr		: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1));
+		variable cmd_delay_arr		: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1));
+		variable odt_delay_arr		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+
+		variable mrs_ctrl_err_arr	: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+
+		variable pass	: integer;
+		variable num_pass	: integer;
+
+		file file_pointer	: text;
+		variable file_line	: line;
+
+	begin
+
+		wait for 1 ns;
+
+		num_pass := 0;
+
+		reset;
+		file_open(file_pointer, ddr2_phy_mrs_ctrl_log_file, append_mode);
+
+		write(file_line, string'( "PHY MRS Controller Test"));
+		writeline(file_pointer, file_line);
+
+		for i in 0 to NUM_TESTS-1 loop
+
+			test_param(num_requests_exp, num_cmd_per_request_arr_exp, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr, odt_delay_arr, seed1, seed2);
+
+			run_mrs_ctrl(num_requests_exp, num_cmd_per_request_arr_exp, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr, odt_delay_arr, num_requests_rtl, num_cmd_per_request_arr_rtl, mrs_ctrl_err_arr, ctrl_cmd_arr_rtl, ctrl_data_arr_rtl);
+
+			verify(num_requests_exp, num_requests_rtl, num_cmd_per_request_arr_exp, num_cmd_per_request_arr_rtl, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_cmd_arr_rtl, ctrl_data_arr_rtl, mrs_ctrl_err_arr, file_pointer, pass);
+
+			num_pass := num_pass + pass;
+
+			wait until ((clk_tb'event) and (clk_tb = '1'));
+
+		end loop;
+
+		file_close(file_pointer);
+
+		file_open(file_pointer, summary_file, append_mode);
+		write(file_line, string'( "PHY MRS Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TESTS)));
+		writeline(file_pointer, file_line);
+
+		if (num_pass = TOT_NUM_TESTS) then
+			write(file_line, string'( "PHY MRS Controller: TEST PASSED"));
+		else
+			write(file_line, string'( "PHY MRS Controller: TEST FAILED: " & integer'image(TOT_NUM_TESTS-num_pass) & " failures"));
+		end if;
+		writeline(file_pointer, file_line);
+
+		file_close(file_pointer);
+		stop <= true;
+
+		wait;
+
+	end process test;
+
+end bench;
