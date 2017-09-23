@@ -164,6 +164,15 @@ begin
 			ref_ctrl_req := ref_ctrl_req_arr(num_requests_rtl_int);
 			toggle_other_req := toggle_other_req_arr(num_requests_rtl_int);
 
+			odt_disabled_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			pause_arb_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			odt_enabled_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			odt_disabled_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			pause_arb_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			odt_enabled_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+
+			odt_ctrl_err_arr := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+
 			err := 0;
 			toggle_cnt := 0;
 
@@ -463,7 +472,7 @@ begin
 				write(file_line, string'( "PHY ODT Controller: FAIL (Handshake Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_requests_exp - 1) loop
-					write(file_line, string'( "PHY ODT Controller: Error Burst #" & integer'image(i) & ": " & integer'image(odt_ctrl_err_arr(i)) & " Error(s)"));
+					write(file_line, string'( "PHY ODT Controller: Error Request #" & integer'image(i) & ": " & integer'image(odt_ctrl_err_arr(i)) & " Error(s)"));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
