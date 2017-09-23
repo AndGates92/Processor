@@ -356,9 +356,12 @@ begin
 				end loop;
 
 				for cmd_num in 0 to (num_cmd_per_request_rtl_int - 1) loop
+
 					while (CmdReq_tb = '0') loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
 						wait until ((clk_tb = '0') and (clk_tb'event));
+
+						ODTCtrlAck_tb <= '0';
 
 						if (ctrl_accepted = false) then
 							if (CtrlAck_tb = '1') then
@@ -398,8 +401,6 @@ begin
 					end loop;
 
 					for i in 0 to cmd_delay loop
-						wait until ((clk_tb = '1') and (clk_tb'event));
-						wait until ((clk_tb = '0') and (clk_tb'event));
 
 						if (CmdReq_tb = '0') then
 							error_int := error_int + 1;
@@ -444,12 +445,34 @@ begin
 							ctrl_cmd_arr_rtl(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int) := to_integer(unsigned(Cmd_tb));
 							ctrl_data_arr_rtl(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int) := to_integer(unsigned(Data_tb));
 							cmd_num_cmd_per_request_rtl_int := cmd_num_cmd_per_request_rtl_int + 1;
+
+							if (cmd_num_cmd_per_request_rtl_int < num_cmd_per_request_rtl_int) then 
+								cmd_delay := cmd_delay_arr(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int);
+							end if;
 						else
 							CmdAck_tb <= '0';
 						end if;
 
+						wait until ((clk_tb = '1') and (clk_tb'event));
+						wait until ((clk_tb = '0') and (clk_tb'event));
+
 					end loop;
+
 				end loop;
+
+				while (MRSUpdateCompleted_tb = '0') loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+				end loop;
+
+				wait until ((clk_tb = '0') and (clk_tb'event));
+
+				ODTCtrlAck_tb <= '1';
+
+				wait until ((clk_tb = '1') and (clk_tb'event));
+				wait until ((clk_tb = '0') and (clk_tb'event));
+
+				ODTCtrlAck_tb <= '0';
+
 
 				mrs_ctrl_err_arr(num_requests_rtl_int) := error_int;
 				num_cmd_per_request_arr_rtl(num_requests_rtl_int) := cmd_num_cmd_per_request_rtl_int;
