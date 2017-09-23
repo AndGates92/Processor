@@ -6,10 +6,11 @@ use ieee.numeric_std.all;
 library work;
 use work.proc_pkg.all;
 use work.ddr2_phy_pkg.all;
+use work.ddr2_gen_ac_timing_pkg.all;
 
 package ddr2_phy_mrs_ctrl_pkg is 
 
-	constant CNT_MRS_CTRL_L		: integer := int_to_bit_num(T_MOD_ns_max);
+	constant CNT_MRS_CTRL_L		: integer := int_to_bit_num(T_MOD_max);
 
 	constant STATE_MRS_CTRL_L	: positive := 3;
 

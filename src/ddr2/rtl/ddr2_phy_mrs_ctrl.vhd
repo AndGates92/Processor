@@ -5,6 +5,7 @@ use ieee.numeric_std.all;
 library work;
 use work.proc_pkg.all;
 use work.ddr2_phy_pkg.all;
+use work.ddr2_gen_ac_timing_pkg.all;
 use work.ddr2_phy_mrs_ctrl_pkg.all;
 
 entity ddr2_phy_mrs_ctrl is
@@ -120,12 +121,12 @@ begin
 	-- Assert command request on the way in to MRS_CTRL_SEND_CMD
 	CmdReqN <=	not CmdAck			when (StateC = MRS_CTRL_SEND_CMD) else
 			ODTCtrlAck			when (StateC = MRS_CTRL_ODT_TURN_OFF) else
-			(ZeroDelayCnt & CtrlReq)	when (StateC = MRS_CTRL_REG_UPD) else
+			(ZeroDelayCnt and CtrlReq)	when (StateC = MRS_CTRL_REG_UPD) else
 			CmdReqC;
 
 	-- Ack command when idle or after updating MRS register
 	CtrlAckN <=	CtrlReq				when (StateC = MRS_CTRL_IDLE) else
-			(ZeroDelayCnt & CtrlReq)	when (StateC = MRS_CTRL_REG_UPD) else
+			(ZeroDelayCnt and CtrlReq)	when (StateC = MRS_CTRL_REG_UPD) else
 			 '0';
 
 	CmdN <= CtrlCmd when ((StateC = MRS_CTRL_IDLE) or ((StateC = MRS_CTRL_REG_UPD) and (ZeroDelayCnt = '1') and (CtrlReq = '1'))) else CmdC;
@@ -145,7 +146,7 @@ begin
 	-- Set delay counter after sending MRS command
 	SetDelayCnt <=	CmdAck when (StateC = MRS_CTRL_SEND_CMD) else '0';
 
-	DelayCntInitValue <= to_unsigned(T_MOD_ns_max, CNT_MRS_CTRL_L);
+	DelayCntInitValue <= to_unsigned(T_MOD_max, CNT_MRS_CTRL_L);
 
 	-- Complete MRS update if no outstanding requests
 	MRSUpdateCompletedN <=	(ZeroDelayCnt and not CtrlReq)	when(StateC = MRS_CTRL_REG_UPD) else
