@@ -51,6 +51,8 @@ architecture rtl of ddr2_phy_mrs_ctrl is
 
 	signal CtrlAckC, CtrlAckN	: std_logic;
 
+	signal MRSUpdateCompletedC, MRSUpdateCompletedN	: std_logic;
+
 	signal CmdReqC, CmdReqN		: std_logic;
 	signal CmdC, CmdN		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal DataC, DataN		: std_logic_vector(MRS_REG_L - 1 downto 0);
@@ -80,6 +82,8 @@ begin
 			CmdC <= (others => '0');
 			DataC <= (others => '0');
 
+			MRSUpdateCompletedC <= '0';
+
 		elsif ((clk'event) and (clk = '1')) then
 
 			StateC <= StateN;
@@ -95,8 +99,18 @@ begin
 			CmdC <= CmdN;
 			DataC <= DataN;
 
+			MRSUpdateCompletedC <= MRSUpdateCompletedN;
+
 		end if;
 	end process reg;
+
+	-- Assign outputs
+	MRSUpdateCompleted <= MRSUpdateCompletedC;
+	CtrlAck <= CtrlAckC;
+	CmdReq <= CmdReqC;
+	Cmd <= CmdC;
+	Data <= DataC;
+	ODTCtrlReq <= ODTCtrlReqC;
 
 	-- Request ODT turn off before sending MRS commands
 	ODTCtrlReqN <=	CtrlReq		when (StateC = MRS_CTRL_IDLE) else
@@ -132,6 +146,11 @@ begin
 	SetDelayCnt <=	CmdAck when (StateC = MRS_CTRL_SEND_CMD) else '0';
 
 	DelayCntInitValue <= to_unsigned(T_MOD_ns_max, CNT_MRS_CTRL_L);
+
+	-- Complete MRS update if no outstanding requests
+	MRSUpdateCompletedN <=	(ZeroDelayCnt and not CtrlReq)	when(StateC = MRS_CTRL_REG_UPD) else
+				(not ODTCtrlAck)		when (StateC = MRS_CTRL_ODT_TURN_ON) else
+				MRSUpdateCompletedC;
 
 	state_det : process(StateC, CtrlReq, CtrlCmd, CtrlData, ODTCtrlAck, ZeroDelayCnt, CmdAck)
 	begin
