@@ -9,6 +9,7 @@ library work;
 use work.proc_pkg.all;
 use work.ddr2_define_pkg.all;
 use work.ddr2_phy_pkg.all;
+use work.ddr2_gen_ac_timing_pkg.all;
 use work.ddr2_phy_mrs_ctrl_pkg.all;
 use work.type_conversion_pkg.all;
 use work.tb_pkg.all;
@@ -23,9 +24,9 @@ architecture bench of ddr2_phy_mrs_ctrl_tb is
 	constant NUM_TESTS	: integer := 10000;
 	constant TOT_NUM_TESTS	: integer := NUM_TESTS;
 
-	constant MAX_REQUESTS_PER_TEST	: integer := 500;
-	constant MAX_CMD_PER_REQUEST	: integer := 500;
-	constant MAX_DELAY		: integer := 20;
+	constant MAX_REQUESTS_PER_TEST	: integer := 50;
+	constant MAX_CMD_PER_REQUEST	: integer := 50;
+	constant MAX_DELAY		: integer := T_MOD_max; -- max delay in the same block between MRS commands is T_MOD_max otherwise it will be processed next time around
 
 	constant MRS_REG_L_TB	: positive := 13;
 
@@ -143,7 +144,7 @@ begin
 					uniform(seed1, seed2, rand_val);
 					ctrl_cmd(i, j) := integer(rand_val*real(MAX_MEM_CMD_ID));
 					uniform(seed1, seed2, rand_val);
-					ctrl_data(i, j) := integer(rand_val*real(2.0**(real(MRS_REG_L_TB))));
+					ctrl_data(i, j) := integer(rand_val*real((2.0**(real(MRS_REG_L_TB))) - 1.0));
 				end loop;
 
 				for j in num_cmd_per_request_int to (MAX_CMD_PER_REQUEST - 1) loop
@@ -291,6 +292,7 @@ begin
 					else
 
 						if (CtrlAck_tb = '1') then
+report "CtrlAck_tb high while no ctrl request";
 							error_int := error_int + 1;
 						end if;
 
@@ -332,6 +334,8 @@ begin
 					else
 
 						if (CtrlAck_tb = '1') then
+
+report "CtrlAck_tb high while no ctrl request";
 							error_int := error_int + 1;
 						end if;
 
@@ -381,6 +385,8 @@ begin
 						else
 
 							if (CtrlAck_tb = '1') then
+
+report "CtrlAck_tb high while no ctrl request";
 								error_int := error_int + 1;
 							end if;
 
@@ -400,14 +406,19 @@ begin
 						CmdAck_tb <= '0';
 					end loop;
 
+					wait until ((clk_tb = '1') and (clk_tb'event));
+					wait until ((clk_tb = '0') and (clk_tb'event));
+
 					for i in 0 to cmd_delay loop
 
 						if (CmdReq_tb = '0') then
+report "CmdReq is taken away"; 
 							error_int := error_int + 1;
 						end if;
 
 						if (ctrl_accepted = false) then
 							if (CtrlAck_tb = '1') then
+report "CtrlAck seen";
 								ctrl_accepted := true;
 								CtrlReq_tb <= '0';
 								CtrlCmd_tb <= CMD_NOP;
@@ -424,6 +435,8 @@ begin
 						else
 
 							if (CtrlAck_tb = '1') then
+
+report "CtrlAck_tb high while ctrl request " & std_logic_to_str(CtrlReq_tb);
 								error_int := error_int + 1;
 							end if;
 
@@ -441,6 +454,7 @@ begin
 						end if;
 
 						if (i = cmd_delay) then
+
 							CmdAck_tb <= '1';
 							ctrl_cmd_arr_rtl(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int) := to_integer(unsigned(Cmd_tb));
 							ctrl_data_arr_rtl(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int) := to_integer(unsigned(Data_tb));
