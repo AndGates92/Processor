@@ -292,7 +292,6 @@ begin
 					else
 
 						if (CtrlAck_tb = '1') then
-report "CtrlAck_tb high while no ctrl request";
 							error_int := error_int + 1;
 						end if;
 
@@ -334,8 +333,6 @@ report "CtrlAck_tb high while no ctrl request";
 					else
 
 						if (CtrlAck_tb = '1') then
-
-report "CtrlAck_tb high while no ctrl request";
 							error_int := error_int + 1;
 						end if;
 
@@ -385,8 +382,6 @@ report "CtrlAck_tb high while no ctrl request";
 						else
 
 							if (CtrlAck_tb = '1') then
-
-report "CtrlAck_tb high while no ctrl request";
 								error_int := error_int + 1;
 							end if;
 
@@ -412,13 +407,11 @@ report "CtrlAck_tb high while no ctrl request";
 					for i in 0 to cmd_delay loop
 
 						if (CmdReq_tb = '0') then
-report "CmdReq is taken away"; 
 							error_int := error_int + 1;
 						end if;
 
 						if (ctrl_accepted = false) then
 							if (CtrlAck_tb = '1') then
-report "CtrlAck seen";
 								ctrl_accepted := true;
 								CtrlReq_tb <= '0';
 								CtrlCmd_tb <= CMD_NOP;
@@ -435,8 +428,6 @@ report "CtrlAck seen";
 						else
 
 							if (CtrlAck_tb = '1') then
-
-report "CtrlAck_tb high while ctrl request " & std_logic_to_str(CtrlReq_tb);
 								error_int := error_int + 1;
 							end if;
 
