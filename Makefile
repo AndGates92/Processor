@@ -63,6 +63,7 @@ all:
 	make ddr2_phy_ref_ctrl_all
 	make ddr2_phy_cmd_ctrl_all
 	make ddr2_phy_odt_ctrl_all
+	make ddr2_phy_mrs_ctrl_all
 	make ddr2_phy_cmd_dec_all
 	make ddr2_phy_arbiter_all
 
