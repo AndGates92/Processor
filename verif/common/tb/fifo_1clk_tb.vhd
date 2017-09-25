@@ -7,9 +7,11 @@ use std.textio.all;
 
 library work;
 use work.fifo_1clk_pkg.all;
-use work.proc_pkg.all;
 use work.type_conversion_pkg.all;
-use work.tb_pkg.all;
+use work.shared_tb_pkg.all;
+use work.common_tb_pkg.all;
+use work.functions_tb_pkg.all;
+use work.common_log_pkg.all;
 use work.fifo_pkg_tb.all;
 
 entity fifo_1clk_tb is
@@ -17,11 +19,11 @@ end entity fifo_1clk_tb;
 
 architecture bench of fifo_1clk_tb is
 
-	constant CLK_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
+	constant CLK_PERIOD	: time := COMMON_CLK_PERIOD * 1 ns;
 	constant NUM_TEST	: integer := 10000;
 
-	constant DATA_L_TB	: positive := 30;
-	constant FIFO_SIZE_TB	: positive := 16;
+	constant FIFO_1CLK_DATA_L_TB		: integer := 32;
+	constant FIFO_1CLK_SIZE_TB	: positive := 16;
 
 	signal clk_tb		: std_logic := '0';
 	signal rst_wr_tb	: std_logic;
@@ -29,24 +31,24 @@ architecture bench of fifo_1clk_tb is
 
 	signal stop		: boolean := false;
 
-	signal DataOut_tb	: std_logic_vector(DATA_L_TB - 1 downto 0);
+	signal DataOut_tb	: std_logic_vector(FIFO_1CLK_DATA_L_TB - 1 downto 0);
 	signal En_rd_tb		: std_logic;
 	signal empty_tb		: std_logic;
 
-	signal DataIn_tb	: std_logic_vector(DATA_L_TB - 1 downto 0);
+	signal DataIn_tb	: std_logic_vector(FIFO_1CLK_DATA_L_TB - 1 downto 0);
 	signal En_wr_tb		: std_logic;
 	signal full_tb		: std_logic;
 
 	signal ValidOut_tb	: std_logic;
 	signal EndRst_tb	: std_logic;
 
-	type fifo_t is array (FIFO_SIZE_TB - 1 downto 0) of integer;
+	type fifo_t is array (FIFO_1CLK_SIZE_TB - 1 downto 0) of integer;
 
 begin
 
 	DUT: fifo_1clk generic map (
-		DATA_L => DATA_L_TB,
-		FIFO_SIZE => FIFO_SIZE_TB
+		DATA_L => FIFO_1CLK_DATA_L_TB,
+		FIFO_SIZE => FIFO_1CLK_SIZE_TB
 	)
 	port map (
 		clk => clk_tb,
@@ -108,8 +110,8 @@ begin
 		begin
 
 			uniform(seed1, seed2, rand_val);
-			DataIn_in := integer(rand_val*(2.0**(real(DATA_L_TB)) - 1.0));
-			DataIn_tb <= std_logic_vector(to_unsigned(DataIn_in, DATA_L_TB));
+			DataIn_in := integer(rand_val*(2.0**(real(FIFO_1CLK_DATA_L_TB)) - 1.0));
+			DataIn_tb <= std_logic_vector(to_unsigned(DataIn_in, FIFO_1CLK_DATA_L_TB));
 			DataIn_int := DataIn_in;
 
 			uniform(seed1, seed2, rand_val);
@@ -140,13 +142,13 @@ begin
 			fullOut_bool := fullIn_bool;
 			emptyOut_bool := emptyIn_bool;
 
-			if (WrPtrIn = FIFO_SIZE_TB - 1) then
+			if (WrPtrIn = FIFO_1CLK_SIZE_TB - 1) then
 				WrPtrNext := 0;
 			else
 				WrPtrNext := WrPtrIn + 1;
 			end if;
 
-			if (RdPtrIn = FIFO_SIZE_TB - 1) then
+			if (RdPtrIn = FIFO_1CLK_SIZE_TB - 1) then
 				RdPtrNext := 0;
 			else
 				RdPtrNext := RdPtrIn + 1;

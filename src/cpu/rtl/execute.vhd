@@ -9,7 +9,7 @@ use work.decode_pkg.all;
 use work.ctrl_pkg.all;
 use work.reg_file_pkg.all;
 use work.mem_model_pkg.all;
-use work.proc_pkg.all;
+use work.functions_pkg.all;
 
 entity execute_stage is
 generic (

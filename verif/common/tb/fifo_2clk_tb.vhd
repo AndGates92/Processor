@@ -7,9 +7,11 @@ use std.textio.all;
 
 library work;
 use work.fifo_2clk_pkg.all;
-use work.proc_pkg.all;
 use work.type_conversion_pkg.all;
-use work.tb_pkg.all;
+use work.shared_tb_pkg.all;
+use work.common_tb_pkg.all;
+use work.functions_tb_pkg.all;
+use work.common_log_pkg.all;
 use work.fifo_pkg_tb.all;
 
 entity fifo_2clk_tb is
@@ -17,16 +19,16 @@ end entity fifo_2clk_tb;
 
 architecture bench of fifo_2clk_tb is
 
-	constant CLK_WR_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
-	constant CLK_RD_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
+	constant CLK_WR_PERIOD	: time := COMMON_CLK_PERIOD * 1 ns;
+	constant CLK_RD_PERIOD	: time := COMMON_CLK_PERIOD * 1 ns;
 	constant CLK_WR_PHASE	: time := 0 ns;
 	constant CLK_RD_PHASE	: time := 1 ns;
 	constant MAX_PERIOD	: time := max_time(CLK_WR_PERIOD, CLK_RD_PERIOD);
 	constant WAIT_TIME	: time := 10 ps;
 	constant NUM_TEST	: integer := 100;
 
-	constant DATA_L_TB	: positive := 30;
-	constant FIFO_SIZE_TB	: positive := 16;
+	constant FIFO_2CLK_DATA_L_TB		: integer := 32;
+	constant FIFO_2CLK_SIZE_TB	: positive := 16;
 
 	constant CDC		: boolean := ((CLK_WR_PERIOD /= CLK_RD_PERIOD) or (CLK_WR_PHASE /= CLK_RD_PHASE));
 
@@ -37,26 +39,26 @@ architecture bench of fifo_2clk_tb is
 
 	signal stop		: boolean := false;
 
-	signal DataOut_tb	: std_logic_vector(DATA_L_TB - 1 downto 0);
+	signal DataOut_tb	: std_logic_vector(FIFO_2CLK_DATA_L_TB - 1 downto 0);
 	signal En_rd_tb		: std_logic;
 	signal empty_tb		: std_logic;
 
-	signal DataIn_tb	: std_logic_vector(DATA_L_TB - 1 downto 0);
+	signal DataIn_tb	: std_logic_vector(FIFO_2CLK_DATA_L_TB - 1 downto 0);
 	signal En_wr_tb		: std_logic;
 	signal full_tb		: std_logic;
 
 	signal ValidOut_tb	: std_logic;
 	signal EndRst_tb	: std_logic;
 
-	type fifo_t is array (0 to FIFO_SIZE_TB - 1) of integer;
+	type fifo_t is array (0 to FIFO_2CLK_SIZE_TB - 1) of integer;
 	type bool_del_t is array (0 to NUM_STAGES - 1) of boolean;
 	type int_del_t is array (0 to NUM_STAGES - 1) of integer;
 
 begin
 
 	DUT: fifo_2clk generic map (
-		DATA_L => DATA_L_TB,
-		FIFO_SIZE => FIFO_SIZE_TB
+		DATA_L => FIFO_2CLK_DATA_L_TB,
+		FIFO_SIZE => FIFO_2CLK_SIZE_TB
 	)
 	port map (
 		rst_rd => rst_rd_tb,
@@ -149,8 +151,8 @@ begin
 		begin
 
 			uniform(seed1, seed2, rand_val);
-			DataIn_in := integer(rand_val*(2.0**(real(DATA_L_TB)) - 1.0));
-			DataIn_tb <= std_logic_vector(to_unsigned(DataIn_in, DATA_L_TB));
+			DataIn_in := integer(rand_val*(2.0**(real(FIFO_2CLK_DATA_L_TB)) - 1.0));
+			DataIn_tb <= std_logic_vector(to_unsigned(DataIn_in, FIFO_2CLK_DATA_L_TB));
 			DataIn_int := DataIn_in;
 
 			if (full_tb = '0') then
@@ -232,13 +234,13 @@ begin
 			FifoOut_mem := FifoIn_mem;
 
 			-- next address generation
-			if (WrPtrIn = FIFO_SIZE_TB - 1) then
+			if (WrPtrIn = FIFO_2CLK_SIZE_TB - 1) then
 				WrPtrNext := 0;
 			else
 				WrPtrNext := WrPtrIn + 1;
 			end if;
 
-			if (RdPtrIn = FIFO_SIZE_TB - 1) then
+			if (RdPtrIn = FIFO_2CLK_SIZE_TB - 1) then
 				RdPtrNext := 0;
 			else
 				RdPtrNext := RdPtrIn + 1;

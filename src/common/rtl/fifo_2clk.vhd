@@ -4,8 +4,9 @@ use ieee.numeric_std.all;
 
 library work;
 use work.bram_pkg.all;
-use work.proc_pkg.all;
+use work.functions_pkg.all;
 use work.fifo_2clk_pkg.all;
+use work.functions_pkg.all;
 
 entity fifo_2clk is
 generic (

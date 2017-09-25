@@ -4,12 +4,27 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.proc_pkg.all;
+use work.functions_pkg.all;
 use work.ddr2_define_pkg.all;
 use work.ddr2_mrs_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 
 package ddr2_phy_init_pkg is 
+
+	-- MRS configuration
+
+	constant ODT			: std_logic_vector(1 downto 0) := ODT_50OHM;
+	constant nDQS			: std_logic := nDQS_ENABLE;
+	constant RDQS			: std_logic := RDQS_ENABLE;
+	constant HITEMP_REF		: std_logic := HITEMP_REF_ENABLE;
+	constant CAS			: std_logic_vector(2 downto 0) := CAS5;
+	constant BURST_TYPE		: std_logic := SEQ_BURST;
+	constant BURST_LENGTH		: std_logic_vector(2 downto 0) := BL4;
+	constant POWER_DOWN_EXIT	: std_logic := SLOW_POWER_DOWN_EXIT;
+	constant AL			: std_logic_vector(2 downto 0) := AL5;
+	constant OUT_BUFFER		: std_logic := OUT_BUF_ENABLE;
+	constant nDLL			: std_logic := nDLL_ENABLE;
+	constant DRIVING_STRENGTH	: std_logic := NORMAL;
 
 	-- Timing parameter (in ns)
 	constant T_INIT_STARTUP_ns	: real := 2.0e5;

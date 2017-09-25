@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.ddr2_define_pkg.all;
-use work.proc_pkg.all;
+use work.functions_pkg.all;
 
 package ddr2_io_ac_timing_pkg is 
 

@@ -4,7 +4,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.proc_pkg.all;
+use work.functions_pkg.all;
 use work.alu_pkg.all;
 
 package ctrl_pkg is 
