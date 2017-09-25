@@ -5,6 +5,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.functions_pkg.all;
+use work.proc_pkg.all;
 
 package reg_file_pkg is 
 
