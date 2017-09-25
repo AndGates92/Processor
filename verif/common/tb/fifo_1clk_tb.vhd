@@ -22,7 +22,7 @@ architecture bench of fifo_1clk_tb is
 	constant CLK_PERIOD	: time := COMMON_CLK_PERIOD * 1 ns;
 	constant NUM_TEST	: integer := 10000;
 
-	constant FIFO_1CLK_DATA_L_TB		: integer := 32;
+	constant FIFO_1CLK_DATA_L_TB	: integer := 30;
 	constant FIFO_1CLK_SIZE_TB	: positive := 16;
 
 	signal clk_tb		: std_logic := '0';

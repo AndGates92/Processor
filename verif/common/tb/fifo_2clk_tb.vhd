@@ -27,7 +27,7 @@ architecture bench of fifo_2clk_tb is
 	constant WAIT_TIME	: time := 10 ps;
 	constant NUM_TEST	: integer := 100;
 
-	constant FIFO_2CLK_DATA_L_TB		: integer := 32;
+	constant FIFO_2CLK_DATA_L_TB	: integer := 30;
 	constant FIFO_2CLK_SIZE_TB	: positive := 16;
 
 	constant CDC		: boolean := ((CLK_WR_PERIOD /= CLK_RD_PERIOD) or (CLK_WR_PHASE /= CLK_RD_PHASE));
