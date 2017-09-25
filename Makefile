@@ -45,18 +45,27 @@ WAVE_READER = gtkwave
 
 all:
 	make clean
+	make all_common
+	make all_cpu
+	make all_ddr2
+
+all_common:
+	make fifo_1clk_all
+	make arbiter_all
+
+all_cpu:
 	make reg_file_all
 	make mul_all
 	make div_all
 	make alu_all
 	make decode_stage_all
-	make arbiter_all
 	make ctrl_all
 	make icache_all
 	make dcache_all
 	make execute_all
 	make execute_dcache_all
-	make fifo_1clk_all
+
+all_ddr2:
 	make ddr2_phy_init_all
 	make ddr2_phy_bank_ctrl_all
 	make ddr2_phy_col_ctrl_all
@@ -73,15 +82,21 @@ clean:
 work_dir:
 	mkdir -p ${WORK_DIR}
 
-libraries: 
+common_rtl_libraries: 
 	@echo "Analysing ${COMMON_RTL_PKG_DIR}/type_conversion_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/type_conversion_pkg.vhd
-	@echo "Analysing ${CPU_RTL_PKG_DIR}/proc_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_PKG_DIR}/proc_pkg.vhd
 	@echo "Analysing ${COMMON_RTL_PKG_DIR}/bram_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/bram_pkg.vhd
-	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/mem_model_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/mem_model_pkg.vhd
+	@echo "Analysing ${COMMON_RTL_PKG_DIR}/functions_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/functions_pkg.vhd
+	@echo "Analysing ${COMMON_RTL_PKG_DIR}/arbiter_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/arbiter_pkg.vhd
+	@echo "Analysing ${COMMON_RTL_PKG_DIR}/fifo_1clk_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/fifo_1clk_pkg.vhd
+	@echo "Analysing ${COMMON_RTL_PKG_DIR}/fifo_2clk_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/fifo_2clk_pkg.vhd
+
+ddr2_rtl_libraries:
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_define_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_define_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_gen_ac_timing_pkg.vhd"
@@ -112,6 +127,10 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_odt_ctrl_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_mrs_ctrl_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_mrs_ctrl_pkg.vhd
+
+cpu_rtl_libraries:
+	@echo "Analysing ${CPU_RTL_PKG_DIR}/proc_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_PKG_DIR}/proc_pkg.vhd
 	@echo "Analysing ${CPU_RTL_PKG_DIR}/alu_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_PKG_DIR}/alu_pkg.vhd
 	@echo "Analysing ${CPU_RTL_PKG_DIR}/ctrl_pkg.vhd"
@@ -128,30 +147,50 @@ libraries:
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_PKG_DIR}/icache_pkg.vhd
 	@echo "Analysing ${CPU_RTL_PKG_DIR}/dcache_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_RTL_PKG_DIR}/dcache_pkg.vhd
-	@echo "Analysing ${COMMON_RTL_PKG_DIR}/arbiter_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/arbiter_pkg.vhd
-	@echo "Analysing ${COMMON_RTL_PKG_DIR}/fifo_1clk_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/fifo_1clk_pkg.vhd
-	@echo "Analysing ${COMMON_RTL_PKG_DIR}/fifo_2clk_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/fifo_2clk_pkg.vhd
-	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/tb_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/tb_pkg.vhd
+
+common_verif_libraries:
+	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/shared_tb_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/shared_tb_pkg.vhd
+	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/functions_tb_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/functions_tb_pkg.vhd
+	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/common_log_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/common_log_pkg.vhd
+	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/common_tb_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/common_tb_pkg.vhd
+	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/mem_model_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/mem_model_pkg.vhd
+	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/fifo_pkg_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/fifo_pkg_tb.vhd
+	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/ddr2_model_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/ddr2_model_pkg.vhd
+
+cpu_verif_libraries:
 	@echo "Analysing ${CPU_VERIF_PKG_DIR}/alu_pkg_tb.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/alu_pkg_tb.vhd
 	@echo "Analysing ${CPU_VERIF_PKG_DIR}/reg_file_pkg_tb.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/reg_file_pkg_tb.vhd
-	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/fifo_pkg_tb.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/fifo_pkg_tb.vhd
 	@echo "Analysing ${CPU_VERIF_PKG_DIR}/ctrl_pkg_tb.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/ctrl_pkg_tb.vhd
 	@echo "Analysing ${CPU_VERIF_PKG_DIR}/execute_pkg_tb.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/execute_pkg_tb.vhd
 	@echo "Analysing ${CPU_VERIF_PKG_DIR}/decode_pkg_tb.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/decode_pkg_tb.vhd
+
+ddr2_verif_libraries:
 	@echo "Analysing ${DDR2_VERIF_PKG_DIR}/ddr2_pkg_tb.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_PKG_DIR}/ddr2_pkg_tb.vhd
-	@echo "Analysing ${COMMON_VERIF_PKG_DIR}/ddr2_model_pkg.vhd"
-	${GHDL} -a ${GHDL_ARGS} ${COMMON_VERIF_PKG_DIR}/ddr2_model_pkg.vhd
+
+common_libraries:
+	make common_rtl_libraries
+	make common_verif_libraries
+
+cpu_libraries:
+	make cpu_rtl_libraries
+	make cpu_verif_libraries
+
+ddr2_libraries:
+	make ddr2_rtl_libraries
+	make ddr2_verif_libraries
 
 reg_file: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/reg_file_pkg.o
 	@echo "Analysing ${CPU_RTL_DIR}/reg_file.vhd"
@@ -168,7 +207,8 @@ simulate_reg_file: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/reg_f
 
 reg_file_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make cpu_libraries
 	make reg_file
 	make simulate_reg_file
 
@@ -187,7 +227,8 @@ simulate_alu: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o 
 
 alu_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make cpu_libraries
 	make alu
 	make simulate_alu
 
@@ -208,7 +249,8 @@ simulate_mul: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o 
 
 mul_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make cpu_libraries
 	make mul
 	make simulate_mul
 
@@ -230,7 +272,8 @@ simulate_div: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/alu_pkg.o 
 
 div_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make cpu_libraries
 	make div
 	make simulate_div
 
@@ -249,7 +292,8 @@ simulate_decode_stage: ${WORK_DIR}/decode_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_D
 
 decode_stage_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make cpu_libraries
 	make decode_stage
 	make simulate_decode_stage
 
@@ -268,7 +312,8 @@ simulate_ctrl: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_p
 
 ctrl_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make cpu_libraries
 	make ctrl
 	make simulate_ctrl
 
@@ -301,7 +346,8 @@ simulate_execute: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/execute_pkg_tb.o ${WORK_
 
 execute_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make cpu_libraries
 	make execute
 	make simulate_execute
 
@@ -328,7 +374,8 @@ simulate_icache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/icache_
 
 icache_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make cpu_libraries
 	make icache
 	make simulate_icache
 
@@ -355,7 +402,8 @@ simulate_dcache: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/dcache_
 
 dcache_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make cpu_libraries
 	make dcache
 	make simulate_dcache
 
@@ -396,11 +444,12 @@ simulate_execute_dcache: ${WORK_DIR}/ctrl_pkg_tb.o ${WORK_DIR}/execute_pkg_tb.o 
 
 execute_dcache_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make cpu_libraries
 	make execute_dcache
 	make simulate_execute_dcache
 
-arbiter: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/arbiter_pkg.o
+arbiter: ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/common_log_pkg.o ${WORK_DIR}/common_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/arbiter_pkg.o
 
 	@echo "Analysing ${COMMON_RTL_DIR}/arbiter.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/arbiter.vhd
@@ -411,16 +460,16 @@ arbiter: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/arbiter_pkg.o
 	rm -r e~arbiter_tb.o
 	mv arbiter_tb ${WORK_DIR}
 
-simulate_arbiter: ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/arbiter.o ${WORK_DIR}/arbiter_pkg.o ${WORK_DIR}/arbiter_tb.o
+simulate_arbiter: ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/common_log_pkg.o ${WORK_DIR}/common_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/arbiter.o ${WORK_DIR}/arbiter_pkg.o ${WORK_DIR}/arbiter_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r arbiter_tb ${GHDL_RUN_ARGS}arbiter.vcd
 
 arbiter_all:
 	make work_dir
-	make libraries
+	make common_libraries
 	make arbiter
 	make simulate_arbiter
 
-fifo_1clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o
+fifo_1clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/common_log_pkg.o ${WORK_DIR}/common_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o
 	@echo "Analysing ${COMMON_RTL_DIR}/bram_1port.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_1port.vhd
 	@echo "Analysing ${COMMON_RTL_DIR}/bram_2port.vhd"
@@ -438,16 +487,16 @@ fifo_1clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o
 	rm -r e~config_fifo_1clk.o
 	mv config_fifo_1clk ${WORK_DIR}
 
-simulate_fifo_1clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o ${WORK_DIR}/fifo_1clk.o  ${WORK_DIR}/fifo_1clk_tb.o
+simulate_fifo_1clk: ${WORK_DIR}/fifo_pkg_tb.o  ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/common_log_pkg.o ${WORK_DIR}/common_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/fifo_1clk_pkg.o ${WORK_DIR}/fifo_1clk.o  ${WORK_DIR}/fifo_1clk_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r config_fifo_1clk ${GHDL_RUN_ARGS}fifo_1clk.vcd
 
 fifo_1clk_all:
 	make work_dir
-	make libraries
+	make common_libraries
 	make fifo_1clk
 	make simulate_fifo_1clk
 
-fifo_2clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o
+fifo_2clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/common_log_pkg.o ${WORK_DIR}/common_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/bram_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o
 	@echo "Analysing ${COMMON_RTL_DIR}/bram_1port.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${COMMON_RTL_DIR}/bram_1port.vhd
 	@echo "Analysing ${COMMON_RTL_DIR}/bram_2port.vhd"
@@ -469,12 +518,12 @@ fifo_2clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o
 	rm -r e~config_fifo_2clk.o
 	mv config_fifo_2clk ${WORK_DIR}
 
-simulate_fifo_2clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o ${WORK_DIR}/fifo_2clk.o  ${WORK_DIR}/fifo_2clk_tb.o
+simulate_fifo_2clk: ${WORK_DIR}/fifo_pkg_tb.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/common_log_pkg.o ${WORK_DIR}/common_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/fifo_2clk_pkg.o ${WORK_DIR}/fifo_2clk.o  ${WORK_DIR}/fifo_2clk_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r config_fifo_2clk ${GHDL_RUN_ARGS}fifo_2clk.vcd
 
 fifo_2clk_all:
 	make work_dir
-	make libraries
+	make common_libraries
 	make fifo_2clk
 	make simulate_fifo_2clk
 
@@ -493,7 +542,8 @@ simulate_ddr2_phy_init: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK_DI
 
 ddr2_phy_init_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make ddr2_libraries
 	make ddr2_phy_init
 	make simulate_ddr2_phy_init
 
@@ -513,7 +563,8 @@ simulate_ddr2_phy_bank_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WO
 
 ddr2_phy_bank_ctrl_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make ddr2_libraries
 	make ddr2_phy_bank_ctrl
 	make simulate_ddr2_phy_bank_ctrl
 
@@ -533,7 +584,8 @@ simulate_ddr2_phy_col_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WOR
 
 ddr2_phy_col_ctrl_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make ddr2_libraries
 	make ddr2_phy_col_ctrl
 	make simulate_ddr2_phy_col_ctrl
 
@@ -553,7 +605,8 @@ simulate_ddr2_phy_ref_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WOR
 
 ddr2_phy_ref_ctrl_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make ddr2_libraries
 	make ddr2_phy_ref_ctrl
 	make simulate_ddr2_phy_ref_ctrl
 
@@ -577,7 +630,8 @@ simulate_ddr2_phy_cmd_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WOR
 
 ddr2_phy_cmd_ctrl_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make ddr2_libraries
 	make ddr2_phy_cmd_ctrl
 	make simulate_ddr2_phy_cmd_ctrl
 
@@ -597,7 +651,8 @@ simulate_ddr2_phy_cmd_dec: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK
 
 ddr2_phy_cmd_dec_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make ddr2_libraries
 	make ddr2_phy_cmd_dec
 	make simulate_ddr2_phy_cmd_dec
 
@@ -617,7 +672,8 @@ simulate_ddr2_phy_arbiter: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WORK
 
 ddr2_phy_arbiter_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make ddr2_libraries
 	make ddr2_phy_arbiter
 	make simulate_ddr2_phy_arbiter
 
@@ -637,7 +693,8 @@ simulate_ddr2_phy_odt_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WOR
 
 ddr2_phy_odt_ctrl_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make ddr2_libraries
 	make ddr2_phy_odt_ctrl
 	make simulate_ddr2_phy_odt_ctrl
 
@@ -657,6 +714,7 @@ simulate_ddr2_phy_mrs_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/tb_pkg.o ${WOR
 
 ddr2_phy_mrs_ctrl_all:
 	make work_dir
-	make libraries
+	make common_libraries
+	make ddr2_libraries
 	make ddr2_phy_mrs_ctrl
 	make simulate_ddr2_phy_mrs_ctrl
