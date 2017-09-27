@@ -9,7 +9,11 @@ library work;
 use work.dcache_pkg.all;
 use work.proc_pkg.all;
 use work.type_conversion_pkg.all;
-use work.tb_pkg.all;
+use work.cpu_tb_pkg.all;
+use work.cpu_log_pkg.all;
+use work.functions_pkg.all;
+use work.functions_tb_pkg.all;
+use work.shared_tb_pkg.all;
 
 entity dcache_tb is
 end entity dcache_tb;

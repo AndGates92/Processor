@@ -7,7 +7,8 @@ library work;
 use work.ctrl_pkg.all;
 use work.decode_pkg.all;
 use work.proc_pkg.all;
-use work.tb_pkg.all;
+use work.cpu_tb_pkg.all;
+use work.cpu_log_pkg.all;
 
 package decode_pkg_tb is 
 

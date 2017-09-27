@@ -6,6 +6,7 @@ library work;
 use work.alu_pkg.all;
 use work.decode_pkg.all;
 use work.ctrl_pkg.all;
+use work.proc_pkg.all;
 use work.functions_pkg.all;
 
 entity ctrl is

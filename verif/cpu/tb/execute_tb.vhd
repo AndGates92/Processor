@@ -11,11 +11,15 @@ use work.proc_pkg.all;
 use work.ctrl_pkg.all;
 use work.alu_pkg.all;
 use work.type_conversion_pkg.all;
-use work.tb_pkg.all;
+use work.cpu_tb_pkg.all;
+use work.cpu_log_pkg.all;
 use work.alu_pkg_tb.all;
 use work.ctrl_pkg_tb.all;
 use work.reg_file_pkg_tb.all;
 use work.execute_pkg_tb.all;
+use work.functions_pkg.all;
+use work.functions_tb_pkg.all;
+use work.shared_tb_pkg.all;
 
 entity execute_tb is
 end entity execute_tb;

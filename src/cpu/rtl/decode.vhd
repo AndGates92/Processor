@@ -7,6 +7,7 @@ use work.alu_pkg.all;
 use work.decode_pkg.all;
 use work.ctrl_pkg.all;
 use work.functions_pkg.all;
+use work.proc_pkg.all;
 
 entity decode_stage is
 generic (

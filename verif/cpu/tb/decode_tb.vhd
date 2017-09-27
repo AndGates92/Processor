@@ -11,9 +11,13 @@ use work.decode_pkg.all;
 use work.ctrl_pkg.all;
 use work.proc_pkg.all;
 use work.type_conversion_pkg.all;
-use work.tb_pkg.all;
+use work.cpu_tb_pkg.all;
+use work.cpu_log_pkg.all;
 use work.alu_pkg_tb.all;
 use work.decode_pkg_tb.all;
+use work.functions_pkg.all;
+use work.functions_tb_pkg.all;
+use work.shared_tb_pkg.all;
 
 entity decode_stage_tb is
 end entity decode_stage_tb;

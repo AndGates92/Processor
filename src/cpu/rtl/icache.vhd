@@ -6,6 +6,7 @@ library work;
 use work.icache_pkg.all;
 use work.bram_pkg.all;
 use work.functions_pkg.all;
+use work.proc_pkg.all;
 
 entity icache is
 generic (

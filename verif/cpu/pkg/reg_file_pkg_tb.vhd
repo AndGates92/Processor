@@ -6,7 +6,8 @@ use ieee.numeric_std.all;
 library work;
 use work.reg_file_pkg.all;
 use work.proc_pkg.all;
-use work.tb_pkg.all;
+use work.cpu_tb_pkg.all;
+use work.cpu_log_pkg.all;
 
 package reg_file_pkg_tb is 
 
