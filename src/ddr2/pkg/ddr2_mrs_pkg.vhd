@@ -37,7 +37,6 @@ package ddr2_mrs_pkg is
 	constant WRITE_REC_533		: std_logic_vector(2 downto 0) := std_logic_vector(to_unsigned(4, 3));
 	constant WRITE_REC_667		: std_logic_vector(2 downto 0) := std_logic_vector(to_unsigned(5, 3));
 	constant WRITE_REC_800		: std_logic_vector(2 downto 0) := std_logic_vector(to_unsigned(6, 3));
-	constant WRITE_REC		: std_logic_vector(2 downto 0) := WRITE_REC_800;
 
 	-- CAS latency
 	constant CAS3		: std_logic_vector(2 downto 0) := std_logic_vector(to_unsigned(3, 3));
@@ -76,9 +75,5 @@ package ddr2_mrs_pkg is
 	-- Driving strength
 	constant NORMAL			: std_logic := '0';
 	constant WEAK			: std_logic := '1';
-
-	-- Derived parameters
-	constant READ_LATENCY	: positive := to_integer(unsigned(CAS)) + to_integer(unsigned(AL));
-	constant WRITE_LATENCY	: positive := READ_LATENCY - 1;
 
 end package ddr2_mrs_pkg;
