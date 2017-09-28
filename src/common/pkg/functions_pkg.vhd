@@ -9,6 +9,7 @@ package functions_pkg is
 	function min_int(x, y : integer) return integer;
 	function max_int(x, y : integer) return integer;
 	function max_real(x, y : real) return real;
+	function max_std_logic(x, y : std_logic) return integer;
 
 end package functions_pkg;
 
@@ -60,6 +61,18 @@ package body functions_pkg is
 			max_val := x;
 		else
 			max_val := y;
+		end if;
+
+		return max_val;
+	end;
+
+	function max_std_logic(x, y : std_logic) return integer is
+		variable max_val	: integer;
+	begin
+		if ((x = '1') or (y = '1')) then
+			max_val := 1;
+		else
+			max_val := 0;
 		end if;
 
 		return max_val;
