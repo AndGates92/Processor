@@ -25,6 +25,7 @@ package ddr2_phy_init_pkg is
 	constant OUT_BUFFER		: std_logic := OUT_BUF_ENABLE;
 	constant nDLL			: std_logic := nDLL_ENABLE;
 	constant DRIVING_STRENGTH	: std_logic := NORMAL;
+	constant WRITE_REC		: std_logic_vector(2 downto 0) := WRITE_REC_800;
 
 	-- Timing parameter (in ns)
 	constant T_INIT_STARTUP_ns	: real := 2.0e5;
