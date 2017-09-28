@@ -107,6 +107,8 @@ ddr2_rtl_libraries:
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_odt_ac_timing_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_mrs_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_mrs_pkg.vhd
+	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_mrs_max_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_mrs_max_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_init_pkg.vhd"
