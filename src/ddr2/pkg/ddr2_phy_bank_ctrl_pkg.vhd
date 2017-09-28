@@ -6,19 +6,19 @@ use ieee.numeric_std.all;
 library work;
 use work.functions_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_mrs_pkg.all;
+use work.ddr2_mrs_max_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 
 package ddr2_phy_bank_ctrl_pkg is 
 
-	constant T_ACT_COL	: positive := T_RCD - to_integer(unsigned(AL)); 
-	constant T_WRITE_PRE	: positive := WRITE_LATENCY + T_WR + positive(2**(to_integer(unsigned(BURST_LENGTH))) - 1);
-	constant T_WRITE_ACT	: positive := T_RP + T_WRITE_PRE;
-	constant T_READ_PRE	: positive := to_integer(unsigned(AL)) + (2**(to_integer(unsigned(BURST_LENGTH)) - 1)) + max_int(T_RTP, 2) - 2;
-	constant T_READ_ACT	: positive := T_RP + T_READ_PRE;
+	constant T_ACT_COL_MAX_VALUE	: positive := T_RCD; -- max value is when additive latency is 0. Actual value: T_RCD - AL
+	constant T_WRITE_PRE_MAX_VALUE	: positive := WRITE_LATENCY_MAX_VALUE + T_WR + positive(2**(BURST_LENGTH_MAX_VALUE) - 1);
+	constant T_WRITE_ACT_MAX_VALUE	: positive := T_RP + T_WRITE_PRE_MAX_VALUE;
+	constant T_READ_PRE_MAX_VALUE	: positive := AL_MAX_VALUE + (2**(BURST_LENGTH_MAX_VALUE - 1)) + max_int(T_RTP, 2) - 2;
+	constant T_READ_ACT_MAX_VALUE	: positive := T_RP + T_READ_PRE_MAX_VALUE;
 
-	constant CNT_BANK_CTRL_L	: integer := int_to_bit_num(max_int(T_RAS_min, max_int(T_RC, T_ACT_COL)));
-	constant CNT_DELAY_L		: integer := int_to_bit_num(max_int(T_READ_PRE, max_int(T_WRITE_PRE, T_RP)));
+	constant CNT_BANK_CTRL_L	: integer := int_to_bit_num(max_int(T_RAS_min, max_int(T_RC, T_ACT_COL_MAX_VALUE)));
+	constant CNT_DELAY_L		: integer := int_to_bit_num(max_int(T_READ_PRE_MAX_VALUE, max_int(T_WRITE_PRE_MAX_VALUE, T_RP)));
 
 	constant STATE_BANK_CTRL_L	: positive := 3;
 
@@ -41,6 +41,11 @@ package ddr2_phy_bank_ctrl_pkg is
 
 		rst		: in std_logic;
 		clk		: in std_logic;
+
+		-- MRS configuration
+		BurstLength	: in std_logic_vector(BURST_LENGTH_MAX_VALUE - 1 downto 0);
+		AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
+		WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
 
 		-- Arbitrer
 		CmdAck		: in std_logic;

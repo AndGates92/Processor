@@ -20,6 +20,10 @@ port (
 	rst		: in std_logic;
 	clk		: in std_logic;
 
+	-- MRS configuration
+	CAS		: in std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
+	BurstLength	: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+
 	-- Bank Controller
 	BankActiveVec			: in std_logic_vector(BANK_NUM - 1 downto 0);
 	ZeroOutstandingBurstsVec	: in std_logic_vector(BANK_NUM - 1 downto 0);
@@ -38,7 +42,7 @@ port (
 	-- Transaction Controller
 	CtrlReq		: in std_logic;
 	ReadBurstIn	: in std_logic;
-	ColMemIn	: in std_logic_vector(COL_L - to_integer(unsigned(BURST_LENGTH)) - 1 downto 0);
+	ColMemIn	: in std_logic_vector(COL_L - to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1 downto 0);
 	BankMemIn	: in std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	BurstLength	: in std_logic_vector(BURST_LENGTH_L - 1 downto 0);
 
@@ -49,17 +53,27 @@ end entity ddr2_phy_col_ctrl;
 
 architecture rtl of ddr2_phy_col_ctrl is
 
+	constant col_to_col_cnt_zero_padding	: unsigned(CNT_COL_TO_COL_L - BURST_LENGTH_MAX_VALUE - 1 downto 0) := (others => '0');
 	constant zero_cnt_col_to_col_value	: unsigned(CNT_COL_TO_COL_L - 1 downto 0) := (others => '0'); 
 	constant decr_cnt_col_to_col_value	: unsigned(CNT_COL_TO_COL_L - 1 downto 0) := to_unsigned(1, CNT_COL_TO_COL_L);
+
+	constant bl_zero_padding_col_ctrl_cnt	: unsigned(CNT_COL_CTRL_L - BURST_LENGTH_MAX_VALUE - 1 downto 0) := (others => '0');
+	constant cas_zero_padding_col_ctrl_cnt	: unsigned(CNT_COL_CTRL_L - CAS_MAX_VALUE - 1 downto 0) := (others => '0');
 	constant zero_cnt_col_ctrl_value	: unsigned(CNT_COL_CTRL_L - 1 downto 0) := (others => '0'); 
 	constant decr_cnt_col_ctrl_value	: unsigned(CNT_COL_CTRL_L - 1 downto 0) := to_unsigned(1, CNT_COL_CTRL_L);
+	constant one_cnt_col_ctrl_value		: unsigned(CNT_COL_CTRL_L - 1 downto 0) := to_unsigned(1, CNT_COL_CTRL_L);
 	constant zero_burst_length_value	: unsigned(BURST_LENGTH_L - 1 downto 0) := to_unsigned(0, BURST_LENGTH_L);
 	constant decr_burst_length_value	: unsigned(BURST_LENGTH_L - 1 downto 0) := to_unsigned(1, BURST_LENGTH_L);
-	constant incr_col_value			: unsigned(COL_L - to_integer(unsigned(BURST_LENGTH)) - 1 downto 0) := to_unsigned(1, COL_L - to_integer(unsigned(BURST_LENGTH)));
-	constant zero_col_lsb			: unsigned(to_integer(unsigned(BURST_LENGTH)) - 1 downto 0) := to_unsigned(0, to_integer(unsigned(BURST_LENGTH)));
+	constant incr_col_value			: unsigned(COL_L - to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1 downto 0) := to_unsigned(1, COL_L - to_integer(unsigned(BURST_LENGTH_MAX_VALUE)));
+	constant zero_col_lsb			: unsigned(to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1 downto 0) := to_unsigned(0, to_integer(unsigned(BURST_LENGTH_MAX_VALUE)));
+
+	signal MaxBurst				: std_logic_vector(BURST_LENGTH_MAX_VALUE - 1 downto 0);
+
+	signal TRTW_tat				: std_logic_vector(CNT_COL_CTRL_L - 1 downto 0);
+	signal TWTR_tat				: std_logic_vector(CNT_COL_CTRL_L - 1 downto 0);
 
 	signal CtrlAckN, CtrlAckC		: std_logic;
-	signal ColMemN, ColMemC			: unsigned(COL_L - to_integer(unsigned(BURST_LENGTH)) - 1 downto 0);
+	signal ColMemN, ColMemC			: unsigned(COL_L - to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1 downto 0);
 
 	signal ReadBurstN, ReadBurstC		: std_logic;
 	signal ReadBurstVec_comb		: std_logic_vector(BANK_NUM - 1 downto 0);
@@ -156,7 +170,6 @@ begin
 	CmdReq <= CmdReqC;
 	EndDataPhaseVec <= EndDataPhaseVec_comb;
 
-
 	CtrlAck <= CtrlAckC;
 	CtrlAckN <= 	(CtrlReqValid and (ZeroColCtrlCnt or SameOp))	when (StateC = COL_CTRL_IDLE) else
 			(CtrlReqValid and ZeroColCtrlCnt)		when (StateC = CHANGE_BURST_OP) else
@@ -227,11 +240,14 @@ begin
 		end loop;
 	end process bank_active_mux;
 
+	TRTW_tat <= (bl_zero_padding_col_ctrl_cnt & MaxBurst) + one_cnt_col_ctrl_value;
+	TRTW_tat <= (cas_zero_padding_col_ctrl_cnt & CAS) + (bl_zero_padding_col_ctrl_cnt & MaxBurst) + to_unsigned((T_WTR - 2), CNT_COL_CTRL_L);
+
 	CntColCtrlN <=	ColCtrlCntInitValue			when (SetColCtrlCnt = '1') else
 			(CntColCtrlC - decr_cnt_col_ctrl_value)	when ((ColCtrlCntEnC = '1') and (ZeroColCtrlCnt = '0')) else
 			CntColCtrlC;
 	ZeroColCtrlCnt <= '1' when (CntColCtrlC = zero_cnt_col_ctrl_value) else '0';
-	ColCtrlCntInitValue <= to_unsigned(T_RTW_tat - 1, CNT_COL_CTRL_L) when (ReadBurstC = '1') else to_unsigned(T_WTR_tat - 1, CNT_COL_CTRL_L);
+	ColCtrlCntInitValue <= TRTW_tat when (ReadBurstC = '1') else TWTR_tat;
 	SetColCtrlCnt <= EndDataPhase;
 	ColCtrlCntEnN <=	EndDataPhase and (ChangeOp or not CtrlReq) when (StateC = COL_CTRL_DATA_PHASE) else	-- enable counter if diff op next or no outstanding request
 				ColCtrlCntEnC;
@@ -240,6 +256,17 @@ begin
 			ZeroColCtrlCnt and CtrlReqValid	when (StateC = CHANGE_BURST_OP) else
 			'1'				when (StateC = COL_CTRL_DATA_PHASE) else
 			'0';
+
+	MAX_BURST_CNT: for i in MaxBurst'range generate
+		max_burst_bit: process(BurstLength) begin
+			if (i = unsigned(BurstLength - 1)) then
+				MaxBurst(i) <= '1';
+			else
+				MaxBurst(i) <= '0';
+			end if;
+		end process max_burst_bit;
+	end generate MAX_BURST_CNT;
+
 
 	T_COL_COL_LARGER_1 : if T_COL_COL > 1 generate
 
@@ -260,18 +287,9 @@ begin
 				CntColToColC;
 		ZeroColToColCnt <= '1' when (CntColToColC = zero_cnt_col_to_col_value) else '0';
 		ZeroColToColCnt_comb <= '1' when (CntColToColN = zero_cnt_col_to_col_value) else '0';
-		ColToColCntInitValue <= to_unsigned(T_COL_COL - 1, CNT_COL_TO_COL_L);
+		ColToColCntInitValue <= (col_to_col_cnt_zero_padding & MaxBurst);
 		SetColToColCnt <= CmdReqC and CmdAck;	-- reset when beginning a new data phase
 		ColToColCntEn <= '1';	-- free running counter
-
-	end generate T_COL_COL_LARGER_1;
-
-
-	T_COL_COL_EQ_1 : if T_COL_COL = 1 generate
-
-		CmdReqN <= CmdReqValid; -- Send a Command Request if in COL_CTRL_DATA_PHASE state or moving into it
-
-	end generate T_COL_COL_EQ_1;
 
 	state_det: process(StateC, CtrlReq,  CtrlAckN, EndDataPhase, ChangeOp, BankActiveMuxed, ZeroColCtrlCnt)
 	begin

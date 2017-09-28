@@ -6,16 +6,16 @@ use ieee.numeric_std.all;
 library work;
 use work.functions_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_mrs_pkg.all;
+use work.ddr2_mrs_max_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 
 package ddr2_phy_col_ctrl_pkg is 
 
 	-- Turn around time
-	constant T_RTW_tat	: positive := 2 + (2**(to_integer(unsigned(BURST_LENGTH)) - 1));
-	constant T_WTR_tat	: positive := to_integer(unsigned(CAS)) - 1 + (2**(to_integer(unsigned(BURST_LENGTH)) - 1)) + T_WTR;
+	constant T_RTW_tat	: positive := 2 + (2**(to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1));
+	constant T_WTR_tat	: positive := to_integer(unsigned(CAS_MAX_VALUE)) - 1 + (2**(to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1)) + T_WTR;
 
-	constant T_COL_COL		: positive := 2**(to_integer(unsigned(BURST_LENGTH)) - 1);
+	constant T_COL_COL		: positive := 2**(to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1);
 	constant CNT_COL_TO_COL_L	: positive := int_to_bit_num(T_COL_COL);
 
 	constant CNT_COL_CTRL_L		: integer := int_to_bit_num(max_int(T_RTW_tat, T_WTR_tat));
@@ -55,9 +55,9 @@ package ddr2_phy_col_ctrl_pkg is
 		-- Controller
 		CtrlReq		: in std_logic;
 		ReadBurstIn	: in std_logic;
-		ColMemIn	: in std_logic_vector(COL_L - to_integer(unsigned(BURST_LENGTH)) - 1 downto 0);
+		ColMemIn	: in std_logic_vector(COL_L - to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1 downto 0);
 		BankMemIn	: in std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
-		BurstLength	: in std_logic_vector(BURST_LENGTH_L - 1 downto 0);
+		BurstLength	: in std_logic_vector(BURST_LENGTH_MAX_VALUE_L - 1 downto 0);
 
 		CtrlAck		: out std_logic
 

@@ -5,6 +5,7 @@ use ieee.numeric_std.all;
 library work;
 use work.functions_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
+use work.ddr2_mrs_max_pkg.all;
 use work.ddr2_phy_pkg.all;
 use work.ddr2_phy_bank_ctrl_pkg.all;
 
@@ -19,6 +20,11 @@ port (
 
 	rst		: in std_logic;
 	clk		: in std_logic;
+
+	-- MRS configuration
+	BurstLength	: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+	AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
+	WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
 
 	-- Arbitrer
 	CmdAck		: in std_logic;
@@ -56,6 +62,14 @@ architecture rtl of ddr2_phy_bank_ctrl is
 	constant decr_outstanding_bursts_value	: unsigned(int_to_bit_num(MAX_OUTSTANDING_BURSTS) - 1 downto 0) := to_unsigned(1, int_to_bit_num(MAX_OUTSTANDING_BURSTS));
 	constant incr_outstanding_bursts_value	: unsigned(int_to_bit_num(MAX_OUTSTANDING_BURSTS) - 1 downto 0) := to_unsigned(1, int_to_bit_num(MAX_OUTSTANDING_BURSTS));
 
+	constant al_zero_padding_bank_cnt	: std_logic_vector(CNT_BANK_CTRL_L - AL_MAX_VALUE - 1 downto 0) := (others => '0');
+
+	constant al_zero_padding_delay_cnt	: std_logic_vector(CNT_DELAY_L - AL_MAX_VALUE - 1 downto 0) := (others => '0');
+	constant bl_zero_padding		: std_logic_vector(CNT_DELAY_L - BURST_LENGTH_MAX_VALUE - 1 downto 0) := (others => '0');
+	constant wl_zero_padding		: std_logic_vector(CNT_DELAY_L - WRITE_LATENCY_MAX_VALUE - 1 downto 0) := (others => '0');
+
+	signal MaxBurst			: std_logic_vector(BURST_LENGTH_MAX_VALUE - 1 downto 0);
+
 	signal DecrOutstandingBurstsCnt	: std_logic;
 	signal IncrOutstandingBurstsCnt	: std_logic;
 
@@ -77,6 +91,9 @@ architecture rtl of ddr2_phy_bank_ctrl is
 	signal ExitDataPhase		: std_logic;
 
 	signal CtrlAckC, CtrlAckN	: std_logic;
+
+	signal TReadPre			: unsigned(CNT_DELAY_L - 1 downto 0);
+	signal TWritePre		: unsigned(CNT_DELAY_L - 1 downto 0);
 
 	signal CntBankCtrlC, CntBankCtrlN	: unsigned(CNT_BANK_CTRL_L - 1 downto 0);
 	signal BankCtrlCntEnC, BankCtrlCntEnN	: std_logic;
@@ -178,6 +195,8 @@ begin
 			'0' when ((StateC = BANK_CTRL_DATA_PHASE) and (ExitDataPhase = '1')) else
 			BankActiveC;
 
+	TActColCmd <= to_unsigned((T_RCD - 1), CNT_BANK_CTRL_L) - (al_zero_padding_bank_cnt & AdditiveLatency);
+
 	-- Reached flag
 	TActColReached <= '0' when (CntBankCtrlC < to_unsigned((T_ACT_COL - 1), CNT_BANK_CTRL_L)) else '1';
 	TRASReached <= '0' when (CntBankCtrlC < to_unsigned((T_RAS_min - 1), CNT_BANK_CTRL_L)) else '1';
@@ -207,8 +226,21 @@ begin
 
 	StartPrecharge <= '1' when ((TRASReached = '1') and ((StateC = ELAPSE_T_RAS) or ((StateC = PROCESS_COL_CMD) and (ZeroDelayCnt = '1')))) else '0';
 
-	DelayCntInitValue <=	to_unsigned(T_READ_PRE, CNT_DELAY_L)	when ((ExitDataPhase = '1') and (ReadBurst = '1')) else
-				to_unsigned(T_WRITE_PRE, CNT_DELAY_L)	when ((ExitDataPhase = '1') and (ReadBurst = '0')) else
+	MAX_BURST_CNT: for i in MaxBurst'range generate
+		max_burst_bit: process(BurstLength) begin
+			if (i < unsigned(BurstLength)) then
+				MaxBurst(i) <= '1';
+			else
+				MaxBurst(i) <= '0';
+			end if;
+		end process max_burst_bit;
+	end generate MAX_BURST_CNT;
+
+	TReadPre <= unsigned(al_zero_padding_delay_cnt & AdditiveLatency) + unsigned(bl_zero_padding & "0" & MaxBurst(BURST_LENGTH_MAX_VALUE - 1 downto 1)) + to_unsigned(max_int((T_RTP - 1), 1), CNT_DELAY_L);
+	TWritePre <= unsigned(wl_zero_padding & WriteLatency) + unsigned(bl_zero_padding & MaxBurst) + to_unsigned(T_WR, CNT_DELAY_L);
+
+	DelayCntInitValue <=	TReadPre			when ((ExitDataPhase = '1') and (ReadBurst = '1')) else
+				TWritePre			when ((ExitDataPhase = '1') and (ReadBurst = '0')) else
 				to_unsigned(T_RP, CNT_DELAY_L);
 
 	DelayCntEnN <= '1' when ((SetDelayCnt = '1') or (StateC = PROCESS_COL_CMD) or (StateC = ELAPSE_T_RP)) else '0';
