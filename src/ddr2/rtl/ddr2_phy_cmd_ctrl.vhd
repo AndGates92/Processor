@@ -23,6 +23,12 @@ port (
 	rst		: in std_logic;
 	clk		: in std_logic;
 
+	-- MRS configuration
+	CAS		: in std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
+	BurstLength	: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+	AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
+	WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
+
 	-- Column Controller
 	-- Arbitrer
 	ColCtrlCmdAck		: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
@@ -35,7 +41,7 @@ port (
 	-- Controller
 	ColCtrlCtrlReq		: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
 	ColCtrlReadBurstIn	: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
-	ColCtrlColMemIn		: in std_logic_vector(COL_CTRL_NUM*(COL_L - to_integer(unsigned(BURST_LENGTH))) - 1 downto 0);
+	ColCtrlColMemIn		: in std_logic_vector(COL_CTRL_NUM*COL_L - 1 downto 0);
 	ColCtrlBankMemIn	: in std_logic_vector(COL_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
 	ColCtrlBurstLength	: in std_logic_vector(COL_CTRL_NUM*BURST_LENGTH_L - 1 downto 0);
 
@@ -83,6 +89,10 @@ begin
 			clk => clk,
 			rst => rst,
 
+			-- MRS configuration
+			CAS => CAS,
+			BurstLength => BurstLength,
+
 			-- Bank Controller
 			BankActiveVec => BankActiveVec,
 			ZeroOutstandingBurstsVec => BankCtrlZeroOutstandingBurstsVec,
@@ -122,6 +132,11 @@ begin
 		port map (
 			clk => clk,
 			rst => rst,
+
+			-- MRS configuration
+			BurstLength => BurstLength,
+			AdditiveLatency => AdditiveLatency,
+			WriteLatency => WriteeLatency,
 
 			-- Arbitrer
 			CmdAck => BankCtrlCmdAck(i),

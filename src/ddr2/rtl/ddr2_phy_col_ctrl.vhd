@@ -42,7 +42,7 @@ port (
 	-- Transaction Controller
 	CtrlReq		: in std_logic;
 	ReadBurstIn	: in std_logic;
-	ColMemIn	: in std_logic_vector(COL_L - to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1 downto 0);
+	ColMemIn	: in std_logic_vector(COL_L - 1 downto 0);
 	BankMemIn	: in std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	BurstLength	: in std_logic_vector(BURST_LENGTH_L - 1 downto 0);
 
@@ -64,16 +64,16 @@ architecture rtl of ddr2_phy_col_ctrl is
 	constant one_cnt_col_ctrl_value		: unsigned(CNT_COL_CTRL_L - 1 downto 0) := to_unsigned(1, CNT_COL_CTRL_L);
 	constant zero_burst_length_value	: unsigned(BURST_LENGTH_L - 1 downto 0) := to_unsigned(0, BURST_LENGTH_L);
 	constant decr_burst_length_value	: unsigned(BURST_LENGTH_L - 1 downto 0) := to_unsigned(1, BURST_LENGTH_L);
-	constant incr_col_value			: unsigned(COL_L - to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1 downto 0) := to_unsigned(1, COL_L - to_integer(unsigned(BURST_LENGTH_MAX_VALUE)));
-	constant zero_col_lsb			: unsigned(to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1 downto 0) := to_unsigned(0, to_integer(unsigned(BURST_LENGTH_MAX_VALUE)));
 
-	signal MaxBurst				: std_logic_vector(BURST_LENGTH_MAX_VALUE - 1 downto 0);
+	constant col_incr_zero_padding		: unsigned(COL_L - (BURST_LENGTH_MAX_VALUE + 1) - 1 downto 0) := to_unsigned(0, BURST_LENGTH_L);
+
+	signal MaxBurst				: std_logic_vector(BURST_LENGTH_MAX_VALUE downto 0);
 
 	signal TRTW_tat				: std_logic_vector(CNT_COL_CTRL_L - 1 downto 0);
 	signal TWTR_tat				: std_logic_vector(CNT_COL_CTRL_L - 1 downto 0);
 
 	signal CtrlAckN, CtrlAckC		: std_logic;
-	signal ColMemN, ColMemC			: unsigned(COL_L - to_integer(unsigned(BURST_LENGTH_MAX_VALUE)) - 1 downto 0);
+	signal ColMemN, ColMemC			: unsigned(COL_L - 1 downto 0);
 
 	signal ReadBurstN, ReadBurstC		: std_logic;
 	signal ReadBurstVec_comb		: std_logic_vector(BANK_NUM - 1 downto 0);
@@ -163,7 +163,7 @@ begin
 		end if;
 	end process reg;
 
-	ColMemOut <= std_logic_vector(ColMemC & zero_col_lsb);
+	ColMemOut <= std_logic_vector(ColMemC);
 	ReadBurstVec <= ReadBurstVec_comb;
 	BankMemOut <= BankMemC;
 	CmdOut <= Cmd_comb;
@@ -180,8 +180,8 @@ begin
 
 	BankMemN <= BankMemIn when (CtrlAckN = '1') else BankMemC;
 
-	ColMemN <=	unsigned(ColMemIn)		when (CtrlAckN = '1') else
-			(ColMemC + incr_col_value) 	when ((CmdReqC = '1') and (CmdAck = '1')) else
+	ColMemN <=	unsigned(ColMemIn)				when (CtrlAckN = '1') else
+			(ColMemC + (col_incr_zero_padding & MaxBurst)) 	when ((CmdReqC = '1') and (CmdAck = '1')) else
 			ColMemC;
 
 	BurstLengthN <=	unsigned(BurstLength) 				when (CtrlAckN = '1') else
