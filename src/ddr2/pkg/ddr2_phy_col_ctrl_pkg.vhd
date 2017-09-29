@@ -37,6 +37,10 @@ package ddr2_phy_col_ctrl_pkg is
 		rst		: in std_logic;
 		clk		: in std_logic;
 
+		-- MRS configuration
+		CAS		: in std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
+		BurstLength	: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+
 		-- Bank Controller
 		BankActiveVec			: in std_logic_vector(BANK_NUM - 1 downto 0);
 		ZeroOutstandingBurstsVec	: in std_logic_vector(BANK_NUM - 1 downto 0);

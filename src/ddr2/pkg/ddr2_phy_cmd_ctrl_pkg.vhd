@@ -24,6 +24,12 @@ package ddr2_phy_cmd_ctrl_pkg is
 		rst		: in std_logic;
 		clk		: in std_logic;
 
+		-- MRS configuration
+		CAS		: in std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
+		BurstLength	: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+		AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
+		WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
+
 		-- Column Controller
 		-- Arbitrer
 		ColCtrlCmdAck		: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
