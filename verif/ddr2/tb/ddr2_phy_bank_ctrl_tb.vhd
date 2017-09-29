@@ -32,6 +32,11 @@ architecture bench of ddr2_phy_bank_ctrl_tb is
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
 
+	-- MRS configuration
+	signal BurstLength_tb		: std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+	signal AdditiveLatency_tb	: std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
+	signal WriteLatency_tb		: std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
+
 	-- User Interface
 	signal RowMemIn_tb	: std_logic_vector(ROW_L_TB - 1 downto 0);
 	signal CtrlReq_tb	: std_logic;
@@ -66,6 +71,10 @@ begin
 		clk => clk_tb,
 		rst => rst_tb,
 
+		BurstLength => BurstLength_tb,
+		AdditiveLatency => AdditiveLatency_tb,
+		WriteLatency => WriteLatency_tb,
+
 		RowMemIn => RowMemIn_tb,
 
 		CmdAck => CmdAck_tb,
@@ -99,10 +108,13 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure setup_extra_tests(variable num_bursts : out int_arr(0 to (NUM_EXTRA_TEST-1)); variable rows: out int_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS_TB) - 1)); variable read_burst: out bool_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS_TB) - 1)); variable bl, cmd_delay: out int_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS_TB) - 1)); variable seed1, seed2: inout positive) is
+		procedure setup_extra_tests(variable num_bursts, burst_bits, al, wl : out int_arr(0 to (NUM_EXTRA_TEST-1)); variable rows: out int_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS_TB) - 1)); variable read_burst: out bool_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS_TB) - 1)); variable bl, cmd_delay: out int_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS_TB) - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val		: real;
 			variable scaled_rand_val	: integer;
+			variable burst_bits_int		: integer;
+			variable bl4_int		: boolean;
 		begin
+			bl4_int := false;
 			for i in 0 to NUM_EXTRA_TEST-1 loop
 				scaled_rand_val := 0;
 				while (scaled_rand_val = 0) loop
@@ -110,6 +122,23 @@ begin
 					scaled_rand_val := integer(rand_val*real(MAX_OUTSTANDING_BURSTS_TB));
 				end loop;
 				num_bursts(i) := scaled_rand_val;
+
+				if ((j mod 2) = 0) then
+					bl4_int := not bl4_int;
+				end if;
+
+				if (bl4_int = true) then
+					burst_bits_int := 2;
+				else
+					burst_bits_int := 3;
+				end if;
+				burst_bits := burst_bits_int;
+
+				uniform(seed1, seed2, rand_val);
+				al(i) := integer(rand_val*real(AL_MAX_VALUE));
+
+				uniform(seed1, seed2, rand_val);
+				wl(i) := integer(rand_val*real(WRITE_LATENCY_MAX_VALUE));
 
 				uniform(seed1, seed2, rand_val);
 				rows((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB) - 1)) := reset_int_arr(integer(rand_val*(2.0**(real(ROW_L_TB)) - 1.0)), MAX_OUTSTANDING_BURSTS_TB);
@@ -138,8 +167,10 @@ begin
 
 		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
+			variable bl4_int	: boolean;
 			variable num_bursts_int	: integer;
 			variable bl_int		: integer;
+			variable burst_bits_int	: integer;
 		begin
 			num_bursts_int := 0;
 			while (num_bursts_int = 0) loop
@@ -147,6 +178,23 @@ begin
 				num_bursts_int := integer(rand_val*real(MAX_OUTSTANDING_BURSTS_TB));
 			end loop;
 			num_bursts := num_bursts_int;
+
+			uniform(seed1, seed2, rand_val);
+			bl4_int := rand_bool(rand_val, 0.5);
+			bl4 := bl4_int;
+
+			if (bl4_int = true) then
+				burst_bits_int := 2;
+			else
+				burst_bits_int := 3;
+			end if;
+			burst_bits := burst_bits_int;
+
+			uniform(seed1, seed2, rand_val);
+			al(i) := integer(rand_val*real(AL_MAX_VALUE));
+
+			uniform(seed1, seed2, rand_val);
+			wl(i) := integer(rand_val*real(WRITE_LATENCY_MAX_VALUE));
 
 			for i in 0 to (num_bursts_int - 1) loop
 				uniform(seed1, seed2, rand_val);
@@ -170,7 +218,7 @@ begin
 			end loop;
 		end procedure test_param;
 
-		procedure run_bank_ctrl (variable num_bursts_exp: in integer; variable cmd_delay_arr, rows_arr_exp, bl_arr : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_arr : in bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable num_bursts_rtl : out integer; variable err_arr, rows_arr_rtl, bank_arr_rtl : out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1))) is
+		procedure run_bank_ctrl (variable num_bursts_exp, burst_bits, al, wl: in integer; variable cmd_delay_arr, rows_arr_exp, bl_arr : in int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_arr : in bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable num_bursts_rtl : out integer; variable err_arr, rows_arr_rtl, bank_arr_rtl : out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1))) is
 			variable row_cmd_cnt		: integer;
 			variable row_ctrl_cnt		: integer;
 			variable data_phase_cnt		: integer;
@@ -200,6 +248,10 @@ begin
 			RowMemIn_tb <= std_logic_vector(to_unsigned(rows_arr_exp(num_bursts_rtl_int), ROW_L_TB));
 			cmd_delay := cmd_delay_arr(num_bursts_rtl_int);
 			ctrl_delay := cmd_delay_arr(num_cmd_rtl_int);
+
+			BurstLength_tb <= std_logic_vector(to_unsigned(burst_bits, BURST_LENGTH_MAX_VALUE));
+			AdditiveLatency_tb <= std_logic_vector(to_unsigned(al, AL_MAX_VALUE));
+			WriteLatency_tb <= std_logic_vector(to_unsigned(wl, WRITE_LATENCY_MAX_VALUE));
 
 			act_loop: loop
 
@@ -371,6 +423,10 @@ begin
 		variable num_bursts_exp	: integer;
 		variable rows_arr_exp	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
 
+		variable burst_bits	: integer;
+		variable al		: integer;
+		variable wl		: integer;
+
 		variable num_bursts_rtl	: integer;
 		variable rows_arr_rtl	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
 		variable bank_arr_rtl	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
@@ -383,6 +439,10 @@ begin
 
 		variable num_bursts_exp_extra	: int_arr(0 to (NUM_EXTRA_TEST - 1));
 		variable rows_arr_exp_extra	: int_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS_TB) - 1));
+
+		variable burst_bits_extra	: int_arr(0 to (NUM_EXTRA_TEST - 1));
+		variable al_extra		: int_arr(0 to (NUM_EXTRA_TEST - 1));
+		variable wl_extra		: int_arr(0 to (NUM_EXTRA_TEST - 1));
 
 		variable num_bursts_rtl_extra	: integer;
 		variable rows_arr_rtl_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
@@ -415,9 +475,9 @@ begin
 
 		for i in 0 to NUM_TEST-1 loop
 
-			test_param(num_bursts_exp, rows_arr_exp, read_arr, bl_arr, cmd_delay_arr, seed1, seed2);
+			test_param(num_bursts_exp, burst_bits, al, wl, rows_arr_exp, read_arr, bl_arr, cmd_delay_arr, seed1, seed2);
 
-			run_bank_ctrl(num_bursts_exp, cmd_delay_arr, rows_arr_exp, bl_arr, read_arr, num_bursts_rtl, err_arr, rows_arr_rtl, bank_arr_rtl);
+			run_bank_ctrl(num_bursts_exp, burst_bits, al, wl, cmd_delay_arr, rows_arr_exp, bl_arr, read_arr, num_bursts_rtl, err_arr, rows_arr_rtl, bank_arr_rtl);
 
 			verify(num_bursts_exp, num_bursts_rtl, err_arr, rows_arr_exp, rows_arr_rtl, bank_arr_rtl, file_pointer, pass);
 
@@ -428,11 +488,11 @@ begin
 
 		if (NUM_EXTRA_TEST > 0) then
 
-			setup_extra_tests(num_bursts_exp_extra, rows_arr_exp_extra, read_arr_extra, bl_arr_extra, cmd_delay_arr_extra, seed1, seed2);
+			setup_extra_tests(num_bursts_exp_extra, burst_bits_extra, al_extra, wl_extra, rows_arr_exp_extra, read_arr_extra, bl_arr_extra, cmd_delay_arr_extra, seed1, seed2);
 
 			for i in 0 to NUM_EXTRA_TEST-1 loop
 
-				run_bank_ctrl(num_bursts_exp_extra(i), cmd_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), rows_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), bl_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), read_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), num_bursts_rtl_extra, err_arr_extra, rows_arr_rtl_extra, bank_arr_rtl_extra);
+				run_bank_ctrl(num_bursts_exp_extra(i), burst_bits_extra(i), al_extra(i), wl_extra(i), cmd_delay_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), rows_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), bl_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), read_arr_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), num_bursts_rtl_extra, err_arr_extra, rows_arr_rtl_extra, bank_arr_rtl_extra);
 
 				verify(num_bursts_exp_extra(i), num_bursts_rtl_extra, err_arr_extra, rows_arr_exp_extra((i*MAX_OUTSTANDING_BURSTS_TB) to (((i+1)*MAX_OUTSTANDING_BURSTS_TB)-1)), rows_arr_rtl_extra, bank_arr_rtl_extra, file_pointer, pass);
 
