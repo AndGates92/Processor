@@ -5,7 +5,6 @@ use ieee.numeric_std.all;
 library work;
 use work.functions_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_mrs_pkg.all;
 use work.ddr2_phy_cmd_dec_pkg.all;
 
 entity ddr2_phy_cmd_dec is

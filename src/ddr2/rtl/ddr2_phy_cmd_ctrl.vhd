@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 library work;
 use work.functions_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_mrs_pkg.all;
+use work.ddr2_mrs_max_pkg.all;
 use work.ddr2_phy_col_ctrl_pkg.all;
 use work.ddr2_phy_bank_ctrl_pkg.all;
 
@@ -24,10 +24,10 @@ port (
 	clk		: in std_logic;
 
 	-- MRS configuration
-	CAS		: in std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
-	BurstLength	: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
-	AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
-	WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
+	DDR2CAS			: in std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
+	DDR2BurstLength		: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+	DDR2AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
+	DDR2WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
 
 	-- Column Controller
 	-- Arbitrer
@@ -90,8 +90,8 @@ begin
 			rst => rst,
 
 			-- MRS configuration
-			CAS => CAS,
-			BurstLength => BurstLength,
+			DDR2CAS => DDR2CAS,
+			DDR2BurstLength => DDR2BurstLength,
 
 			-- Bank Controller
 			BankActiveVec => BankActiveVec,
@@ -110,7 +110,7 @@ begin
 
 			-- Transaction Controller
 			CtrlReq => ColCtrlCtrlReq(i),
-			ColMemIn => ColCtrlColMemIn(((i+1)*(COL_L - to_integer(unsigned(BURST_LENGTH))) - 1) downto i*(COL_L - to_integer(unsigned(BURST_LENGTH)))),
+			ColMemIn => ColCtrlColMemIn(((i+1)*COL_L - 1) downto i*COL_L),
 			BankMemIn => ColCtrlBankMemIn(((i+1)*(int_to_bit_num(BANK_NUM)) - 1) downto i*(int_to_bit_num(BANK_NUM))),
 			ReadBurstIn => ColCtrlReadBurstIn(i),
 			BurstLength => ColCtrlBurstLength(((i+1)*BURST_LENGTH_L - 1) downto i*BURST_LENGTH_L),
@@ -134,9 +134,9 @@ begin
 			rst => rst,
 
 			-- MRS configuration
-			BurstLength => BurstLength,
-			AdditiveLatency => AdditiveLatency,
-			WriteLatency => WriteeLatency,
+			DDR2BurstLength => DDR2BurstLength,
+			DDR2AdditiveLatency => DDR2AdditiveLatency,
+			DDR2WriteLatency => DDR2WriteLatency,
 
 			-- Arbitrer
 			CmdAck => BankCtrlCmdAck(i),

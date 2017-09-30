@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 library work;
 use work.functions_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_mrs_pkg.all;
+use work.ddr2_mrs_max_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 use work.ddr2_phy_ref_ctrl_pkg.all;
 
@@ -17,6 +17,9 @@ port (
 
 	rst			: in std_logic;
 	clk			: in std_logic;
+
+	-- High Temperature Refresh
+	HighTemperatureRefresh	: in std_logic;
 
 	-- Transaction Controller
 	RefreshReq		: out std_logic;
@@ -67,6 +70,9 @@ architecture rtl of ddr2_phy_ref_ctrl is
 	signal ZeroOutstandingRefCnt				: std_logic;
 	signal IncrDecrOutstandingRefCntVec			: std_logic_vector(1 downto 0);
 
+	-- Auto Refresh Time
+	signal AutoRefreshTime			: std_logic_vector(AUTO_REF_CNT_L - 1 downto 0);
+
 	signal CntAutoRefN, CntAutoRefC		: unsigned(AUTO_REF_CNT_L - 1 downto 0);
 	signal AutoRefCntEnN, AutoRefCntEnC	: std_logic;
 	signal CntAutoRefInitValue		: unsigned(AUTO_REF_CNT_L - 1 downto 0);
@@ -108,7 +114,7 @@ begin
 
 			StateC <= REF_CTRL_IDLE;
 
-			CntAutoRefC <= to_unsigned(AUTO_REF_TIME - 1, AUTO_REF_CNT_L);
+			CntAutoRefC <= (others => '0');
 			AutoRefCntEnC <= '0';
 
 			CntOutstandingRefC <= (others => '0');
@@ -190,11 +196,13 @@ begin
 	IncrOutstandingRefCnt <= ZeroAutoRefCnt;
 	ZeroOutstandingRefCnt <= '1' when (CntOutstandingRefC = zero_outstanding_ref_cnt_value) else '0';
 
+	AutoRefreshTime <= std_logic_vector(to_unsigned(T_REFI_lowT, AUTO_REF_CNT_L)) when (HighTemperatureRefresh = '0') else std_logic_vector(to_unsigned(T_REFI_highT, AUTO_REF_CNT_L));
+
 	-- Free running counter
-	CntAutoRefN <=	CntAutoRefInitValue	when (SetAutoRefCnt = '1') else
-			CntAutoRefC - decr_auto_ref_cnt_value		when (AutoRefCntEnC = '1') else
+	CntAutoRefN <=	CntAutoRefInitValue			when (SetAutoRefCnt = '1') else
+			CntAutoRefC - decr_auto_ref_cnt_value	when (AutoRefCntEnC = '1') else
 			CntAutoRefC;
-	CntAutoRefInitValue <= to_unsigned(AUTO_REF_TIME - 1, AUTO_REF_CNT_L);
+	CntAutoRefInitValue <= unsigned(AutoRefreshTime) - decr_auto_ref_cnt_value;
 	ZeroAutoRefCnt <= '1' when (CntAutoRefC = zero_auto_ref_cnt_value) else '0';
 	SetAutoRefCnt <= ZeroAutoRefCnt;
 	AutoRefCntEnN <= PhyInitCompleted and not SelfRefresh; -- Disable during power up and when memory is in self refresh
@@ -204,8 +212,8 @@ begin
 			CntEnableOpC;
 
 	-- Enable operations after refresh
-	CntEnableOpMaxValueN <= 	to_unsigned(AUTO_REFRESH_EXIT_MAX_TIME, ENABLE_OP_CNT_L)	when (StateC = AUTO_REF_REQUEST) else
-					to_unsigned(SELF_REFRESH_EXIT_MAX_TIME, ENABLE_OP_CNT_L)	when (StateC = SELF_REF_EXIT_REQUEST) else
+	CntEnableOpMaxValueN <= 	to_unsigned(AUTO_REFRESH_EXIT_TIME, ENABLE_OP_CNT_L)	when (StateC = AUTO_REF_REQUEST) else
+					to_unsigned(SELF_REFRESH_EXIT_TIME, ENABLE_OP_CNT_L)	when (StateC = SELF_REF_EXIT_REQUEST) else
 					CntEnableOpMaxValueC;
 
 	ResetEnableOpCnt <= CmdAck when ((StateC = AUTO_REF_REQUEST) or (StateC = SELF_REF_EXIT_REQUEST)) else '0';
