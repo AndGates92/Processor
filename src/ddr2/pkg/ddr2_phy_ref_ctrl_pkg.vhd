@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 library work;
 use work.functions_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_mrs_pkg.all;
+use work.ddr2_mrs_max_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 use work.type_conversion_pkg.all;
 
@@ -24,18 +24,15 @@ package ddr2_phy_ref_ctrl_pkg is
 	constant ENABLE_OP			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_REF_CTRL_L));
 	constant ODT_ENABLE			: std_logic_vector(STATE_REF_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(8, STATE_REF_CTRL_L));
 
-	constant AUTO_REFRESH_EXIT_MAX_TIME	: integer := T_RFC;
-	constant SELF_REFRESH_EXIT_MAX_TIME	: integer := max_int(T_XSRD, T_XSNR);
-	constant ENABLE_OP_CNT_L		: integer := int_to_bit_num(max_int(SELF_REFRESH_EXIT_MAX_TIME, AUTO_REFRESH_EXIT_MAX_TIME));
-
-	constant AUTO_REF_CNT_L		: integer;
-	constant AUTO_REF_TIME		: integer;
+	constant AUTO_REFRESH_EXIT_TIME	: integer := T_RFC;
+	constant SELF_REFRESH_EXIT_TIME	: integer := max_int(T_XSRD, T_XSNR);
+	constant ENABLE_OP_CNT_L	: integer := int_to_bit_num(max_int(SELF_REFRESH_EXIT_TIME, AUTO_REFRESH_EXIT_TIME));
 
 	constant MAX_OUTSTANDING_REF	: positive := 8;
 
 	constant OUTSTANDING_REF_CNT_L	: positive := int_to_bit_num(MAX_OUTSTANDING_REF);
 
-	function sel_param (param_sel_true, param_sel_false : integer; sel : boolean) return integer;
+	constant AUTO_REF_CNT_L		: integer := int_to_bit_num(max_int(T_REFI_lowT, T_REFI_highT));
 
 	component ddr2_phy_ref_ctrl is
 	generic (
@@ -45,6 +42,9 @@ package ddr2_phy_ref_ctrl_pkg is
 
 		rst			: in std_logic;
 		clk			: in std_logic;
+
+		-- High Temperature Refresh
+		HighTemperatureRefresh	: in std_logic;
 
 		-- Transaction Controller
 		RefreshReq		: out std_logic;
@@ -79,23 +79,3 @@ package ddr2_phy_ref_ctrl_pkg is
 
 
 end package ddr2_phy_ref_ctrl_pkg;
-
-package body ddr2_phy_ref_ctrl_pkg is
-
-	function sel_param (param_sel_true, param_sel_false : integer; sel : boolean) return integer is
-		variable param_out	: integer;
-	begin
-		if ( sel = true ) then
-			param_out := param_sel_true;
-		else
-			param_out := param_sel_false;
-		end if;
-
-		return param_out;
-
-	end function sel_param;
-
-	constant AUTO_REF_CNT_L	: integer := int_to_bit_num(sel_param(T_REFI_highT, T_REFI_lowT, std_logic_to_bool(HITEMP_REF)));
-	constant AUTO_REF_TIME	: integer := sel_param(T_REFI_highT, T_REFI_lowT, std_logic_to_bool(HITEMP_REF));
-
-end package body ddr2_phy_ref_ctrl_pkg;

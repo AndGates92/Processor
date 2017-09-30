@@ -28,5 +28,4 @@ package ddr2_mrs_max_pkg is
 	constant READ_LATENCY_MAX_VALUE		: positive := CAS_MAX_VALUE + AL_MAX_VALUE;
 	constant WRITE_LATENCY_MAX_VALUE	: positive := READ_LATENCY_MAX_VALUE - 1;
 
-
 end package ddr2_mrs_max_pkg;

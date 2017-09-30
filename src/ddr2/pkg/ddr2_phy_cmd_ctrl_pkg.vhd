@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 library work;
 use work.functions_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_mrs_pkg.all;
+use work.ddr2_mrs_max_pkg.all;
 
 package ddr2_phy_cmd_ctrl_pkg is 
 
@@ -25,10 +25,10 @@ package ddr2_phy_cmd_ctrl_pkg is
 		clk		: in std_logic;
 
 		-- MRS configuration
-		CAS		: in std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
-		BurstLength	: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
-		AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
-		WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
+		DDR2CAS			: in std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
+		DDR2BurstLength		: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+		DDR2AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
+		DDR2WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
 
 		-- Column Controller
 		-- Arbitrer
@@ -42,7 +42,7 @@ package ddr2_phy_cmd_ctrl_pkg is
 		-- Controller
 		ColCtrlCtrlReq		: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
 		ColCtrlReadBurstIn	: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
-		ColCtrlColMemIn		: in std_logic_vector(COL_CTRL_NUM*(COL_L - to_integer(unsigned(BURST_LENGTH))) - 1 downto 0);
+		ColCtrlColMemIn		: in std_logic_vector(COL_CTRL_NUM*COL_L - 1 downto 0);
 		ColCtrlBankMemIn	: in std_logic_vector(COL_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
 		ColCtrlBurstLength	: in std_logic_vector(COL_CTRL_NUM*BURST_LENGTH_L - 1 downto 0);
 

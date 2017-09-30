@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.functions_pkg.all;
-use work.ddr2_mrs_pkg.all;
+use work.ddr2_mrs_max_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 
 package ddr2_phy_data_ctrl_pkg is 
