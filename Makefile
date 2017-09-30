@@ -183,6 +183,8 @@ cpu_verif_libraries:
 	${GHDL} -a ${GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/decode_pkg_tb.vhd
 
 ddr2_verif_libraries:
+	@echo "Analysing ${DDR2_VERIF_PKG_DIR}/ddr2_log_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_PKG_DIR}/ddr2_log_pkg.vhd
 	@echo "Analysing ${DDR2_VERIF_PKG_DIR}/ddr2_pkg_tb.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_PKG_DIR}/ddr2_pkg_tb.vhd
 
@@ -533,7 +535,7 @@ fifo_2clk_all:
 	make fifo_2clk
 	make simulate_fifo_2clk
 
-ddr2_phy_init: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/ddr2_phy_init_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+ddr2_phy_init: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_init_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_init.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_init.vhd
 	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_init_tb.vhd"
@@ -543,7 +545,7 @@ ddr2_phy_init: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/
 	rm -r e~ddr2_phy_init_tb.o
 	mv ddr2_phy_init_tb ${WORK_DIR}
 
-simulate_ddr2_phy_init: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/proc_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_phy_init_pkg.o ${WORK_DIR}/ddr2_phy_init.o  ${WORK_DIR}/ddr2_phy_init_tb.o
+simulate_ddr2_phy_init: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_phy_init_pkg.o ${WORK_DIR}/ddr2_phy_init.o  ${WORK_DIR}/ddr2_phy_init_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_init_tb ${GHDL_RUN_ARGS}ddr2_phy_init.vcd
 
 ddr2_phy_init_all:
@@ -553,7 +555,7 @@ ddr2_phy_init_all:
 	make ddr2_phy_init
 	make simulate_ddr2_phy_init
 
-ddr2_phy_bank_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+ddr2_phy_bank_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_bank_ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_bank_ctrl.vhd
@@ -564,7 +566,7 @@ ddr2_phy_bank_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_
 	rm -r e~ddr2_phy_bank_ctrl_tb.o
 	mv ddr2_phy_bank_ctrl_tb ${WORK_DIR}
 
-simulate_ddr2_phy_bank_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl.o  ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl_tb.o
+simulate_ddr2_phy_bank_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl.o  ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_bank_ctrl_tb ${GHDL_RUN_ARGS}ddr2_phy_bank_ctrl.vcd
 
 ddr2_phy_bank_ctrl_all:
@@ -574,7 +576,7 @@ ddr2_phy_bank_ctrl_all:
 	make ddr2_phy_bank_ctrl
 	make simulate_ddr2_phy_bank_ctrl
 
-ddr2_phy_col_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_col_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+ddr2_phy_col_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_col_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_col_ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_col_ctrl.vhd
@@ -585,7 +587,7 @@ ddr2_phy_col_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_D
 	rm -r e~ddr2_phy_col_ctrl_tb.o
 	mv ddr2_phy_col_ctrl_tb ${WORK_DIR}
 
-simulate_ddr2_phy_col_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_col_ctrl.o  ${WORK_DIR}/ddr2_phy_col_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_col_ctrl_tb.o
+simulate_ddr2_phy_col_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_col_ctrl.o  ${WORK_DIR}/ddr2_phy_col_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_col_ctrl_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_col_ctrl_tb ${GHDL_RUN_ARGS}ddr2_phy_col_ctrl.vcd
 
 ddr2_phy_col_ctrl_all:
@@ -595,7 +597,7 @@ ddr2_phy_col_ctrl_all:
 	make ddr2_phy_col_ctrl
 	make simulate_ddr2_phy_col_ctrl
 
-ddr2_phy_ref_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_ref_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+ddr2_phy_ref_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_ref_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_ref_ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_ref_ctrl.vhd
@@ -606,7 +608,7 @@ ddr2_phy_ref_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_D
 	rm -r e~ddr2_phy_ref_ctrl_tb.o
 	mv ddr2_phy_ref_ctrl_tb ${WORK_DIR}
 
-simulate_ddr2_phy_ref_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_ref_ctrl.o  ${WORK_DIR}/ddr2_phy_ref_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_ref_ctrl_tb.o
+simulate_ddr2_phy_ref_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_ref_ctrl.o  ${WORK_DIR}/ddr2_phy_ref_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_ref_ctrl_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_ref_ctrl_tb ${GHDL_RUN_ARGS}ddr2_phy_ref_ctrl.vcd
 
 ddr2_phy_ref_ctrl_all:
@@ -616,7 +618,7 @@ ddr2_phy_ref_ctrl_all:
 	make ddr2_phy_ref_ctrl
 	make simulate_ddr2_phy_ref_ctrl
 
-ddr2_phy_cmd_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_col_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_cmd_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+ddr2_phy_cmd_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_col_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_cmd_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_bank_ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_bank_ctrl.vhd
@@ -631,7 +633,7 @@ ddr2_phy_cmd_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_D
 	rm -r e~ddr2_phy_cmd_ctrl_tb.o
 	mv ddr2_phy_cmd_ctrl_tb ${WORK_DIR}
 
-simulate_ddr2_phy_cmd_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl.o ${WORK_DIR}/ddr2_phy_col_ctrl.o ${WORK_DIR}/ddr2_phy_cmd_ctrl.o ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_col_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_cmd_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_cmd_ctrl_tb.o
+simulate_ddr2_phy_cmd_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_bank_ctrl.o ${WORK_DIR}/ddr2_phy_col_ctrl.o ${WORK_DIR}/ddr2_phy_cmd_ctrl.o ${WORK_DIR}/ddr2_phy_bank_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_col_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_cmd_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_cmd_ctrl_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_cmd_ctrl_tb ${GHDL_RUN_ARGS}ddr2_phy_cmd_ctrl.vcd
 
 ddr2_phy_cmd_ctrl_all:
@@ -641,7 +643,7 @@ ddr2_phy_cmd_ctrl_all:
 	make ddr2_phy_cmd_ctrl
 	make simulate_ddr2_phy_cmd_ctrl
 
-ddr2_phy_cmd_dec: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_cmd_dec_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+ddr2_phy_cmd_dec: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_cmd_dec_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_cmd_dec.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_cmd_dec.vhd
@@ -652,7 +654,7 @@ ddr2_phy_cmd_dec: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DI
 	rm -r e~ddr2_phy_cmd_dec_tb.o
 	mv ddr2_phy_cmd_dec_tb ${WORK_DIR}
 
-simulate_ddr2_phy_cmd_dec: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_cmd_dec.o ${WORK_DIR}/ddr2_phy_cmd_dec_pkg.o ${WORK_DIR}/ddr2_phy_cmd_dec_tb.o
+simulate_ddr2_phy_cmd_dec: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_cmd_dec.o ${WORK_DIR}/ddr2_phy_cmd_dec_pkg.o ${WORK_DIR}/ddr2_phy_cmd_dec_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_cmd_dec_tb ${GHDL_RUN_ARGS}ddr2_phy_cmd_dec.vcd
 
 ddr2_phy_cmd_dec_all:
@@ -662,7 +664,7 @@ ddr2_phy_cmd_dec_all:
 	make ddr2_phy_cmd_dec
 	make simulate_ddr2_phy_cmd_dec
 
-ddr2_phy_arbiter: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_arbiter_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o
+ddr2_phy_arbiter: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_arbiter_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_arbiter.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_arbiter.vhd
@@ -673,7 +675,7 @@ ddr2_phy_arbiter: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DI
 	rm -r e~ddr2_phy_arbiter_tb.o
 	mv ddr2_phy_arbiter_tb ${WORK_DIR}
 
-simulate_ddr2_phy_arbiter: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_phy_arbiter.o ${WORK_DIR}/ddr2_phy_arbiter_pkg.o ${WORK_DIR}/ddr2_phy_arbiter_tb.o
+simulate_ddr2_phy_arbiter: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_phy_arbiter.o ${WORK_DIR}/ddr2_phy_arbiter_pkg.o ${WORK_DIR}/ddr2_phy_arbiter_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_arbiter_tb ${GHDL_RUN_ARGS}ddr2_phy_arbiter.vcd
 
 ddr2_phy_arbiter_all:
@@ -683,7 +685,7 @@ ddr2_phy_arbiter_all:
 	make ddr2_phy_arbiter
 	make simulate_ddr2_phy_arbiter
 
-ddr2_phy_odt_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_odt_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+ddr2_phy_odt_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_odt_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_odt_ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_odt_ctrl.vhd
@@ -694,7 +696,7 @@ ddr2_phy_odt_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_D
 	rm -r e~ddr2_phy_odt_ctrl_tb.o
 	mv ddr2_phy_odt_ctrl_tb ${WORK_DIR}
 
-simulate_ddr2_phy_odt_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_odt_ctrl.o  ${WORK_DIR}/ddr2_phy_odt_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_odt_ctrl_tb.o
+simulate_ddr2_phy_odt_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_odt_ctrl.o  ${WORK_DIR}/ddr2_phy_odt_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_odt_ctrl_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_odt_ctrl_tb ${GHDL_RUN_ARGS}ddr2_phy_odt_ctrl.vcd
 
 ddr2_phy_odt_ctrl_all:
@@ -704,7 +706,7 @@ ddr2_phy_odt_ctrl_all:
 	make ddr2_phy_odt_ctrl
 	make simulate_ddr2_phy_odt_ctrl
 
-ddr2_phy_mrs_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_mrs_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+ddr2_phy_mrs_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_mrs_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_mrs_ctrl.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_mrs_ctrl.vhd
@@ -715,7 +717,7 @@ ddr2_phy_mrs_ctrl: ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_D
 	rm -r e~ddr2_phy_mrs_ctrl_tb.o
 	mv ddr2_phy_mrs_ctrl_tb ${WORK_DIR}
 
-simulate_ddr2_phy_mrs_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_tb_pkg.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_mrs_ctrl.o  ${WORK_DIR}/ddr2_phy_mrs_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_mrs_ctrl_tb.o
+simulate_ddr2_phy_mrs_ctrl: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_mrs_ctrl.o  ${WORK_DIR}/ddr2_phy_mrs_ctrl_pkg.o ${WORK_DIR}/ddr2_phy_mrs_ctrl_tb.o
 	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_mrs_ctrl_tb ${GHDL_RUN_ARGS}ddr2_phy_mrs_ctrl.vcd
 
 ddr2_phy_mrs_ctrl_all:
