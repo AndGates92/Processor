@@ -7,14 +7,17 @@ use std.textio.all;
 
 library work;
 use work.ddr2_define_pkg.all;
+use work.functions_pkg.all;
+use work.functions_tb_pkg.all;
 use work.ddr2_phy_pkg.all;
 use work.ddr2_mrs_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 use work.ddr2_phy_col_ctrl_pkg.all;
 use work.type_conversion_pkg.all;
-use work.tb_pkg.all;
-use work.proc_pkg.all;
+use work.ddr2_mrs_max_pkg.all;
+use work.shared_tb_pkg.all;
 use work.ddr2_pkg_tb.all;
+use work.ddr2_log_pkg.all;
 
 entity ddr2_phy_col_ctrl_tb is
 end entity ddr2_phy_col_ctrl_tb;
@@ -37,8 +40,8 @@ architecture bench of ddr2_phy_col_ctrl_tb is
 	signal rst_tb	: std_logic;
 
 	-- MRS configuration
-	signal CAS_tb		: std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
-	signal BurstLength_tb	: std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+	signal DDR2CAS_tb		: std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
+	signal DDR2BurstLength_tb	: std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 
 	-- Bank Controller
 	signal BankActiveVec_tb			: std_logic_vector(BANK_NUM_TB - 1 downto 0);
@@ -76,8 +79,8 @@ begin
 		rst => rst_tb,
 
 		-- MRS configuration
-		CAS => CAS_tb,
-		BurstLength => BurstLength_tb,
+		DDR2CAS => DDR2CAS_tb,
+		DDR2BurstLength => DDR2BurstLength_tb,
 
 		-- Bank Controller
 		BankActiveVec => BankActiveVec_tb,
@@ -142,7 +145,7 @@ begin
 				else
 					burst_bits_int := 3;
 				end if;
-				burst_bits := burst_bits_int;
+				burst_bits(j) := burst_bits_int;
 
 				uniform(seed1, seed2, rand_val);
 				cas(j) := integer(rand_val*real(CAS_MAX_VALUE));
@@ -155,7 +158,7 @@ begin
 					attempt_num := 0;
 					while ((bl_int <= 0) and (attempt_num < MAX_ATTEMPTS)) loop
 						uniform(seed1, seed2, rand_val);
-						bl_int := round(rand_val*((2.0**(real(COL_L_TB - burst_bits_int)) - real(col_int) - 1.0));
+						bl_int := integer(rand_val*((2.0**(real(COL_L_TB - burst_bits_int)) - real(col_int) - 1.0)));
 						attempt_num := attempt_num + 1;
 					end loop;
 					if (attempt_num = MAX_ATTEMPTS) then
@@ -219,7 +222,7 @@ begin
 			burst_bits := burst_bits_int;
 
 			uniform(seed1, seed2, rand_val);
-			cas(j) := integer(rand_val*real(CAS_MAX_VALUE));
+			cas := integer(rand_val*real(CAS_MAX_VALUE));
 
 			for i in 0 to (num_bursts_int - 1) loop
 				uniform(seed1, seed2, rand_val);
@@ -229,7 +232,7 @@ begin
 				attempt_num := 0;
 				while ((bl_int <= 0) and (attempt_num < MAX_ATTEMPTS)) loop
 					uniform(seed1, seed2, rand_val);
-					bl_int := round(rand_val*((2.0**(real(COL_L_TB - burst_bits_int)) - real(col_int) - 1.0));
+					bl_int := integer(rand_val*((2.0**(real(COL_L_TB - burst_bits_int)) - real(col_int) - 1.0)));
 					attempt_num := attempt_num + 1;
 				end loop;
 				if (attempt_num = MAX_ATTEMPTS) then
@@ -295,8 +298,8 @@ begin
 			cmd_ack_ack_cnt := 0;
 			data_phase_cnt := 0;
 
-			BurstLength_tb <= std_logic_vector(to_unsigned(burst_bits, BURST_LENGTH_MAX_VALUE));
-			CAS_tb <= std_logic_vector(to_unsigned(cas, CAS_MAX_VALUE));
+			DDR2BurstLength_tb <= std_logic_vector(to_unsigned(burst_bits, int_to_bit_num(BURST_LENGTH_MAX_VALUE)));
+			DDR2CAS_tb <= std_logic_vector(to_unsigned(cas, int_to_bit_num(CAS_MAX_VALUE)));
 			ReadBurstIn_tb <= '0';
 			BankActiveVec_tb <= (others => '0');
 			CmdAck_tb <= '0';

@@ -6,14 +6,17 @@ use ieee.math_real.all;
 use std.textio.all;
 
 library work;
-use work.proc_pkg.all;
 use work.ddr2_define_pkg.all;
+use work.functions_pkg.all;
+use work.functions_tb_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 use work.ddr2_phy_pkg.all;
 use work.ddr2_phy_bank_ctrl_pkg.all;
+use work.ddr2_mrs_max_pkg.all;
 use work.type_conversion_pkg.all;
-use work.tb_pkg.all;
+use work.shared_tb_pkg.all;
 use work.ddr2_pkg_tb.all;
+use work.ddr2_log_pkg.all;
 
 entity ddr2_phy_bank_ctrl_tb is
 end entity ddr2_phy_bank_ctrl_tb;
@@ -33,9 +36,9 @@ architecture bench of ddr2_phy_bank_ctrl_tb is
 	signal rst_tb	: std_logic;
 
 	-- MRS configuration
-	signal BurstLength_tb		: std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
-	signal AdditiveLatency_tb	: std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
-	signal WriteLatency_tb		: std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
+	signal DDR2BurstLength_tb		: std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+	signal DDR2AdditiveLatency_tb	: std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
+	signal DDR2WriteLatency_tb		: std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
 
 	-- User Interface
 	signal RowMemIn_tb	: std_logic_vector(ROW_L_TB - 1 downto 0);
@@ -71,9 +74,9 @@ begin
 		clk => clk_tb,
 		rst => rst_tb,
 
-		BurstLength => BurstLength_tb,
-		AdditiveLatency => AdditiveLatency_tb,
-		WriteLatency => WriteLatency_tb,
+		DDR2BurstLength => DDR2BurstLength_tb,
+		DDR2AdditiveLatency => DDR2AdditiveLatency_tb,
+		DDR2WriteLatency => DDR2WriteLatency_tb,
 
 		RowMemIn => RowMemIn_tb,
 
@@ -123,7 +126,7 @@ begin
 				end loop;
 				num_bursts(i) := scaled_rand_val;
 
-				if ((j mod 2) = 0) then
+				if ((i mod 2) = 0) then
 					bl4_int := not bl4_int;
 				end if;
 
@@ -132,7 +135,7 @@ begin
 				else
 					burst_bits_int := 3;
 				end if;
-				burst_bits := burst_bits_int;
+				burst_bits(i) := burst_bits_int;
 
 				uniform(seed1, seed2, rand_val);
 				al(i) := integer(rand_val*real(AL_MAX_VALUE));
@@ -165,7 +168,7 @@ begin
 
 		end procedure setup_extra_tests;
 
-		procedure test_param(variable num_bursts : out integer; variable rows: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_bursts, burst_bits, al, wl : out integer; variable rows: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst: out bool_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay: out int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 			variable bl4_int	: boolean;
 			variable num_bursts_int	: integer;
@@ -181,7 +184,6 @@ begin
 
 			uniform(seed1, seed2, rand_val);
 			bl4_int := rand_bool(rand_val, 0.5);
-			bl4 := bl4_int;
 
 			if (bl4_int = true) then
 				burst_bits_int := 2;
@@ -191,10 +193,10 @@ begin
 			burst_bits := burst_bits_int;
 
 			uniform(seed1, seed2, rand_val);
-			al(i) := integer(rand_val*real(AL_MAX_VALUE));
+			al := integer(rand_val*real(AL_MAX_VALUE));
 
 			uniform(seed1, seed2, rand_val);
-			wl(i) := integer(rand_val*real(WRITE_LATENCY_MAX_VALUE));
+			wl := integer(rand_val*real(WRITE_LATENCY_MAX_VALUE));
 
 			for i in 0 to (num_bursts_int - 1) loop
 				uniform(seed1, seed2, rand_val);
@@ -249,9 +251,9 @@ begin
 			cmd_delay := cmd_delay_arr(num_bursts_rtl_int);
 			ctrl_delay := cmd_delay_arr(num_cmd_rtl_int);
 
-			BurstLength_tb <= std_logic_vector(to_unsigned(burst_bits, BURST_LENGTH_MAX_VALUE));
-			AdditiveLatency_tb <= std_logic_vector(to_unsigned(al, AL_MAX_VALUE));
-			WriteLatency_tb <= std_logic_vector(to_unsigned(wl, WRITE_LATENCY_MAX_VALUE));
+			DDR2BurstLength_tb <= std_logic_vector(to_unsigned(burst_bits, int_to_bit_num(BURST_LENGTH_MAX_VALUE)));
+			DDR2AdditiveLatency_tb <= std_logic_vector(to_unsigned(al, int_to_bit_num(AL_MAX_VALUE)));
+			DDR2WriteLatency_tb <= std_logic_vector(to_unsigned(wl, int_to_bit_num(WRITE_LATENCY_MAX_VALUE)));
 
 			act_loop: loop
 

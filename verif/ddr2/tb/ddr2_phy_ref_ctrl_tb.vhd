@@ -7,14 +7,16 @@ use std.textio.all;
 
 library work;
 use work.ddr2_define_pkg.all;
+use work.functions_tb_pkg.all;
 use work.ddr2_phy_pkg.all;
 use work.ddr2_mrs_pkg.all;
 use work.ddr2_gen_ac_timing_pkg.all;
 use work.ddr2_phy_ref_ctrl_pkg.all;
+use work.ddr2_mrs_max_pkg.all;
 use work.type_conversion_pkg.all;
-use work.tb_pkg.all;
-use work.proc_pkg.all;
+use work.shared_tb_pkg.all;
 use work.ddr2_pkg_tb.all;
+use work.ddr2_log_pkg.all;
 
 entity ddr2_phy_ref_ctrl_tb is
 end entity ddr2_phy_ref_ctrl_tb;
@@ -27,16 +29,19 @@ architecture bench of ddr2_phy_ref_ctrl_tb is
 	constant TOT_NUM_TEST	: integer := NUM_TEST + NUM_EXTRA_TEST;
 
 	constant MAX_REQUESTS_PER_TEST		: integer := 50;
-	constant MAX_SELF_REFRESH_TIME		: integer := 2*AUTO_REF_TIME;
+	constant MAX_SELF_REFRESH_TIME		: integer := 2*AUTO_REFRESH_EXIT_TIME;
 	constant MAX_CMD_REQ_ACK_DELAY		: integer := 20;
 	constant MAX_ODT_CMD_REQ_ACK_DELAY	: integer := 20;
-	constant MAX_BANK_IDLE_DELAY		: integer := AUTO_REF_TIME;
+	constant MAX_BANK_IDLE_DELAY		: integer := AUTO_REFRESH_EXIT_TIME;
 
 	constant MAX_PHY_COMPLETED_DELAY	: integer := 100;
 
 	signal clk_tb	: std_logic := '0';
 	signal stop	: boolean := false;
 	signal rst_tb	: std_logic;
+
+	-- Auto Refresh Time
+	signal HighTemperatureRefresh_tb	: std_logic;
 
 	-- Transaction Controller
 	signal RefreshReq_tb		: std_logic;
@@ -76,6 +81,9 @@ begin
 	port map (
 		clk => clk_tb,
 		rst => rst_tb,
+
+		-- High temperature flag
+		HighTemperatureRefresh => HighTemperatureRefresh_tb,
 
 		-- Transaction Controller
 		RefreshReq => RefreshReq_tb,
@@ -119,7 +127,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_requests : out integer; variable self_refresh : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable phy_completed_delay, cmd_req_ack_delay, odt_cmd_req_ack_delay, self_refresh_time, bank_idle_delay : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2 : inout positive) is
+		procedure test_param(variable num_requests : out integer; variable high_temp : out boolean; variable self_refresh : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable phy_completed_delay, cmd_req_ack_delay, odt_cmd_req_ack_delay, self_refresh_time, bank_idle_delay : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2 : inout positive) is
 			variable rand_val		: real;
 			variable num_requests_int	: integer;
 		begin
@@ -130,6 +138,9 @@ begin
 				num_requests_int := integer(rand_val*real(MAX_REQUESTS_PER_TEST));
 			end loop;
 			num_requests := num_requests_int;
+
+			uniform(seed1, seed2, rand_val);
+			high_temp := rand_bool(rand_val, 0.5);
 
 			for i in 0 to (num_requests_int - 1) loop
 				uniform(seed1, seed2, rand_val);
@@ -156,7 +167,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_ref_ctrl(variable num_requests_exp : in integer; variable self_refresh_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST-1)); variable phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable odt_cmd_arr_rtl, odt_cmd_arr_exp : out bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable cmd_arr_rtl, cmd_arr_exp : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable ctrl_err_arr, cmd_err_arr, odt_err_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
+		procedure run_ref_ctrl(variable num_requests_exp : in integer; variable high_temp : in boolean; variable self_refresh_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST-1)); variable phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable odt_cmd_arr_rtl, odt_cmd_arr_exp : out bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable cmd_arr_rtl, cmd_arr_exp : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable ctrl_err_arr, cmd_err_arr, odt_err_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
 			variable num_requests_rtl_int	: integer;
 			variable self_refresh		: boolean;
 			variable cmd_req_ack_delay	: integer;
@@ -204,6 +215,9 @@ begin
 				ctrl_req := false;
 				odt_req := false;
 				cmd_req := false;
+
+				-- High temperature flag
+				HighTemperatureRefresh_tb <= bool_to_std_logic(high_temp);
 
 				-- PHY Init
 				PhyInitCompleted_tb <= '0';
@@ -627,6 +641,8 @@ begin
 		variable num_requests_exp		: integer;
 		variable num_requests_rtl		: integer;
 
+		variable high_temp		: boolean;
+
 		variable self_refresh_arr		: bool_arr(0 to (MAX_REQUESTS_PER_TEST-1));
 		variable phy_completed_delay_arr	: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 		variable cmd_req_ack_delay_arr		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
@@ -663,9 +679,9 @@ begin
 
 		for i in 0 to NUM_TEST-1 loop
 
-			test_param(num_requests_exp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, seed1, seed2);
+			test_param(num_requests_exp, high_temp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, seed1, seed2);
 
-			run_ref_ctrl(num_requests_exp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, num_requests_rtl, odt_cmd_arr_rtl, odt_cmd_arr_exp, cmd_arr_rtl, cmd_arr_exp, ctrl_err_arr, cmd_err_arr, odt_err_arr);
+			run_ref_ctrl(num_requests_exp, high_temp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, num_requests_rtl, odt_cmd_arr_rtl, odt_cmd_arr_exp, cmd_arr_rtl, cmd_arr_exp, ctrl_err_arr, cmd_err_arr, odt_err_arr);
 
 			verify(num_requests_exp, num_requests_rtl, odt_cmd_arr_rtl, odt_cmd_arr_exp, cmd_arr_rtl, cmd_arr_exp, ctrl_err_arr, cmd_err_arr, odt_err_arr, file_pointer, pass);
 
