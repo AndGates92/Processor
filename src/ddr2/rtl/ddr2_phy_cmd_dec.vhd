@@ -18,12 +18,14 @@ port (
 	rst	: in std_logic;
 	clk	: in std_logic;
 
+	-- Arbiter
 	ColIn	: in std_logic_vector(COL_L - 1 downto 0);
 	RowIn	: in std_logic_vector(ROW_L - 1 downto 0);
 	BankIn	: in std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	CmdIn	: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 	MRSCmd	: in std_logic_vector(ADDR_L - 1 downto 0);
 
+	-- Memory
 	ClkEnable		: out std_logic;
 	nChipSelect		: out std_logic;
 	nRowAccessStrobe	: out std_logic;
