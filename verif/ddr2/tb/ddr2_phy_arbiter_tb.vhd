@@ -6,13 +6,15 @@ use ieee.math_real.all;
 use std.textio.all;
 
 library work;
-use work.proc_pkg.all;
 use work.ddr2_define_pkg.all;
+use work.functions_pkg.all;
+use work.functions_tb_pkg.all;
 use work.ddr2_phy_pkg.all;
 use work.ddr2_phy_arbiter_pkg.all;
 use work.type_conversion_pkg.all;
-use work.tb_pkg.all;
+use work.shared_tb_pkg.all;
 use work.ddr2_pkg_tb.all;
+use work.ddr2_log_pkg.all;
 
 entity ddr2_phy_arbiter_tb is
 end entity ddr2_phy_arbiter_tb;
