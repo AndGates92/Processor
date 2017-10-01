@@ -98,7 +98,7 @@ begin
 			DLLResetCntC;
 
 	SetDLLCnt <= '1' when (ZeroClkCnt = '1') and (StateC = CMD_EMRS1) else '0';
-	DLLCntEnN <= '1' when (StateC = CMD_MRS_A8_1) or (StateC = CMD_PREA) or (StateC = CMD_AUTO_REF_1) or (StateC = CMD_AUTO_REF_2) or (StateC = CMD_MRS_A8_0) else '0';
+	DLLCntEnN <= '1' when (StateC = CMD_MRS_A8_1) or (StateC = CMD_PREA_2) or (StateC = CMD_AUTO_REF_1) or (StateC = CMD_AUTO_REF_2) or (StateC = CMD_MRS_A8_0) else '0';
 	ZeroDLLCnt <= '1' when (DLLResetCntC = zero_dll_cnt_value) else '0';
 
 	ClkCycleCntN <=	ClkCntInitValue				when (SetClkCnt = '1') else
@@ -111,12 +111,12 @@ begin
 
 	ClkCntInitValue <=	to_unsigned(T_NOP_INIT-1, ClkCntInitValue'length)	when ((ZeroClkCnt = '1') and (StateC = START_INIT)) else
 				to_unsigned(T_RP-1, ClkCntInitValue'length)		when ((ZeroClkCnt = '1') and ((StateC = CMD_NOP_400) or (StateC = CMD_MRS_A8_1))) else
-				to_unsigned(T_RFC-1, ClkCntInitValue'length)		when ((ZeroClkCnt = '1') and ((StateC = CMD_PREA) or (StateC = CMD_AUTO_REF_1))) else
+				to_unsigned(T_RFC-1, ClkCntInitValue'length)		when ((ZeroClkCnt = '1') and ((StateC = CMD_PREA_2) or (StateC = CMD_AUTO_REF_1))) else
 				to_unsigned(T_MOD_max-1, ClkCntInitValue'length)	when ((ZeroClkCnt = '1') and (StateC = CMD_EMRS1_A987_0)) else
 				to_unsigned(T_MRD-1, ClkCntInitValue'length);
 
 	MRSCmd <= MRSCmdC;
-	MRSCmdN <=	(7 => HITEMP_REF, others => '0')																									when ((StateC = CMD_PREA_A10_0) and (ZeroClkCnt = '1')) else
+	MRSCmdN <=	(7 => HITEMP_REF, others => '0')																									when ((StateC = CMD_PREA_1) and (ZeroClkCnt = '1')) else
 			(8 => '1', others => '0')																										when ((StateC = CMD_EMRS1) and (ZeroClkCnt = '1')) else
 			(12 => POWER_DOWN_EXIT, 11 => WRITE_REC(2), 10 => WRITE_REC(1), 9 => WRITE_REC(0), 6 => CAS(2), 5 => CAS(1), 4 => CAS(0), 3 => BURST_TYPE, 2 => BURST_LENGTH(2), 1 => BURST_LENGTH(1), 0 => BURST_LENGTH(0),  others => '0')		when ((StateC = CMD_AUTO_REF_2) and (ZeroClkCnt = '1')) else
 			(9 => '1', 8 => '1', 7 => '1', others => '0')														when ((StateC = CMD_MRS_A8_0) and (ZeroClkCnt = '1')) else
@@ -125,10 +125,10 @@ begin
 
 	Cmd <= CmdC;
 	CmdN <=	CMD_ALL_BANK_PRECHARGE	when (((StateC = CMD_NOP_400) or (StateC = CMD_MRS_A8_1)) and (ZeroClkCnt = '1')) else
-		CMD_AUTO_REF		when (((StateC = CMD_PREA) or (StateC = CMD_AUTO_REF_1)) and (ZeroClkCnt = '1')) else
+		CMD_AUTO_REF		when (((StateC = CMD_PREA_2) or (StateC = CMD_AUTO_REF_1)) and (ZeroClkCnt = '1')) else
 		CMD_MODE_REG_SET	when (((StateC = CMD_EMRS1) or (StateC = CMD_AUTO_REF_2)) and (ZeroClkCnt = '1')) else
 		CMD_EXT_MODE_REG_SET_1	when (((StateC = CMD_EMRS3) or (StateC = CMD_EMRS1_A987_1) or (StateC = CMD_MRS_A8_0)) and (ZeroClkCnt = '1')) else
-		CMD_EXT_MODE_REG_SET_2	when ((StateC = CMD_PREA_A10_0) and (ZeroClkCnt = '1')) else
+		CMD_EXT_MODE_REG_SET_2	when ((StateC = CMD_PREA_1) and (ZeroClkCnt = '1')) else
 		CMD_EXT_MODE_REG_SET_3	when ((StateC = CMD_EMRS2) and (ZeroClkCnt = '1')) else
 		CMD_NOP;
 
@@ -141,9 +141,9 @@ begin
 			end if;
 		elsif (StateC = CMD_NOP_400) then
 			if (ZeroClkCnt = '1') then
-				StateN <= CMD_PREA_A10_0;
+				StateN <= CMD_PREA_1;
 			end if;
-		elsif (StateC = CMD_PREA_A10_0) then
+		elsif (StateC = CMD_PREA_1) then
 			if (ZeroClkCnt = '1') then
 				StateN <= CMD_EMRS2;
 			end if;
@@ -161,9 +161,9 @@ begin
 			end if;
 		elsif (StateC = CMD_MRS_A8_1) then
 			if (ZeroClkCnt = '1') then
-				StateN <= CMD_PREA;
+				StateN <= CMD_PREA_2;
 			end if;
-		elsif (StateC = CMD_PREA) then
+		elsif (StateC = CMD_PREA_2) then
 			if (ZeroClkCnt = '1') then
 				StateN <= CMD_AUTO_REF_1;
 			end if;

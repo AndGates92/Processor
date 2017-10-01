@@ -43,12 +43,12 @@ package ddr2_phy_init_pkg is
 
 	constant START_INIT		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_PHY_INIT_L));
 	constant CMD_NOP_400		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_PHY_INIT_L));
-	constant CMD_PREA_A10_0		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_PHY_INIT_L));
+	constant CMD_PREA_1		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_PHY_INIT_L));
 	constant CMD_EMRS3		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_PHY_INIT_L));
 	constant CMD_EMRS2		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_PHY_INIT_L));
 	constant CMD_EMRS1		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_PHY_INIT_L));
 	constant CMD_MRS_A8_1		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(6, STATE_PHY_INIT_L));
-	constant CMD_PREA		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_PHY_INIT_L));
+	constant CMD_PREA_2		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(7, STATE_PHY_INIT_L));
 	constant CMD_AUTO_REF_1		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(8, STATE_PHY_INIT_L));
 	constant CMD_AUTO_REF_2		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(9, STATE_PHY_INIT_L));
 	constant CMD_MRS_A8_0		: std_logic_vector(STATE_PHY_INIT_L - 1 downto 0) := std_logic_vector(to_unsigned(10, STATE_PHY_INIT_L));
