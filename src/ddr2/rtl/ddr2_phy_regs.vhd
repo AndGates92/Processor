@@ -3,9 +3,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.functions_pkg.all;
 use work.ddr2_phy_pkg.all;
-use work.ddr2_phy_arbiter_pkg.all;
+use work.ddr2_phy_regs_pkg.all;
 
 entity ddr2_phy_regs is
 generic (
@@ -27,7 +26,8 @@ port (
 	DDR2DataStrobesEnable		: out std_logic;
 	DDR2ReadDataStrobesEnable	: out std_logic;
 	DDR2HighTemperature		: out std_logic;
-	DDR2CAS				: out std_logic_vector(2 downto 0);
+	DDR2DLLReset			: out std_logic;
+	DDR2CASLatency			: out std_logic_vector(2 downto 0);
 	DDR2BurstType			: out std_logic;
 	DDR2BurstLength			: out std_logic_vector(2 downto 0);
 	DDR2PowerDownExitMode		: out std_logic;
@@ -35,11 +35,11 @@ port (
 	DDR2OutBufferEnable		: out std_logic;
 	DDR2DLLEnable			: out std_logic;
 	DDR2DrivingStrength		: out std_logic;
-	DDR2WriteRecoery		: out std_logic_vector(2 downto 0)
+	DDR2WriteRecovery		: out std_logic_vector(2 downto 0)
 );
 end entity ddr2_phy_regs;
 
-architecture rtl of ddr2_phy_init is
+architecture rtl of ddr2_phy_regs is
 
 	type reg_array is array(0 to (REG_NUM - 1)) of std_logic_vector(REG_L - 1 downto 0);
 	signal DDR2PhyRegsC, DDR2PhyRegsN	: reg_array;
@@ -60,10 +60,46 @@ begin
 	end process reg;
 
 	-- Store MRS Register value
+	-- MRS register:
+	-- 12 Power Down Exit Timing (0 Fast, 1 Slow)
+	-- 11 down to 9 Write Recovery for Autoprecharge
+	-- 8 DLL Reset (0 Disabled, 1 Enabled)
+	-- 6 down to 4 CAS Latency
+	-- 3 Burst Type (0 Sequential, 1 Interleave)
+	-- 2 down to 0 Burst Length (Valid value: 4 and 8)
 	DDR2PhyRegsN(0) <= MRSCmd when (Cmd = CMD_MODE_REG_SET) else DDR2PhyRegsC(0);
-	DDR2PhyRegsN(1) <= MRSCmd when (Cmd = CMD_EXT_MODE_REG_SET_1) else DDR2PhyRegsC(1);
+	-- EMRS1 Register:
+	-- 12 Output buffers (0 Disabled, 1 Enabled)
+	-- 11 Read Strobes (0 Disabled, 1 Enabled)
+	-- 10 Write Strobes (0 Disabled, 1 Enabled)
+	-- 6 & 2 ODT (0 Disabled, 1 75 Ohm, 2 150 Ohm, 3 50 Ohm)
+	-- 5 down to 3 Additive Latency
+	-- 1 Driver Strength Control (0 Weak, 1 Normal)
+	-- 0 DLL Enable (0 Disabled, 1 Enabled)
+	DDR2PhyRegsN(1) <= (MRSCmd(REG_L - 1 downto 13) & (not MRSCmd(12)) & MRSCmd(11) & (not MRSCmd(10)) & MRSCmd(9 downto 2) & (not MRSCmd(1 downto 0))) when (Cmd = CMD_EXT_MODE_REG_SET_1) else DDR2PhyRegsC(1);
+	-- EMRS2 Register:
+	-- 7 High Temperature Self Refresh Rate (0 Disabled, 1 Enabled)
 	DDR2PhyRegsN(2) <= MRSCmd when (Cmd = CMD_EXT_MODE_REG_SET_2) else DDR2PhyRegsC(2);
 	DDR2PhyRegsN(3) <= MRSCmd when (Cmd = CMD_EXT_MODE_REG_SET_3) else DDR2PhyRegsC(3);
 
+	-- MRS Breakdown
+	DDR2BurstLength <= DDR2PhyRegs(0)(2 downto 0);
+	DDR2BurstType <= DDR2PhyRegs(0)(3);
+	DDR2CASLatency <= DDR2PhyRegs(0)(6 downto 4);
+	DDR2DLLReset <= DDR2PhyRegs(0)(8);
+	DDR2WriteRecovery <= DDR2PhyRegs(0)(11 downto 9);
+	DDR2PowerDownExitMode <= DDR2PhyRegs(0)(12);
+
+	-- EMRS1 Breakdown
+	DDR2DLLEnable <= DDR2PhyRegs(1)(0);
+	DDR2DriverStrengthControl <= DDR2PhyRegs(1)(1);
+	DDR2ODT <= DDR2PhyRegs(1)(6) & DDR2PhyRegs(1)(2);
+	DDR2AdditiveLatency <= DDR2PhyRegs(1)(5 downto 3);
+	DDR2DataStorbesEnable <= DDR2PhyRegs(1)(10);
+	DDR2ReadDataStorbesEnable <= DDR2PhyRegs(1)(11);
 	DDR2OutBufferEnable <= DDR2PhyRegs(1)(12);
+
+	-- EMRS2 Breakdown
 	DDR2HighTemperature <= DDR2PhyRegs(2)(7);
+
+end rtl;
