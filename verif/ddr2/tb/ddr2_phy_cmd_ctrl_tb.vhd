@@ -44,7 +44,7 @@ architecture bench of ddr2_phy_cmd_ctrl_tb is
 	signal rst_tb	: std_logic;
 
 	-- MRS configuration
-	signal DDR2CAS_tb		: std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
+	signal DDR2CASLatency_tb	: std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 	signal DDR2BurstLength_tb	: std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 	signal DDR2AdditiveLatency_tb	: std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
 	signal DDR2WriteLatency_tb	: std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
@@ -101,7 +101,7 @@ begin
 		rst => rst_tb,
 
 		-- MRS configuration
-		DDR2CAS => DDR2CAS_tb,
+		DDR2CASLatency => DDR2CASLatency_tb,
 		DDR2BurstLength => DDR2BurstLength_tb,
 		DDR2AdditiveLatency => DDR2AdditiveLatency_tb,
 		DDR2WriteLatency => DDR2WriteLatency_tb,
@@ -197,7 +197,7 @@ begin
 			wl := integer(rand_val*real(WRITE_LATENCY_MAX_VALUE));
 
 			uniform(seed1, seed2, rand_val);
-			cas := integer(rand_val*real(CAS_MAX_VALUE));
+			cas := integer(rand_val*real(CAS_LATENCY_MAX_VALUE));
 
 			for i in 0 to (num_bursts_int - 1) loop
 				-- select bank
@@ -309,7 +309,7 @@ begin
 			wl := integer(rand_val*real(WRITE_LATENCY_MAX_VALUE));
 
 			uniform(seed1, seed2, rand_val);
-			cas := integer(rand_val*real(CAS_MAX_VALUE));
+			cas := integer(rand_val*real(CAS_LATENCY_MAX_VALUE));
 
 			for i in 0 to (num_bursts_int - 1) loop
 				-- select bank
@@ -456,7 +456,7 @@ begin
 
 			-- MRS configuration
 			DDR2BurstLength_tb <= std_logic_vector(to_unsigned(burst_bits, int_to_bit_num(BURST_LENGTH_MAX_VALUE)));
-			DDR2CAS_tb <= std_logic_vector(to_unsigned(cas, int_to_bit_num(CAS_MAX_VALUE)));
+			DDR2CASLatency_tb <= std_logic_vector(to_unsigned(cas, int_to_bit_num(CAS_LATENCY_MAX_VALUE)));
 			DDR2AdditiveLatency_tb <= std_logic_vector(to_unsigned(al, int_to_bit_num(AL_MAX_VALUE)));
 			DDR2WriteLatency_tb <= std_logic_vector(to_unsigned(wl, int_to_bit_num(WRITE_LATENCY_MAX_VALUE)));
 

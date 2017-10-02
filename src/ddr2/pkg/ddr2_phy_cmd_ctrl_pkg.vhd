@@ -25,7 +25,7 @@ package ddr2_phy_cmd_ctrl_pkg is
 		clk		: in std_logic;
 
 		-- MRS configuration
-		DDR2CAS			: in std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
+		DDR2CASLatency		: in std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 		DDR2BurstLength		: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 		DDR2AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
 		DDR2WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);

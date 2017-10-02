@@ -40,7 +40,7 @@ architecture bench of ddr2_phy_col_ctrl_tb is
 	signal rst_tb	: std_logic;
 
 	-- MRS configuration
-	signal DDR2CAS_tb		: std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
+	signal DDR2CASLatency_tb		: std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 	signal DDR2BurstLength_tb	: std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 
 	-- Bank Controller
@@ -79,7 +79,7 @@ begin
 		rst => rst_tb,
 
 		-- MRS configuration
-		DDR2CAS => DDR2CAS_tb,
+		DDR2CASLatency => DDR2CASLatency_tb,
 		DDR2BurstLength => DDR2BurstLength_tb,
 
 		-- Bank Controller
@@ -148,7 +148,7 @@ begin
 				burst_bits(j) := burst_bits_int;
 
 				uniform(seed1, seed2, rand_val);
-				cas(j) := integer(rand_val*real(CAS_MAX_VALUE));
+				cas(j) := integer(rand_val*real(CAS_LATENCY_MAX_VALUE));
 
 				for i in 0 to (num_bursts_int - 1) loop
 					uniform(seed1, seed2, rand_val);
@@ -222,7 +222,7 @@ begin
 			burst_bits := burst_bits_int;
 
 			uniform(seed1, seed2, rand_val);
-			cas := integer(rand_val*real(CAS_MAX_VALUE));
+			cas := integer(rand_val*real(CAS_LATENCY_MAX_VALUE));
 
 			for i in 0 to (num_bursts_int - 1) loop
 				uniform(seed1, seed2, rand_val);
@@ -299,7 +299,7 @@ begin
 			data_phase_cnt := 0;
 
 			DDR2BurstLength_tb <= std_logic_vector(to_unsigned(burst_bits, int_to_bit_num(BURST_LENGTH_MAX_VALUE)));
-			DDR2CAS_tb <= std_logic_vector(to_unsigned(cas, int_to_bit_num(CAS_MAX_VALUE)));
+			DDR2CASLatency_tb <= std_logic_vector(to_unsigned(cas, int_to_bit_num(CAS_LATENCY_MAX_VALUE)));
 			ReadBurstIn_tb <= '0';
 			BankActiveVec_tb <= (others => '0');
 			CmdAck_tb <= '0';

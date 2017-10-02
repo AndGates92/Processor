@@ -21,7 +21,7 @@ port (
 	clk		: in std_logic;
 
 	-- MRS configuration
-	DDR2CAS		: in std_logic_vector(int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0);
+	DDR2CASLatency		: in std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 	DDR2BurstLength	: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 
 	-- Bank Controller
@@ -60,7 +60,7 @@ architecture rtl of ddr2_phy_col_ctrl is
 	constant col_incr_zero_padding		: std_logic_vector(COL_L - (BURST_LENGTH_MAX_VALUE + 1) - 1 downto 0) := (others => '0');
 
 	constant bl_zero_padding_col_ctrl_cnt	: std_logic_vector(CNT_COL_CTRL_L - BURST_LENGTH_MAX_VALUE - 1 downto 0) := (others => '0');
-	constant cas_zero_padding_col_ctrl_cnt	: std_logic_vector(CNT_COL_CTRL_L - int_to_bit_num(CAS_MAX_VALUE) - 1 downto 0) := (others => '0');
+	constant cas_zero_padding_col_ctrl_cnt	: std_logic_vector(CNT_COL_CTRL_L - int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0) := (others => '0');
 
 	constant zero_cnt_col_ctrl_value	: unsigned(CNT_COL_CTRL_L - 1 downto 0) := (others => '0'); 
 	constant decr_cnt_col_ctrl_value	: unsigned(CNT_COL_CTRL_L - 1 downto 0) := to_unsigned(1, CNT_COL_CTRL_L);
@@ -74,7 +74,7 @@ architecture rtl of ddr2_phy_col_ctrl is
 	signal MaxColToColCntValue		: unsigned(BURST_LENGTH_MAX_VALUE - 1 downto 0);
 
 	signal CtrlCntMaxBurstPadded		: std_logic_vector(CNT_COL_CTRL_L - 1 downto 0);
-	signal CtrlCntCASPadded			: std_logic_vector(CNT_COL_CTRL_L - 1 downto 0);
+	signal CtrlCntCASLatencyPadded			: std_logic_vector(CNT_COL_CTRL_L - 1 downto 0);
 	signal TRTW_tat				: std_logic_vector(CNT_COL_CTRL_L - 1 downto 0);
 	signal TWTR_tat				: std_logic_vector(CNT_COL_CTRL_L - 1 downto 0);
 
@@ -254,16 +254,16 @@ begin
 		CtrlCntMaxBurstPadded <= bl_zero_padding_col_ctrl_cnt & MaxBurst(BURST_LENGTH_MAX_VALUE downto 1);
 	end generate CTRL_CNT_MAX_BURST_PADDING;
 
-	CTRL_CNT_CAS_NO_PADDING: if (CNT_COL_CTRL_L = (BURST_LENGTH_MAX_VALUE - 1)) generate
-		CtrlCntCASPadded <= DDR2CAS;
-	end generate CTRL_CNT_CAS_NO_PADDING;
+	CTRL_CNT_CAS_LATENCY_NO_PADDING: if (CNT_COL_CTRL_L = (BURST_LENGTH_MAX_VALUE - 1)) generate
+		CtrlCntCASLatencyPadded <= DDR2CASLatency;
+	end generate CTRL_CNT_CAS_LATENCY_NO_PADDING;
 
-	CTRL_CNT_CAS_PADDING: if (CNT_COL_CTRL_L /= (BURST_LENGTH_MAX_VALUE - 1)) generate
-		CtrlCntCASPadded <= cas_zero_padding_col_ctrl_cnt & DDR2CAS;
-	end generate CTRL_CNT_CAS_PADDING;
+	CTRL_CNT_CAS_LATENCY_PADDING: if (CNT_COL_CTRL_L /= (BURST_LENGTH_MAX_VALUE - 1)) generate
+		CtrlCntCASLatencyPadded <= cas_zero_padding_col_ctrl_cnt & DDR2CASLatency;
+	end generate CTRL_CNT_CAS_LATENCY_PADDING;
 
 	TRTW_tat <= std_logic_vector(unsigned(CtrlCntMaxBurstPadded) + one_cnt_col_ctrl_value);
-	TWTR_tat <= std_logic_vector(unsigned(CtrlCntMaxBurstPadded) + unsigned(CtrlCntCASPadded) + to_unsigned((T_WTR - 2), CNT_COL_CTRL_L));
+	TWTR_tat <= std_logic_vector(unsigned(CtrlCntMaxBurstPadded) + unsigned(CtrlCntCASLatencyPadded) + to_unsigned((T_WTR - 2), CNT_COL_CTRL_L));
 
 	CntColCtrlN <=	ColCtrlCntInitValue			when (SetColCtrlCnt = '1') else
 			(CntColCtrlC - decr_cnt_col_ctrl_value)	when ((ColCtrlCntEnC = '1') and (ZeroColCtrlCnt = '0')) else
