@@ -97,22 +97,22 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_requests : out integer; variable cmd, odt, cas_latency, additive_latency, write_recovery : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4, data_strb, rd_data_strb, high_temp, dll_rst, burst_type, power_down_exit, out_buffer_en, dll_enable, driving_strength : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_cmd : out integer; variable cmd, odt, cas_latency, additive_latency, write_recovery : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4, data_strb, rd_data_strb, high_temp, dll_rst, burst_type, power_down_exit, out_buffer_en, dll_enable, driving_strength : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val		: real;
-			variable num_requests_int	: integer;
+			variable num_cmd_int	: integer;
 
 			variable cmd_int		: integer;
 
 		begin
 
-			num_requests_int := 0;
-			while (num_requests_int = 0) loop
+			num_cmd_int := 0;
+			while (num_cmd_int = 0) loop
 				uniform(seed1, seed2, rand_val);
-				num_requests_int := integer(rand_val*real(MAX_REQUESTS_PER_TEST));
+				num_cmd_int := integer(rand_val*real(MAX_REQUESTS_PER_TEST));
 			end loop;
-			num_requests := num_requests_int;
+			num_cmd := num_cmd_int;
 
-			for i in 0 to (num_requests_int - 1) loop
+			for i in 0 to (num_cmd_int - 1) loop
 				uniform(seed1, seed2, rand_val);
 				cmd_int := round(rand_val*real(REG_NUM_TB));
 				if (cmd_int == 0) then
@@ -160,4 +160,51 @@ begin
 
 		end procedure test_param;
 
+		procedure run_phy_regs(variable num_cmd_exp : in integer; variable cmd_arr, odt_arr, cas_latency_arr, additive_latency_arr, write_recovery_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4_arr, data_strb_arr, rd_data_strb_arr, high_temp_arr, dll_rst_arr, burst_type_arr, power_down_exit_arr, out_buffer_en_arr, dll_enable_arr, driving_strength_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_cmd_rtl : out integer; variable cmd_arr_exp, odt_arr_exp, cas_latency_arr_exp, additive_latency_arr_exp, write_recovery_arr_exp : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4_arr_exp, data_strb_arr_exp, rd_data_strb_arr_exp, high_temp_arr_exp, dll_rst_arr_exp, burst_type_arr_exp, power_down_exit_arr_exp, out_buffer_en_arr_exp, dll_enable_arr_exp, driving_strength_arr_exp : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_arr_rtl, odt_arr_rtl, cas_latency_arr_rtl, additive_latency_arr_rtl, write_recovery_arr_rtl : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4_arr_rtl, data_strb_arr_rtl, rd_data_strb_arr_rtl, high_temp_arr_rtl, dll_rst_arr_rtl, burst_type_arr_rtl, power_down_exit_arr_rtl, out_buffer_en_arr_rtl, dll_enable_arr_rtl, driving_strength_arr_rtl : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
+
+			variable num_cmd_sent_rtl_int	: integer;
+			variable num_cmd_stored_rtl_int	: integer;
+
+			variable cmd_int : integer;
+			variable odt_int : integer;
+			variable cas_latency_int : integer;
+			variable additive_latency_int : integer;
+			variable write_recovery_int : integer;
+
+			variable bl4_int : boolean;
+			variable data_strb_int : boolean;
+			variable rd_data_strb_int : boolean;
+			variable high_temp_int : boolean;
+			variable dll_rst_int : boolean;
+			variable burst_type_int : boolean;
+			variable power_down_exit_int : boolean;
+			variable out_buffer_en_int : boolean;
+			variable dll_enable_int : boolean;
+			variable driving_strength_int : boolean;
+
+		begin
+
+			num_cmd_sent_rtl_int := 0;
+			num_cmd_stored_rtl_int := 0;
+
+			cmd_int := 0;
+			odt_int := 0;
+			cas_latency_int := 0;
+			additive_latency_int := 0;
+			write_recovery_int := 0;
+
+			bl4_int := false;
+			data_strb_int := false;
+			rd_data_strb_int := false;
+			high_temp_int := false;
+			dll_rst_int := false;
+			burst_type_int := false;
+			power_down_exit_int := false;
+			out_buffer_en_int := false;
+			dll_enable_int := false;
+			driving_strength_int := false;
+
+			regs_loop: loop
+
+				wait until ((clk_tb = '1') and (clk_tb'event));
 
