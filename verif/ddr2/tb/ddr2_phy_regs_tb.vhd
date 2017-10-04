@@ -59,11 +59,11 @@ begin
 		clk => clk_tb,
 		rst => rst_tb,
 
-	-- Command Decoder
+		-- Command Decoder
 		MRSCmd => MRSCmd_tb,
 		Cmd => Cmd_tb,
 
-	-- Register Values
+		-- Register Values
 		DDR2ODT => DDR2ODT_tb,
 		DDR2DataStrobesEnable => DDR2DataStrobesEnable_tb,
 		DDR2ReadDataStrobesEnable => DDR2ReadDataStrobesEnable_tb,
@@ -165,22 +165,28 @@ begin
 			variable num_cmd_sent_rtl_int	: integer;
 			variable num_cmd_stored_rtl_int	: integer;
 
-			variable cmd_int : integer;
-			variable odt_int : integer;
-			variable cas_latency_int : integer;
-			variable additive_latency_int : integer;
-			variable write_recovery_int : integer;
+			variable cmd_int		: integer;
+			variable odt_int		: integer;
+			variable cas_latency_int	: integer;
+			variable additive_latency_int	: integer;
+			variable write_recovery_int	: integer;
 
-			variable bl4_int : boolean;
-			variable data_strb_int : boolean;
-			variable rd_data_strb_int : boolean;
-			variable high_temp_int : boolean;
-			variable dll_rst_int : boolean;
-			variable burst_type_int : boolean;
-			variable power_down_exit_int : boolean;
-			variable out_buffer_en_int : boolean;
-			variable dll_enable_int : boolean;
-			variable driving_strength_int : boolean;
+			variable bl4_int		: boolean;
+			variable data_strb_int		: boolean;
+			variable rd_data_strb_int	: boolean;
+			variable high_temp_int		: boolean;
+			variable dll_rst_int		: boolean;
+			variable burst_type_int		: boolean;
+			variable power_down_exit_int	: boolean;
+			variable out_buffer_en_int	: boolean;
+			variable dll_enable_int		: boolean;
+			variable driving_strength_int	: boolean;
+
+			variable cmd_sent	: boolean;
+
+			variable vec1	: std_logic_vector(2 downto 0);
+			variable vec2	: std_logic_vector(2 downto 0);
+			variable vec3	: std_logic_vector(2 downto 0);
 
 		begin
 
@@ -204,7 +210,62 @@ begin
 			dll_enable_int := false;
 			driving_strength_int := false;
 
+			cmd_arr_exp := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+			odt_arr_exp := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+			cas_latency_arr_exp := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+			additive_latency_arr_exp := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+			write_recovery_arr_exp := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+
+			bl4_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			data_strb_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			rd_data_strb_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			high_temp_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			dll_rst_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			burst_type_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			power_down_exit_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			out_buffer_en_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			dll_enable_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			driving_strength_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+
+			cmd_arr_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+			odt_arr_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+			cas_latency_arr_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+			additive_latency_arr_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+			write_recovery_arr_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+
+			bl4_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			data_strb_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			rd_data_strb_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			high_temp_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			dll_rst_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			burst_type_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			power_down_exit_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			out_buffer_en_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			dll_enable_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+			driving_strength_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
+
+			cmd_sent := false;
+
 			regs_loop: loop
 
 				wait until ((clk_tb = '1') and (clk_tb'event));
 
+				exit regs_loop when ((num_cmd_sent_rtl_int = num_cmd_exp) and (num_cmd_stored_rtl_int = num_cmd_exp));
+
+				wait for 1 ps;
+
+				if (cmd_sent = true) then
+
+				end if;
+
+				if (num_cmd_sent_rtl_int < num_cmd_exp) then
+
+					Cmd_tb <= std_logic_vector(to_unsigned(cmd_arr(num_cmd_sent_rtl_int), MEM_CMD_L));
+
+					if (cmd_arr(num_cmd_sent_rtl_int) = to_integer(unsigned(CMD_MODE_REG_SET))) then
+
+						MRSCmd_tb <= (12 => bool_to_std_logic(power_down_exit_arr(num_cmd_sent_rtl_int)), 11 downto 9 => std_logic_vector(to_unsigned(write_recovery_arr(num_cmd_sent_rtl_int), int_to_bit_num(WRITE_REC_MAX_VALUE))), 8 => bool_to_std_logic(dll_rst_arr(num_cmd_sent_rtl_int)), 6 downto 4 => std_logic_vector(to_unsigned(write_recovery_arr(num_cmd_sent_rtl_int), int_to_bit_num(WRITE_REC_MAX_VALUE))), 3 => bool_to_std_logic(burst_type_arr(num_cmd_sent_rtl_int)), 2 downto 0 => std_logic_vector(to_unsigned(write_recovery_arr(num_cmd_sent_rtl_int), int_to_bit_num(BURST_LENGTH_MAX_VALUE))),  others => '0');
+
+					elsif (cmd_arr(num_cmd_sent_rtl_int) = to_integer(unsigned(CMD_EXT_MODE_REG_SET_1))) then
+
+						MRSCmd_tb <= (12 => bool_to_std_logic(out_buffer_en_arr(num_cmd_sent_rtl_int)), 11 => bool_to_std_logic(rd_data_strb_arr(num_cmd_sent_rtl_int)),  10 => bool_to_std_logic(data_strb_arr(num_cmd_sent_rtl_int)), 5 downto 3 => std_logic_vector(to_unsigned(additive_latency_arr(num_cmd_sent_rtl_int), int_to_bit_num(AL_MAX_VALUE))), 1 => bool_to_std_logic(driver_strength_arr(num_cmd_sent_rtl_int)),  0 => bool_to_std_logic(dll_enable_arr(num_cmd_sent_rtl_int)), others => '0');
