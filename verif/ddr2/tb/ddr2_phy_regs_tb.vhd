@@ -160,7 +160,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_phy_regs(variable num_cmd_exp : in integer; variable cmd_arr, odt_arr, cas_latency_arr, additive_latency_arr, write_recovery_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4_arr, data_strb_arr, rd_data_strb_arr, high_temp_arr, dll_rst_arr, burst_type_arr, power_down_exit_arr, out_buffer_en_arr, dll_enable_arr, driving_strength_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_cmd_rtl : out integer; variable cmd_arr_exp, odt_arr_exp, cas_latency_arr_exp, additive_latency_arr_exp, write_recovery_arr_exp : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4_arr_exp, data_strb_arr_exp, rd_data_strb_arr_exp, high_temp_arr_exp, dll_rst_arr_exp, burst_type_arr_exp, power_down_exit_arr_exp, out_buffer_en_arr_exp, dll_enable_arr_exp, driving_strength_arr_exp : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_arr_rtl, odt_arr_rtl, cas_latency_arr_rtl, additive_latency_arr_rtl, write_recovery_arr_rtl : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4_arr_rtl, data_strb_arr_rtl, rd_data_strb_arr_rtl, high_temp_arr_rtl, dll_rst_arr_rtl, burst_type_arr_rtl, power_down_exit_arr_rtl, out_buffer_en_arr_rtl, dll_enable_arr_rtl, driving_strength_arr_rtl : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
+		procedure run_phy_regs(variable num_cmd_exp : in integer; variable cmd_arr, odt_arr, cas_latency_arr, additive_latency_arr, write_recovery_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4_arr, data_strb_arr, rd_data_strb_arr, high_temp_arr, dll_rst_arr, burst_type_arr, power_down_exit_arr, out_buffer_en_arr, dll_enable_arr, driving_strength_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_cmd_rtl : out integer; variable odt_arr_exp, cas_latency_arr_exp, additive_latency_arr_exp, write_recovery_arr_exp : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4_arr_exp, data_strb_arr_exp, rd_data_strb_arr_exp, high_temp_arr_exp, dll_rst_arr_exp, burst_type_arr_exp, power_down_exit_arr_exp, out_buffer_en_arr_exp, dll_enable_arr_exp, driving_strength_arr_exp : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable odt_arr_rtl, cas_latency_arr_rtl, additive_latency_arr_rtl, write_recovery_arr_rtl : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4_arr_rtl, data_strb_arr_rtl, rd_data_strb_arr_rtl, high_temp_arr_rtl, dll_rst_arr_rtl, burst_type_arr_rtl, power_down_exit_arr_rtl, out_buffer_en_arr_rtl, dll_enable_arr_rtl, driving_strength_arr_rtl : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
 
 			variable num_cmd_sent_rtl_int	: integer;
 			variable num_cmd_stored_rtl_int	: integer;
@@ -184,9 +184,9 @@ begin
 
 			variable cmd_sent	: boolean;
 
-			variable vec1	: std_logic_vector(2 downto 0);
-			variable vec2	: std_logic_vector(2 downto 0);
-			variable vec3	: std_logic_vector(2 downto 0);
+			variable vec1	: std_logic_vector(int_to_bit_num(MAX_MRS_FIELD) - 1 downto 0);
+			variable vec2	: std_logic_vector(int_to_bit_num(MAX_MRS_FIELD) - 1 downto 0);
+			variable vec3	: std_logic_vector(int_to_bit_num(MAX_MRS_FIELD) - 1 downto 0);
 
 		begin
 
@@ -210,7 +210,6 @@ begin
 			dll_enable_int := false;
 			driving_strength_int := false;
 
-			cmd_arr_exp := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
 			odt_arr_exp := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
 			cas_latency_arr_exp := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
 			additive_latency_arr_exp := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
@@ -227,7 +226,6 @@ begin
 			dll_enable_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
 			driving_strength_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
 
-			cmd_arr_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
 			odt_arr_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
 			cas_latency_arr_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
 			additive_latency_arr_rtl := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
@@ -264,8 +262,95 @@ begin
 
 					if (cmd_arr(num_cmd_sent_rtl_int) = to_integer(unsigned(CMD_MODE_REG_SET))) then
 
-						MRSCmd_tb <= (12 => bool_to_std_logic(power_down_exit_arr(num_cmd_sent_rtl_int)), 11 downto 9 => std_logic_vector(to_unsigned(write_recovery_arr(num_cmd_sent_rtl_int), int_to_bit_num(WRITE_REC_MAX_VALUE))), 8 => bool_to_std_logic(dll_rst_arr(num_cmd_sent_rtl_int)), 6 downto 4 => std_logic_vector(to_unsigned(write_recovery_arr(num_cmd_sent_rtl_int), int_to_bit_num(WRITE_REC_MAX_VALUE))), 3 => bool_to_std_logic(burst_type_arr(num_cmd_sent_rtl_int)), 2 downto 0 => std_logic_vector(to_unsigned(write_recovery_arr(num_cmd_sent_rtl_int), int_to_bit_num(BURST_LENGTH_MAX_VALUE))),  others => '0');
+						odt_arr_exp(num_cmd_sent_rtl_int) := 0;
+						cas_latency_arr_exp(num_cmd_sent_rtl_int) := cas_latency_arr(num_cmd_sent_rtl_int);
+						additive_latency_arr_exp(num_cmd_sent_rtl_int) := 0;
+						write_recovery_arr_exp(num_cmd_sent_rtl_int) := write_recovery_arr(num_cmd_sent_rtl_int);
+
+						bl4_arr_exp(num_cmd_sent_rtl_int) := bl4_arr_exp(num_cmd_sent_rtl_int);
+						data_strb_arr_exp(num_cmd_sent_rtl_int) := false;
+						rd_data_strb_arr_exp(num_cmd_sent_rtl_int) := false;
+						high_temp_arr_exp(num_cmd_sent_rtl_int) := false;
+						dll_rst_arr_exp(num_cmd_sent_rtl_int) := dll_rst_arr(num_cmd_sent_rtl_int);
+						burst_type_arr_exp(num_cmd_sent_rtl_int) := burst_type_arr(num_cmd_sent_rtl_int);
+						power_down_exit_arr_exp(num_cmd_sent_rtl_int) := power_down_exit_arr(num_cmd_sent_rtl_int);
+						out_buffer_en_arr_exp(num_cmd_sent_rtl_int) := false;
+						dll_enable_arr_exp(num_cmd_sent_rtl_int) := false;
+						driving_strength_arr_exp(num_cmd_sent_rtl_int) := false;
+
+						vec1 := std_logic_vector(to_unsigned(write_recovery_arr(num_cmd_sent_rtl_int), int_to_bit_num(MAX_MRS_FIELD)));
+						vec2 := std_logic_vector(to_unsigned(cas_latency_arr(num_cmd_sent_rtl_int), int_to_bit_num(MAX_MRS_FIELD)));
+						if (bl4_arr(num_cmd_sent_rtl_int)) then
+							vec3 := std_logic_vector(to_unsigned(2, int_to_bit_num(MAX_MRS_FIELD)));
+						else
+							vec3 := std_logic_vector(to_unsigned(3, int_to_bit_num(MAX_MRS_FIELD)));
+						end if;
+
+						MRSCmd_tb <= (12 => bool_to_std_logic(power_down_exit_arr(num_cmd_sent_rtl_int)), 11 => vec1(2), 10 => vec1(1), 9 => vec1(0), 8 => bool_to_std_logic(dll_rst_arr(num_cmd_sent_rtl_int)), 6 => vec2(2), 5 => vec1(1), 4 => vec1(0), 3 => bool_to_std_logic(burst_type_arr(num_cmd_sent_rtl_int)), 1 => vec3(1), 0 => vec3(0),  others => '0');
 
 					elsif (cmd_arr(num_cmd_sent_rtl_int) = to_integer(unsigned(CMD_EXT_MODE_REG_SET_1))) then
 
-						MRSCmd_tb <= (12 => bool_to_std_logic(out_buffer_en_arr(num_cmd_sent_rtl_int)), 11 => bool_to_std_logic(rd_data_strb_arr(num_cmd_sent_rtl_int)),  10 => bool_to_std_logic(data_strb_arr(num_cmd_sent_rtl_int)), 5 downto 3 => std_logic_vector(to_unsigned(additive_latency_arr(num_cmd_sent_rtl_int), int_to_bit_num(AL_MAX_VALUE))), 1 => bool_to_std_logic(driver_strength_arr(num_cmd_sent_rtl_int)),  0 => bool_to_std_logic(dll_enable_arr(num_cmd_sent_rtl_int)), others => '0');
+						odt_arr_exp(num_cmd_sent_rtl_int) := odt_arr(num_cmd_sent_rtl_int);
+						cas_latency_arr_exp(num_cmd_sent_rtl_int) := 0;
+						additive_latency_arr_exp(num_cmd_sent_rtl_int) := additive_latency_arr(num_cmd_sent_rtl_int);
+						write_recovery_arr_exp(num_cmd_sent_rtl_int) := 0;
+
+						bl4_arr_exp(num_cmd_sent_rtl_int) := false;
+						data_strb_arr_exp(num_cmd_sent_rtl_int) := data_strb_arr(num_cmd_sent_rtl_int);
+						rd_data_strb_arr_exp(num_cmd_sent_rtl_int) := rd_data_strb_arr(num_cmd_sent_rtl_int);
+						high_temp_arr_exp(num_cmd_sent_rtl_int) := false;
+						dll_rst_arr_exp(num_cmd_sent_rtl_int) := false;
+						burst_type_arr_exp(num_cmd_sent_rtl_int) := false;
+						power_down_exit_arr_exp(num_cmd_sent_rtl_int) := false;
+						out_buffer_en_arr_exp(num_cmd_sent_rtl_int) := out_buffer_en_arr(num_cmd_sent_rtl_int);
+						dll_enable_arr_exp(num_cmd_sent_rtl_int) := dll_enable_arr(num_cmd_sent_rtl_int);
+						driving_strength_arr_exp(num_cmd_sent_rtl_int) := driving_strength_arr(num_cmd_sent_rtl_int);
+
+						vec1 := std_logic_vector(to_unsigned(odt_arr(num_cmd_sent_rtl_int), int_to_bit_num(MAX_MRS_FIELD)));
+						vec2 := std_logic_vector(to_unsigned(additive_latency_arr(num_cmd_sent_rtl_int), int_to_bit_num(MAX_MRS_FIELD)));
+
+						MRSCmd_tb <= (12 => bool_to_std_logic(out_buffer_en_arr(num_cmd_sent_rtl_int)), 11 => bool_to_std_logic(rd_data_strb_arr(num_cmd_sent_rtl_int)),  10 => bool_to_std_logic(data_strb_arr(num_cmd_sent_rtl_int)), 6 => vec1(1), 5 => vec2(2), 4 => vec2(1), 3 => vec2(0), 2 => vec1(0), 1 => bool_to_std_logic(driver_strength_arr(num_cmd_sent_rtl_int)),  0 => bool_to_std_logic(dll_enable_arr(num_cmd_sent_rtl_int)), others => '0');
+
+					elsif (cmd_arr(num_cmd_sent_rtl_int) = to_integer(unsigned(CMD_EXT_MODE_REG_SET_2))) then
+
+						odt_arr_exp(num_cmd_sent_rtl_int) := 0;
+						cas_latency_arr_exp(num_cmd_sent_rtl_int) := 0;
+						additive_latency_arr_exp(num_cmd_sent_rtl_int) := 0;
+						write_recovery_arr_exp(num_cmd_sent_rtl_int) := 0;
+
+						bl4_arr_exp(num_cmd_sent_rtl_int) := false;
+						data_strb_arr_exp(num_cmd_sent_rtl_int) := false;
+						rd_data_strb_arr_exp(num_cmd_sent_rtl_int) := false;
+						high_temp_arr_exp(num_cmd_sent_rtl_int) := high_temp_arr(num_cmd_sent_rtl_int);
+						dll_rst_arr_exp(num_cmd_sent_rtl_int) := false;
+						burst_type_arr_exp(num_cmd_sent_rtl_int) := false;
+						power_down_exit_arr_exp(num_cmd_sent_rtl_int) := false;
+						out_buffer_en_arr_exp(num_cmd_sent_rtl_int) := false;
+						dll_enable_arr_exp(num_cmd_sent_rtl_int) := false;
+						driving_strength_arr_exp(num_cmd_sent_rtl_int) := false;
+
+						MRSCmd_tb <= (7 => bool_to_std_logic(high_temp_arr(num_cmd_sent_rtl_int)), others => '0');
+
+					else -- EMRS3 or any other command
+
+						odt_arr_exp(num_cmd_sent_rtl_int) := 0;
+						cas_latency_arr_exp(num_cmd_sent_rtl_int) := 0;
+						additive_latency_arr_exp(num_cmd_sent_rtl_int) := 0;
+						write_recovery_arr_exp(num_cmd_sent_rtl_int) := 0;
+
+						bl4_arr_exp(num_cmd_sent_rtl_int) := false;
+						data_strb_arr_exp(num_cmd_sent_rtl_int) := false;
+						rd_data_strb_arr_exp(num_cmd_sent_rtl_int) := false;
+						high_temp_arr_exp(num_cmd_sent_rtl_int) := false;
+						dll_rst_arr_exp(num_cmd_sent_rtl_int) := false;
+						burst_type_arr_exp(num_cmd_sent_rtl_int) := false;
+						power_down_exit_arr_exp(num_cmd_sent_rtl_int) := false;
+						out_buffer_en_arr_exp(num_cmd_sent_rtl_int) := false;
+						dll_enable_arr_exp(num_cmd_sent_rtl_int) := false;
+						driving_strength_arr_exp(num_cmd_sent_rtl_int) := false;
+
+						MRSCmd_tb <= (others => '0');
+
+					end if;
+
+
