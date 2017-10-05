@@ -11,7 +11,7 @@ package ddr2_mrs_max_pkg is
 
 	-- MRS configuration
 	constant ODT_MAX_VALUE			: integer := max_int(to_integer(unsigned(ODT_50OHM)), max_int(to_integer(unsigned(ODT_DISABLED)), max_int(to_integer(unsigned(ODT_75OHM)), to_integer(unsigned(ODT_150OHM)))));
-	constant nDQS_NAX			: integer := max_std_logic(nDQS_ENABLE, nDQS_DISABLE);
+	constant nDQS_NAX_VALUE			: integer := max_std_logic(nDQS_ENABLE, nDQS_DISABLE);
 	constant RDQS_MAX_VALUE			: integer := max_std_logic(RDQS_ENABLE, RDQS_DISABLE);
 	constant HITEMP_REF_MAX_VALUE		: integer := max_std_logic(HITEMP_REF_DISABLE, HITEMP_REF_ENABLE);
 	constant CAS_LATENCY_MAX_VALUE		: integer := max_int(to_integer(unsigned(CAS6)), max_int(to_integer(unsigned(CAS5)), max_int(to_integer(unsigned(CAS4)), to_integer(unsigned(CAS3)))));
@@ -23,6 +23,8 @@ package ddr2_mrs_max_pkg is
 	constant nDLL_MAX_VALUE			: integer := max_std_logic(nDLL_ENABLE, nDLL_DISABLE);
 	constant DRIVING_STRENGTH_MAX_VALUE	: integer := max_std_logic(WEAK, NORMAL);
 	constant WRITE_REC_MAX_VALUE		: integer := max_int(to_integer(unsigned(WRITE_REC_800)), max_int(to_integer(unsigned(WRITE_REC_667)), max_int(to_integer(unsigned(WRITE_REC_533)), max_int(to_integer(unsigned(WRITE_REC_400_3)), to_integer(unsigned(WRITE_REC_400_2))))));
+
+	constant MAX_MRS_FIELD			: integer := max_int(ODT_MAX_VALUE, max_int(nDQS_MAX, max_int(RDQS_MAX_VALUE, max_int(HITEMP_REF_MAX_VALUE, max_int(CAS_LATENCY_MAX_VALUE, max_int(BURST_TYPE_MAX_VALUE, max_int(BURST_LENGTH_MAX_VALUE, max_int(POWER_DOWN_EXIT_MAX_VALUE, max_int(AL_MAX_VALUE, max_int(OUT_BUFFER_MAX_VALUE, max_value(nDLL_MAX_VALUE, max_value(DRIVING_STRENGTH_MAX_VALUE, WRITE_REC_MAX_VALUE))))))))))));
 
 	-- Derived parameters
 	constant READ_LATENCY_MAX_VALUE		: positive := CAS_LATENCY_MAX_VALUE + AL_MAX_VALUE;
