@@ -254,11 +254,96 @@ begin
 
 				if (cmd_sent = true) then
 
+					if (num_cmd_stored_rtl_int < num_cmd_exp) then
+
+						if (cmd_arr(num_cmd_stored_rtl_int) = to_integer(unsigned(CMD_MODE_REG_SET))) then
+
+							odt_arr_rtl(num_cmd_stored_rtl_int) := 0;
+							cas_latency_arr_rtl(num_cmd_stored_rtl_int) := to_integer(unsigned(DDR2CASLatnecy_tb));
+							additive_latency_arr_rtl(num_cmd_stored_rtl_int) := 0;
+							write_recovery_arr_rtl(num_cmd_stored_rtl_int) := to_integer(unsigned(DDR2WriteRecovery_tb));
+
+							if (to_integer(unsigned(DDR2BurstLength_tb)) == 2) then
+								bl4_arr_rtl(num_cmd_stored_rtl_int) := true;
+							else
+								bl4_arr_rtl(num_cmd_stored_rtl_int) := false;
+							end if;
+							data_strb_arr_rtl(num_cmd_stored_rtl_int) := false;
+							rd_data_strb_arr_rtl(num_cmd_stored_rtl_int) := false;
+							high_temp_arr_rtl(num_cmd_stored_rtl_int) := false;
+							dll_rst_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2DLLReset_tb);
+							burst_type_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2BurstType_tb);
+							power_down_exit_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2PowerDownExitMode);
+							out_buffer_en_arr_rtl(num_cmd_stored_rtl_int) := false;
+							dll_enable_arr_rtl(num_cmd_stored_rtl_int) := false;
+							driving_strength_arr_rtl(num_cmd_stored_rtl_int) := false;
+
+						elsif (cmd_arr(num_cmd_stored_rtl_int) = to_integer(unsigned(CMD_EXT_MODE_REG_SET_1))) then
+
+							odt_arr_rtl(num_cmd_stored_rtl_int) := to_integer(unsigned(DDR2ODT_tb));
+							cas_latency_arr_rtl(num_cmd_stored_rtl_int) := 0;
+							additive_latency_arr_rtl(num_cmd_stored_rtl_int) := to_integer(unsigned(DDR2AdditiveLatnecy_tb));
+							write_recovery_arr_rtl(num_cmd_stored_rtl_int) := 0;
+
+							bl4_arr_rtl(num_cmd_stored_rtl_int) := false;
+							data_strb_arr_rtl(num_cmd_stored_rtl_int) :=  std_logic_to_bool(DDR2DataStrobesEnable_tb);
+							rd_data_strb_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2ReadDataStrobesEnable_tb);
+							high_temp_arr_rtl(num_cmd_stored_rtl_int) := false;
+							dll_rst_arr_rtl(num_cmd_stored_rtl_int) := false;
+							burst_type_arr_rtl(num_cmd_stored_rtl_int) := false;
+							power_down_exit_arr_rtl(num_cmd_stored_rtl_int) := false;
+							out_buffer_en_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2OutBufferEnable_tb);
+							dll_enable_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2DLLEnable_tb);
+							driving_strength_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2DrivingStrength_tb);
+
+						elsif (cmd_arr(num_cmd_stored_rtl_int) = to_integer(unsigned(CMD_EXT_MODE_REG_SET_2))) then
+
+							odt_arr_rtl(num_cmd_stored_rtl_int) := 0;
+							cas_latency_arr_rtl(num_cmd_stored_rtl_int) := 0;
+							additive_latency_arr_rtl(num_cmd_stored_rtl_int) := 0;
+							write_recovery_arr_rtl(num_cmd_stored_rtl_int) := 0;
+
+							bl4_arr_rtl(num_cmd_stored_rtl_int) := false;
+							data_strb_arr_rtl(num_cmd_stored_rtl_int) := false;
+							rd_data_strb_arr_rtl(num_cmd_stored_rtl_int) := false;
+							high_temp_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2HighTemperature_tb);;
+							dll_rst_arr_rtl(num_cmd_stored_rtl_int) := false;
+							burst_type_arr_rtl(num_cmd_stored_rtl_int) := false;
+							power_down_exit_arr_rtl(num_cmd_stored_rtl_int) := false;
+							out_buffer_en_arr_rtl(num_cmd_stored_rtl_int) := false;
+							dll_enable_arr_rtl(num_cmd_stored_rtl_int) := false;
+							driving_strength_arr_rtl(num_cmd_stored_rtl_int) := false;
+
+						else -- EMRS3 or any other command
+
+							odt_arr_rtl(num_cmd_stored_rtl_int) := 0;
+							cas_latency_arr_rtl(num_cmd_stored_rtl_int) := 0;
+							additive_latency_arr_rtl(num_cmd_stored_rtl_int) := 0;
+							write_recovery_arr_rtl(num_cmd_stored_rtl_int) := 0;
+
+							bl4_arr_rtl(num_cmd_stored_rtl_int) := false;
+							data_strb_arr_rtl(num_cmd_stored_rtl_int) := false;
+							rd_data_strb_arr_rtl(num_cmd_stored_rtl_int) := false;
+							high_temp_arr_rtl(num_cmd_stored_rtl_int) := false;
+							dll_rst_arr_rtl(num_cmd_stored_rtl_int) := false;
+							burst_type_arr_rtl(num_cmd_stored_rtl_int) := false;
+							power_down_exit_arr_rtl(num_cmd_stored_rtl_int) := false;
+							out_buffer_en_arr_rtl(num_cmd_stored_rtl_int) := false;
+							dll_enable_arr_rtl(num_cmd_stored_rtl_int) := false;
+							driving_strength_arr_rtl(num_cmd_stored_rtl_int) := false;
+
+						end if;
+
+						num_cmd_stored_rtl_int := num_cmd_stored_rtl_int + 1;
+
+					end if;
+
 				end if;
 
 				if (num_cmd_sent_rtl_int < num_cmd_exp) then
 
 					Cmd_tb <= std_logic_vector(to_unsigned(cmd_arr(num_cmd_sent_rtl_int), MEM_CMD_L));
+					cmd_sent := true;
 
 					if (cmd_arr(num_cmd_sent_rtl_int) = to_integer(unsigned(CMD_MODE_REG_SET))) then
 
@@ -267,7 +352,7 @@ begin
 						additive_latency_arr_exp(num_cmd_sent_rtl_int) := 0;
 						write_recovery_arr_exp(num_cmd_sent_rtl_int) := write_recovery_arr(num_cmd_sent_rtl_int);
 
-						bl4_arr_exp(num_cmd_sent_rtl_int) := bl4_arr_exp(num_cmd_sent_rtl_int);
+						bl4_arr_exp(num_cmd_sent_rtl_int) := bl4_arr(num_cmd_sent_rtl_int);
 						data_strb_arr_exp(num_cmd_sent_rtl_int) := false;
 						rd_data_strb_arr_exp(num_cmd_sent_rtl_int) := false;
 						high_temp_arr_exp(num_cmd_sent_rtl_int) := false;
@@ -280,7 +365,7 @@ begin
 
 						vec1 := std_logic_vector(to_unsigned(write_recovery_arr(num_cmd_sent_rtl_int), int_to_bit_num(MAX_MRS_FIELD)));
 						vec2 := std_logic_vector(to_unsigned(cas_latency_arr(num_cmd_sent_rtl_int), int_to_bit_num(MAX_MRS_FIELD)));
-						if (bl4_arr(num_cmd_sent_rtl_int)) then
+						if (bl4_arr(num_cmd_sent_rtl_int) = true) then
 							vec3 := std_logic_vector(to_unsigned(2, int_to_bit_num(MAX_MRS_FIELD)));
 						else
 							vec3 := std_logic_vector(to_unsigned(3, int_to_bit_num(MAX_MRS_FIELD)));
@@ -353,4 +438,183 @@ begin
 
 					end if;
 
+					num_cmd_sent_rtl_int := num_cmd_sent_rtl_int + 1;
 
+				end if;
+
+			end loop;
+
+		end procedure run_phy_regs;
+
+
+		procedure verify(variable num_cmd_exp, num_cmd_rtl : in integer; variable cmd_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable odt_arr_exp, cas_latency_arr_exp, additive_latency_arr_exp, write_recovery_arr_exp : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4_arr_exp, data_strb_arr_exp, rd_data_strb_arr_exp, high_temp_arr_exp, dll_rst_arr_exp, burst_type_arr_exp, power_down_exit_arr_exp, out_buffer_en_arr_exp, dll_enable_arr_exp, driving_strength_arr_exp : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable odt_arr_rtl, cas_latency_arr_rtl, additive_latency_arr_rtl, write_recovery_arr_rtl : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable bl4_arr_rtl, data_strb_arr_rtl, rd_data_strb_arr_rtl, high_temp_arr_rtl, dll_rst_arr_rtl, burst_type_arr_rtl, power_down_exit_arr_rtl, out_buffer_en_arr_rtl, dll_enable_arr_rtl, driving_strength_arr_rtl : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
+
+			variable match_odt		: boolean;
+			variable match_cas_latency	: boolean;
+			variable match_additive_latency	: boolean;
+			variable match_write_recovery	: boolean;
+			variable match_bl4		: boolean;
+			variable match_data_strb	: boolean;
+			variable match_rd_data_strb	: boolean;
+			variable match_high_temp	: boolean;
+			variable match_dll_rst		: boolean;
+			variable match_dll_enable	: boolean;
+			variable match_power_down_exit	: boolean;
+			variable match_out_buffer_en	: boolean;
+			variable match_driving_strength	: boolean;
+
+		begin
+
+			write(file_line, string'( "PHY Registers: Number of commands: " & integer'image(num_cmd_exp)));
+			writeline(file_pointer, file_line);
+
+			match_odt := compare_int_arr(odt_arr_exp, odt_arr_rtl, num_cmd_exp);
+			match_cas_latency := compare_int_arr(cas_latency_arr_exp, cas_latency_arr_rtl, num_cmd_exp);
+			match_additive_latency := compare_int_arr(additive_latency_arr_exp, additive_latency_arr_rtl, num_cmd_exp);
+			match_write_recovery := compare_int_arr(write_recovery_arr_exp, write_recovery_arr_rtl, num_cmd_exp);
+			match_bl4 := compare_bool_arr(bl4_arr_exp, bl4_arr_rtl, num_cmd_exp);
+			match_data_strb := compare_bool_arr(data_strb_arr_exp, data_strb_arr_rtl, num_cmd_exp);
+			match_rd_data_strb := compare_bool_arr(rd_data_strb_arr_exp, rd_data_strb_arr_rtl, num_cmd_exp);
+			match_high_temp := compare_bool_arr(high_temp_arr_exp, high_temp_arr_rtl, num_cmd_exp);
+			match_dll_rst := compare_bool_arr(dll_rst_arr_exp, dll_rst_arr_rtl, num_cmd_exp);
+			match_dll_enable := compare_bool_arr(dll_enable_arr_exp, dll_enable_arr_rtl, num_cmd_exp);
+			match_power_down_exit := compare_bool_arr(power_down_exit_arr_exp, power_down_exit_arr_rtl, num_cmd_exp);
+			match_out_buffer_en := compare_bool_arr(out_buffer_en_arr_exp, out_buffer_en_arr_rtl, num_cmd_exp);
+			match_driving_strength := compare_bool_arr(driving_strength_arr_exp, driving_strength_arr_rtl, num_cmd_exp);
+
+			if((match_odt = true) and (match_cas_latency = true) and (match_additive_latency = true) and (match_write_recovery = true) and (match_bl4 = true) and (match_data_strb = true) and (match_rd_data_strb = true) and (match_high_temp = true) and (match_dll_rst = true) and (match_dll_enable = true) and (match_power_down_exit = true) and (match_out_buffer_en = true) and (match_driving_strength = true) and (num_cmd_exp = num_cmd_rtl)) then
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " details: Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L)))));
+					writeline(file_pointer, file_line);
+					if (cmd_arr(i) = to_integer(unsigned(CMD_MODE_REG_SET))) then
+						write(file_line, string'( "PHY Registers: CAS Latency" & integer'image(cas_latency_arr_exp(i)) & " Write Recovery " & integer'image(write_recovery_arr_exp(i)) & " BL4 " & bool_to_string(bl4_arr_exp(i)) & " DLL Reset " & bool_to_string(dll_rst_arr_exp(i)) & " Burst Type " & bool_to_string(burst_type_arr_exp(i)) & " Power Down Exit " & bool_to_string(power_down_exit_arr_exp(i))));
+					elsif (cmd_arr(num_cmd_sent_rtl_int) = to_integer(unsigned(CMD_EXT_MODE_REG_SET_1))) then
+						write(file_line, string'( "PHY Registers: ODT" & integer'image(odt_arr_exp(i)) & " Additive Latency " & integer'image(additive_latency_arr_exp(i)) & " Data Strobes " & bool_to_string(data_strb_arr_exp(i)) & " Read Data Strobes " & bool_to_string(rd_data_strb_arr_exp(i)) & " Output Buffer Enable " & bool_to_string(out_buffer_en_arr_exp(i)) & " DLL Enable " & bool_to_string(dll_enable_arr_exp(i)) & " Driving Strength " & bool_to_string(driving_strength_arr_exp(i))));
+					elsif (cmd_arr(num_cmd_sent_rtl_int) = to_integer(unsigned(CMD_EXT_MODE_REG_SET_2))) then
+						write(file_line, string'( "PHY Registers: High Temperature Auto-Refresh Time " & bool_to_string(high_temp_arr_exp(i))));
+					else -- EMRS3 or any other command
+						write(file_line, string'( "PHY Registers: No MRS configuration"));
+					end if;
+					writeline(file_pointer, file_line);
+				end loop;
+				write(file_line, string'( "PHY Registers: PASS"));
+				writeline(file_pointer, file_line);
+				pass := 1;
+			elsif (match_odt = false) then
+				write(file_line, string'( "PHY Registers: FAIL (ODT Resistance mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " ODT resistance: exp " & integer'image(odt_arr_exp(i)) & " rtl " & integer'image(odt_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_cas_latency = false) then
+				write(file_line, string'( "PHY Registers: FAIL (CAS Latency mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " CAS Latency: exp " & integer'image(cas_latency_arr_exp(i)) & " rtl " & integer'image(cas_latency_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_additive_latency = false) then
+				write(file_line, string'( "PHY Registers: FAIL (Additive Latency mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " Additive Latency: exp " & integer'image(additive_latency_arr_exp(i)) & " rtl " & integer'image(additive_latency_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_write_recovery = false) then
+				write(file_line, string'( "PHY Registers: FAIL (Write Recovery mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " Write Recovery: exp " & integer'image(write_recovery_arr_exp(i)) & " rtl " & integer'image(write_recovery_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_bl4 = false) then
+				write(file_line, string'( "PHY Registers: FAIL (Burst Length mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " BL4: exp " & bool_to_string(bl4_arr_exp(i)) & " rtl " & bool_to_string(bl4_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_burst_type = false) then
+				write(file_line, string'( "PHY Registers: FAIL (Burst Type mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " Burst Type: exp " & bool_to_string(burst_type_arr_exp(i)) & " rtl " & bool_to_string(burst_type_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_data_strb = false) then
+				write(file_line, string'( "PHY Registers: FAIL (Data Strobe Enable mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " Data Strobe Enable: exp " & bool_to_string(data_strb_arr_exp(i)) & " rtl " & bool_to_string(data_strb_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_rd_data_strb = false) then
+				write(file_line, string'( "PHY Registers: FAIL (Read Data Strobe Enable mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " Read Data Strobe Enable: exp " & bool_to_string(rd_data_strb_arr_exp(i)) & " rtl " & bool_to_string(rd_data_strb_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_dll_rst = false) then
+				write(file_line, string'( "PHY Registers: FAIL (DLL Reset mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " DLL Reset: exp " & bool_to_string(dll_rst_arr_exp(i)) & " rtl " & bool_to_string(dll_rst_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_dll_enable = false) then
+				write(file_line, string'( "PHY Registers: FAIL (DLL Enable mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " DLL Enable: exp " & bool_to_string(dll_enable_arr_exp(i)) & " rtl " & bool_to_string(dll_enable_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_high_temp = false) then
+				write(file_line, string'( "PHY Registers: FAIL (High Temperature Auto-Refresh Time mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " High Temperature Auto-Refresh Time: exp " & bool_to_string(high_temp_arr_exp(i)) & " rtl " & bool_to_string(high_temp_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_out_buffer_en = false) then
+				write(file_line, string'( "PHY Registers: FAIL (Output Buffer Enable mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " Output Buffer Enable: exp " & bool_to_string(out_buffer_en_arr_exp(i)) & " rtl " & bool_to_string(out_buffer_en_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_driving_strength = false) then
+				write(file_line, string'( "PHY Registers: FAIL (Driving Strength mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " Driving Strength: exp " & bool_to_string(driving_strength_arr_exp(i)) & " rtl " & bool_to_string(driving_strength_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_power_down_exit = false) then
+				write(file_line, string'( "PHY Registers: FAIL (Power Down Exit mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (num_cmd_exp - 1) loop
+					write(file_line, string'( "PHY Registers: Command #" & integer'image(i) & " Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(cmd_arr(i), MEM_CMD_L))) & " Power Down Exit: exp " & bool_to_string(power_down_exit_arr_exp(i)) & " rtl " & bool_to_string(power_down_exit_arr_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			else
+				write(file_line, string'( "PHY Registers: FAIL (Unknown error)"));
+				writeline(file_pointer, file_line);
+				pass := 0;
+			end if;
+		end procedure verify;
