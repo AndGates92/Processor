@@ -20,8 +20,8 @@ package ddr2_phy_regs_pkg is
 		clk		: in std_logic;
 
 		-- Command Decoder
-		MRSCmd		: out std_logic_vector(REG_L - 1 downto 0);
-		Cmd		: out std_logic_vector(MEM_CMD_L - 1 downto 0);
+		MRSCmd		: in std_logic_vector(REG_L - 1 downto 0);
+		Cmd		: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 		-- Register Values
 		DDR2ODT				: out std_logic_vector(1 downto 0);
