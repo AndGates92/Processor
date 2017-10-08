@@ -18,8 +18,8 @@ port (
 	clk		: in std_logic;
 
 	-- Command Decoder
-	MRSCmd		: out std_logic_vector(REG_L - 1 downto 0);
-	Cmd		: out std_logic_vector(MEM_CMD_L - 1 downto 0);
+	MRSCmd		: in std_logic_vector(REG_L - 1 downto 0);
+	Cmd		: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 	-- Register Values
 	DDR2ODT				: out std_logic_vector(1 downto 0);
@@ -83,23 +83,23 @@ begin
 	DDR2PhyRegsN(3) <= MRSCmd when (Cmd = CMD_EXT_MODE_REG_SET_3) else DDR2PhyRegsC(3);
 
 	-- MRS Breakdown
-	DDR2BurstLength <= DDR2PhyRegs(0)(2 downto 0);
-	DDR2BurstType <= DDR2PhyRegs(0)(3);
-	DDR2CASLatency <= DDR2PhyRegs(0)(6 downto 4);
-	DDR2DLLReset <= DDR2PhyRegs(0)(8);
-	DDR2WriteRecovery <= DDR2PhyRegs(0)(11 downto 9);
-	DDR2PowerDownExitMode <= DDR2PhyRegs(0)(12);
+	DDR2BurstLength <= DDR2PhyRegsC(0)(2 downto 0);
+	DDR2BurstType <= DDR2PhyRegsC(0)(3);
+	DDR2CASLatency <= DDR2PhyRegsC(0)(6 downto 4);
+	DDR2DLLReset <= DDR2PhyRegsC(0)(8);
+	DDR2WriteRecovery <= DDR2PhyRegsC(0)(11 downto 9);
+	DDR2PowerDownExitMode <= DDR2PhyRegsC(0)(12);
 
 	-- EMRS1 Breakdown
-	DDR2DLLEnable <= DDR2PhyRegs(1)(0);
-	DDR2DriverStrengthControl <= DDR2PhyRegs(1)(1);
-	DDR2ODT <= DDR2PhyRegs(1)(6) & DDR2PhyRegs(1)(2);
-	DDR2AdditiveLatency <= DDR2PhyRegs(1)(5 downto 3);
-	DDR2DataStorbesEnable <= DDR2PhyRegs(1)(10);
-	DDR2ReadDataStorbesEnable <= DDR2PhyRegs(1)(11);
-	DDR2OutBufferEnable <= DDR2PhyRegs(1)(12);
+	DDR2DLLEnable <= DDR2PhyRegsC(1)(0);
+	DDR2DrivingStrength <= DDR2PhyRegsC(1)(1);
+	DDR2ODT <= DDR2PhyRegsC(1)(6) & DDR2PhyRegsC(1)(2);
+	DDR2AdditiveLatency <= DDR2PhyRegsC(1)(5 downto 3);
+	DDR2DataStrobesEnable <= DDR2PhyRegsC(1)(10);
+	DDR2ReadDataStrobesEnable <= DDR2PhyRegsC(1)(11);
+	DDR2OutBufferEnable <= DDR2PhyRegsC(1)(12);
 
 	-- EMRS2 Breakdown
-	DDR2HighTemperature <= DDR2PhyRegs(2)(7);
+	DDR2HighTemperature <= DDR2PhyRegsC(2)(7);
 
 end rtl;
