@@ -75,6 +75,7 @@ all_ddr2:
 	make ddr2_phy_mrs_ctrl_all
 	make ddr2_phy_cmd_dec_all
 	make ddr2_phy_arbiter_all
+	make ddr2_phy_regs_all
 
 clean:
 	rm -rf ${LOG_FILES} ${SUMMARY_FILE} ${WORK_DIR}/*
@@ -129,6 +130,8 @@ ddr2_rtl_libraries:
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_odt_ctrl_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_mrs_ctrl_pkg.vhd"
 	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_mrs_ctrl_pkg.vhd
+	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_regs_pkg.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_regs_pkg.vhd
 
 cpu_rtl_libraries:
 	@echo "Analysing ${CPU_RTL_PKG_DIR}/proc_pkg.vhd"
@@ -726,3 +729,24 @@ ddr2_phy_mrs_ctrl_all:
 	make ddr2_libraries
 	make ddr2_phy_mrs_ctrl
 	make simulate_ddr2_phy_mrs_ctrl
+
+ddr2_phy_regs: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_regs_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+
+	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_regs.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_regs.vhd
+	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_regs_tb.vhd"
+	${GHDL} -a ${GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_phy_regs_tb.vhd
+	@echo "Elaborating ddr2_phy_regs_tb"
+	${GHDL} -e ${GHDL_ARGS} ddr2_phy_regs_tb
+	rm -r e~ddr2_phy_regs_tb.o
+	mv ddr2_phy_regs_tb ${WORK_DIR}
+
+simulate_ddr2_phy_regs: ${WORK_DIR}/ddr2_pkg_tb.o ${WORK_DIR}/ddr2_log_pkg.o ${WORK_DIR}/functions_pkg.o ${WORK_DIR}/functions_tb_pkg.o ${WORK_DIR}/shared_tb_pkg.o ${WORK_DIR}/ddr2_define_pkg.o ${WORK_DIR}/ddr2_phy_pkg.o ${WORK_DIR}/ddr2_mrs_pkg.o ${WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${WORK_DIR}/ddr2_phy_regs.o  ${WORK_DIR}/ddr2_phy_regs_pkg.o ${WORK_DIR}/ddr2_phy_regs_tb.o
+	cd ${WORK_DIR} && ${GHDL} -r ddr2_phy_regs_tb ${GHDL_RUN_ARGS}ddr2_phy_regs.vcd
+
+ddr2_phy_regs_all:
+	make work_dir
+	make common_libraries
+	make ddr2_libraries
+	make ddr2_phy_regs
+	make simulate_ddr2_phy_regs
