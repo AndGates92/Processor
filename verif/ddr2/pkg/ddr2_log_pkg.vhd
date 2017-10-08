@@ -7,6 +7,7 @@ library work;
 
 package ddr2_log_pkg is 
 
+	constant ddr2_phy_regs_log_file		: string := "ddr2_phy_registers.log";
 	constant ddr2_phy_arbiter_log_file	: string := "ddr2_phy_arbiter.log";
 	constant ddr2_phy_bank_ctrl_log_file	: string := "ddr2_phy_bank_ctrl.log";
 	constant ddr2_phy_col_ctrl_log_file	: string := "ddr2_phy_col_ctrl.log";
