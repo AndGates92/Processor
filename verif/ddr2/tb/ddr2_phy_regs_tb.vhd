@@ -131,7 +131,7 @@ begin
 					cmd(i) := to_integer(unsigned(CMD_EXT_MODE_REG_SET_3));
 				else
 					uniform(seed1, seed2, rand_val);
-					cmd(i) := integer(rand_val*real(2.0**(real(MEM_CMD_L))));
+					cmd(i) := integer(rand_val*real(2.0**(real(MEM_CMD_L)) - 1.0));
 				end if;
 				uniform(seed1, seed2, rand_val);
 				odt(i) := round(rand_val*real(ODT_MAX_VALUE));
@@ -292,15 +292,15 @@ begin
 							write_recovery_arr_rtl(num_cmd_stored_rtl_int) := 0;
 
 							bl4_arr_rtl(num_cmd_stored_rtl_int) := false;
-							data_strb_arr_rtl(num_cmd_stored_rtl_int) :=  std_logic_to_bool(DDR2DataStrobesEnable_tb);
+							data_strb_arr_rtl(num_cmd_stored_rtl_int) := not std_logic_to_bool(DDR2DataStrobesEnable_tb);
 							rd_data_strb_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2ReadDataStrobesEnable_tb);
 							high_temp_arr_rtl(num_cmd_stored_rtl_int) := false;
 							dll_rst_arr_rtl(num_cmd_stored_rtl_int) := false;
 							burst_type_arr_rtl(num_cmd_stored_rtl_int) := false;
 							power_down_exit_arr_rtl(num_cmd_stored_rtl_int) := false;
-							out_buffer_en_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2OutBufferEnable_tb);
-							dll_enable_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2DLLEnable_tb);
-							driving_strength_arr_rtl(num_cmd_stored_rtl_int) := std_logic_to_bool(DDR2DrivingStrength_tb);
+							out_buffer_en_arr_rtl(num_cmd_stored_rtl_int) := not std_logic_to_bool(DDR2OutBufferEnable_tb);
+							dll_enable_arr_rtl(num_cmd_stored_rtl_int) := not std_logic_to_bool(DDR2DLLEnable_tb);
+							driving_strength_arr_rtl(num_cmd_stored_rtl_int) := not std_logic_to_bool(DDR2DrivingStrength_tb);
 
 						elsif (cmd_arr(num_cmd_stored_rtl_int) = to_integer(unsigned(CMD_EXT_MODE_REG_SET_2))) then
 
@@ -377,7 +377,7 @@ begin
 							vec3 := std_logic_vector(to_unsigned(3, int_to_bit_num(MAX_MRS_FIELD)));
 						end if;
 
-						MRSCmd_tb <= (12 => bool_to_std_logic(power_down_exit_arr(num_cmd_sent_rtl_int)), 11 => vec1(2), 10 => vec1(1), 9 => vec1(0), 8 => bool_to_std_logic(dll_rst_arr(num_cmd_sent_rtl_int)), 6 => vec2(2), 5 => vec1(1), 4 => vec1(0), 3 => bool_to_std_logic(burst_type_arr(num_cmd_sent_rtl_int)), 1 => vec3(1), 0 => vec3(0),  others => '0');
+						MRSCmd_tb <= (12 => bool_to_std_logic(power_down_exit_arr(num_cmd_sent_rtl_int)), 11 => vec1(2), 10 => vec1(1), 9 => vec1(0), 8 => bool_to_std_logic(dll_rst_arr(num_cmd_sent_rtl_int)), 6 => vec2(2), 5 => vec2(1), 4 => vec2(0), 3 => bool_to_std_logic(burst_type_arr(num_cmd_sent_rtl_int)), 1 => vec3(1), 0 => vec3(0),  others => '0');
 
 					elsif (cmd_arr(num_cmd_sent_rtl_int) = to_integer(unsigned(CMD_EXT_MODE_REG_SET_1))) then
 
@@ -450,6 +450,8 @@ begin
 
 			end loop;
 
+			num_cmd_rtl := num_cmd_sent_rtl_int;
+
 		end procedure run_phy_regs;
 
 
@@ -499,7 +501,7 @@ begin
 					if (cmd_arr(i) = to_integer(unsigned(CMD_MODE_REG_SET))) then
 						write(file_line, string'( "PHY Registers: CAS Latency" & integer'image(cas_latency_arr_exp(i)) & " Write Recovery " & integer'image(write_recovery_arr_exp(i)) & " BL4 " & bool_to_str(bl4_arr_exp(i)) & " DLL Reset " & bool_to_str(dll_rst_arr_exp(i)) & " Burst Type " & bool_to_str(burst_type_arr_exp(i)) & " Power Down Exit " & bool_to_str(power_down_exit_arr_exp(i))));
 					elsif (cmd_arr(i) = to_integer(unsigned(CMD_EXT_MODE_REG_SET_1))) then
-						write(file_line, string'( "PHY Registers: ODT" & integer'image(odt_arr_exp(i)) & " Additive Latency " & integer'image(additive_latency_arr_exp(i)) & " Data Strobes " & bool_to_str(data_strb_arr_exp(i)) & " Read Data Strobes " & bool_to_str(rd_data_strb_arr_exp(i)) & " Output Buffer Enable " & bool_to_str(out_buffer_en_arr_exp(i)) & " DLL Enable " & bool_to_str(dll_enable_arr_exp(i)) & " Driving Strength " & bool_to_str(driving_strength_arr_exp(i))));
+						write(file_line, string'( "PHY Registers: ODT" & integer'image(odt_arr_exp(i)) & " Additive Latency " & integer'image(additive_latency_arr_exp(i)) & " Data Strobes " & bool_to_str(not data_strb_arr_exp(i)) & " Read Data Strobes " & bool_to_str(rd_data_strb_arr_exp(i)) & " Output Buffer Enable " & bool_to_str(not out_buffer_en_arr_exp(i)) & " DLL Enable " & bool_to_str(not dll_enable_arr_exp(i)) & " Driving Strength " & bool_to_str(not driving_strength_arr_exp(i))));
 					elsif (cmd_arr(i) = to_integer(unsigned(CMD_EXT_MODE_REG_SET_2))) then
 						write(file_line, string'( "PHY Registers: High Temperature Auto-Refresh Time " & bool_to_str(high_temp_arr_exp(i))));
 					else -- EMRS3 or any other command
