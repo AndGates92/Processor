@@ -1,15 +1,15 @@
 library work;
-use work.bram_pkg.all;
+library common_rtl;
+library common_rtl_pkg;
+use common_rtl_pkg.bram_pkg.all;
 
-configuration config_fifo_1clk of fifo_1clk_tb is
-	for bench
-		for DUT: fifo_1clk
-			use entity work.fifo_1clk(rtl);
-			for rtl
-				for FIFO_RST_I: bram_rst
-					use entity work.bram_rst(rtl_bram_1port);
-				end for;
-			end for;
+configuration config_fifo_1clk of fifo_1clk is
+	for rtl
+		for FIFO_RST_I: bram_rst
+			use entity common_rtl.bram_rst(rtl_bram_1port);
+		end for;
+		for FIFO_2PORT_I: bram_2port
+			use entity common_rtl.bram_2port(rtl);
 		end for;
 	end for;
 end config_fifo_1clk;
