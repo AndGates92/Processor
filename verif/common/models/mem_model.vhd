@@ -3,7 +3,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.mem_model_pkg.all;
+library common_tb_pkg;
+use common_tb_pkg.ddr2_model_pkg.all;
 
 entity mem_model is
 generic (

@@ -3,8 +3,10 @@ use ieee.math_real.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library common_rtl_pkg;
+use common_rtl_pkg.type_conversion_pkg.all;
+
 library work;
-use work.type_conversion_pkg.all;
 use work.functions_tb_pkg.all;
 
 package fifo_pkg_tb is 

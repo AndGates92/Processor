@@ -3,7 +3,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.bram_pkg.all;
+library common_rtl_pkg;
+use common_rtl_pkg.bram_pkg.all;
 
 entity bram_1port is
 generic(

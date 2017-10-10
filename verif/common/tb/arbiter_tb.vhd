@@ -6,12 +6,16 @@ use ieee.math_real.all;
 use std.textio.all;
 
 library work;
-use work.shared_tb_pkg.all;
-use work.common_tb_pkg.all;
-use work.functions_tb_pkg.all;
-use work.common_log_pkg.all;
-use work.arbiter_pkg.all;
-use work.type_conversion_pkg.all;
+
+library common_tb_pkg;
+use common_tb_pkg.shared_tb_pkg.all;
+use common_tb_pkg.common_tb_pkg.all;
+use common_tb_pkg.functions_tb_pkg.all;
+use common_tb_pkg.common_log_pkg.all;
+
+library common_rtl_pkg;
+use common_rtl_pkg.arbiter_pkg.all;
+use common_rtl_pkg.type_conversion_pkg.all;
 
 entity arbiter_tb is
 end entity arbiter_tb;

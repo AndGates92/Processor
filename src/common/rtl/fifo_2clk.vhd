@@ -3,10 +3,10 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.bram_pkg.all;
-use work.functions_pkg.all;
-use work.fifo_2clk_pkg.all;
-use work.functions_pkg.all;
+library common_rtl_pkg;
+use common_rtl_pkg.bram_pkg.all;
+use common_rtl_pkg.functions_pkg.all;
+use common_rtl_pkg.fifo_1clk_pkg.all;
 
 entity fifo_2clk is
 generic (

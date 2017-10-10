@@ -6,13 +6,17 @@ use ieee.math_real.all;
 use std.textio.all;
 
 library work;
-use work.fifo_1clk_pkg.all;
-use work.type_conversion_pkg.all;
-use work.shared_tb_pkg.all;
-use work.common_tb_pkg.all;
-use work.functions_tb_pkg.all;
-use work.common_log_pkg.all;
-use work.fifo_pkg_tb.all;
+
+library common_tb_pkg;
+use common_tb_pkg.shared_tb_pkg.all;
+use common_tb_pkg.common_tb_pkg.all;
+use common_tb_pkg.functions_tb_pkg.all;
+use common_tb_pkg.common_log_pkg.all;
+use common_tb_pkg.fifo_pkg_tb.all;
+
+library common_rtl_pkg;
+use common_rtl_pkg.type_conversion_pkg.all;
+use common_rtl_pkg.fifo_1clk_pkg.all;
 
 entity fifo_1clk_tb is
 end entity fifo_1clk_tb;
