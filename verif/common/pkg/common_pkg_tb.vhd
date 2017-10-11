@@ -5,8 +5,8 @@ use ieee.numeric_std.all;
 
 library work;
 
-package common_tb_pkg is 
+package common_pkg_tb is 
 
 	constant COMMON_CLK_PERIOD	: integer := 10;
 
-end package common_tb_pkg;
+end package common_pkg_tb;

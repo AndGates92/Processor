@@ -4,10 +4,12 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.reg_file_pkg.all;
-use work.proc_pkg.all;
-use work.cpu_tb_pkg.all;
-use work.cpu_log_pkg.all;
+library cpu_rtl_pkg;
+use cpu_rtl_pkg.proc_pkg.all;
+use cpu_rtl_pkg.reg_file_pkg.all;
+library cpu_tb_pkg;
+use cpu_tb_pkg.cpu_pkg_tb.all;
+use cpu_tb_pkg.cpu_log_pkg.all;
 
 package reg_file_pkg_tb is 
 

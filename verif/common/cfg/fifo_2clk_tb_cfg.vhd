@@ -1,7 +1,5 @@
 library work;
 library common_rtl;
-library common_rtl_pkg;
-use common_rtl_pkg.fifo_2clk_pkg.all;
 
 configuration config_fifo_2clk_tb of fifo_2clk_tb is
 	for bench

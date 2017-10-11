@@ -8,9 +8,9 @@ use std.textio.all;
 library work;
 
 library common_tb_pkg;
-use common_tb_pkg.shared_tb_pkg.all;
-use common_tb_pkg.common_tb_pkg.all;
-use common_tb_pkg.functions_tb_pkg.all;
+use common_tb_pkg.shared_pkg_tb.all;
+use common_tb_pkg.common_pkg_tb.all;
+use common_tb_pkg.functions_pkg_tb.all;
 use common_tb_pkg.common_log_pkg.all;
 
 library common_rtl_pkg;

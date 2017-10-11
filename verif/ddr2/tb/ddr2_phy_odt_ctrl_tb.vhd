@@ -7,11 +7,11 @@ use std.textio.all;
 
 library work;
 use work.ddr2_define_pkg.all;
-use work.functions_tb_pkg.all;
+use work.functions_pkg_tb.all;
 use work.ddr2_phy_pkg.all;
 use work.ddr2_phy_odt_ctrl_pkg.all;
 use work.type_conversion_pkg.all;
-use work.shared_tb_pkg.all;
+use work.shared_pkg_tb.all;
 use work.ddr2_pkg_tb.all;
 use work.ddr2_log_pkg.all;
 

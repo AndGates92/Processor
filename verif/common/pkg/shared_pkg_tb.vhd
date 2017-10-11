@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 
 library work;
 
-package shared_tb_pkg is 
+package shared_pkg_tb is 
 
 	constant summary_file			: string := "summary";
 
@@ -20,9 +20,9 @@ package shared_tb_pkg is
 
 	procedure clk_gen (constant PERIOD : in time; constant PHASE : in time; signal stop : in boolean; signal clk : out std_logic);
 
-end package shared_tb_pkg;
+end package shared_pkg_tb;
 
-package body shared_tb_pkg is
+package body shared_pkg_tb is
 
 	procedure clk_gen (constant PERIOD : in time; constant PHASE : in time; signal stop : in boolean; signal clk : out std_logic) is
 		variable clk_tmp	: std_logic;
@@ -41,4 +41,4 @@ package body shared_tb_pkg is
 
 	end procedure clk_gen;
 
-end package body shared_tb_pkg;
+end package body shared_pkg_tb;

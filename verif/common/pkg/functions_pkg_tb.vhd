@@ -4,9 +4,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.shared_tb_pkg.all;
+use work.shared_pkg_tb.all;
 
-package functions_tb_pkg is 
+package functions_pkg_tb is 
 
 	function max_time(time1, time2 : time) return time;
 	function round(val : real) return integer;
@@ -27,9 +27,9 @@ package functions_tb_pkg is
 	function compare_bool_arr_2d(arr1, arr2 : bool_arr_2d; num_el1, num_el2 : integer) return boolean;
 	function compare_bool_arr_3d(arr1, arr2 : bool_arr_3d; num_el1, num_el2, num_el3 : integer) return boolean;
 
-end package functions_tb_pkg;
+end package functions_pkg_tb;
 
-package body functions_tb_pkg is
+package body functions_pkg_tb is
 
 	function max_time(time1, time2 : time) return time is
 		variable max	: time;
@@ -258,4 +258,4 @@ package body functions_tb_pkg is
 
 		return rounded_val;
 	end;
-end package body functions_tb_pkg;
+end package body functions_pkg_tb;

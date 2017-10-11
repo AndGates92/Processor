@@ -6,14 +6,18 @@ use ieee.math_real.all;
 use std.textio.all;
 
 library work;
-use work.icache_pkg.all;
-use work.proc_pkg.all;
-use work.type_conversion_pkg.all;
-use work.cpu_tb_pkg.all;
-use work.cpu_log_pkg.all;
-use work.functions_pkg.all;
-use work.functions_tb_pkg.all;
-use work.shared_tb_pkg.all;
+library common_rtl_pkg;
+use common_rtl_pkg.type_conversion_pkg.all;
+use common_rtl_pkg.functions_pkg.all;
+library common_tb_pkg;
+use common_tb_pkg.functions_pkg_tb.all;
+use common_tb_pkg.shared_pkg_tb.all;
+library cpu_rtl_pkg;
+use cpu_rtl_pkg.icache_pkg.all;
+use cpu_rtl_pkg.proc_pkg.all;
+library cpu_tb_pkg;
+use cpu_tb_pkg.cpu_pkg_tb.all;
+use cpu_tb_pkg.cpu_log_pkg.all;
 
 entity icache_tb is
 end entity icache_tb;

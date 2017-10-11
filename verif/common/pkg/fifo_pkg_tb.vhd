@@ -7,7 +7,7 @@ library common_rtl_pkg;
 use common_rtl_pkg.type_conversion_pkg.all;
 
 library work;
-use work.functions_tb_pkg.all;
+use work.functions_pkg_tb.all;
 
 package fifo_pkg_tb is 
 
