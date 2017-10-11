@@ -3,11 +3,13 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.alu_pkg.all;
-use work.decode_pkg.all;
-use work.ctrl_pkg.all;
-use work.functions_pkg.all;
-use work.proc_pkg.all;
+library common_rtl_pkg;
+use common_rtl_pkg.functions_pkg.all;
+library cpu_rtl_pkg;
+use cpu_rtl_pkg.proc_pkg.all;
+use cpu_rtl_pkg.alu_pkg.all;
+use cpu_rtl_pkg.ctrl_pkg.all;
+use cpu_rtl_pkg.decode_pkg.all;
 
 entity decode_stage is
 generic (

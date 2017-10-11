@@ -1,7 +1,5 @@
 library work;
 library common_rtl;
-library common_rtl_pkg;
-use common_rtl_pkg.bram_pkg.all;
 
 configuration config_fifo_1clk of fifo_1clk is
 	for rtl

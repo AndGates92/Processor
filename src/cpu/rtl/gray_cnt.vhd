@@ -3,7 +3,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.fifo_2clk_pkg.all;
+library common_rtl_pkg;
+use common_rtl_pkg.fifo_2clk_pkg.all;
 
 entity gray_cnt is
 generic (

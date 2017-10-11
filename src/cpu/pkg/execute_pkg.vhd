@@ -4,6 +4,14 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
+library common_rtl_pkg;
+use common_rtl_pkg.functions_pkg.all;
+library cpu_rtl_pkg;
+use cpu_rtl_pkg.proc_pkg.all;
+use cpu_rtl_pkg.ctrl_pkg.all;
+use cpu_rtl_pkg.alu_pkg.all;
+
+
 use work.ctrl_pkg.all;
 use work.alu_pkg.all;
 use work.functions_pkg.all;
