@@ -57,7 +57,7 @@ architecture bench of execute_tb is
 
 begin
 
-	DUT: execute_stage generic map(
+	DUT: execute generic map(
 		OP1_L => OP1_L_TB,
 		OP2_L => OP2_L_TB,
 		BASE_STACK => BASE_STACK_TB,

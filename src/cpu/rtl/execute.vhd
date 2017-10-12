@@ -14,7 +14,7 @@ use cpu_rtl_pkg.reg_file_pkg.all;
 use cpu_rtl_pkg.decode_pkg.all;
 use cpu_rtl_pkg.execute_pkg.all;
 
-entity execute_stage is
+entity execute is
 generic (
 	BASE_STACK	: positive := 16#8000#;
 	OP1_L		: positive := 32;
@@ -44,9 +44,9 @@ port (
 	ResDbg	: out std_logic_vector(OP1_L - 1 downto 0); -- debug signal
 	Done	: out std_logic
 );
-end entity execute_stage;
+end entity execute;
 
-architecture rtl of execute_stage is
+architecture rtl of execute is
 
 	constant ZERO_STAT_REG	: std_logic_vector(STAT_REG_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STAT_REG_L));
 	constant ZERO_RES	: std_logic_vector(DATA_L - 1 downto 0) := std_logic_vector(to_unsigned(0, DATA_L));

@@ -11,15 +11,9 @@ use cpu_rtl_pkg.proc_pkg.all;
 use cpu_rtl_pkg.ctrl_pkg.all;
 use cpu_rtl_pkg.alu_pkg.all;
 
-
-use work.ctrl_pkg.all;
-use work.alu_pkg.all;
-use work.functions_pkg.all;
-use work.proc_pkg.all;
-
 package execute_pkg is 
 
-	component execute_stage
+	component execute
 	generic (
 		BASE_STACK	: positive := 16#8000#;
 		OP1_L		: positive := 32;
