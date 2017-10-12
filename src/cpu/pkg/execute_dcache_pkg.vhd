@@ -11,12 +11,6 @@ use cpu_rtl_pkg.proc_pkg.all;
 use cpu_rtl_pkg.ctrl_pkg.all;
 use cpu_rtl_pkg.alu_pkg.all;
 
-
-use work.ctrl_pkg.all;
-use work.alu_pkg.all;
-use work.functions_pkg.all;
-use work.proc_pkg.all;
-
 package execute_dcache_pkg is 
 
 	component execute_dcache
