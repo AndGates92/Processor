@@ -4,8 +4,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
+library common_rtl_pkg;
+use common_rtl_pkg.functions_pkg.all;
 library common_tb_pkg;
-use common_tb_pkg.functions_pkg.all;
 use common_tb_pkg.functions_pkg_tb.all;
 use common_tb_pkg.shared_pkg_tb.all;
 library cpu_rtl_pkg;
