@@ -39,9 +39,9 @@ package decode_pkg is
 
 	constant DECODE_IDLE	: std_logic_vector(STATE_DECODE_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_DECODE_L));
 	constant DECODE_OUTPUT	: std_logic_vector(STATE_DECODE_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_DECODE_L));
-	constant DECODE		: std_logic_vector(STATE_DECODE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_DECODE_L));
+	constant DECODE_STAGE	: std_logic_vector(STATE_DECODE_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_DECODE_L));
 
-	component decode_stage
+	component decode
 	generic (
 		REG_NUM		: positive := 16;
 		PC_L		: positive := 32;

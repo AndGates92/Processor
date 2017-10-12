@@ -23,10 +23,10 @@ use cpu_tb_pkg.cpu_log_pkg.all;
 use cpu_tb_pkg.alu_pkg_tb.all;
 use cpu_tb_pkg.decode_pkg_tb.all;
 
-entity decode_stage_tb is
-end entity decode_stage_tb;
+entity decode_tb is
+end entity decode_tb;
 
-architecture bench of decode_stage_tb is
+architecture bench of decode_tb is
 
 	constant CLK_PERIOD	: time := PROC_CLK_PERIOD * 1 ns;
 	constant NUM_TEST	: integer := 10000;
@@ -60,7 +60,7 @@ architecture bench of decode_stage_tb is
 
 begin
 
-	DUT: decode_stage generic map (
+	DUT: decode generic map (
 		REG_NUM => REG_NUM_TB,
 		PC_L => PC_L_TB,
 		STAT_REG_L => STAT_REG_L_TB,
