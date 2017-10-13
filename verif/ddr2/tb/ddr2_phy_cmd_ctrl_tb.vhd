@@ -6,18 +6,22 @@ use ieee.math_real.all;
 use std.textio.all;
 
 library work;
-use work.ddr2_define_pkg.all;
-use work.functions_pkg.all;
-use work.functions_pkg_tb.all;
-use work.ddr2_phy_pkg.all;
-use work.ddr2_mrs_pkg.all;
-use work.ddr2_gen_ac_timing_pkg.all;
-use work.ddr2_phy_cmd_ctrl_pkg.all;
-use work.type_conversion_pkg.all;
-use work.ddr2_mrs_max_pkg.all;
-use work.shared_pkg_tb.all;
-use work.ddr2_pkg_tb.all;
-use work.ddr2_log_pkg.all;
+library common_rtl_pkg;
+use common_rtl_pkg.type_conversion_pkg.all;
+use common_rtl_pkg.functions_pkg.all;
+library common_tb_pkg;
+use common_tb_pkg.functions_pkg_tb.all;
+use common_tb_pkg.shared_pkg_tb.all;
+library ddr2_rtl_pkg;
+use ddr2_rtl_pkg.ddr2_define_pkg.all;
+use ddr2_rtl_pkg.ddr2_phy_pkg.all;
+use ddr2_rtl_pkg.ddr2_mrs_pkg.all;
+use ddr2_rtl_pkg.ddr2_mrs_max_pkg.all;
+use ddr2_rtl_pkg.ddr2_phy_cmd_ctrl_pkg.all;
+use ddr2_rtl_pkg.ddr2_gen_ac_timing_pkg.all;
+library ddr2_tb_pkg;
+use ddr2_tb_pkg.ddr2_pkg_tb.all;
+use ddr2_tb_pkg.ddr2_log_pkg.all;
 
 entity ddr2_phy_cmd_ctrl_tb is
 end entity ddr2_phy_cmd_ctrl_tb;

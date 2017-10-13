@@ -3,8 +3,8 @@ use ieee.math_real.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library work;
-use work.ddr2_phy_pkg.all;
+library ddr2_rtl_pkg;
+use ddr2_rtl_pkg.ddr2_phy_pkg.all;
 
 package ddr2_phy_regs_pkg is 
 

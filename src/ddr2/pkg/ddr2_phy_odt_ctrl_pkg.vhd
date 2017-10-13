@@ -3,10 +3,11 @@ use ieee.math_real.all;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library work;
-use work.functions_pkg.all;
-use work.ddr2_phy_pkg.all;
-use work.ddr2_odt_ac_timing_pkg.all;
+library common_rtl_pkg;
+use common_rtl_pkg.functions_pkg.all;
+library ddr2_rtl_pkg;
+use ddr2_rtl_pkg.ddr2_phy_pkg.all;
+use ddr2_rtl_pkg.ddr2_odt_ac_timing_pkg.all;
 
 package ddr2_phy_odt_ctrl_pkg is 
 

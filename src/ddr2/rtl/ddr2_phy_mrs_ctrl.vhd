@@ -2,11 +2,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library work;
-use work.functions_pkg.all;
-use work.ddr2_phy_pkg.all;
-use work.ddr2_gen_ac_timing_pkg.all;
-use work.ddr2_phy_mrs_ctrl_pkg.all;
+library common_rtl_pkg;
+use common_rtl_pkg.functions_pkg.all;
+library ddr2_rtl_pkg;
+use ddr2_rtl_pkg.ddr2_phy_pkg.all;
+use ddr2_rtl_pkg.ddr2_phy_mrs_ctrl_pkg.all;
+use ddr2_rtl_pkg.ddr2_gen_ac_timing_pkg.all;
 
 entity ddr2_phy_mrs_ctrl is
 generic (
