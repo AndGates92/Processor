@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 library common_rtl_pkg;
 use common_rtl_pkg.functions_pkg.all;
 library ddr2_rtl_pkg;
-use ddr2_rtl_pkg.ddr2_define_pkg.all;
+use ddr2_rtl_pkg.ddr2_mrs_pkg.all;
 
 package ddr2_mrs_max_pkg is 
 
