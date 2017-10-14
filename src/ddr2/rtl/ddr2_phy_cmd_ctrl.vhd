@@ -7,6 +7,7 @@ use common_rtl_pkg.functions_pkg.all;
 library ddr2_rtl_pkg;
 use ddr2_rtl_pkg.ddr2_phy_pkg.all;
 use ddr2_rtl_pkg.ddr2_mrs_max_pkg.all;
+use ddr2_rtl_pkg.ddr2_phy_bank_ctrl_pkg.all;
 use ddr2_rtl_pkg.ddr2_phy_col_ctrl_pkg.all;
 use ddr2_rtl_pkg.ddr2_gen_ac_timing_pkg.all;
 
@@ -81,7 +82,7 @@ begin
 
 	col_ctrl_loop : for i in 0 to (COL_CTRL_NUM - 1) generate
 
-		col_ctrl: ddr2_phy_col_ctrl generic map (
+		COL_CTRL_I: ddr2_phy_col_ctrl generic map (
 			BURST_LENGTH_L => BURST_LENGTH_L,
 			BANK_NUM => BANK_NUM,
 			COL_L => COL_L
@@ -124,7 +125,7 @@ begin
 
 	bank_ctrl_loop : for i in 0 to (BANK_CTRL_NUM - 1) generate
 
-		bank_ctrl: ddr2_phy_bank_ctrl generic map (
+		BANK_CTRL_I: ddr2_phy_bank_ctrl generic map (
 			ROW_L => ROW_L,
 			BANK_ID => i,
 			BANK_NUM => BANK_NUM,
