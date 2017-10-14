@@ -94,7 +94,7 @@ DDR2_RTL_PKG_GHDL_ARGS = -g --work=${DDR2_RTL_PKG_LIB_NAME} --workdir=${DDR2_RTL
 
 DDR2_TB_PKG_LIB_NAME = ddr2_tb_pkg
 DDR2_TB_PKG_WORK_DIR = ${ROOT_WORK_DIR}/ddr2_tb_pkg_work
-DDR2_TB_PKG_GHDL_ARGS = -g --work=${DDR2_TB_PKG_LIB_NAME} --workdir=${DDR2_TB_PKG_WORK_DIR} -P${COMMON_TB_PKG_WORK_DIR}
+DDR2_TB_PKG_GHDL_ARGS = -g --work=${DDR2_TB_PKG_LIB_NAME} --workdir=${DDR2_TB_PKG_WORK_DIR} -P${COMMON_RTL_PKG_WORK_DIR} -P${COMMON_TB_PKG_WORK_DIR} -P${DDR2_RTL_PKG_WORK_DIR}
 
 DDR2_RTL_LIB_NAME = ddr2_rtl
 DDR2_RTL_WORK_DIR = ${ROOT_WORK_DIR}/ddr2_rtl_work
@@ -766,8 +766,8 @@ ddr2_phy_cmd_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}
 	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_col_ctrl.vhd
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_cmd_ctrl.vhd"
 	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_cmd_ctrl.vhd
-	@echo "Analysing ${DDR2_CFG_DIR}/ddr2_phy_cmd_ctrl_cfg.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_CFG_DIR}/ddr2_phy_cmd_ctrl_cfg.vhd
+	@echo "Analysing ${DDR2_RTL_CFG_DIR}/ddr2_phy_cmd_ctrl_cfg.vhd"
+	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_CFG_DIR}/ddr2_phy_cmd_ctrl_cfg.vhd
 	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_cmd_ctrl_tb.vhd"
 	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_phy_cmd_ctrl_tb.vhd
 	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_phy_cmd_ctrl_tb_cfg.vhd"
