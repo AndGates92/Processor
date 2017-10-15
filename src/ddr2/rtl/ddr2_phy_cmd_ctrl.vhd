@@ -9,7 +9,6 @@ use ddr2_rtl_pkg.ddr2_phy_pkg.all;
 use ddr2_rtl_pkg.ddr2_mrs_max_pkg.all;
 use ddr2_rtl_pkg.ddr2_phy_bank_ctrl_pkg.all;
 use ddr2_rtl_pkg.ddr2_phy_col_ctrl_pkg.all;
-use ddr2_rtl_pkg.ddr2_gen_ac_timing_pkg.all;
 
 entity ddr2_phy_cmd_ctrl is
 generic (
@@ -26,7 +25,7 @@ port (
 	clk		: in std_logic;
 
 	-- MRS configuration
-	DDR2CASLatency			: in std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
+	DDR2CASLatency		: in std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 	DDR2BurstLength		: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 	DDR2AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
 	DDR2WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
