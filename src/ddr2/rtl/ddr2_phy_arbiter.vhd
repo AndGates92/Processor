@@ -54,6 +54,7 @@ port (
 	MRSCtrlCmdAck		: out std_logic;
 
 	-- Arbiter Controller
+	PauseArbiter		: in std_logic;
 	AllowBankActivate	: in std_logic;
 
 	BankActOut		: out std_logic;
@@ -145,28 +146,32 @@ begin
 
 	priority_next: process(PriorityC, AllowBankActivate)
 	begin
-		if (PriorityC < COL_CTRL_NUM) then -- increment priority if pointing to a column controller
-			if (PriorityC = MAX_VALUE_PRIORITY) then
-				PriorityN <= (others => '0');
-			else
-				PriorityN <= (PriorityC + incr_value_priority);
-			end if;
-		else -- increment priority only if activate is allowed through (i.e. tFAW exceeded and tRRD exceeded)
-			if (AllowBankActivate = '1') then
+		if (PauseArbiter = '1') then
+			PriorityN <= PriorityC;
+		else
+			if (PriorityC < COL_CTRL_NUM) then -- increment priority if pointing to a column controller
 				if (PriorityC = MAX_VALUE_PRIORITY) then
 					PriorityN <= (others => '0');
 				else
 					PriorityN <= (PriorityC + incr_value_priority);
 				end if;
-			else
-				PriorityN <= PriorityC;
+			else -- increment priority only if activate is allowed through (i.e. tFAW exceeded and tRRD exceeded)
+				if (AllowBankActivate = '1') then
+					if (PriorityC = MAX_VALUE_PRIORITY) then
+						PriorityN <= (others => '0');
+					else
+						PriorityN <= (PriorityC + incr_value_priority);
+					end if;
+				else
+					PriorityN <= PriorityC;
+				end if;
 			end if;
 		end if;
 	end process priority_next;
 
 	bank_priority_next: process(BankPriorityC, AllowBankActivate)
 	begin
-		if (AllowBankActivate = '1') then -- increment priority only if activate is allowed through (i.e. tFAW exceeded and tRRD exceeded)
+		if ((PauseArbiter = '0') and (AllowBankActivate = '1')) then -- increment priority only if activate is allowed through (i.e. tFAW exceeded and tRRD exceeded)
 			if (BankPriorityC = MAX_VALUE_BANK_PRIORITY) then
 				BankPriorityN <= (others => '0');
 			else
@@ -177,7 +182,9 @@ begin
 		end if;
 	end process bank_priority_next;
 
-	ColPriorityN <= (others => '0') when (ColPriorityC = MAX_VALUE_COL_PRIORITY) else (ColPriorityC + incr_value_col_priority);
+	ColPriorityN <= ColPriorityC	when (PauseArbiter = '1') else
+			(others => '0')	when (ColPriorityC = MAX_VALUE_COL_PRIORITY) else
+			(ColPriorityC + incr_value_col_priority);
 
 	ColMem <= ZeroBankCtrlColMem & ColCtrlColMem;
 	BankMem <= BankCtrlBankMem & ColCtrlBankMem;
@@ -261,26 +268,26 @@ begin
 	MRSPriorityCmdMem <= MRSCtrlCmdMem(MEM_CMD_L - 1 downto 0);
 	MRSPriorityCmdReq <= MRSCtrlCmdReq;
 
-	CmdDecColMem <=	PriorityColMem		when (PriorityCmdReq = '1') else
-			ColPriorityColMem	when (ColPriorityCmdReq = '1') else
-			BankPriorityColMem	when (BankPriorityCmdReq = '1') else
+	CmdDecColMem <=	PriorityColMem		when ((PauseArbiter = '0') and (PriorityCmdReq = '1')) else
+			ColPriorityColMem	when ((PauseArbiter = '0') and (ColPriorityCmdReq = '1')) else
+			BankPriorityColMem	when ((PauseArbiter = '0') and (BankPriorityCmdReq = '1')) else
 			(others => '0');
 
-	CmdDecRowMem <=	PriorityRowMem		when (PriorityCmdReq = '1') else
-			ColPriorityRowMem	when (ColPriorityCmdReq = '1') else
-			BankPriorityRowMem	when (BankPriorityCmdReq = '1') else
+	CmdDecRowMem <=	PriorityRowMem		when ((PauseArbiter = '0') and (PriorityCmdReq = '1')) else
+			ColPriorityRowMem	when ((PauseArbiter = '0') and (ColPriorityCmdReq = '1')) else
+			BankPriorityRowMem	when ((PauseArbiter = '0') and (BankPriorityCmdReq = '1')) else
 			(others => '0');
 
-	CmdDecBankMem <=	PriorityBankMem		when (PriorityCmdReq = '1') else
-				ColPriorityBankMem	when (ColPriorityCmdReq = '1') else
-				BankPriorityBankMem	when (BankPriorityCmdReq = '1') else
+	CmdDecBankMem <=	PriorityBankMem		when ((PauseArbiter = '0') and (PriorityCmdReq = '1')) else
+				ColPriorityBankMem	when ((PauseArbiter = '0') and (ColPriorityCmdReq = '1')) else
+				BankPriorityBankMem	when ((PauseArbiter = '0') and (BankPriorityCmdReq = '1')) else
 				(others => '0');
 
-	CmdDecCmdMem <=	PriorityCmdMem		when (PriorityCmdReq = '1') else
-			ColPriorityCmdMem	when (ColPriorityCmdReq = '1') else
-			BankPriorityCmdMem	when (BankPriorityCmdReq = '1') else
-			RefPriorityCmdMem	when (RefPriorityCmdReq = '1') else
-			MRSPriorityCmdMem	when (MRSPriorityCmdReq = '1') else
+	CmdDecCmdMem <=	PriorityCmdMem		when ((PauseArbiter = '0') and (PriorityCmdReq = '1')) else
+			ColPriorityCmdMem	when ((PauseArbiter = '0') and (ColPriorityCmdReq = '1')) else
+			BankPriorityCmdMem	when ((PauseArbiter = '0') and (BankPriorityCmdReq = '1')) else
+			RefPriorityCmdMem	when ((PauseArbiter = '0') and (RefPriorityCmdReq = '1')) else
+			MRSPriorityCmdMem	when ((PauseArbiter = '0') and (MRSPriorityCmdReq = '1')) else
 			CMD_NOP;
 
 	CmdDecMRSCmd <= MRSPriorityMRSCmd;
@@ -290,14 +297,18 @@ begin
 	bank_act_out: process(PriorityCmdReq, PriorityC, BankPriorityCmdReq)
 	begin
 
-		if (PriorityCmdReq = '1') then
-			if (PriorityC < COL_CTRL_NUM) then
-				BankActOut_comb <= '0';
-			else
-				BankActOut_comb <= '1';
-			end if;
+		if (PauseArbiter = '1') then
+			BankActOut_comb <= '0';
 		else
-			BankActOut_comb <= BankPriorityCmdReq;
+			if (PriorityCmdReq = '1') then
+				if (PriorityC < COL_CTRL_NUM) then
+					BankActOut_comb <= '0';
+				else
+					BankActOut_comb <= '1';
+				end if;
+			else
+				BankActOut_comb <= BankPriorityCmdReq;
+			end if;
 		end if;
 	end process bank_act_out;
 
@@ -305,55 +316,62 @@ begin
 	begin
 		CmdAck <= (others => '0');
 		RefCtrlCmdAck <= '0';
+		MRSCtrlCmdAck <= '0';
 
-		if (PriorityCmdReq = '1') then
-			RefCtrlCmdAck <= '0';
-			MRSCtrlCmdAck <= '0';
-			for i in 0 to ((COL_CTRL_NUM+BANK_CTRL_NUM) - 1) loop
-				if (PriorityC = to_unsigned(i, int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM))) then
-					CmdAck(i) <= '1';
-				else
-					CmdAck(i) <= '0';
-				end if;
-			end loop;
-		elsif (ColPriorityCmdReq = '1') then
-			RefCtrlCmdAck <= '0';
-			MRSCtrlCmdAck <= '0';
-			for i in 0 to (COL_CTRL_NUM - 1) loop
-				if (ColPriorityC = to_unsigned(i, int_to_bit_num(COL_CTRL_NUM))) then
-					CmdAck(i) <= '1';
-				else
-					CmdAck(i) <= '0';
-				end if;
-			end loop;
-			for i in COL_CTRL_NUM to ((COL_CTRL_NUM+BANK_CTRL_NUM) - 1) loop
-				CmdAck(i) <= '0';
-			end loop;
-		elsif (BankPriorityCmdReq = '1') then
-			RefCtrlCmdAck <= '0';
-			MRSCtrlCmdAck <= '0';
-			for i in 0 to (COL_CTRL_NUM - 1) loop
-				CmdAck(i) <= '0';
-			end loop;
-			for i in 0 to (BANK_CTRL_NUM - 1) loop
-				if (BankPriorityC = to_unsigned(i, int_to_bit_num(BANK_CTRL_NUM))) then
-					CmdAck(i+COL_CTRL_NUM) <= '1';
-				else
-					CmdAck(i+COL_CTRL_NUM) <= '0';
-				end if;
-			end loop;
-		elsif (RefPriorityCmdReq = '1') then
-			CmdAck <= (others => '0');
-			MRSCtrlCmdAck <= '0';
-			RefCtrlCmdAck <= '1';
-		elsif (MRSPriorityCmdReq = '1') then
+		if (PauseArbiter = '1') then
 			CmdAck <= (others => '0');
 			RefCtrlCmdAck <= '0';
-			MRSCtrlCmdAck <= '1';
+			MRSCtrlCmdAck <= '0';
 		else
-			CmdAck <= (others => '0');
-			RefCtrlCmdAck <= '0';
-			MRSCtrlCmdAck <= '0';
+			if (PriorityCmdReq = '1') then
+				RefCtrlCmdAck <= '0';
+				MRSCtrlCmdAck <= '0';
+				for i in 0 to ((COL_CTRL_NUM+BANK_CTRL_NUM) - 1) loop
+					if (PriorityC = to_unsigned(i, int_to_bit_num(COL_CTRL_NUM+BANK_CTRL_NUM))) then
+						CmdAck(i) <= '1';
+					else
+						CmdAck(i) <= '0';
+					end if;
+				end loop;
+			elsif (ColPriorityCmdReq = '1') then
+				RefCtrlCmdAck <= '0';
+				MRSCtrlCmdAck <= '0';
+				for i in 0 to (COL_CTRL_NUM - 1) loop
+					if (ColPriorityC = to_unsigned(i, int_to_bit_num(COL_CTRL_NUM))) then
+						CmdAck(i) <= '1';
+					else
+						CmdAck(i) <= '0';
+					end if;
+				end loop;
+				for i in COL_CTRL_NUM to ((COL_CTRL_NUM+BANK_CTRL_NUM) - 1) loop
+					CmdAck(i) <= '0';
+				end loop;
+			elsif (BankPriorityCmdReq = '1') then
+				RefCtrlCmdAck <= '0';
+				MRSCtrlCmdAck <= '0';
+				for i in 0 to (COL_CTRL_NUM - 1) loop
+					CmdAck(i) <= '0';
+				end loop;
+				for i in 0 to (BANK_CTRL_NUM - 1) loop
+					if (BankPriorityC = to_unsigned(i, int_to_bit_num(BANK_CTRL_NUM))) then
+						CmdAck(i+COL_CTRL_NUM) <= '1';
+					else
+						CmdAck(i+COL_CTRL_NUM) <= '0';
+					end if;
+				end loop;
+			elsif (RefPriorityCmdReq = '1') then
+				CmdAck <= (others => '0');
+				MRSCtrlCmdAck <= '0';
+				RefCtrlCmdAck <= '1';
+			elsif (MRSPriorityCmdReq = '1') then
+				CmdAck <= (others => '0');
+				RefCtrlCmdAck <= '0';
+				MRSCtrlCmdAck <= '1';
+			else
+				CmdAck <= (others => '0');
+				RefCtrlCmdAck <= '0';
+				MRSCtrlCmdAck <= '0';
+			end if;
 		end if;
 	end process ack_mux;
 

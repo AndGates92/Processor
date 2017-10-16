@@ -55,6 +55,7 @@ package ddr2_phy_arbiter_pkg is
 		MRSCtrlCmdAck		: out std_logic;
 
 		-- Arbiter Controller
+		PauseArbiter		: in std_logic;
 		AllowBankActivate	: in std_logic;
 
 		BankActOut		: out std_logic;
