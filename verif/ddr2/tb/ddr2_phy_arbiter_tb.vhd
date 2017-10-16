@@ -33,8 +33,8 @@ architecture bench of ddr2_phy_arbiter_tb is
 
 	constant ZERO_BANK_CTRL_ACK	: std_logic_vector(BANK_CTRL_NUM_TB - 1 downto 0) := (others => '0');
 	constant ZERO_COL_CTRL_ACK	: std_logic_vector(COL_CTRL_NUM_TB - 1 downto 0) := (others => '0');
-	constant ZERO_REF_CTRL_ACK	: std_logic_vector(REF_CTRL_NUM_TB - 1 downto 0) := (others => '0');
-	constant ZERO_MRS_CTRL_ACK	: std_logic_vector(MRS_CTRL_NUM_TB - 1 downto 0) := (others => '0');
+	constant ZERO_REF_CTRL_ACK	: std_logic := '0';
+	constant ZERO_MRS_CTRL_ACK	: std_logic := '0';
 
 	constant MAX_VALUE_PRIORITY_TB	: integer := (BANK_CTRL_NUM_TB + COL_CTRL_NUM_TB - 1);
 
@@ -59,17 +59,17 @@ architecture bench of ddr2_phy_arbiter_tb is
 	signal ColCtrlCmdAck_tb		: std_logic_vector(COL_CTRL_NUM_TB - 1 downto 0);
 
 	-- Refresh Controller
-	signal RefCtrlCmdMem_tb		: std_logic_vector(REF_CTRL_NUM_TB*MEM_CMD_L - 1 downto 0);
-	signal RefCtrlCmdReq_tb		: std_logic_vector(REF_CTRL_NUM_TB - 1 downto 0);
+	signal RefCtrlCmdMem_tb		: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal RefCtrlCmdReq_tb		: std_logic;
 
-	signal RefCtrlCmdAck_tb		: std_logic_vector(REF_CTRL_NUM_TB - 1 downto 0);
+	signal RefCtrlCmdAck_tb		: std_logic;
 
 	-- MRS Controller
-	signal MRSCtrlMRSCmd_tb		: std_logic_vector(MRS_CTRL_NUM_TB*ADDR_MEM_L_TB - 1 downto 0);
-	signal MRSCtrlCmdMem_tb		: std_logic_vector(MRS_CTRL_NUM_TB*MEM_CMD_L - 1 downto 0);
-	signal MRSCtrlCmdReq_tb		: std_logic_vector(MRS_CTRL_NUM_TB - 1 downto 0);
+	signal MRSCtrlMRSCmd_tb		: std_logic_vector(ADDR_MEM_L_TB - 1 downto 0);
+	signal MRSCtrlCmdMem_tb		: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal MRSCtrlCmdReq_tb		: std_logic;
 
-	signal MRSCtrlCmdAck_tb		: std_logic_vector(MRS_CTRL_NUM_TB - 1 downto 0);
+	signal MRSCtrlCmdAck_tb		: std_logic;
 
 	-- Arbiter Controller
 	signal AllowBankActivate_tb	: std_logic;
@@ -91,9 +91,7 @@ begin
 		ADDR_L => ADDR_MEM_L_TB,
 		BANK_NUM => BANK_NUM_TB,
 		BANK_CTRL_NUM => BANK_CTRL_NUM_TB,
-		COL_CTRL_NUM => COL_CTRL_NUM_TB,
-		MRS_CTRL_NUM => MRS_CTRL_NUM_TB,
-		REF_CTRL_NUM => REF_CTRL_NUM_TB
+		COL_CTRL_NUM => COL_CTRL_NUM_TB
 	)
 	port map (
 		clk => clk_tb,
@@ -151,7 +149,8 @@ begin
 			AllowBankActivate_tb <= '0';
 			BankCtrlCmdReq_tb <= (others => '0');
 			ColCtrlCmdReq_tb <= (others => '0');
-			RefCtrlCmdReq_tb <= (others => '0');
+			RefCtrlCmdReq_tb <= '0';
+			MRSCtrlCmdReq_tb <= '0';
 
 			rst_tb <= '0';
 			wait until ((clk_tb'event) and (clk_tb = '1'));
@@ -160,7 +159,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_requests : out integer; variable bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable bank_ctrl_cmd_req : out bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable col_ctrl_bank, col_ctrl_col, col_ctrl_cmd : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable col_ctrl_cmd_req : out bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd_req : out bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable mrs_ctrl_mrs_cmd, mrs_ctrl_cmd : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable mrs_ctrl_cmd_req : out bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable allow_act : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_requests : out integer; variable bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable bank_ctrl_cmd_req : out bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable col_ctrl_bank, col_ctrl_col, col_ctrl_cmd : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable col_ctrl_cmd_req : out bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ref_ctrl_cmd_req : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_mrs_cmd, mrs_ctrl_cmd : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_cmd_req : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable allow_act : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val		: real;
 			variable num_requests_int	: integer;
 
@@ -209,41 +208,37 @@ begin
 					col_ctrl_cmd_req(i, j) := rand_bool(rand_val, 0.5);
 				end loop;
 
-				for j in 0 to (REF_CTRL_NUM_TB - 1) loop
-					uniform(seed1, seed2, rand_val);
-					ref_cmd_id := integer(2.0*rand_val);
-					if (ref_cmd_id = 0) then
-						ref_ctrl_cmd(i, j) := to_integer(unsigned(CMD_AUTO_REF));
-					elsif (ref_cmd_id = 1) then
-						ref_ctrl_cmd(i, j) := to_integer(unsigned(CMD_SELF_REF_ENTRY));
-					elsif (ref_cmd_id = 2) then
-						ref_ctrl_cmd(i, j) := to_integer(unsigned(CMD_SELF_REF_EXIT));
-					else
-						ref_ctrl_cmd(i, j) := to_integer(unsigned(CMD_NOP));
-					end if;
-					uniform(seed1, seed2, rand_val);
-					ref_ctrl_cmd_req(i, j) := rand_bool(rand_val, 0.5);
-				end loop;
+				uniform(seed1, seed2, rand_val);
+				ref_cmd_id := integer(2.0*rand_val);
+				if (ref_cmd_id = 0) then
+					ref_ctrl_cmd(i) := to_integer(unsigned(CMD_AUTO_REF));
+				elsif (ref_cmd_id = 1) then
+					ref_ctrl_cmd(i) := to_integer(unsigned(CMD_SELF_REF_ENTRY));
+				elsif (ref_cmd_id = 2) then
+					ref_ctrl_cmd(i) := to_integer(unsigned(CMD_SELF_REF_EXIT));
+				else
+					ref_ctrl_cmd(i) := to_integer(unsigned(CMD_NOP));
+				end if;
+				uniform(seed1, seed2, rand_val);
+				ref_ctrl_cmd_req(i) := rand_bool(rand_val, 0.5);
 
-				for j in 0 to (MRS_CTRL_NUM_TB - 1) loop
-					uniform(seed1, seed2, rand_val);
-					mrs_ctrl_mrs_cmd(i, j) := integer(rand_val*real(ADDR_MEM_L_TB - 1));
-					uniform(seed1, seed2, rand_val);
-					mrs_cmd_id := integer(3.0*rand_val);
-					if (mrs_cmd_id = 0) then
-						mrs_ctrl_cmd(i, j) := to_integer(unsigned(CMD_MODE_REG_SET));
-					elsif (mrs_cmd_id = 1) then
-						mrs_ctrl_cmd(i, j) := to_integer(unsigned(CMD_EXT_MODE_REG_SET_1));
-					elsif (mrs_cmd_id = 2) then
-						mrs_ctrl_cmd(i, j) := to_integer(unsigned(CMD_EXT_MODE_REG_SET_2));
-					elsif (mrs_cmd_id = 3) then
-						mrs_ctrl_cmd(i, j) := to_integer(unsigned(CMD_EXT_MODE_REG_SET_3));
-					else
-						mrs_ctrl_cmd(i, j) := to_integer(unsigned(CMD_NOP));
-					end if;
-					uniform(seed1, seed2, rand_val);
-					mrs_ctrl_cmd_req(i, j) := rand_bool(rand_val, 0.5);
-				end loop;
+				uniform(seed1, seed2, rand_val);
+				mrs_ctrl_mrs_cmd(i) := integer(rand_val*real(ADDR_MEM_L_TB - 1));
+				uniform(seed1, seed2, rand_val);
+				mrs_cmd_id := integer(3.0*rand_val);
+				if (mrs_cmd_id = 0) then
+					mrs_ctrl_cmd(i) := to_integer(unsigned(CMD_MODE_REG_SET));
+				elsif (mrs_cmd_id = 1) then
+					mrs_ctrl_cmd(i) := to_integer(unsigned(CMD_EXT_MODE_REG_SET_1));
+				elsif (mrs_cmd_id = 2) then
+					mrs_ctrl_cmd(i) := to_integer(unsigned(CMD_EXT_MODE_REG_SET_2));
+				elsif (mrs_cmd_id = 3) then
+					mrs_ctrl_cmd(i) := to_integer(unsigned(CMD_EXT_MODE_REG_SET_3));
+				else
+					mrs_ctrl_cmd(i) := to_integer(unsigned(CMD_NOP));
+				end if;
+				uniform(seed1, seed2, rand_val);
+				mrs_ctrl_cmd_req(i) := rand_bool(rand_val, 0.5);
 
 				uniform(seed1, seed2, rand_val);
 				allow_act(i) := rand_bool(rand_val, 0.5);
@@ -252,7 +247,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_arbiter(variable num_requests_exp : in integer; variable bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable bank_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable col_ctrl_bank, col_ctrl_col, col_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable col_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable mrs_ctrl_mrs_cmd, mrs_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable mrs_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1)); variable allow_act : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, mrs_cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, mrs_cmd_exp : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, mrs_ack_err : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
+		procedure run_arbiter(variable num_requests_exp : in integer; variable bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable bank_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable col_ctrl_bank, col_ctrl_col, col_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable col_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ref_ctrl_cmd_req : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_mrs_cmd, mrs_ctrl_cmd : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_cmd_req : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable allow_act : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, mrs_cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, mrs_cmd_exp : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, mrs_ack_err : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
 
 			variable num_requests_rtl_int	: integer;
 			variable num_cmd_rtl_int	: integer;
@@ -260,8 +255,6 @@ begin
 			variable priority		: integer;
 			variable bank_priority		: integer;
 			variable col_priority		: integer;
-			variable ref_priority		: integer;
-			variable mrs_priority		: integer;
 
 			variable cmd_found		: boolean;
 
@@ -273,8 +266,6 @@ begin
 			priority := 0;
 			bank_priority := 0;
 			col_priority := 0;
-			ref_priority := 0;
-			mrs_priority := 0;
 
 			col_ack_err := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
 			bank_ack_err := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
@@ -317,17 +308,12 @@ begin
 						ColCtrlCmdReq_tb(i) <= bool_to_std_logic(col_ctrl_cmd_req(num_requests_rtl_int, i));
 					end loop;
 
-					for i in 0 to (REF_CTRL_NUM_TB - 1) loop
-						RefCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= std_logic_vector(to_unsigned(ref_ctrl_cmd(num_requests_rtl_int, i), MEM_CMD_L));
-						RefCtrlCmdReq_tb(i) <= bool_to_std_logic(ref_ctrl_cmd_req(num_requests_rtl_int, i));
-					end loop;
+					RefCtrlCmdMem_tb <= std_logic_vector(to_unsigned(ref_ctrl_cmd(num_requests_rtl_int), MEM_CMD_L));
+					RefCtrlCmdReq_tb <= bool_to_std_logic(ref_ctrl_cmd_req(num_requests_rtl_int));
 
-					for i in 0 to (REF_CTRL_NUM_TB - 1) loop
-						MRSCtrlMRSCmd_tb((i+1)*ADDR_MEM_L_TB - 1 downto i*ADDR_MEM_L_TB) <= std_logic_vector(to_unsigned(mrs_ctrl_mrs_cmd(num_requests_rtl_int, i), ADDR_MEM_L_TB));
-						MRSCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= std_logic_vector(to_unsigned(mrs_ctrl_cmd(num_requests_rtl_int, i), MEM_CMD_L));
-						MRSCtrlCmdReq_tb(i) <= bool_to_std_logic(mrs_ctrl_cmd_req(num_requests_rtl_int, i));
-					end loop;
-
+					MRSCtrlMRSCmd_tb <= std_logic_vector(to_unsigned(mrs_ctrl_mrs_cmd(num_requests_rtl_int), ADDR_MEM_L_TB));
+					MRSCtrlCmdMem_tb <= std_logic_vector(to_unsigned(mrs_ctrl_cmd(num_requests_rtl_int), MEM_CMD_L));
+					MRSCtrlCmdReq_tb <= bool_to_std_logic(mrs_ctrl_cmd_req(num_requests_rtl_int));
 
 					AllowBankActivate_tb <= bool_to_std_logic(allow_act(num_requests_rtl_int));
 
@@ -349,12 +335,12 @@ begin
 
 					RefCtrlCmdMem_tb <= (others => '0');
 
-					RefCtrlCmdReq_tb <= (others => '0');
+					RefCtrlCmdReq_tb <= '0';
 
 					MRSCtrlMRSCmd_tb <= (others => '0');
 					MRSCtrlCmdMem_tb <= (others => '0');
 
-					MRSCtrlCmdReq_tb <= (others => '0');
+					MRSCtrlCmdReq_tb <= '0';
 
 					AllowBankActivate_tb <= '0';
 
@@ -371,7 +357,7 @@ begin
 					cmd_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecCmdMem_tb));
 					mrs_cmd_rtl(num_cmd_rtl_int) := to_integer(unsigned(CmdDecMRSCmd_tb));
 
-					mrs_cmd_exp(num_cmd_rtl_int) := mrs_ctrl_mrs_cmd(num_cmd_rtl_int, mrs_priority);
+					mrs_cmd_exp(num_cmd_rtl_int) := mrs_ctrl_mrs_cmd(num_cmd_rtl_int);
 
 					-- General Priority
 					if (cmd_found = false) then
@@ -533,83 +519,53 @@ begin
 
 					-- Refresh
 					if (cmd_found = false) then
-						if (ref_priority < REF_CTRL_NUM_TB) then
-							if (ref_ctrl_cmd_req(num_cmd_rtl_int, ref_priority) = true) then
-								cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(RefCtrlCmdAck_tb(ref_priority));
+						if (ref_ctrl_cmd_req(num_cmd_rtl_int) = true) then
+							cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(RefCtrlCmdAck_tb);
 
-								bank_exp(num_cmd_rtl_int) := 0;
-								col_exp(num_cmd_rtl_int) := 0;
-								row_exp(num_cmd_rtl_int) := 0;
-								cmd_exp(num_cmd_rtl_int) := ref_ctrl_cmd(num_cmd_rtl_int, ref_priority);
+							bank_exp(num_cmd_rtl_int) := 0;
+							col_exp(num_cmd_rtl_int) := 0;
+							row_exp(num_cmd_rtl_int) := 0;
+							cmd_exp(num_cmd_rtl_int) := ref_ctrl_cmd(num_cmd_rtl_int);
 
-								for i in 0 to (REF_CTRL_NUM_TB - 1) loop
-									if (i /= ref_priority) then
-										if (RefCtrlCmdAck_tb(i) = '1') then
-											ref_ack_err(num_cmd_rtl_int) := true;
-										end if;
-									end if;
-								end loop;
-
-								if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
-									col_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
-									bank_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								if (MRSCtrlCmdAck_tb /= ZERO_MRS_CTRL_ACK) then
-									mrs_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								cmd_found := true;
+							if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
+								col_ack_err(num_cmd_rtl_int) := true;
 							end if;
-						else
-							bank_ack_err(num_cmd_rtl_int) := true;
-							col_ack_err(num_cmd_rtl_int) := true;
-							ref_ack_err(num_cmd_rtl_int) := true;
-							mrs_ack_err(num_cmd_rtl_int) := true;
+
+							if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
+								bank_ack_err(num_cmd_rtl_int) := true;
+							end if;
+
+							if (MRSCtrlCmdAck_tb /= ZERO_MRS_CTRL_ACK) then
+								mrs_ack_err(num_cmd_rtl_int) := true;
+							end if;
+
+							cmd_found := true;
 						end if;
 					end if;
 
-					-- MRS Commandsh
+					-- MRS Commands
 					if (cmd_found = false) then
-						if (mrs_priority < MRS_CTRL_NUM_TB) then
-							if (mrs_ctrl_cmd_req(num_cmd_rtl_int, mrs_priority) = true) then
-								cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(MRSCtrlCmdAck_tb(mrs_priority));
+						if (mrs_ctrl_cmd_req(num_cmd_rtl_int) = true) then
+							cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(MRSCtrlCmdAck_tb);
 
-								bank_exp(num_cmd_rtl_int) := 0;
-								col_exp(num_cmd_rtl_int) := 0;
-								row_exp(num_cmd_rtl_int) := 0;
-								cmd_exp(num_cmd_rtl_int) := mrs_ctrl_cmd(num_cmd_rtl_int, mrs_priority);
+							bank_exp(num_cmd_rtl_int) := 0;
+							col_exp(num_cmd_rtl_int) := 0;
+							row_exp(num_cmd_rtl_int) := 0;
+							cmd_exp(num_cmd_rtl_int) := mrs_ctrl_cmd(num_cmd_rtl_int);
 
-								for i in 0 to (MRS_CTRL_NUM_TB - 1) loop
-									if (i /= mrs_priority) then
-										if (MRSCtrlCmdAck_tb(i) = '1') then
-											mrs_ack_err(num_cmd_rtl_int) := true;
-										end if;
-									end if;
-								end loop;
-
-								if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
-									col_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
-									bank_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
-									ref_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								cmd_found := true;
+							if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
+								col_ack_err(num_cmd_rtl_int) := true;
 							end if;
-						else
-							bank_ack_err(num_cmd_rtl_int) := true;
-							col_ack_err(num_cmd_rtl_int) := true;
-							ref_ack_err(num_cmd_rtl_int) := true;
-							mrs_ack_err(num_cmd_rtl_int) := true;
+
+							if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
+								bank_ack_err(num_cmd_rtl_int) := true;
+							end if;
+
+							if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
+								ref_ack_err(num_cmd_rtl_int) := true;
+							end if;
+
+							cmd_found := true;
 						end if;
 					end if;
 
@@ -641,18 +597,6 @@ begin
 						col_priority := 0;
 					else
 						col_priority := col_priority + 1;
-					end if;
-
-					if (ref_priority = (REF_CTRL_NUM_TB - 1)) then
-						ref_priority := 0;
-					else
-						ref_priority := ref_priority + 1;
-					end if;
-
-					if (mrs_priority = (MRS_CTRL_NUM_TB - 1)) then
-						mrs_priority := 0;
-					else
-						mrs_priority := mrs_priority + 1;
 					end if;
 
 					num_cmd_rtl_int := num_cmd_rtl_int + 1;
@@ -840,14 +784,14 @@ begin
 
 		variable col_ctrl_cmd_req	: bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1));
 
-		variable ref_ctrl_cmd		: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1));
+		variable ref_ctrl_cmd		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
-		variable ref_ctrl_cmd_req	: bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1));
+		variable ref_ctrl_cmd_req	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
-		variable mrs_ctrl_mrs_cmd	: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1));
-		variable mrs_ctrl_cmd		: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1));
+		variable mrs_ctrl_mrs_cmd	: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable mrs_ctrl_cmd		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
-		variable mrs_ctrl_cmd_req	: bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (REF_CTRL_NUM_TB - 1));
+		variable mrs_ctrl_cmd_req	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
 		variable allow_act		: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 

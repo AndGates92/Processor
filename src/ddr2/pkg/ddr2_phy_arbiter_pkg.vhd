@@ -14,8 +14,6 @@ package ddr2_phy_arbiter_pkg is
 	generic (
 		BANK_CTRL_NUM	: positive := 8;
 		COL_CTRL_NUM	: positive := 1;
-		REF_CTRL_NUM	: positive := 1;
-		MRS_CTRL_NUM	: positive := 1;
 		BANK_NUM	: positive := 8;
 		COL_L		: positive := 10;
 		ROW_L		: positive := 14;
@@ -44,17 +42,17 @@ package ddr2_phy_arbiter_pkg is
 		ColCtrlCmdAck		: out std_logic_vector(COL_CTRL_NUM - 1 downto 0);
 
 		-- Refresh Controller
-		RefCtrlCmdMem		: in std_logic_vector(REF_CTRL_NUM*MEM_CMD_L - 1 downto 0);
-		RefCtrlCmdReq		: in std_logic_vector(REF_CTRL_NUM - 1 downto 0);
+		RefCtrlCmdMem		: in std_logic_vector(MEM_CMD_L - 1 downto 0);
+		RefCtrlCmdReq		: in std_logic;
 
-		RefCtrlCmdAck		: out std_logic_vector(REF_CTRL_NUM - 1 downto 0);
+		RefCtrlCmdAck		: out std_logic;
 
 		-- MRS Controller
-		MRSCtrlMRSCmd		: in std_logic_vector(MRS_CTRL_NUM*ADDR_L - 1 downto 0);
-		MRSCtrlCmdMem		: in std_logic_vector(MRS_CTRL_NUM*MEM_CMD_L - 1 downto 0);
-		MRSCtrlCmdReq		: in std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
+		MRSCtrlMRSCmd		: in std_logic_vector(ADDR_L - 1 downto 0);
+		MRSCtrlCmdMem		: in std_logic_vector(MEM_CMD_L - 1 downto 0);
+		MRSCtrlCmdReq		: in std_logic;
 
-		MRSCtrlCmdAck		: out std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
+		MRSCtrlCmdAck		: out std_logic;
 
 		-- Arbiter Controller
 		AllowBankActivate	: in std_logic;
