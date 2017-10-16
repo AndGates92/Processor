@@ -146,7 +146,17 @@ port (
 	ODTCtrlPauseArbiter		: out std_logic_vector(ODT_CTRL_NUM - 1 downto 0);
 
 	-- ODT
-	ODTCtrlODT			: out std_logic_vector(ODT_CTRL_NUM - 1 downto 0)
+	ODTCtrlODT			: out std_logic_vector(ODT_CTRL_NUM - 1 downto 0);
+
+	-- Arbiter
+	-- Command Decoder
+	CmdDecColMem			: out std_logic_vector(COL_L - 1 downto 0);
+	CmdDecRowMem			: out std_logic_vector(ROW_L - 1 downto 0);
+	CmdDecBankMem			: out std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
+	CmdDecCmdMem			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
+	CmdDecMRSCmd			: out std_logic_vector(ADDR_L - 1 downto 0)
+
+
 );
 
 architecture rtl of ddr2_phy_ctrl_top is
@@ -156,7 +166,7 @@ begin
 	ref_ctrl_loop : for i in 0 to (REF_CTRL_NUM - 1) generate
 
 		REF_CTRL_I: ddr2_phy_ref_ctrl generic map (
-			BANK_NUM => BANK_NUM_TB
+			BANK_NUM => BANK_NUM
 		)
 		port map (
 			clk => clk,
@@ -234,7 +244,7 @@ begin
 	mrs_ctrl_loop : for i in 0 to (MRS_CTRL_NUM - 1) generate
 
 		MRS_CTRL_I: ddr2_phy_mrs_ctrl generic map (
-			MRS_REG_L => MRS_REG_L_TB
+			MRS_REG_L => MRS_REG_L
 		)
 		port map (
 			clk => clk,
@@ -266,13 +276,13 @@ begin
 	end generate mrs_ctrl_loop;
 
 	CMD_CTRL_I: ddr2_phy_cmd_ctrl generic map (
-		BANK_CTRL_NUM => BANK_CTRL_NUM_TB,
-		COL_CTRL_NUM => COL_CTRL_NUM_TB,
-		BURST_LENGTH_L => BURST_LENGTH_L_TB,
-		BANK_NUM => BANK_NUM_TB,
-		COL_L => COL_L_TB,
-		ROW_L => ROW_L_TB,
-		MAX_OUTSTANDING_BURSTS => MAX_OUTSTANDING_BURSTS_TB
+		BANK_CTRL_NUM => BANK_CTRL_NUM,
+		COL_CTRL_NUM => COL_CTRL_NUM,
+		BURST_LENGTH_L => BURST_LENGTH_L,
+		BANK_NUM => BANK_NUM,
+		COL_L => COL_L,
+		ROW_L => ROW_L,
+		MAX_OUTSTANDING_BURSTS => MAX_OUTSTANDING_BURSTS
 	)
 	port map (
 		clk => clk,
@@ -321,6 +331,64 @@ begin
 		BankIdleVec => BankIdleVec
 
 	);
+
+	ARB_I: ddr2_phy_arbiter generic map (
+		ROW_L => ROW_L,
+		COL_L => COL_L,
+		ADDR_L => ADDR_MEM_L,
+		BANK_NUM => BANK_NUM,
+		BANK_CTRL_NUM => BANK_CTRL_NUM,
+		COL_CTRL_NUM => COL_CTRL_NUM,
+		MRS_CTRL_NUM => MRS_CTRL_NUM,
+		REF_CTRL_NUM => REF_CTRL_NUM
+	)
+	port map (
+		clk => clk_tb,
+		rst => rst_tb,
+
+		-- Bank Controllers
+		BankCtrlBankMem => BankCtrlBankMem_tb,
+		BankCtrlRowMem => BankCtrlRowMem_tb,
+		BankCtrlCmdMem => BankCtrlCmdMem_tb,
+		BankCtrlCmdReq => BankCtrlCmdReq_tb,
+
+		BankCtrlCmdAck => BankCtrlCmdAck_tb,
+
+		-- Column Controller
+		ColCtrlColMem => ColCtrlColMem_tb,
+		ColCtrlBankMem => ColCtrlBankMem_tb,
+		ColCtrlCmdMem => ColCtrlCmdMem_tb,
+		ColCtrlCmdReq => ColCtrlCmdReq_tb,
+
+		ColCtrlCmdAck => ColCtrlCmdAck_tb,
+
+		-- Refresh Controller
+		RefCtrlCmdMem => RefCtrlCmdMem_tb,
+		RefCtrlCmdReq => RefCtrlCmdReq_tb,
+
+		RefCtrlCmdAck => RefCtrlCmdAck_tb,
+
+		-- MRS Controller
+		MRSCtrlMRSCmd => MRSCtrlMRSCmd_tb,
+		MRSCtrlCmdMem => MRSCtrlCmdMem_tb,
+		MRSCtrlCmdReq => MRSCtrlCmdReq_tb,
+
+		MRSCtrlCmdAck => MRSCtrlCmdAck_tb,
+
+		-- Arbiter Controller
+		AllowBankActivate => AllowBankActivate_tb,
+
+		BankActOut => BankActOut_tb,
+
+		-- Command Decoder
+		CmdDecColMem => CmdDecColMem_tb,
+		CmdDecRowMem => CmdDecRowMem_tb,
+		CmdDecBankMem => CmdDecBankMem_tb,
+		CmdDecCmdMem => CmdDecCmdMem_tb,
+		CmdDecMRSCmd => CmdDecMRSCmd_tb
+
+	);
+
 
 
 end rtl;
