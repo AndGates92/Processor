@@ -45,7 +45,7 @@ package ddr2_phy_ref_ctrl_pkg is
 		clk			: in std_logic;
 
 		-- High Temperature Refresh
-		HighTemperatureRefresh	: in std_logic;
+		DDR2HighTemperatureRefresh	: in std_logic;
 
 		-- Transaction Controller
 		RefreshReq		: out std_logic;

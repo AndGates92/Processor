@@ -45,7 +45,7 @@ architecture bench of ddr2_phy_ref_ctrl_tb is
 	signal rst_tb	: std_logic;
 
 	-- Auto Refresh Time
-	signal HighTemperatureRefresh_tb	: std_logic;
+	signal DDR2HighTemperatureRefresh_tb	: std_logic;
 
 	-- Transaction Controller
 	signal RefreshReq_tb		: std_logic;
@@ -87,7 +87,7 @@ begin
 		rst => rst_tb,
 
 		-- High temperature flag
-		HighTemperatureRefresh => HighTemperatureRefresh_tb,
+		DDR2HighTemperatureRefresh => DDR2HighTemperatureRefresh_tb,
 
 		-- Transaction Controller
 		RefreshReq => RefreshReq_tb,
@@ -221,7 +221,7 @@ begin
 				cmd_req := false;
 
 				-- High temperature flag
-				HighTemperatureRefresh_tb <= bool_to_std_logic(high_temp);
+				DDR2HighTemperatureRefresh_tb <= bool_to_std_logic(high_temp);
 
 				-- PHY Init
 				PhyInitCompleted_tb <= '0';

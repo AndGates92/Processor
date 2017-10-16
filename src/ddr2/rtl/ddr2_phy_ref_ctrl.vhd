@@ -20,7 +20,7 @@ port (
 	clk			: in std_logic;
 
 	-- High Temperature Refresh
-	HighTemperatureRefresh	: in std_logic;
+	DDR2HighTemperatureRefresh	: in std_logic;
 
 	-- Transaction Controller
 	RefreshReq		: out std_logic;
@@ -197,7 +197,7 @@ begin
 	IncrOutstandingRefCnt <= ZeroAutoRefCnt;
 	ZeroOutstandingRefCnt <= '1' when (CntOutstandingRefC = zero_outstanding_ref_cnt_value) else '0';
 
-	AutoRefreshTime <= std_logic_vector(to_unsigned(T_REFI_lowT, AUTO_REF_CNT_L)) when (HighTemperatureRefresh = '0') else std_logic_vector(to_unsigned(T_REFI_highT, AUTO_REF_CNT_L));
+	AutoRefreshTime <= std_logic_vector(to_unsigned(T_REFI_lowT, AUTO_REF_CNT_L)) when (DDR2HighTemperatureRefresh = '0') else std_logic_vector(to_unsigned(T_REFI_highT, AUTO_REF_CNT_L));
 
 	-- Free running counter
 	CntAutoRefN <=	CntAutoRefInitValue			when (SetAutoRefCnt = '1') else
