@@ -17,9 +17,6 @@ entity ddr2_phy_ctrl_top is
 generic (
 	BANK_CTRL_NUM		: positive := 8;
 	COL_CTRL_NUM		: positive := 1;
-	REF_CTRL_NUM		: positive := 1;
-	ODT_CTRL_NUM		: positive := 1;
-	MRS_CTRL_NUM		: positive := 1;
 	BURST_LENGTH_L		: positive := 5;
 	BANK_NUM		: positive := 8;
 	COL_L			: positive := 10;
@@ -31,20 +28,13 @@ port (
 	clk		: in std_logic;
 
 	-- MRS configuration
-	DDR2CASLatency		: in std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
-	DDR2BurstLength		: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
-	DDR2AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
-	DDR2WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
+	DDR2CASLatency			: in std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
+	DDR2BurstLength			: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+	DDR2AdditiveLatency		: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
+	DDR2WriteLatency		: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
+	DDR2HighTemperatureRefresh	: in std_logic;
 
 	-- Column Controller
-	-- Arbitrer
-	ColCtrlCmdAck		: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
-
-	ColCtrlColMemOut	: out std_logic_vector(COL_CTRL_NUM*COL_L - 1 downto 0);
-	ColCtrlBankMemOut	: out std_logic_vector(COL_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
-	ColCtrlCmdOut		: out std_logic_vector(COL_CTRL_NUM*MEM_CMD_L - 1 downto 0);
-	ColCtrlCmdReq		: out std_logic_vector(COL_CTRL_NUM - 1 downto 0);
-
 	-- Controller
 	ColCtrlCtrlReq		: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
 	ColCtrlReadBurstIn	: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
@@ -55,98 +45,37 @@ port (
 	ColCtrlCtrlAck		: out std_logic_vector(COL_CTRL_NUM - 1 downto 0);
 
 	-- Bank Controllers
-	-- Arbitrer
-	BankCtrlCmdAck		: in std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
-
-	BankCtrlRowMemOut	: out std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
-	BankCtrlBankMemOut	: out std_logic_vector(BANK_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
-	BankCtrlCmdOut		: out std_logic_vector(BANK_CTRL_NUM*MEM_CMD_L - 1 downto 0);
-	BankCtrlCmdReq		: out std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
-
 	-- Transaction Controller
 	BankCtrlRowMemIn	: in std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
 	BankCtrlCtrlReq		: in std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
 	BankCtrlCtrlAck		: out std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
-	-- Status
-	BankIdleVec		: out std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
-
 	-- MRS Controller
 	-- Transaction Controller
-	MRSCtrlCtrlReq			: in std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
-	MRSCtrlCtrlCmd			: in std_logic_vector(MRS_CTRL_NUM*MEM_CMD_L - 1 downto 0);
-	MRSCtrlCtrlData			: in std_logic_vector(MRS_CTRL_NUM*MRS_REG_L - 1 downto 0);
+	MRSCtrlCtrlReq			: in std_logic;
+	MRSCtrlCtrlCmd			: in std_logic_vector(MEM_CMD_L - 1 downto 0);
+	MRSCtrlCtrlData			: in std_logic_vector(MRS_REG_L - 1 downto 0);
 
-	MRSCtrlCtrlAck			: out std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
-
-	-- Commands
-	MRSCtrlCmdAck			: in std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
-
-	MRSCtrlCmdReq			: out std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
-	MRSCtrlCmd			: out std_logic_vector(MRS_CTRL_NUM*MEM_CMD_L - 1 downto 0);
-	MRSCtrlData			: out std_logic_vector(MRS_CTRL_NUM*MRS_REG_L - 1 downto 0);
-
-	-- ODT Controller
-	MRSCtrlODTCtrlAck		: in std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
-
-	MRSCtrlODTCtrlReq		: out std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
-
-	-- Turn ODT signal on after MRS command(s)
-	MRSCtrlMRSUpdateCompleted	: out std_logic_vector(MRS_CTRL_NUM - 1 downto 0);
+	MRSCtrlCtrlAck			: out std_logic;
 
 	-- Refresh Controller
-	-- High Temperature Refresh
-	HighTemperatureRefresh		: in std_logic_vector(REF_CTRL_NUM - 1 downto 0);
-
 	-- Transaction Controller
-	RefCtrlRefreshReq		: out std_logic_vector(REF_CTRL_NUM - 1 downto 0);
-	RefCtrlNonReadOpEnable		: out std_logic_vector(REF_CTRL_NUM - 1 downto 0);
-	RefCtrlReadOpEnable		: out std_logic_vector(REF_CTRL_NUM - 1 downto 0);
+	RefCtrlRefreshReq		: out std_logic;
+	RefCtrlNonReadOpEnable		: out std_logic;
+	RefCtrlReadOpEnable		: out std_logic;
 
 	-- PHY Init
-	RefCtrlPhyInitCompleted		: in std_logic_vector(REF_CTRL_NUM - 1 downto 0);
-
-	-- Bank Controller
-	RefCtrlBankIdle			: in std_logic_vector(REF_CTRL_NUM*BANK_NUM - 1 downto 0);
-
-	-- ODT Controller
-	RefCtrlODTCtrlAck		: in std_logic_vector(REF_CTRL_NUM - 1 downto 0);
-
-	RefCtrlODTDisable		: out std_logic_vector(REF_CTRL_NUM - 1 downto 0);
-	RefCtrlODTCtrlReq		: out std_logic_vector(REF_CTRL_NUM - 1 downto 0);
-
-	-- Arbitrer
-	RefCtrlCmdAck			: in std_logic_vector(REF_CTRL_NUM - 1 downto 0);
-
-	RefCtrlCmdOut			: out std_logic_vector(REF_CTRL_NUM*MEM_CMD_L - 1 downto 0);
-	RefCtrlCmdReq			: out std_logic_vector(REF_CTRL_NUM - 1 downto 0);
+	PhyInitCompleted		: in std_logic;
 
 	-- Controller
-	RefCtrlCtrlReq			: in std_logic_vector(REF_CTRL_NUM - 1 downto 0);
+	RefCtrlCtrlReq			: in std_logic;
 
-	RefCtrlCtrlAck			: out std_logic_vector(REF_CTRL_NUM - 1 downto 0);
+	RefCtrlCtrlAck			: out std_logic;
 
 	-- ODT Controller
-	-- Command sent to memory
-	ODTCtrlCmd			: in std_logic_vector(ODT_CTRL_NUM*MEM_CMD_L - 1 downto 0);
-
-	-- MRS Controller
-	ODTCtrlMRSCtrlReq		: in std_logic_vector(ODT_CTRL_NUM - 1 downto 0);
-	ODTCtrlMRSUpdateCompleted	: in std_logic_vector(ODT_CTRL_NUM - 1 downto 0);
-
-	ODTCtrlMRSCtrlAck		: out std_logic_vector(ODT_CTRL_NUM - 1 downto 0);
-
-	-- Refresh Controller
-	ODTCtrlRefCtrlReq		: in std_logic_vector(ODT_CTRL_NUM - 1 downto 0);
-
-	ODTCtrlRefCtrlAck		: out std_logic_vector(ODT_CTRL_NUM - 1 downto 0);
-
-	-- Stop Arbiter
-	ODTCtrlPauseArbiter		: out std_logic_vector(ODT_CTRL_NUM - 1 downto 0);
-
 	-- ODT
-	ODTCtrlODT			: out std_logic_vector(ODT_CTRL_NUM - 1 downto 0);
+	ODTCtrlODT			: out std_logic;
 
 	-- Arbiter
 	-- Command Decoder
@@ -161,119 +90,173 @@ port (
 
 architecture rtl of ddr2_phy_ctrl_top is
 
+	-- Bank Status
+	signal BankIdleVec		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
+
+	-- Refresh Controller
+	-- ODT Controller
+	signal RefCtrlODTCtrlAck	: std_logic;
+
+	signal RefCtrlODTDisable	: std_logic;
+	signal RefCtrlODTCtrlReq	: std_logic;
+
+	-- Arbitrer
+	signal RefCtrlCmdAck		: std_logic;
+
+	signal RefCtrlCmdOut		: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal RefCtrlCmdReq		: std_logic;
+
+	-- ODT Controller
+	-- Command sent to memory
+	signal ODTCtrlCmd			: std_logic_vector(MEM_CMD_L - 1 downto 0);
+
+	-- MRS Controller
+	signal ODTCtrlMRSCtrlReq		: std_logic;
+	signal ODTCtrlMRSUpdateCompleted	: std_logic;
+
+	signal ODTCtrlMRSCtrlAck		: std_logic;
+
+	-- Refresh Controller
+	signal ODTCtrlRefCtrlReq		: std_logic;
+
+	signal ODTCtrlRefCtrlAck		: std_logic;
+
+	-- Stop Arbiter
+	signal ODTCtrlPauseArbiter		: std_logic;
+
+	-- MRS Controller
+	-- Commands
+	signal MRSCtrlCmdAck		: std_logic;
+
+	signal MRSCtrlCmdReq		: std_logic;
+	signal MRSCtrlCmd		: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal RSCtrlData		: std_logic_vector(MRS_REG_L - 1 downto 0);
+
+	-- ODT Controller
+	signal MRSCtrlODTCtrlAck	: std_logic;
+
+	signal MRSCtrlODTCtrlReq	: std_logic;
+
+	-- Turn ODT signal on after MRS command(s)
+	signal MRSCtrlMRSUpdateCompleted	: std_logic;
+
+	-- Column Controller
+	-- Arbitrer
+	signal ColCtrlCmdAck		: std_logic_vector(COL_CTRL_NUM - 1 downto 0);
+
+	signal ColCtrlColMemOut		: std_logic_vector(COL_CTRL_NUM*COL_L - 1 downto 0);
+	signal ColCtrlBankMemOut	: std_logic_vector(COL_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
+	signal ColCtrlCmdOut		: std_logic_vector(COL_CTRL_NUM*MEM_CMD_L - 1 downto 0);
+	signal ColCtrlCmdReq		: std_logic_vector(COL_CTRL_NUM - 1 downto 0);
+
+	-- Bank Controller
+	-- Arbitrer
+	signal BankCtrlCmdAck		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
+
+	signal BankCtrlRowMemOut	: std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
+	signal BankCtrlBankMemOut	: std_logic_vector(BANK_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
+	signal BankCtrlCmdOut		: std_logic_vector(BANK_CTRL_NUM*MEM_CMD_L - 1 downto 0);
+	signal BankCtrlCmdReq		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
+
 begin
 
-	ref_ctrl_loop : for i in 0 to (REF_CTRL_NUM - 1) generate
+	REF_CTRL_I: ddr2_phy_ref_ctrl generic map (
+		BANK_NUM => BANK_NUM
+	)
+	port map (
+		clk => clk,
+		rst => rst,
 
-		REF_CTRL_I: ddr2_phy_ref_ctrl generic map (
-			BANK_NUM => BANK_NUM
-		)
-		port map (
-			clk => clk,
-			rst => rst,
+		-- High temperature flag
+		DDR2HighTemperatureRefresh => DDR2HighTemperatureRefresh,
 
-			-- High temperature flag
-			HighTemperatureRefresh => RefCtrlHighTemperatureRefresh,
+		-- Transaction Controller
+		RefreshReq => RefCtrlRefreshReq,
+		NonReadOpEnable => RefCtrlNonReadopEnable,
+		ReadOpEnable => RefCtrlReadopEnable,
 
-			-- Transaction Controller
-			RefreshReq => RefCtrlRefreshReq,
-			NonReadOpEnable => RefCtrlNonReadopEnable,
-			ReadOpEnable => RefCtrlReadopEnable,
+		-- PHY Init
+		PhyInitCompleted => RefCtrlPhyInitCompleted,
 
-			-- PHY Init
-			PhyInitCompleted => RefCtrlPhyInitCompleted,
+		-- Bank Controller
+		BankIdle => BankIdleVec,
 
-			-- Bank Controller
-			BankIdle => BankIdleVec,
+		-- ODT Controller
+		ODTCtrlAck => RefCtrlODTCtrlAck,
 
-			-- ODT Controller
-			ODTCtrlAck => RefCtrlODTCtrlAck,
+		ODTDisable => RefCtrlODTDisable,
+		ODTCtrlReq => RefCtrlODTCtrlReq,
 
-			ODTDisable => RefCtrlODTDisable,
-			ODTCtrlReq => RefCtrlODTCtrlReq,
+		-- Arbitrer
+		CmdAck => RefCtrlCmdAck,
 
-			-- Arbitrer
-			CmdAck => RefCtrlCmdAck,
+		CmdOut => RefCtrlCmdOut,
+		CmdReq => RefCtrlCmdReq,
 
-			CmdOut => RefCtrlCmdOut,
-			CmdReq => RefCtrlCmdReq,
+		-- Controller
+		CtrlReq => RefCtrlCtrlReq,
 
-			-- Controller
-			CtrlReq => RefCtrlCtrlReq,
-
-			CtrlAck => RefCtrlCtrlAck
-		);
+		CtrlAck => RefCtrlCtrlAck
+	);
  
-	end generate ref_ctrl_loop;
+	ODT_CTRL_I: ddr2_phy_odt_ctrl -- generic map (
 
+--	)
+	port map (
+		clk => clk,
+		rst => rst,
 
-	odt_ctrl_loop : for i in 0 to (ODT_CTRL_NUM - 1) generate
+		-- Command sent to memory
+		Cmd => ODTCtrlCmd,
 
-		ODT_CTRL_I: ddr2_phy_odt_ctrl -- generic map (
+		-- MRS Controller
+		MRSCtrlReq => ODTCtrlMRSCtrlReq,
+		MRSUpdateCompleted => MRSUpdateCompleted,
 
-	--	)
-		port map (
-			clk => clk,
-			rst => rst,
+		MRSCtrlAck => ODTCtrlMRSCtrlAck,
 
-			-- Command sent to memory
-			Cmd => ODTCtrlCmd,
+		-- Refresh Controller
+		RefCtrlReq => ODTCtrlRefCtrlReq,
 
-			-- MRS Controller
-			MRSCtrlReq => ODTCtrlMRSCtrlReq,
-			MRSUpdateCompleted => ODTCtrlMRSUpdateCompleted,
+		RefCtrlAck => ODTCtrlRefCtrlAck,
 
-			MRSCtrlAck => ODTCtrlMRSCtrlAck,
+		-- Stop Arbiter
+		PauseArbiter => ODTCtrlPauseArbiter,
 
-			-- Refresh Controller
-			RefCtrlReq => ODTCtrlRefCtrlReq,
+		-- ODT
+		ODT => ODTCtrlODT
 
-			RefCtrlAck => ODTCtrlRefCtrlAck,
+	);
 
-			-- Stop Arbiter
-			PauseArbiter => ODTCtrlPauseArbiter,
+	MRS_CTRL_I: ddr2_phy_mrs_ctrl generic map (
+		MRS_REG_L => MRS_REG_L
+	)
+	port map (
+		clk => clk,
+		rst => rst,
 
-			-- ODT
-			ODT => ODTCtrlODT
+		-- Transaction Controller
+		CtrlReq => MRSCtrlCtrlReq,
+		CtrlCmd => MRSCtrlCtrlCmd,
+		CtrlData => MRSCtrlCtrlData,
 
-		);
- 
-	end generate odt_ctrl_loop;
+		CtrlAck => MRSCtrlCtrlAck,
 
+		-- Commands
+		CmdAck => MRSCtrlCmdAck,
 
-	mrs_ctrl_loop : for i in 0 to (MRS_CTRL_NUM - 1) generate
+		CmdReq => MRSCtrlCmdReq,
+		Cmd => MRSCtrlCmd,
+		Data => MRSCtrlData,
 
-		MRS_CTRL_I: ddr2_phy_mrs_ctrl generic map (
-			MRS_REG_L => MRS_REG_L
-		)
-		port map (
-			clk => clk,
-			rst => rst,
+		-- ODT Controller
+		ODTCtrlAck => MRSCtrlODTCtrlAck,
 
-			-- Transaction Controller
-			CtrlReq => MRSCtrlCtrlReq,
-			CtrlCmd => MRSCtrlCtrlCmd,
-			CtrlData => MRSCtrlCtrlData,
+		ODTCtrlReq => MRSCtrlODTCtrlReq,
 
-			CtrlAck => MRSCtrlCtrlAck,
-
-			-- Commands
-			CmdAck => MRSCtrlCmdAck,
-
-			CmdReq => MRSCtrlCmdReq,
-			Cmd => MRSCtrlCmd,
-			Data => MRSCtrlData,
-
-			-- ODT Controller
-			ODTCtrlAck => MRSCtrlODTCtrlAck,
-
-			ODTCtrlReq => MRSCtrlODTCtrlReq,
-
-			-- Turn ODT signal on after MRS command(s)
-			MRSUpdateCompleted => MRSCtrlMRSUpdateCompleted
-		);
-	 
-	end generate mrs_ctrl_loop;
+		-- Turn ODT signal on after MRS command(s)
+		MRSUpdateCompleted => MRSUpdateCompleted
+	);
 
 	CMD_CTRL_I: ddr2_phy_cmd_ctrl generic map (
 		BANK_CTRL_NUM => BANK_CTRL_NUM,
@@ -338,57 +321,53 @@ begin
 		ADDR_L => ADDR_MEM_L,
 		BANK_NUM => BANK_NUM,
 		BANK_CTRL_NUM => BANK_CTRL_NUM,
-		COL_CTRL_NUM => COL_CTRL_NUM,
-		MRS_CTRL_NUM => MRS_CTRL_NUM,
-		REF_CTRL_NUM => REF_CTRL_NUM
+		COL_CTRL_NUM => COL_CTRL_NUM
 	)
 	port map (
-		clk => clk_tb,
-		rst => rst_tb,
+		clk => clk,
+		rst => rst,
 
 		-- Bank Controllers
-		BankCtrlBankMem => BankCtrlBankMem_tb,
-		BankCtrlRowMem => BankCtrlRowMem_tb,
-		BankCtrlCmdMem => BankCtrlCmdMem_tb,
-		BankCtrlCmdReq => BankCtrlCmdReq_tb,
+		BankCtrlBankMem => BankCtrlBankMem,
+		BankCtrlRowMem => BankCtrlRowMem,
+		BankCtrlCmdMem => BankCtrlCmdMem,
+		BankCtrlCmdReq => BankCtrlCmdReq,
 
-		BankCtrlCmdAck => BankCtrlCmdAck_tb,
+		BankCtrlCmdAck => BankCtrlCmdAck,
 
 		-- Column Controller
-		ColCtrlColMem => ColCtrlColMem_tb,
-		ColCtrlBankMem => ColCtrlBankMem_tb,
-		ColCtrlCmdMem => ColCtrlCmdMem_tb,
-		ColCtrlCmdReq => ColCtrlCmdReq_tb,
+		ColCtrlColMem => ColCtrlColMem,
+		ColCtrlBankMem => ColCtrlBankMem,
+		ColCtrlCmdMem => ColCtrlCmdMem,
+		ColCtrlCmdReq => ColCtrlCmdReq,
 
-		ColCtrlCmdAck => ColCtrlCmdAck_tb,
+		ColCtrlCmdAck => ColCtrlCmdAck,
 
 		-- Refresh Controller
-		RefCtrlCmdMem => RefCtrlCmdMem_tb,
-		RefCtrlCmdReq => RefCtrlCmdReq_tb,
+		RefCtrlCmdMem => RefCtrlCmdMem,
+		RefCtrlCmdReq => RefCtrlCmdReq,
 
-		RefCtrlCmdAck => RefCtrlCmdAck_tb,
+		RefCtrlCmdAck => RefCtrlCmdAck,
 
 		-- MRS Controller
-		MRSCtrlMRSCmd => MRSCtrlMRSCmd_tb,
-		MRSCtrlCmdMem => MRSCtrlCmdMem_tb,
-		MRSCtrlCmdReq => MRSCtrlCmdReq_tb,
+		MRSCtrlMRSCmd => MRSCtrlMRSCmd,
+		MRSCtrlCmdMem => MRSCtrlCmdMem,
+		MRSCtrlCmdReq => MRSCtrlCmdReq,
 
-		MRSCtrlCmdAck => MRSCtrlCmdAck_tb,
+		MRSCtrlCmdAck => MRSCtrlCmdAck,
 
 		-- Arbiter Controller
-		AllowBankActivate => AllowBankActivate_tb,
+		AllowBankActivate => AllowBankActivate,
 
-		BankActOut => BankActOut_tb,
+		BankActOut => BankActOut,
 
 		-- Command Decoder
-		CmdDecColMem => CmdDecColMem_tb,
-		CmdDecRowMem => CmdDecRowMem_tb,
-		CmdDecBankMem => CmdDecBankMem_tb,
-		CmdDecCmdMem => CmdDecCmdMem_tb,
-		CmdDecMRSCmd => CmdDecMRSCmd_tb
+		CmdDecColMem => CmdDecColMem,
+		CmdDecRowMem => CmdDecRowMem,
+		CmdDecBankMem => CmdDecBankMem,
+		CmdDecCmdMem => CmdDecCmdMem,
+		CmdDecMRSCmd => CmdDecMRSCmd
 
 	);
-
-
 
 end rtl;
