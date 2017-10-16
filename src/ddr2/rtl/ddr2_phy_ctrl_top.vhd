@@ -75,7 +75,7 @@ port (
 
 	-- ODT Controller
 	-- ODT
-	ODTCtrlODT			: out std_logic;
+	ODT				: out std_logic;
 
 	-- Arbiter
 	-- Command Decoder
@@ -97,7 +97,6 @@ architecture rtl of ddr2_phy_ctrl_top is
 	-- ODT Controller
 	signal RefCtrlODTCtrlAck	: std_logic;
 
-	signal RefCtrlODTDisable	: std_logic;
 	signal RefCtrlODTCtrlReq	: std_logic;
 
 	-- Arbitrer
@@ -110,19 +109,8 @@ architecture rtl of ddr2_phy_ctrl_top is
 	-- Command sent to memory
 	signal ODTCtrlCmd			: std_logic_vector(MEM_CMD_L - 1 downto 0);
 
-	-- MRS Controller
-	signal ODTCtrlMRSCtrlReq		: std_logic;
-	signal ODTCtrlMRSUpdateCompleted	: std_logic;
-
-	signal ODTCtrlMRSCtrlAck		: std_logic;
-
-	-- Refresh Controller
-	signal ODTCtrlRefCtrlReq		: std_logic;
-
-	signal ODTCtrlRefCtrlAck		: std_logic;
-
 	-- Stop Arbiter
-	signal ODTCtrlPauseArbiter		: std_logic;
+	signal PauseArbiter		: std_logic;
 
 	-- MRS Controller
 	-- Commands
@@ -138,7 +126,7 @@ architecture rtl of ddr2_phy_ctrl_top is
 	signal MRSCtrlODTCtrlReq	: std_logic;
 
 	-- Turn ODT signal on after MRS command(s)
-	signal MRSCtrlMRSUpdateCompleted	: std_logic;
+	signal MRSUpdateCompleted	: std_logic;
 
 	-- Column Controller
 	-- Arbitrer
@@ -184,7 +172,6 @@ begin
 		-- ODT Controller
 		ODTCtrlAck => RefCtrlODTCtrlAck,
 
-		ODTDisable => RefCtrlODTDisable,
 		ODTCtrlReq => RefCtrlODTCtrlReq,
 
 		-- Arbitrer
@@ -210,21 +197,21 @@ begin
 		Cmd => ODTCtrlCmd,
 
 		-- MRS Controller
-		MRSCtrlReq => ODTCtrlMRSCtrlReq,
+		MRSCtrlReq => MRSCtrlODTCtrlReq,
 		MRSUpdateCompleted => MRSUpdateCompleted,
 
-		MRSCtrlAck => ODTCtrlMRSCtrlAck,
+		MRSCtrlAck => MRSCtrlODTCtrlAck,
 
 		-- Refresh Controller
-		RefCtrlReq => ODTCtrlRefCtrlReq,
+		RefCtrlReq => RefCtrlODTCtrlReq,
 
-		RefCtrlAck => ODTCtrlRefCtrlAck,
+		RefCtrlAck => RefCtrlODTCtrlAck,
 
 		-- Stop Arbiter
-		PauseArbiter => ODTCtrlPauseArbiter,
+		PauseArbiter => PauseArbiter,
 
 		-- ODT
-		ODT => ODTCtrlODT
+		ODT => ODT
 
 	);
 
@@ -357,6 +344,7 @@ begin
 		MRSCtrlCmdAck => MRSCtrlCmdAck,
 
 		-- Arbiter Controller
+		PauseArbiter => PauseArbiter,
 		AllowBankActivate => AllowBankActivate,
 
 		BankActOut => BankActOut,
