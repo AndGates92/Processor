@@ -61,7 +61,6 @@ architecture bench of ddr2_phy_ref_ctrl_tb is
 	-- ODT Controller
 	signal ODTCtrlAck_tb		: std_logic;
 
-	signal ODTDisable_tb		: std_logic;
 	signal ODTCtrlReq_tb		: std_logic;
 
 	-- Arbitrer
@@ -103,7 +102,6 @@ begin
 		-- ODT Controller
 		ODTCtrlAck => ODTCtrlAck_tb,
 
-		ODTDisable => ODTDisable_tb,
 		ODTCtrlReq => ODTCtrlReq_tb,
 
 		-- Arbitrer
@@ -171,7 +169,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_ref_ctrl(variable num_requests_exp : in integer; variable high_temp : in boolean; variable self_refresh_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST-1)); variable phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable odt_cmd_arr_rtl, odt_cmd_arr_exp : out bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable cmd_arr_rtl, cmd_arr_exp : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable ctrl_err_arr, cmd_err_arr, odt_err_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
+		procedure run_ref_ctrl(variable num_requests_exp : in integer; variable high_temp : in boolean; variable self_refresh_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST-1)); variable phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable cmd_arr_rtl, cmd_arr_exp : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable ctrl_err_arr, cmd_err_arr, odt_err_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
 			variable num_requests_rtl_int	: integer;
 			variable self_refresh		: boolean;
 			variable cmd_req_ack_delay	: integer;
@@ -320,8 +318,6 @@ begin
 					for i in 0 to odt_cmd_req_ack_delay loop
 						wait for 1 ps;
 						if (i = odt_cmd_req_ack_delay) then
-							odt_cmd_arr_rtl(num_requests_rtl_int, 0) := std_logic_to_bool(ODTDisable_tb);
-							odt_cmd_arr_exp(num_requests_rtl_int, 0) := true;
 							odt_req := false;
 							ODTCtrlAck_tb <= '1';
 						end if;
@@ -449,9 +445,6 @@ begin
 
 				else
 
-					odt_cmd_arr_rtl(num_requests_rtl_int, 0) := false;
-					odt_cmd_arr_exp(num_requests_rtl_int, 0) := false;
-
 					while (CmdReq_tb = '0') loop
 						wait for 1 ps;
 						if (ODTCtrlReq_tb = '1') then
@@ -522,8 +515,6 @@ begin
 					for i in 0 to odt_cmd_req_ack_delay loop
 						wait for 1 ps;
 						if (i = odt_cmd_req_ack_delay) then
-							odt_cmd_arr_rtl(num_requests_rtl_int, 1) := std_logic_to_bool(ODTDisable_tb);
-							odt_cmd_arr_exp(num_requests_rtl_int, 1) := false;
 							odt_req := false;
 							ODTCtrlAck_tb <= '1';
 						end if;
@@ -538,11 +529,6 @@ begin
 					end loop;
 
 					ODTCtrlAck_tb <= '0';
-
-				else
-
-					odt_cmd_arr_rtl(num_requests_rtl_int, 1) := false;
-					odt_cmd_arr_exp(num_requests_rtl_int, 1) := false;
 
 				end if;
 
@@ -560,14 +546,13 @@ begin
 
 		end procedure run_ref_ctrl;
 
-		procedure verify(variable num_requests_exp, num_requests_rtl : in integer; variable odt_cmd_arr_rtl, odt_cmd_arr_exp : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable cmd_arr_rtl, cmd_arr_exp : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable ctrl_err_arr, cmd_err_arr, odt_err_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable num_requests_exp, num_requests_rtl : in integer; variable cmd_arr_rtl, cmd_arr_exp : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1); variable ctrl_err_arr, cmd_err_arr, odt_err_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
 			variable file_line	: line;
 
 			variable no_cmd_err	: boolean;
 			variable no_ctrl_err	: boolean;
 			variable no_odt_cmd_err	: boolean;
 
-			variable odt_cmd_match	: boolean;
 			variable cmd_match	: boolean;
 		begin
 
@@ -579,9 +564,8 @@ begin
 			no_ctrl_err := compare_int_arr(reset_int_arr(0, num_requests_exp), ctrl_err_arr, num_requests_exp);
 
 			cmd_match := compare_int_arr_2d(cmd_arr_rtl, cmd_arr_exp, num_requests_exp, 2);
-			odt_cmd_match := compare_bool_arr_2d(odt_cmd_arr_rtl, odt_cmd_arr_exp, num_requests_exp, 2);
 
-			if ((num_requests_exp = num_requests_rtl) and (no_cmd_err = true)  and (no_odt_cmd_err = true) and (no_ctrl_err = true) and (odt_cmd_match = true) and (cmd_match = true)) then
+			if ((num_requests_exp = num_requests_rtl) and (no_cmd_err = true)  and (no_odt_cmd_err = true) and (no_ctrl_err = true) and (cmd_match = true)) then
 				write(file_line, string'( "PHY Refresh Controller: PASS"));
 				writeline(file_pointer, file_line);
 				pass := 1;
@@ -623,16 +607,6 @@ begin
 					end loop;
 				end loop;
 				pass := 0;
-			elsif (odt_cmd_match = false) then
-				write(file_line, string'( "PHY Refresh Controller: FAIL (ODT Command mismatch)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_requests_exp - 1) loop
-					for j in 0 to 1 loop
-						write(file_line, string'( "PHY Refresh Controller: Request #" & integer'image(i) & " Command # " & integer'image(j) & ": exp " & bool_to_str(odt_cmd_arr_exp(i, j)) & " vs rtl " & bool_to_str(odt_cmd_arr_rtl(i, j))));
-						writeline(file_pointer, file_line);
-					end loop;
-				end loop;
-				pass := 0;
 			else
 				write(file_line, string'( "PHY Refresh Controller: FAIL (Unknown error)"));
 				writeline(file_pointer, file_line);
@@ -654,8 +628,6 @@ begin
 		variable self_refresh_time_arr		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 		variable bank_idle_delay_arr		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
-		variable odt_cmd_arr_rtl		: bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1);
-		variable odt_cmd_arr_exp		: bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1);
 		variable cmd_arr_rtl			: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1);
 		variable cmd_arr_exp			: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to 1);
 
@@ -685,9 +657,9 @@ begin
 
 			test_param(num_requests_exp, high_temp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, seed1, seed2);
 
-			run_ref_ctrl(num_requests_exp, high_temp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, num_requests_rtl, odt_cmd_arr_rtl, odt_cmd_arr_exp, cmd_arr_rtl, cmd_arr_exp, ctrl_err_arr, cmd_err_arr, odt_err_arr);
+			run_ref_ctrl(num_requests_exp, high_temp, self_refresh_arr, phy_completed_delay_arr, cmd_req_ack_delay_arr, odt_cmd_req_ack_delay_arr, self_refresh_time_arr, bank_idle_delay_arr, num_requests_rtl, cmd_arr_rtl, cmd_arr_exp, ctrl_err_arr, cmd_err_arr, odt_err_arr);
 
-			verify(num_requests_exp, num_requests_rtl, odt_cmd_arr_rtl, odt_cmd_arr_exp, cmd_arr_rtl, cmd_arr_exp, ctrl_err_arr, cmd_err_arr, odt_err_arr, file_pointer, pass);
+			verify(num_requests_exp, num_requests_rtl, cmd_arr_rtl, cmd_arr_exp, ctrl_err_arr, cmd_err_arr, odt_err_arr, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 

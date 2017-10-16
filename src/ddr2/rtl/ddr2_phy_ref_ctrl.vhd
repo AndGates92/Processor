@@ -36,7 +36,6 @@ port (
 	-- ODT Controller
 	ODTCtrlAck		: in std_logic;
 
-	ODTDisable		: out std_logic;
 	ODTCtrlReq		: out std_logic;
 
 	-- Arbitrer
@@ -105,8 +104,6 @@ architecture rtl of ddr2_phy_ref_ctrl is
 	signal AllOpEnableN, AllOpEnableC	: std_logic;
 
 	signal ODTCtrlReqN, ODTCtrlReqC		: std_logic;
-	signal ODTDisableN, ODTDisableC		: std_logic;
-
 begin
 
 	reg: process(rst, clk)
@@ -133,7 +130,6 @@ begin
 			AllOpEnableC <= '0';
 
 			ODTCtrlReqC <= '0';
-			ODTDisableC <= '0';
 
 			RefreshReqC <= '0';
 
@@ -163,7 +159,6 @@ begin
 			AllOpEnableC <= AllOpEnableN;
 
 			ODTCtrlReqC <= ODTCtrlReqN;
-			ODTDisableC <= ODTDisableN;
 
 			RefreshReqC <= RefreshReqN;
 
@@ -177,7 +172,6 @@ begin
 	CtrlAck <= CtrlAckC;
 
 	ODTCtrlReq <= ODTCtrlReqC;
-	ODTDisable <= ODTDisableC;
 
 	CmdReq <= CmdReqC;
 	CmdOut <= Cmd_comb;
@@ -244,10 +238,6 @@ begin
 			CmdReqC;
 
 	CtrlAckN <= CtrlReq when (((StateC = FINISH_OUTSTANDING_TX) and (BankIdle = all_banks_idle)) or (StateC = SELF_REF)) else '0';
-
-	ODTDisableN <=	CtrlReq			when ((StateC = FINISH_OUTSTANDING_TX) and (BankIdle = all_banks_idle)) else
-			not AllOpEnableC	when (StateC = ENABLE_OP) else
-			ODTDisableC;
 
 	ODTCtrlReqN <=	CtrlReq					when ((StateC = FINISH_OUTSTANDING_TX) and (BankIdle = all_banks_idle)) else
 			(AllOpEnableC and SelfRefreshOpC)	when (StateC = ENABLE_OP) else
