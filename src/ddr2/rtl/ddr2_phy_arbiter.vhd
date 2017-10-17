@@ -144,7 +144,7 @@ begin
 		end if;
 	end process reg;
 
-	priority_next: process(PriorityC, AllowBankActivate)
+	priority_next: process(PriorityC, AllowBankActivate, PauseArbiter)
 	begin
 		if (PauseArbiter = '1') then
 			PriorityN <= PriorityC;
@@ -169,7 +169,7 @@ begin
 		end if;
 	end process priority_next;
 
-	bank_priority_next: process(BankPriorityC, AllowBankActivate)
+	bank_priority_next: process(BankPriorityC, AllowBankActivate, PauseArbiter)
 	begin
 		if ((PauseArbiter = '0') and (AllowBankActivate = '1')) then -- increment priority only if activate is allowed through (i.e. tFAW exceeded and tRRD exceeded)
 			if (BankPriorityC = MAX_VALUE_BANK_PRIORITY) then
@@ -294,7 +294,7 @@ begin
 
 	BankActOut <= BankActOut_comb;
 
-	bank_act_out: process(PriorityCmdReq, PriorityC, BankPriorityCmdReq)
+	bank_act_out: process(PriorityCmdReq, PriorityC, BankPriorityCmdReq, PauseArbiter)
 	begin
 
 		if (PauseArbiter = '1') then
@@ -312,7 +312,7 @@ begin
 		end if;
 	end process bank_act_out;
 
-	ack_mux: process(PriorityC, BankPriorityC, ColPriorityC, PriorityCmdReq, BankPriorityCmdReq, ColPriorityCmdReq, RefPriorityCmdReq, MRSPriorityCmdReq)
+	ack_mux: process(PriorityC, BankPriorityC, ColPriorityC, PriorityCmdReq, BankPriorityCmdReq, ColPriorityCmdReq, RefPriorityCmdReq, MRSPriorityCmdReq, PauseArbiter)
 	begin
 		CmdAck <= (others => '0');
 		RefCtrlCmdAck <= '0';
