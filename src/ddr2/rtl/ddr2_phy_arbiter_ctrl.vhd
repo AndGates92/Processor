@@ -19,7 +19,7 @@ port (
 	clk		: in std_logic;
 
 	ODTCtrlPauseArbiter	: in std_logic;
-	BankActOut		: in std_logic;
+	BankActCmd		: in std_logic;
 
 	PauseArbiter		: out std_logic;
 	AllowBankActivate	: out std_logic
@@ -28,8 +28,58 @@ end entity ddr2_phy_arbiter_ctrl;
 
 architecture rtl of ddr2_phy_arbiter_ctrl is
 
-	signal CountC, CountN	: arb_ctrl_unsigned_arr(WINDOW_L - 1 downto 0);
+	constant zero_four_act_win_cnt					: unsigned(four_act_win_unsigned'length - 1 downto 0) := (others => '0');
+	constant incr_four_act_win_cnt_value				: unsigned(four_act_win_unsigned'length - 1 downto 0) := to_unsigned(1, four_act_win_unsigned'length);
+
+	constant zero_act_to_act_cnt					: unsigned(CNT_ACT_TO_ACT_L - 1 downto 0) := (others => '0');
+	constant incr_act_to_act_cnt_value				: unsigned(CNT_ACT_TO_ACT_L - 1 downto 0) := to_unsigned(1, CNT_ACT_TO_ACT_L);
+
+	signal CntFourActWinArrC, CntFourActWinArrN			: four_act_win_unsigned_arr(WINDOW_L - 1 downto 0);
+	signal FourActWinCntInitValue					: four_act_win_unsigned;
+	signal SetFourActWinCntArr					: std_logic_vector(WINDOW_L - 1 downto 0);
+	signal FourActWinCntArrEnC, FourActWinCntArrEnN			: std_logic_vector(WINDOW_L - 1 downto 0);
+	signal ZeroFourActWinCntArr					: std_logic_vector(WINDOW_L - 1 downto 0);
+
+	signal CntFourActWinNextActPtrC, CntFourActWinNextActPtrN	: unsigned((int_to_bit_num(WINDOW_L) - 1) downto 0);
+	signal CntFourActWinLastActPtrC, CntFourActWinLastActPtrN	: unsigned((int_to_bit_num(WINDOW_L) - 1) downto 0);
+	signal IncrCntFourActWinPtr					: std_logic;
+
+	signal CntActToActC, CntActToActN				: unsigned(CNT_ACT_TO_ACT_L - 1 downto 0);
+	signal ActToActCntInitValue					: unsigned(CNT_ACT_TO_ACT_L - 1 downto 0);
+	signal SetActToActCnt						: std_logic;
+	signal ActToActCntEnC, ActToActCntEnN				: std_logic;
+	signal ZeroActToActCnt						: std_logic;
+
+	signal AllowBankActivate_int					: std_logic;
 
 begin
+
+	-- Pause arbiter when updating MRS registers (ODT controller sends the request because ODT is taken low)
+	PauseArbiter <= ODTCtrlPauseArbiter;
+
+	-- Four-Active-Window counter initial value. tFAW - 1 because count down to 0
+	FourActWinCntInitValue <= to_unsigned((T_FAW_min - 1), four_act_win_unsigned'length);
+
+	AllowBankActivate <= AllowBankActivate_int;
+
+	ZERO_FOUR_ACT_CNT: for i in 0 to (WINDOW_L - 1) generate
+		ZeroFourActWinCntArr(i) <= '1' when (CntFourActWinArrC(i) = zero_four_act_win_cnt) else '0';
+	end generate ZERO_FOUR_ACT_CNT;
+
+	FOUR_ACT_CNT_EN: for i in 0 to (WINDOW_L - 1) generate
+		FourActWinCntArrEnN(i) <= '1' when (CntFourActWinNextActPtr = to_unsigned(i, int_to_bit_num(WINDOW_L))) else FourActWinCntArrEnC;
+	end generate FOUR_ACT_CNT_EN;
+
+	SET_FOUR_ACT_CNT: for i in 0 to (WINDOW_L - 1) generate
+		SetFourActWinCntArr(i) <= BankActCmd when (CntFourActWinNextActPtr = to_unsigned(i, int_to_bit_num(WINDOW_L))) else '0';
+	end generate SET_FOUR_ACT_CNT;
+
+	FOUR_ACT_CNT: for i in 0 to (WINDOW_L - 1) generate
+		CntFourActWinArrN(i) <=	FourActWinCntInitValue					when (SetFourActWinCntArr(i) = '1') else
+					(CntFourActWinArrC(i) + incr_four_act_win_cnt_value)	when ((FourActWinCntArrEnC(i) = '1') and (ZeroFourActWinCntArr(i) = '0')) else
+					CntFourActWinArrC(i);
+	end generate FOUR_ACT_CNT;
+
+
 
 end rtl;
