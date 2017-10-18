@@ -75,7 +75,7 @@ architecture bench of ddr2_phy_arbiter_tb is
 	signal PauseArbiter_tb		: std_logic;
 	signal AllowBankActivate_tb	: std_logic;
 
-	signal BankActOut_tb		: std_logic;
+	signal BankActCmd_tb		: std_logic;
 
 	-- Command Decoder
 	signal CmdDecColMem_tb		: std_logic_vector(COL_L_TB - 1 downto 0);
@@ -131,7 +131,7 @@ begin
 		PauseArbiter => PauseArbiter_tb,
 		AllowBankActivate => AllowBankActivate_tb,
 
-		BankActOut => BankActOut_tb,
+		BankActCmd => BankActCmd_tb,
 
 		-- Command Decoder
 		CmdDecColMem => CmdDecColMem_tb,

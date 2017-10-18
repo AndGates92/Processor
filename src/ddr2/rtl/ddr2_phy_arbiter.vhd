@@ -57,7 +57,7 @@ port (
 	PauseArbiter		: in std_logic;
 	AllowBankActivate	: in std_logic;
 
-	BankActOut		: out std_logic;
+	BankActCmd		: out std_logic;
 
 	-- Command Decoder
 	CmdDecColMem		: out std_logic_vector(COL_L - 1 downto 0);
@@ -119,7 +119,7 @@ architecture rtl of ddr2_phy_arbiter is
 	signal MRSPriorityCmdMem		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal MRSPriorityCmdReq		: std_logic;
 
-	signal BankActOut_comb			: std_logic;
+	signal BankActCmd_comb			: std_logic;
 
 begin
 
@@ -292,22 +292,22 @@ begin
 
 	CmdDecMRSCmd <= MRSPriorityMRSCmd;
 
-	BankActOut <= BankActOut_comb;
+	BankActCmd <= BankActCmd_comb;
 
 	bank_act_out: process(PriorityCmdReq, PriorityC, BankPriorityCmdReq, PauseArbiter)
 	begin
 
 		if (PauseArbiter = '1') then
-			BankActOut_comb <= '0';
+			BankActCmd_comb <= '0';
 		else
 			if (PriorityCmdReq = '1') then
 				if (PriorityC < COL_CTRL_NUM) then
-					BankActOut_comb <= '0';
+					BankActCmd_comb <= '0';
 				else
-					BankActOut_comb <= '1';
+					BankActCmd_comb <= '1';
 				end if;
 			else
-				BankActOut_comb <= BankPriorityCmdReq;
+				BankActCmd_comb <= BankPriorityCmdReq;
 			end if;
 		end if;
 	end process bank_act_out;

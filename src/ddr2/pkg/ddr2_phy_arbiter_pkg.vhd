@@ -58,7 +58,7 @@ package ddr2_phy_arbiter_pkg is
 		PauseArbiter		: in std_logic;
 		AllowBankActivate	: in std_logic;
 
-		BankActOut		: out std_logic;
+		BankActCmd		: out std_logic;
 
 		-- Command Decoder
 		CmdDecColMem		: out std_logic_vector(COL_L - 1 downto 0);
