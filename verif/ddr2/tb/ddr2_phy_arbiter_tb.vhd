@@ -149,6 +149,7 @@ begin
 		procedure reset is
 		begin
 			AllowBankActivate_tb <= '0';
+			PauseArbiter_tb <= '0';
 			BankCtrlCmdReq_tb <= (others => '0');
 			ColCtrlCmdReq_tb <= (others => '0');
 			RefCtrlCmdReq_tb <= '0';
@@ -382,6 +383,11 @@ begin
 						if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
 							ref_ack_err(num_cmd_rtl_int) := true;
 						end if;
+
+						if (MRSCtrlCmdAck_tb /= ZERO_MRS_CTRL_ACK) then
+							mrs_ack_err(num_cmd_rtl_int) := true;
+						end if;
+
 					else
 						-- General Priority
 						if (cmd_found = false) then
@@ -877,13 +883,13 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "PHY Arbiter Controller => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TESTS)));
+		write(file_line, string'( "PHY Arbiter => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TESTS)));
 		writeline(file_pointer, file_line);
 
 		if (num_pass = TOT_NUM_TESTS) then
-			write(file_line, string'( "PHY Arbiter Controller: TEST PASSED"));
+			write(file_line, string'( "PHY Arbiter: TEST PASSED"));
 		else
-			write(file_line, string'( "PHY Arbiter Controller: TEST FAILED: " & integer'image(TOT_NUM_TESTS-num_pass) & " failures"));
+			write(file_line, string'( "PHY Arbiter: TEST FAILED: " & integer'image(TOT_NUM_TESTS-num_pass) & " failures"));
 		end if;
 		writeline(file_pointer, file_line);
 
