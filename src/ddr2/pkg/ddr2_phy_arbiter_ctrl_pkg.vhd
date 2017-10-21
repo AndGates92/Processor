@@ -8,16 +8,16 @@ use common_rtl_pkg.functions_pkg.all;
 library ddr2_rtl_pkg;
 use ddr2_rtl_pkg.ddr2_gen_ac_timing_pkg.all;
 
-package ddr2_phy_arbiter_ctrl is
+package ddr2_phy_arbiter_ctrl_pkg is
 
 	constant WINDOW_L		: integer := 4;
-	constant CNT_ARR_FOUR_ACT_WIN_L	: integer := int_to_bit_num(T_FAW_min);
+	constant CNT_ARR_FOUR_ACT_WIN_L	: integer := int_to_bit_num(T_FAW);
 	constant CNT_ACT_TO_ACT_L	: integer := int_to_bit_num(T_RRD);
 
-	type four_act_win_unsigned is unsigned((CNT_ARR_FOUR_ACT_WIN_L - 1) downto 0);
+	subtype four_act_win_unsigned is unsigned((CNT_ARR_FOUR_ACT_WIN_L - 1) downto 0);
 	type four_act_win_unsigned_arr is array (integer range <>) of four_act_win_unsigned;
 
-	entity ddr2_phy_arbiter_ctrl is
+	component ddr2_phy_arbiter_ctrl is
 	--generic (
 
 	--);
@@ -32,6 +32,6 @@ package ddr2_phy_arbiter_ctrl is
 		PauseArbiter		: out std_logic;
 		AllowBankActivate	: out std_logic
 	);
-	end entity ddr2_phy_arbiter_ctrl;
+	end component;
 
-end package ddr2_phy_arbiter_ctrl;
+end package ddr2_phy_arbiter_ctrl_pkg;
