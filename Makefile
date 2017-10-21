@@ -143,6 +143,7 @@ all_ddr2:
 	make ddr2_phy_mrs_ctrl_all
 	make ddr2_phy_cmd_dec_all
 	make ddr2_phy_arbiter_all
+	make ddr2_phy_arbiter_top_all
 	make ddr2_phy_regs_all
 
 clean:
@@ -235,6 +236,10 @@ ddr2_rtl_libraries:
 	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_cmd_ctrl_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_arbiter_pkg.vhd"
 	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_arbiter_pkg.vhd
+	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_arbiter_ctrl_pkg.vhd"
+	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_arbiter_ctrl_pkg.vhd
+	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_arbiter_top_pkg.vhd"
+	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_arbiter_top_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_cmd_dec_pkg.vhd"
 	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_phy_cmd_dec_pkg.vhd
 	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_phy_odt_ctrl_pkg.vhd"
@@ -830,6 +835,34 @@ ddr2_phy_arbiter_all:
 	make ddr2_libraries
 	make ddr2_phy_arbiter
 	make simulate_ddr2_phy_arbiter
+
+ddr2_phy_arbiter_top: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_arbiter_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_arbiter_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_arbiter_top_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_pkg.o
+	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_arbiter.vhd"
+	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_arbiter.vhd
+	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_arbiter_ctrl.vhd"
+	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_arbiter_ctrl.vhd
+	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_arbiter_top.vhd"
+	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_phy_arbiter_top.vhd
+	@echo "Analysing ${DDR2_RTL_CFG_DIR}/ddr2_phy_arbiter_top_cfg.vhd"
+	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_CFG_DIR}/ddr2_phy_arbiter_top_cfg.vhd
+	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_phy_arbiter_top_tb.vhd"
+	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_phy_arbiter_top_tb.vhd
+	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_phy_arbiter_top_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_phy_arbiter_top_tb_cfg.vhd
+	@echo "Elaborating ddr2_phy_arbiter_top_tb_cfg"
+	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_phy_arbiter_top_tb
+	rm -r e~config_ddr2_phy_arbiter_top_tb.o
+	mv config_ddr2_phy_arbiter_top_tb ${DDR2_TB_WORK_DIR}
+
+simulate_ddr2_phy_arbiter_top: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_pkg.o  ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_arbiter_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_arbiter_ctrl_pkg.o  ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_arbiter.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_arbiter_ctrl.o ${DDR2_RTL_WORK_DIR}/ddr2_phy_arbiter_top.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_arbiter_top_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_phy_arbiter_top_tb.o
+	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_phy_arbiter_top_tb ${GHDL_RUN_ARGS}ddr2_phy_arbiter_top.vcd
+
+ddr2_phy_arbiter_top_all:
+	make work_dir
+	make common_libraries
+	make ddr2_libraries
+	make ddr2_phy_arbiter_top
+	make simulate_ddr2_phy_arbiter_top
 
 ddr2_phy_odt_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_odt_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_phy_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
 	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_phy_odt_ctrl.vhd"
