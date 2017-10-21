@@ -68,7 +68,7 @@ begin
 			CntFourActWinLastActPtrC <= (others => '0');
 
 			CntActToActC <= (others => '0');
-			ActToActCntEnC <= (others => '0');
+			ActToActCntEnC <= '0';
 		elsif ((clk'event) and (clk = '1')) then
 			CntFourActWinArrC <= CntFourActWinArrN;
 			FourActWinCntArrEnC <= FourActWinCntArrEnN;
@@ -85,7 +85,7 @@ begin
 	PauseArbiter <= ODTCtrlPauseArbiter;
 
 	-- Four-Active-Window counter initial value. tFAW - 1 because count down to 0
-	FourActWinCntInitValue <= to_unsigned((T_FAW_min - 1), four_act_win_unsigned'length);
+	FourActWinCntInitValue <= to_unsigned((T_FAW - 1), four_act_win_unsigned'length);
 
 	AllowBankActivate <= AllowBankActivate_int;
 
@@ -94,7 +94,7 @@ begin
 	end generate ZERO_FOUR_ACT_CNT;
 
 	FOUR_ACT_CNT_EN: for i in 0 to (WINDOW_L - 1) generate
-		FourActWinCntArrEnN(i) <= '1' when (CntFourActWinNextActPtrC = to_unsigned(i, int_to_bit_num(WINDOW_L))) else FourActWinCntArrEnC;
+		FourActWinCntArrEnN(i) <= '1' when (CntFourActWinNextActPtrC = to_unsigned(i, int_to_bit_num(WINDOW_L))) else FourActWinCntArrEnC(i);
 	end generate FOUR_ACT_CNT_EN;
 
 	SET_FOUR_ACT_CNT: for i in 0 to (WINDOW_L - 1) generate
@@ -111,7 +111,7 @@ begin
 	begin
 		FourActWinElapsed <= '0';
 		for i in 0 to (WINDOW_L - 1) loop
-			if (CntFourActWinLastActPtrC = to_unsigned(i, int_to_bit_num(WINDOW_L))) begin
+			if (CntFourActWinLastActPtrC = to_unsigned(i, int_to_bit_num(WINDOW_L))) then
 				FourActWinElapsed <= ZeroFourActWinCntArr(i);
 			end if;
 		end loop;
@@ -127,13 +127,13 @@ begin
 
 	SetActToActCnt <= BankActCmd;
 
-	ActToActCntEnN <= '1' when SetActToActCnt else ActToActCntEnC;
+	ActToActCntEnN <= '1' when (SetActToActCnt = '1') else ActToActCntEnC;
 
-	ZeroActToActCnt <= '1' when (CntActToActC(i) = zero_act_to_act_cnt) else '0';
+	ZeroActToActCnt <= '1' when (CntActToActC = zero_act_to_act_cnt) else '0';
 
-	CntActToActN(i) <=	ActToActCntInitValue					when (SetActToActCnt(i) = '1') else
-				(CntActToActC(i) - incr_act_to_act_cnt_value)		when ((ActToActCntEnC(i) = '1') and (ZeroActToActCnt(i) = '0')) else
-				CntActToActC(i);
+	CntActToActN <=	ActToActCntInitValue					when (SetActToActCnt = '1') else
+			(CntActToActC - incr_act_to_act_cnt_value)		when ((ActToActCntEnC = '1') and (ZeroActToActCnt = '0')) else
+			CntActToActC;
 
 	AllowBankActivate_int <= FourActWinElapsed and ZeroActToActCnt;
 
