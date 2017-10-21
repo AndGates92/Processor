@@ -330,22 +330,26 @@ begin
 
 					BankCtrlBankMem_tb <= (others => '0');
 					BankCtrlRowMem_tb <= (others => '0');
-					BankCtrlCmdMem_tb <= (others => '0');
+					for i in 0 to (BANK_CTRL_NUM_TB - 1) loop
+						BankCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= CMD_NOP;
+					end loop:
 
 					BankCtrlCmdReq_tb <= (others => '0');
 
 					ColCtrlBankMem_tb <= (others => '0');
 					ColCtrlColMem_tb <= (others => '0');
-					ColCtrlCmdMem_tb <= (others => '0');
+					for i in 0 to (COL_CTRL_NUM_TB - 1) loop
+						ColCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= CMD_NOP;
+					end loop:
 
 					ColCtrlCmdReq_tb <= (others => '0');
 
-					RefCtrlCmdMem_tb <= (others => '0');
+					RefCtrlCmdMem_tb <= CMD_NOP;
 
 					RefCtrlCmdReq_tb <= '0';
 
 					MRSCtrlMRSCmd_tb <= (others => '0');
-					MRSCtrlCmdMem_tb <= (others => '0');
+					MRSCtrlCmdMem_tb <= CMD_NOP;
 
 					MRSCtrlCmdReq_tb <= '0';
 
