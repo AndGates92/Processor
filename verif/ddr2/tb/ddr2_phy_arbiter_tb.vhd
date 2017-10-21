@@ -332,7 +332,7 @@ begin
 					BankCtrlRowMem_tb <= (others => '0');
 					for i in 0 to (BANK_CTRL_NUM_TB - 1) loop
 						BankCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= CMD_NOP;
-					end loop:
+					end loop;
 
 					BankCtrlCmdReq_tb <= (others => '0');
 
@@ -340,7 +340,7 @@ begin
 					ColCtrlColMem_tb <= (others => '0');
 					for i in 0 to (COL_CTRL_NUM_TB - 1) loop
 						ColCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= CMD_NOP;
-					end loop:
+					end loop;
 
 					ColCtrlCmdReq_tb <= (others => '0');
 
