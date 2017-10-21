@@ -248,20 +248,12 @@ begin
 			variable num_requests_rtl_int	: integer;
 			variable num_cmd_rtl_int	: integer;
 
-			variable priority		: integer;
-			variable bank_priority		: integer;
-			variable col_priority		: integer;
-
 			variable cmd_found		: boolean;
 
 		begin
 
 			num_requests_rtl_int := 0;
 			num_cmd_rtl_int := 0;
-
-			priority := 0;
-			bank_priority := 0;
-			col_priority := 0;
 
 			col_ack_err := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
 			bank_ack_err := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
@@ -281,6 +273,8 @@ begin
 			row_exp := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
 			mrs_cmd_exp := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
 			cmd_exp := reset_int_arr(to_integer(unsigned(CMD_NOP)), MAX_REQUESTS_PER_TEST);
+
+			cmd_found := false;
 
 			arb_loop: loop
 
@@ -319,26 +313,28 @@ begin
 
 					BankCtrlBankMem_tb <= (others => '0');
 					BankCtrlRowMem_tb <= (others => '0');
-					BankCtrlCmdMem_tb <= (others => '0');
+					for i in 0 to (BANK_CTRL_NUM_TB - 1) loop
+						BankCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= CMD_NOP;
+					end loop:
 
 					BankCtrlCmdReq_tb <= (others => '0');
 
 					ColCtrlBankMem_tb <= (others => '0');
 					ColCtrlColMem_tb <= (others => '0');
-					ColCtrlCmdMem_tb <= (others => '0');
+					for i in 0 to (COL_CTRL_NUM_TB - 1) loop
+						ColCtrlCmdMem_tb((i+1)*MEM_CMD_L - 1 downto i*MEM_CMD_L) <= CMD_NOP;
+					end loop:
 
 					ColCtrlCmdReq_tb <= (others => '0');
 
-					RefCtrlCmdMem_tb <= (others => '0');
+					RefCtrlCmdMem_tb <= CMD_NOP;
 
 					RefCtrlCmdReq_tb <= '0';
 
 					MRSCtrlMRSCmd_tb <= (others => '0');
-					MRSCtrlCmdMem_tb <= (others => '0');
+					MRSCtrlCmdMem_tb <= CMD_NOP;
 
 					MRSCtrlCmdReq_tb <= '0';
-
-					AllowBankActivate_tb <= '0';
 
 				end if;
 
@@ -378,52 +374,58 @@ begin
 						end if;
 
 					else
-						-- General Priority
-						if (cmd_found = false) then
-							if (priority < COL_CTRL_NUM_TB) then
-								if (col_ctrl_cmd_req(num_cmd_rtl_int, priority)) then
-									cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(ColCtrlCmdAck_tb(priority));
 
-									bank_exp(num_cmd_rtl_int) := col_ctrl_bank(num_cmd_rtl_int, priority);
-									col_exp(num_cmd_rtl_int) := col_ctrl_col(num_cmd_rtl_int, priority);
-									row_exp(num_cmd_rtl_int) := 0;
-									cmd_exp(num_cmd_rtl_int) := col_ctrl_cmd(num_cmd_rtl_int, priority);
+						if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
+							-- Column Commands
+							for i in 0 to (COL_CTRL_NUM_TB - 1) loop
+								if (cmd_found = false) then
+									if (ColCtrlCmdAck_tb(i) = '1') then
+										cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(ColCtrlCmdAck_tb(i));
 
-									for i in 0 to (COL_CTRL_NUM_TB - 1) loop
-										if (i /= priority) then
-											if (ColCtrlCmdAck_tb(i) = '1') then
-												col_ack_err(num_cmd_rtl_int) := true;
+										bank_exp(num_cmd_rtl_int) := col_ctrl_bank(num_cmd_rtl_int, i);
+										col_exp(num_cmd_rtl_int) := col_ctrl_col(num_cmd_rtl_int, i);
+										row_exp(num_cmd_rtl_int) := 0;
+										cmd_exp(num_cmd_rtl_int) := col_ctrl_cmd(num_cmd_rtl_int, i);
+
+										for j in 0 to (COL_CTRL_NUM_TB - 1) loop
+											if (j /= i) then
+												if (ColCtrlCmdAck_tb(j) = '1') then
+													col_ack_err(num_cmd_rtl_int) := true;
+												end if;
 											end if;
+										end loop;
+
+										if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
+											bank_ack_err(num_cmd_rtl_int) := true;
 										end if;
-									end loop;
 
-									if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
-										bank_ack_err(num_cmd_rtl_int) := true;
+										if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
+											ref_ack_err(num_cmd_rtl_int) := true;
+										end if;
+
+										if (MRSCtrlCmdAck_tb /= ZERO_MRS_CTRL_ACK) then
+											mrs_ack_err(num_cmd_rtl_int) := true;
+										end if;
+
+										cmd_found := true;
 									end if;
-
-									if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
-										ref_ack_err(num_cmd_rtl_int) := true;
-									end if;
-
-									if (MRSCtrlCmdAck_tb /= ZERO_MRS_CTRL_ACK) then
-										mrs_ack_err(num_cmd_rtl_int) := true;
-									end if;
-
-									cmd_found := true;
 								end if;
-							elsif ((priority >= COL_CTRL_NUM_TB) and (priority < (COL_CTRL_NUM_TB + BANK_CTRL_NUM_TB))) then
-								if (bank_ctrl_cmd_req(num_cmd_rtl_int, (priority - COL_CTRL_NUM_TB)) = true) then
+							end loop;
+						elsif (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
+							-- Bank Activate Commands
+							for i in 0 to (BANK_CTRL_NUM_TB - 1) loop
+								if (cmd_found = false) then
+									if (BankCtrlCmdAck_tb(i) = '1') then
+										cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(BankCtrlCmdAck_tb(i));
 
-									cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(BankCtrlCmdAck_tb(priority - COL_CTRL_NUM_TB));
-									if (cmd_ack(num_cmd_rtl_int) = true) then
-										bank_exp(num_cmd_rtl_int) := bank_ctrl_bank(num_cmd_rtl_int, priority - COL_CTRL_NUM_TB);
+										bank_exp(num_cmd_rtl_int) := bank_ctrl_bank(num_cmd_rtl_int, i);
 										col_exp(num_cmd_rtl_int) := 0;
-										row_exp(num_cmd_rtl_int) := bank_ctrl_row(num_cmd_rtl_int, priority - COL_CTRL_NUM_TB);
-										cmd_exp(num_cmd_rtl_int) := bank_ctrl_cmd(num_cmd_rtl_int, priority - COL_CTRL_NUM_TB);
+										row_exp(num_cmd_rtl_int) := bank_ctrl_row(num_cmd_rtl_int, i);
+										cmd_exp(num_cmd_rtl_int) := bank_ctrl_cmd(num_cmd_rtl_int, i);
 
-										for i in 0 to (BANK_CTRL_NUM_TB - 1) loop
-											if (i /= (priority - COL_CTRL_NUM_TB)) then
-												if (BankCtrlCmdAck_tb(i) = '1') then
+										for j in 0 to (BANK_CTRL_NUM_TB - 1) loop
+											if (j /= i) then
+												if (BankCtrlCmdAck_tb(j) = '1') then
 													bank_ack_err(num_cmd_rtl_int) := true;
 												end if;
 											end if;
@@ -443,182 +445,54 @@ begin
 
 										cmd_found := true;
 									end if;
-
 								end if;
-							else
-								bank_ack_err(num_cmd_rtl_int) := true;
+							end loop;
+						elsif (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
+							-- Refresh Commands
+							cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(RefCtrlCmdAck_tb);
+
+							bank_exp(num_cmd_rtl_int) := 0;
+							col_exp(num_cmd_rtl_int) := 0;
+							row_exp(num_cmd_rtl_int) := 0;
+							cmd_exp(num_cmd_rtl_int) := ref_ctrl_cmd(num_cmd_rtl_int);
+
+							if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
 								col_ack_err(num_cmd_rtl_int) := true;
-								ref_ack_err(num_cmd_rtl_int) := true;
+							end if;
+
+							if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
+								bank_ack_err(num_cmd_rtl_int) := true;
+							end if;
+
+							if (MRSCtrlCmdAck_tb /= ZERO_MRS_CTRL_ACK) then
 								mrs_ack_err(num_cmd_rtl_int) := true;
 							end if;
-						end if;
 
-						-- Command
-						if (cmd_found = false) then
-							if (col_priority < COL_CTRL_NUM_TB) then
-								if (col_ctrl_cmd_req(num_cmd_rtl_int, col_priority) = true) then
-									cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(ColCtrlCmdAck_tb(col_priority));
+							cmd_found := true;
+						elsif (MRSCtrlCmdAck_tb /= ZERO_MRS_CTRL_ACK) then
+							-- MRS Commands
+							cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(MRSCtrlCmdAck_tb);
 
-									bank_exp(num_cmd_rtl_int) := col_ctrl_bank(num_cmd_rtl_int, col_priority);
-									col_exp(num_cmd_rtl_int) := col_ctrl_col(num_cmd_rtl_int, col_priority);
-									row_exp(num_cmd_rtl_int) := 0;
-									cmd_exp(num_cmd_rtl_int) := col_ctrl_cmd(num_cmd_rtl_int, col_priority);
+							bank_exp(num_cmd_rtl_int) := 0;
+							col_exp(num_cmd_rtl_int) := 0;
+							row_exp(num_cmd_rtl_int) := 0;
+							cmd_exp(num_cmd_rtl_int) := mrs_ctrl_cmd(num_cmd_rtl_int);
 
-									for i in 0 to (COL_CTRL_NUM_TB - 1) loop
-										if (i /= col_priority) then
-											if (ColCtrlCmdAck_tb(i) = '1') then
-												col_ack_err(num_cmd_rtl_int) := true;
-											end if;
-										end if;
-									end loop;
-
-									if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
-										bank_ack_err(num_cmd_rtl_int) := true;
-									end if;
-
-									if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
-										ref_ack_err(num_cmd_rtl_int) := true;
-									end if;
-
-									if (MRSCtrlCmdAck_tb /= ZERO_MRS_CTRL_ACK) then
-										mrs_ack_err(num_cmd_rtl_int) := true;
-									end if;
-
-									cmd_found := true;
-								end if;
-							else
-								bank_ack_err(num_cmd_rtl_int) := true;
+							if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
 								col_ack_err(num_cmd_rtl_int) := true;
+							end if;
+
+							if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
+								bank_ack_err(num_cmd_rtl_int) := true;
+							end if;
+
+							if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
 								ref_ack_err(num_cmd_rtl_int) := true;
-								mrs_ack_err(num_cmd_rtl_int) := true;
 							end if;
+
+							cmd_found := true;
 						end if;
 
-						-- Bank
-						if (cmd_found = false) then
-							if (bank_priority < BANK_CTRL_NUM_TB) then
-								if (bank_ctrl_cmd_req(num_cmd_rtl_int, bank_priority) = true) then
-									cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(BankCtrlCmdAck_tb(bank_priority));
-
-									if (cmd_ack(num_cmd_rtl_int) = true) then
-										bank_exp(num_cmd_rtl_int) := bank_ctrl_bank(num_cmd_rtl_int, bank_priority);
-										row_exp(num_cmd_rtl_int) := bank_ctrl_row(num_cmd_rtl_int, bank_priority);
-										col_exp(num_cmd_rtl_int) := 0;
-										cmd_exp(num_cmd_rtl_int) := bank_ctrl_cmd(num_cmd_rtl_int, bank_priority);
-
-										for i in 0 to (BANK_CTRL_NUM_TB - 1) loop
-											if (i /= bank_priority) then
-												if (BankCtrlCmdAck_tb(i) = '1') then
-													bank_ack_err(num_cmd_rtl_int) := true;
-												end if;
-											end if;
-										end loop;
-
-										if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
-											col_ack_err(num_cmd_rtl_int) := true;
-										end if;
-
-										if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
-											ref_ack_err(num_cmd_rtl_int) := true;
-										end if;
-
-										if (MRSCtrlCmdAck_tb /= ZERO_MRS_CTRL_ACK) then
-											mrs_ack_err(num_cmd_rtl_int) := true;
-										end if;
-
-										cmd_found := true;
-									end if;
-
-								else
-									bank_ack_err(num_cmd_rtl_int) := true;
-									col_ack_err(num_cmd_rtl_int) := true;
-									ref_ack_err(num_cmd_rtl_int) := true;
-									mrs_ack_err(num_cmd_rtl_int) := true;
-								end if;
-							end if;
-						end if;
-
-						-- Refresh
-						if (cmd_found = false) then
-							if (ref_ctrl_cmd_req(num_cmd_rtl_int) = true) then
-								cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(RefCtrlCmdAck_tb);
-
-								bank_exp(num_cmd_rtl_int) := 0;
-								col_exp(num_cmd_rtl_int) := 0;
-								row_exp(num_cmd_rtl_int) := 0;
-								cmd_exp(num_cmd_rtl_int) := ref_ctrl_cmd(num_cmd_rtl_int);
-
-								if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
-									col_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
-									bank_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								if (MRSCtrlCmdAck_tb /= ZERO_MRS_CTRL_ACK) then
-									mrs_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								cmd_found := true;
-							end if;
-						end if;
-
-						-- MRS Commands
-						if (cmd_found = false) then
-							if (mrs_ctrl_cmd_req(num_cmd_rtl_int) = true) then
-								cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(MRSCtrlCmdAck_tb);
-
-								bank_exp(num_cmd_rtl_int) := 0;
-								col_exp(num_cmd_rtl_int) := 0;
-								row_exp(num_cmd_rtl_int) := 0;
-								cmd_exp(num_cmd_rtl_int) := mrs_ctrl_cmd(num_cmd_rtl_int);
-
-								if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
-									col_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
-									bank_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
-									ref_ack_err(num_cmd_rtl_int) := true;
-								end if;
-
-								cmd_found := true;
-							end if;
-						end if;
-
-						if (priority < COL_CTRL_NUM_TB) then
-							if (priority = MAX_VALUE_PRIORITY_TB) then
-								priority := 0;
-							else
-								priority := priority + 1;
-							end if;
-						else
-							if (allow_act(num_cmd_rtl_int) = true) then
-								if (priority = MAX_VALUE_PRIORITY_TB) then
-									priority := 0;
-								else
-									priority := priority + 1;
-								end if;
-							end if;
-						end if;
-
-						if (allow_act(num_cmd_rtl_int) = true) then
-							if (bank_priority = (BANK_CTRL_NUM_TB - 1)) then
-								bank_priority := 0;
-							else
-								bank_priority := bank_priority + 1;
-							end if;
-						end if;
-
-						if (col_priority = (COL_CTRL_NUM_TB - 1)) then
-							col_priority := 0;
-						else
-							col_priority := col_priority + 1;
-						end if;
 					end if;
 
 					num_cmd_rtl_int := num_cmd_rtl_int + 1;
