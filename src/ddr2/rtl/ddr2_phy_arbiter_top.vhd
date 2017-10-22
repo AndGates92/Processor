@@ -79,7 +79,7 @@ begin
 	ARB_I: ddr2_phy_arbiter generic map (
 		ROW_L => ROW_L,
 		COL_L => COL_L,
-		ADDR_L => ADDR_MEM_L,
+		ADDR_L => ADDR_L,
 		BANK_NUM => BANK_NUM,
 		BANK_CTRL_NUM => BANK_CTRL_NUM,
 		COL_CTRL_NUM => COL_CTRL_NUM
