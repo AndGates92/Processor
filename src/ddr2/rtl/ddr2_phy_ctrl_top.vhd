@@ -21,6 +21,7 @@ generic (
 	BANK_NUM		: positive := 8;
 	COL_L			: positive := 10;
 	ROW_L			: positive := 13;
+	ADDR_L			: positive := 13;
 	MAX_OUTSTANDING_BURSTS	: positive := 10
 );
 port (
@@ -85,7 +86,6 @@ port (
 	CmdDecCmdMem			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
 	CmdDecMRSCmd			: out std_logic_vector(ADDR_L - 1 downto 0)
 
-
 );
 
 architecture rtl of ddr2_phy_ctrl_top is
@@ -107,10 +107,10 @@ architecture rtl of ddr2_phy_ctrl_top is
 
 	-- ODT Controller
 	-- Command sent to memory
-	signal ODTCtrlCmd			: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal ODTCtrlCmd		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 	-- Stop Arbiter
-	signal PauseArbiter		: std_logic;
+	signal ODTCtrlPauseArbiter	: std_logic;
 
 	-- MRS Controller
 	-- Commands
@@ -208,7 +208,7 @@ begin
 		RefCtrlAck => RefCtrlODTCtrlAck,
 
 		-- Stop Arbiter
-		PauseArbiter => PauseArbiter,
+		PauseArbiter => ODTCtrlPauseArbiter,
 
 		-- ODT
 		ODT => ODT
@@ -302,10 +302,10 @@ begin
 
 	);
 
-	ARB_I: ddr2_phy_arbiter generic map (
+	ARB_I: ddr2_phy_arbiter_top generic map (
 		ROW_L => ROW_L,
 		COL_L => COL_L,
-		ADDR_L => ADDR_MEM_L,
+		ADDR_L => ADDR_L,
 		BANK_NUM => BANK_NUM,
 		BANK_CTRL_NUM => BANK_CTRL_NUM,
 		COL_CTRL_NUM => COL_CTRL_NUM
@@ -344,10 +344,7 @@ begin
 		MRSCtrlCmdAck => MRSCtrlCmdAck,
 
 		-- Arbiter Controller
-		PauseArbiter => PauseArbiter,
-		AllowBankActivate => AllowBankActivate,
-
-		BankActOut => BankActOut,
+		ODTCtrlPauseArbiter => ODTCtrlPauseArbiter,
 
 		-- Command Decoder
 		CmdDecColMem => CmdDecColMem,
