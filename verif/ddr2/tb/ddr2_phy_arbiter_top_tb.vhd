@@ -237,13 +237,13 @@ begin
 				mrs_ctrl_cmd_req(i) := rand_bool(rand_val, 0.5);
 
 				uniform(seed1, seed2, rand_val);
-				odt_ctrl_pause_arb(i) := rand_bool(rand_val, 0.5);
+				odt_ctrl_pause_arb(i) := rand_bool(rand_val, 0.75);
 
 			end loop;
 
 		end procedure test_param;
 
-		procedure run_arbiter(variable num_requests_exp : in integer; variable bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable bank_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable col_ctrl_bank, col_ctrl_col, col_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable col_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ref_ctrl_cmd_req : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_mrs_cmd, mrs_ctrl_cmd : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_cmd_req : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable odt_ctrl_pause_arb : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, mrs_cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, mrs_cmd_exp : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, mrs_ack_err : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
+		procedure run_arbiter_top(variable num_requests_exp : in integer; variable bank_ctrl_bank, bank_ctrl_row, bank_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable bank_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (BANK_CTRL_NUM_TB - 1)); variable col_ctrl_bank, col_ctrl_col, col_ctrl_cmd : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable col_ctrl_cmd_req : in bool_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (COL_CTRL_NUM_TB - 1)); variable ref_ctrl_cmd : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ref_ctrl_cmd_req : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_mrs_cmd, mrs_ctrl_cmd : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_cmd_req : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable odt_ctrl_pause_arb : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, mrs_cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, mrs_cmd_exp : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, mrs_ack_err : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
 
 			variable num_requests_rtl_int	: integer;
 			variable num_cmd_rtl_int	: integer;
@@ -505,7 +505,7 @@ begin
 
 			num_requests_rtl := num_requests_rtl_int;
 
-		end procedure run_arbiter;
+		end procedure run_arbiter_top;
 
 		procedure verify(variable num_requests_exp, num_requests_rtl : in integer; variable bank_rtl, row_rtl, col_rtl, cmd_rtl, mrs_cmd_rtl, bank_exp, row_exp, col_exp, cmd_exp, mrs_cmd_exp : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable odt_ctrl_pause_arb, cmd_ack, col_ack_err, bank_ack_err, ref_ack_err, mrs_ack_err : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); file file_pointer : text; variable pass: out integer) is
 
