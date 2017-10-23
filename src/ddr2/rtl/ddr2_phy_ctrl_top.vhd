@@ -21,7 +21,7 @@ generic (
 	BANK_NUM		: positive := 8;
 	COL_L			: positive := 10;
 	ROW_L			: positive := 13;
-	ADDR_L			: positive := 13;
+	MRS_REG_L		: positive := 13;
 	MAX_OUTSTANDING_BURSTS	: positive := 10
 );
 port (
