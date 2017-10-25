@@ -199,7 +199,7 @@ begin
 			CntAutoRefC;
 	CntAutoRefInitValue <= unsigned(AutoRefreshTime) - decr_auto_ref_cnt_value;
 	ZeroAutoRefCnt <= '1' when (CntAutoRefC = zero_auto_ref_cnt_value) else '0';
-	SetAutoRefCnt <= ZeroAutoRefCnt;
+	SetAutoRefCnt <= ZeroAutoRefCnt or SelfRefresh;
 	AutoRefCntEnN <= PhyInitCompleted and not SelfRefresh; -- Disable during power up and when memory is in self refresh
 
 	CntEnableOpN <=	(others => '0')					when (ResetEnableOpCnt = '1') else
