@@ -35,7 +35,7 @@ architecture bench of ddr2_phy_ctrl_top_tb is
 
 	constant MAX_BURST_DELAY	: integer := 20;
 	constant MAX_CMD_DELAY		: integer := 20;
-	constant MAX_REF_DELAY		: integer := 20;
+	constant MAX_REF_DELAY		: integer := integer(2.0**(real(COL_L_TB)));
 	constant MAX_BANK_CMD_WAIT	: integer := 5;
 	constant MAX_CMD_ACK_ACK_DELAY	: integer := 4;
 
@@ -194,7 +194,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_bursts, burst_bits, al, wl, cas : out integer; variable high_temp : out boolean; variable num_bursts_arr : out int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows, mrs_data : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, mrs : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2 : inout positive) is
+		procedure test_param(variable num_bursts, burst_bits, al, wl, cas : out integer; variable high_temp : out boolean; variable num_bursts_arr : out int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows, mrs_data : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, mrs : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2 : inout positive) is
 			variable rand_val		: real;
 			variable bl4_int		: boolean;
 			variable num_bursts_arr_int	: int_arr(0 to (BANK_NUM_TB - 1));
@@ -341,7 +341,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_ctrl_top(variable num_bursts, burst_bits, al, wl, cas : in integer; variable high_temp : in boolean; variable num_bursts_arr : in int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bank_rtl, bank_exp, col_rtl, col_exp, row_rtl, row_exp, cmd_rtl, cmd_exp, mrs_rtl, mrs_exp : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1))) is
+		procedure run_ctrl_top(variable num_bursts_exp, burst_bits, al, wl, cas : in integer; variable high_temp : in boolean; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bank_rtl, bank_exp, col_rtl, col_exp, row_rtl, row_exp, cmd_rtl, cmd_exp, mrs_rtl, mrs_exp : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1))) is
 
 			variable bank_ctrl_bursts_int		: integer;
 			variable col_ctrl_bursts_int		: integer;
@@ -363,9 +363,11 @@ begin
 			variable ref_ctrl_en			: boolean;
 			variable mrs_ctrl_en			: boolean;
 
-			variable cmd_delay_int			: integer;
-			variable ctrl_delay_int			: integer;
+			variable col_cmd_delay_int		: integer;
+			variable bank_ctrl_delay_int		: integer;
+			variable mrs_cmd_delay_int		: integer;
 			variable ref_delay_int			: integer;
+
 		begin
 
 			-- MRS configuration
@@ -391,15 +393,40 @@ begin
 			-- MRS Controller
 			-- Transaction Controller
 			MRSCtrlCtrlReq <= '0';
-			MRSCtrlCtrlCmd => CMD_NOP;
-			MRSCtrlCtrlData => (others => '0');
+			MRSCtrlCtrlCmd <= CMD_NOP;
+			MRSCtrlCtrlData <= (others => '0');
 
 			-- Refresh Controller
 			-- PHY Init
-			PhyInitCompleted => '0';
+			PhyInitCompleted <= '0';
 
 			-- Controller
-			RefCtrlCtrlReq => '0';
+			RefCtrlCtrlReq <= '0';
+
+			bank_ctrl_bursts_int := 0;
+			col_ctrl_bursts_int := 0;
+			ref_ctrl_bursts_int := 0;
+			mrs_ctrl_bursts_int := 0;
+
+			rw_burst_int := rw_burst(bank_ctrl_bursts_int);
+			ref_ctrl_en := ref(ref_ctrl_bursts_int);
+			mrs_ctrl_en := ref(mrs_ctrl_bursts_int);
+
+			bank_ctrl_bank := bank(bank_ctrl_bursts_int);
+			bank_ctrl_row := rows(bank_ctrl_bursts_int);
+
+			col_ctrl_bank := bank(col_ctrl_bursts_int);
+			col_ctrl_col := col(col_ctrl_bursts_int);
+			col_ctrl_bl := bl(col_ctrl_bursts_int);
+			col_ctrl_read_burst := read_burst(col_ctrl_bursts_int);
+
+			mrs_ctrl_cmd := mrs_cmd(mrs_ctrl_bursts_int);
+			mrs_ctrl_data := mrs_data(mrs_ctrl_bursts_int);
+
+			bank_cmd_delay_int := ctrl_delay(bank_ctrl_bursts_int);
+			col_cmd_delay_int := cmd_delay(col_ctrl_bursts_int);
+			mrs_cmd_delay_int := cmd_delay(mrs_ctrl_bursts_int);
+			ref_delay_int := ref_delay(ref_ctrl_bursts_int);
 
 			ctrl_top: loop
 
