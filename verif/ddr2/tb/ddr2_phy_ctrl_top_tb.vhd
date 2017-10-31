@@ -48,62 +48,62 @@ architecture bench of ddr2_phy_ctrl_top_tb is
 	signal rst_tb	: std_logic;
 
 	-- MRS configuration
-	signal DDR2CASLatency			; std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
-	signal DDR2BurstLength			; std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
-	signal DDR2AdditiveLatency		; std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
-	signal DDR2WriteLatency			; std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
-	signal DDR2HighTemperatureRefresh	; std_logic;
+	signal DDR2CASLatency_tb		: std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
+	signal DDR2BurstLength_tb		: std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
+	signal DDR2AdditiveLatency_tb		: std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
+	signal DDR2WriteLatency_tb		: std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
+	signal DDR2HighTemperatureRefresh_tb	: std_logic;
 
 	-- Column Controller
 	-- Controller
-	signal ColCtrlCtrlReq		; std_logic_vector(COL_CTRL_NUM - 1 downto 0);
-	signal ColCtrlReadBurstIn	; std_logic_vector(COL_CTRL_NUM - 1 downto 0);
-	signal ColCtrlColMemIn		; std_logic_vector(COL_CTRL_NUM*COL_L - 1 downto 0);
-	signal ColCtrlBankMemIn		; std_logic_vector(COL_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
-	signal ColCtrlBurstLength	; std_logic_vector(COL_CTRL_NUM*BURST_LENGTH_L - 1 downto 0);
+	signal ColCtrlCtrlReq_tb		: std_logic_vector(COL_CTRL_NUM - 1 downto 0);
+	signal ColCtrlReadBurstIn_tb		: std_logic_vector(COL_CTRL_NUM - 1 downto 0);
+	signal ColCtrlColMemIn_tb		: std_logic_vector(COL_CTRL_NUM*COL_L - 1 downto 0);
+	signal ColCtrlBankMemIn_tb		: std_logic_vector(COL_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
+	signal ColCtrlBurstLength_tb		: std_logic_vector(COL_CTRL_NUM*BURST_LENGTH_L - 1 downto 0);
 
-	signal ColCtrlCtrlAck		; std_logic_vector(COL_CTRL_NUM - 1 downto 0);
+	signal ColCtrlCtrlAck_tb		: std_logic_vector(COL_CTRL_NUM - 1 downto 0);
 
 	-- Bank Controllers
 	-- Transaction Controller
-	signal BankCtrlRowMemIn		; std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
-	signal BankCtrlCtrlReq		; std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
+	signal BankCtrlRowMemIn_tb		: std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
+	signal BankCtrlCtrlReq_tb		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
-	signal BankCtrlCtrlAck		; std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
+	signal BankCtrlCtrlAck_tb		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
 	-- MRS Controller
 	-- Transaction Controller
-	signal MRSCtrlCtrlReq		; std_logic;
-	signal MRSCtrlCtrlCmd		; std_logic_vector(MEM_CMD_L - 1 downto 0);
-	signal MRSCtrlCtrlData		; std_logic_vector(ADDR_MEM_L_TB - 1 downto 0);
+	signal MRSCtrlCtrlReq_tb		: std_logic;
+	signal MRSCtrlCtrlCmd_tb		: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal MRSCtrlCtrlData_tb		: std_logic_vector(ADDR_MEM_L_TB - 1 downto 0);
 
-	signal MRSCtrlCtrlAck		; std_logic;
+	signal MRSCtrlCtrlAck_tb		: std_logic;
 
 	-- Refresh Controller
 	-- Transaction Controller
-	signal RefCtrlRefreshReq	; std_logic;
-	signal RefCtrlNonReadOpEnable	; std_logic;
-	signal RefCtrlReadOpEnable	; std_logic;
+	signal RefCtrlRefreshReq_tb		: std_logic;
+	signal RefCtrlNonReadOpEnable_tb	: std_logic;
+	signal RefCtrlReadOpEnable_tb		: std_logic;
 
 	-- PHY Init
-	signal PhyInitCompleted		; std_logic;
+	signal PhyInitCompleted_tb		: std_logic;
 
 	-- Controller
-	signal RefCtrlCtrlReq		; std_logic;
+	signal RefCtrlCtrlReq_tb		: std_logic;
 
-	signal RefCtrlCtrlAck		; std_logic;
+	signal RefCtrlCtrlAck_tb		: std_logic;
 
 	-- ODT Controller
 	-- ODT
-	signal ODT			; std_logic;
+	signal ODT_tb				: std_logic;
 
 	-- Arbiter
 	-- Command Decoder
-	signal CmdDecColMem		; std_logic_vector(COL_L - 1 downto 0);
-	signal CmdDecRowMem		; std_logic_vector(ROW_L - 1 downto 0);
-	signal CmdDecBankMem		; std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
-	signal CmdDecCmdMem		; std_logic_vector(MEM_CMD_L - 1 downto 0);
-	signal CmdDecMRSCmd		; std_logic_vector(ADDR_MEM_L_TB - 1 downto 0)
+	signal CmdDecColMem_tb			: std_logic_vector(COL_L - 1 downto 0);
+	signal CmdDecRowMem_tb			: std_logic_vector(ROW_L - 1 downto 0);
+	signal CmdDecBankMem_tb			: std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
+	signal CmdDecCmdMem_tb			: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal CmdDecMRSCmd_tb			: std_logic_vector(ADDR_MEM_L_TB - 1 downto 0)
 
 begin
 
@@ -341,7 +341,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_ctrl_top(variable num_bursts_exp, burst_bits, al, wl, cas : in integer; variable high_temp : in boolean; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, ref_cmd_rtl, ref_cmd_exp : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_bank_rtl, col_bank_exp, col_err_arr_rtl, col_err_arr_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)))) is
+		procedure run_ctrl_top(variable num_bursts_exp, burst_bits, al, wl, cas : in integer; variable high_temp : in boolean; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_cmd_rtl, ref_cmd_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_bank_rtl, col_bank_exp, col_err_arr_rtl, col_err_arr_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)))) is
 
 			variable mrs_bank_ctrl_bursts_int	: integer;
 			variable ref_col_cmd_bursts_int		: integer;
@@ -720,7 +720,37 @@ begin
 
 					if (ref_ctrl_en = true) then
 						if (ref_done = false) then
+							if (ref_ctrl_req = false) then
+								if (ref_delay_cnt := ref_delay_int) then
+									RefCtrlCtrlReq_tb <= '1';
 
+									ref_delay_cnt := 0;
+									ref_cmd_req := true;
+
+									wait for 1 ps;
+								else
+
+									RefCtrlCtrlReq_tb <= '0';
+									ref_delay_cnt := ref_delay_cnt + 1;
+								end if;
+							end if;
+
+							if (ref_ctrl_req = true) then
+								if (RefCtrlCtrlAck_tb = '1') then
+									if (RefCtrlCtrlReq_tb = '1') then
+										RefCtrlCtrlReq_tb <= '0';
+										ref_ctrl_err_arr(ref_col_cmd_bursts_int) := ref_cmd_err_int;
+										ref_cmd_err_int := 0;
+
+--										ref_cmd_req := false;
+--										ref_done := true;
+
+										ref_cmd_exp(num_requests_rtl_int, 0) := to_integer(unsigned(CMD_SELF_REF_ENTRY));
+									else
+										ref_cmd_err_int := ref_cmd_err_int + 1;
+									end if;
+								end if;
+							end if;
 						end if;
 					else
 						ref_done := true;
