@@ -341,7 +341,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_ctrl_top(variable num_bursts_exp, burst_bits, al, wl, cas : in integer; variable high_temp : in boolean; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_rtl, col_exp, col_err_arr_rtl, col_err_arr_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)))) is
+		procedure run_ctrl_top(variable num_bursts_exp, burst_bits, al, wl, cas : in integer; variable high_temp : in boolean; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, ref_cmd_rtl, ref_cmd_exp : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_bank_rtl, col_bank_exp, col_err_arr_rtl, col_err_arr_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)))) is
 
 			variable mrs_bank_ctrl_bursts_int	: integer;
 			variable ref_col_cmd_bursts_int		: integer;
@@ -375,11 +375,20 @@ begin
 			variable col_cmd_req			: boolean;
 			variable ref_ctrl_req			: boolean;
 
+			variable end_col_cmd			: boolean;
+			variable ref_done			: boolean;
+
 			variable mrs_bank_ctrl_handshake	: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 
 			variable mrs_bank_ctrl_err_int		: integer;
 			variable col_cmd_err_int		: integer;
 			variable ref_ctrl_err_int		: integer;
+
+			variable bl_cnt				: integer;
+
+			variable mrs_bank_cmd_cnt_rtl		: integer;
+			variable col_cmd_cnt_rtl		: integer;
+			variable ref_cmd_cnt_rtl		: integer;
 
 		begin
 
@@ -448,15 +457,40 @@ begin
 			col_cmd_req := false;
 			ref_ctrl_req := false;
 
+			end_col_cmd := false;
+			ref_done := false;
+
 			mrs_bank_ctrl_handshake := reset_bool_arr(false, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 
-			mrs_bank_ctrl_err_arr := reset_bool_arr(false, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			col_ctrl_err_arr := reset_bool_arr(false, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			ref_ctrl_err_arr := reset_bool_arr(false, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_bank_ctrl_err_arr := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			col_ctrl_err_arr := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			ref_ctrl_err_arr := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+
+			bank_ctrl_bank_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			bank_ctrl_bank_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			col_ctrl_bank_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			col_ctrl_bank_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			row_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			row_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_bank_cmd_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_bank_cmd_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+
+			col_rtl := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
+			col_exp := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
+			col_cmd_rtl := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
+			col_cmd_exp := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
+			col_bank_rtl := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
+			col_bank_exp := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
+			col_err_arr_rtl := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
+			col_err_arr_exp := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
 
 			mrs_bank_ctrl_err_int := 0;
 			col_cmd_err_int := 0;
 			ref_ctrl_err_int := 0;
+
+			bl_cnt := 0;
 
 			ctrl_top: loop
 
@@ -469,6 +503,18 @@ begin
 				end if;
 
 				if (mrs_bank_ctrl_bursts_int < num_bursts_exp) then
+
+					rw_burst_bank := rw_burst(mrs_bank_ctrl_bursts_int);
+					mrs_ctrl_en := mrs(mrs_bank_ctrl_bursts_int);
+
+					bank_ctrl_bank := bank(mrs_bank_ctrl_bursts_int);
+					bank_ctrl_row := rows(mrs_bank_ctrl_bursts_int);
+
+					mrs_ctrl_cmd := mrs_cmd(mrs_bank_ctrl_bursts_int);
+					mrs_ctrl_data := mrs_data(mrs_bank_ctrl_bursts_int);
+
+					bank_ctrl_delay_int := ctrl_delay(mrs_bank_ctrl_bursts_int);
+					mrs_cmd_delay_int := cmd_delay(mrs_bank_ctrl_bursts_int);
 
 					if (rw_burst_bank = true) then
 
@@ -491,14 +537,13 @@ begin
 								ctrl_delay_cnt := 0;
 								mrs_bank_ctrl_req := true;
 
+								wait for 1 ps;
 							else
 								-- Transaction Controller
 								BankCtrlRowMemIn_tb <= (others => '0');
 								BankCtrlCtrlReq_tb <= (others => '0');
 								ctrl_delay_cnt := ctrl_delay_cnt + 1;
 							end if;
-
-							wait for 1 ps;
 
 						end if;
 
@@ -543,6 +588,7 @@ begin
 								ctrl_delay_cnt := 0;
 								mrs_bank_ctrl_req := true;
 
+								wait for 1 ps;
 							else
 								-- MRS Controller
 								MRSCtrlCtrlReq_tb <= '0';
@@ -551,8 +597,6 @@ begin
 
 								ctrl_delay_cnt := ctrl_delay_cnt + 1;
 							end if;
-
-							wait for 1 ps;
 
 						end if;
 
@@ -582,5 +626,112 @@ begin
 
 						end if;
 
+					else
+
+						BankCtrlCtrlReq_tb <= (others => '0');
+						BankCtrlRowMemIn_tb <= (others => '0');
+						MRSCtrlCtrlReq <= '0';
+						MRSCtrlCtrlCmd <= (others => '0');
+						MRSCtrlCtrlData <= (others => '0');
+
+						if (ctrl_delay_cnt = bank_ctrl_delay_int) then 
+							ctrl_delay_cnt := 0;
+							mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
+						else
+							ctrl_delay_cnt := ctrl_delay_cnt + 1;
+						end if;
+
+					end if;
+
+				end if;
+
+				if ((ref_col_cmd_bursts_int < mrs_bank_ctrl_bursts_int) and (ref_col_cmd_bursts_int < num_bursts_exp)) then
+
+					rw_burst_col := rw_burst(ref_col_cmd_bursts_int);
+					ref_ctrl_en := ref(ref_col_cmd_bursts_int);
+
+					col_ctrl_bank := bank(ref_col_cmd_bursts_int);
+					col_ctrl_col := col(ref_col_cmd_bursts_int);
+					col_ctrl_bl := bl(ref_col_cmd_bursts_int);
+					col_ctrl_read_burst := read_burst(ref_col_cmd_bursts_int);
+
+					col_cmd_delay_int := cmd_delay(ref_col_cmd_bursts_int);
+					ref_delay_int := ref_delay(ref_col_cmd_bursts_int);
+
+					if (rw_burst_col = true) then
+						if (end_col_cmd = false) then
+							if (col_cmd_req = false) then
+								if (col_cmd_delay_cnt = col_cmd_delay_int) then
+									-- Transaction Controller
+									ColCtrlBurstLength_tb <= std_logic_vector(to_unsigned(col_ctrl_bl-1, BURST_LENGTH_L_TB));
+									ColCtrlBankMemIn_tb <= std_logic_vector(to_unsigned(col_ctrl_bank, int_to_bit_num(BANK_NUM_TB)));
+									ColCtrlColMemIn_tb <= std_logic_vector(to_unsigned(col_ctrl_col, COL_L_TB));
+									ColCtrlReadBurstIn_tb(0) <= bool_to_std_logic(col_ctrl_read_burst);
+									ColCtrlCtrlReq_tb(0) <= '1';
+
+									col_cmd_delay_cnt := 0;
+									col_cmd_req := true;
+
+									wait for 1 ps;
+								else
+
+									ColCtrlCtrlReq_tb <= (others => '0');
+									col_cmd_delay_cnt := col_cmd_delay_cnt + 1;
+								end if;
+							end if;
+
+							if (col_cmd_req = true) then
+								if (ColCtrlCtrlAck_tb(0) = '1') then
+									if (ColCtrlCtrlReq_tb(0) = '1') then
+										ColCtrlCtrlReq_tb <= (others => '0');
+										col_ctrl_err_arr(ref_col_cmd_bursts_int) := col_cmd_err_int;
+										col_cmd_err_int := 0;
+
+										col_cmd_req := false;
+										end_col_cmd := true;
+
+										for bl_cnt in 0 to (col_ctrl_bl - 1) loop
+											col_ctrl_bank_exp(col_cmd_bursts_int, bl_cnt) := col_ctrl_bank;
+											col_exp(col_cmd_bursts_int, bl_cnt) := col_ctrl_col + (bl_cnt * integer(2.0**real(burst_bits)));
+											if (col_ctrl_read_burst = true) then
+												if (bl_cnt = (col_ctrl_bl - 1)) then
+													col_cmd_exp(col_cmd_burst_int, bl_cnt) := to_integer(unsigned(CMD_READ_PRECHARGE));
+												else
+													col_cmd_exp(col_cmd_burst_int, bl_cnt) := to_integer(unsigned(CMD_READ));
+												end if;
+											else
+												if (bl_cnt = (col_ctrl_bl - 1)) then
+													col_cmd_exp(col_cmd_burst_int, bl_cnt) := to_integer(unsigned(CMD_WRITE_PRECHARGE));
+												else
+													col_cmd_exp(col_cmd_burst_int, bl_cnt) := to_integer(unsigned(CMD_WRITE));
+												end if;
+											end if;
+										end loop;
+									else
+										col_cmd_err_int := col_cmd_err_int + 1;
+									end if; 
+								end if;
+
+							end if;
+						end if;
+					else
+						end_col_cmd := true;
+					end if;
+
+					if (ref_ctrl_en = true) then
+						if (ref_done = false) then
+
+						end if;
+					else
+						ref_done := true;
+					end if;
+
+					if ((end_col_cmd = true) and (ref_done = true)) then
+						end_col_cmd := false;
+						ref_done := false;
+						ref_col_cmd_bursts_int := ref_col_cmd_bursts_int + 1;
+					end if;
+
+				end if:
 
 		end procedure run_ctrl_top;
