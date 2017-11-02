@@ -378,9 +378,8 @@ begin
 
 			variable mrs_bank_ctrl_req		: boolean;
 			variable col_cmd_req			: boolean;
-			variable auto_ref_req			: boolean;
-			variable self_ref_entry_req		: boolean;
-			variable self_ref_exit_req		: boolean;
+			variable ref_ctrl_req			: boolean;
+			variable self_ref			: boolean;
 
 			variable end_col_cmd			: boolean;
 			variable ref_done			: boolean;
@@ -463,9 +462,8 @@ begin
 
 			mrs_bank_ctrl_req := false;
 			col_cmd_req := false;
-			auto_ref_req := false;
-			self_ref_entry_req := false;
-			self_ref_exit_req := false;
+			ref_ctrl_req := false;
+			self_ref := false;
 
 			end_col_cmd := false;
 			ref_done := false;
@@ -526,129 +524,142 @@ begin
 					bank_ctrl_delay_int := ctrl_delay(mrs_bank_ctrl_bursts_int);
 					mrs_cmd_delay_int := cmd_delay(mrs_bank_ctrl_bursts_int);
 
-					if (rw_burst_bank = true) then
+					if (stop_mrs_bank = true) then
+						if ((RefreshReq_tb = '0') and (NonReadOpEnable = '1')) then -- Enable MRS/Bank ctrl after Refresh
+							stop_mrs_bank := false;
+						end if;
+					else
+						if (rw_burst_bank = true) then
 
-						MRSCtrlCtrlReq <= '0';
-						MRSCtrlCtrlCmd <= (others => '0');
-						MRSCtrlCtrlData <= (others => '0');
+							MRSCtrlCtrlReq <= '0';
+							MRSCtrlCtrlCmd <= (others => '0');
+							MRSCtrlCtrlData <= (others => '0');
 
-						if (mrs_bank_ctrl_req = false) then
+							if (mrs_bank_ctrl_req = false) then
+
+								if (ctrl_delay_cnt = bank_ctrl_delay_int) then 
+									-- Transaction Controller
+									for i in 0 to (BANK_NUM_TB - 1) loop
+										if (i = bank_ctrl_bank_int) then
+											BankCtrlRowMemIn_tb(((i+1)*ROW_L_TB - 1) downto i*ROW_L_TB) <= std_logic_vector(to_unsigned(bank_ctrl_row, ROW_L_TB));
+										else
+											BankCtrlRowMemIn_tb(((i+1)*ROW_L_TB - 1) downto i*ROW_L_TB) <= (others => '0');
+										end if;
+									end loop;
+									BankCtrlCtrlReq_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(bank_ctrl_bank))), BANK_NUM_TB));
+									ctrl_delay_cnt := 0;
+									mrs_bank_ctrl_req := true;
+
+									wait for 1 ps;
+								else
+									-- Transaction Controller
+									BankCtrlRowMemIn_tb <= (others => '0');
+									BankCtrlCtrlReq_tb <= (others => '0');
+									ctrl_delay_cnt := ctrl_delay_cnt + 1;
+								end if;
+
+							end if;
+
+							if (mrs_bank_ctrl_req = true) then
+
+								if (BankCtrlCtrlAck_tb(bank_ctrl_bank) = '1') then
+									if (BankCtrlCtrlReq_tb(bank_ctrl_bank) = '1') then
+										BankCtrlCtrlReq_tb <= (others => '0');
+										mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
+										mrs_bank_ctrl_req := false;
+										mrs_bank_ctrl_err_arr(mrs_bank_ctrl_bursts_int) := mrs_bank_ctrl_err_int;
+										mrs_bank_ctrl_err_int := 0;
+
+										bank_ctrl_bank_exp(mrs_bank_ctrl_bursts_int) := bank_ctrl_bank;
+										row_exp(mrs_bank_ctrl_bursts_int) := bank_ctrl_row;
+										mrs_exp(mrs_bank_ctrl_bursts_int) := 0;
+										mrs_bank_cmd_exp(mrs_bank_ctrl_burst_int) := to_integer(unsigned(CMD_BANK_ACT));
+										if (RefreshReq_tb = '1') then
+											stop_mrs_bank := true;
+										end if;
+									else
+										mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+									end if; 
+								else
+									if ((BankCtrlCtrlAck_tb /= ZERO_BANK_VEC) and (BankCtrlCtrlReq_tb = ZERO_BANK_VEC)) then
+										mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+									end if;
+								end if;
+
+							end if;
+
+						elsif (mrs_ctrl_en = true) then
+
+							BankCtrlCtrlReq_tb <= (others => '0');
+							BankCtrlRowMemIn_tb <= (others => '0');
+
+							if (mrs_bank_ctrl_req = false) then
+
+								if (ctrl_delay_cnt = mrs_cmd_delay_int) then
+									-- MRS Controller
+									MRSCtrlCtrlReq_tb <= '1';
+									MRSCtrlCtrlCmd_tb <= std_logic_vector(to_unsigned(mrs_ctrl_cmd, MEM_CMD_L));
+									MRSCtrlCtrlData_tb <= std_logic_vector(to_unsigned(mrs_ctrl_data, ADDR_MEM_L_TB));
+
+									ctrl_delay_cnt := 0;
+									mrs_bank_ctrl_req := true;
+
+									wait for 1 ps;
+								else
+									-- MRS Controller
+									MRSCtrlCtrlReq_tb <= '0';
+									MRSCtrlCtrlCmd_tb <= (others => '0');
+									MRSCtrlCtrlData_tb <= (others => '0');
+
+									ctrl_delay_cnt := ctrl_delay_cnt + 1;
+								end if;
+
+							end if;
+
+							if (mrs_bank_ctrl_req = true) then
+
+								if (MRSCtrlCtrlAck_tb = '1') then
+									if (MRSCtrlCtrlReq_tb = '1') then
+
+										MRSCtrlCtrlReq_tb <= '0';
+										mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
+										mrs_bank_ctrl_req := false;
+										mrs_bank_ctrl_err_arr(mrs_bank_ctrl_bursts_int) := mrs_bank_ctrl_err_int;
+										mrs_bank_ctrl_err_int := 0;
+
+										bank_ctrl_bank_exp(mrs_bank_ctrl_bursts_int) := 0;
+										row_exp(mrs_bank_ctrl_bursts_int) := 0;
+										mrs_exp(mrs_bank_ctrl_bursts_int) := mrs_data;
+										mrs_bank_cmd_exp(mrs_bank_ctrl_burst_int) := mrs_cmd;
+										if (RefreshReq_tb = '1') then
+											stop_mrs_bank := true;
+										end if;
+									else
+										mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+									end if; 
+								else
+									if ((MRSCtrlCtrlAck_tb = '1') and (BankCtrlCtrlReq_tb = '0')) then
+										mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+									end if;
+								end if;
+
+							end if;
+
+						else
+
+							BankCtrlCtrlReq_tb <= (others => '0');
+							BankCtrlRowMemIn_tb <= (others => '0');
+							MRSCtrlCtrlReq <= '0';
+							MRSCtrlCtrlCmd <= (others => '0');
+							MRSCtrlCtrlData <= (others => '0');
 
 							if (ctrl_delay_cnt = bank_ctrl_delay_int) then 
-								-- Transaction Controller
-								for i in 0 to (BANK_NUM_TB - 1) loop
-									if (i = bank_ctrl_bank_int) then
-										BankCtrlRowMemIn_tb(((i+1)*ROW_L_TB - 1) downto i*ROW_L_TB) <= std_logic_vector(to_unsigned(bank_ctrl_row, ROW_L_TB));
-									else
-										BankCtrlRowMemIn_tb(((i+1)*ROW_L_TB - 1) downto i*ROW_L_TB) <= (others => '0');
-									end if;
-								end loop;
-								BankCtrlCtrlReq_tb <= std_logic_vector(to_unsigned(integer(2.0**(real(bank_ctrl_bank))), BANK_NUM_TB));
 								ctrl_delay_cnt := 0;
-								mrs_bank_ctrl_req := true;
-
-								wait for 1 ps;
+								mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
 							else
-								-- Transaction Controller
-								BankCtrlRowMemIn_tb <= (others => '0');
-								BankCtrlCtrlReq_tb <= (others => '0');
 								ctrl_delay_cnt := ctrl_delay_cnt + 1;
 							end if;
 
-						end if;
-
-						if (mrs_bank_ctrl_req = true) then
-
-							if (BankCtrlCtrlAck_tb(bank_ctrl_bank) = '1') then
-								if (BankCtrlCtrlReq_tb(bank_ctrl_bank) = '1') then
-									BankCtrlCtrlReq_tb <= (others => '0');
-									mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
-									mrs_bank_ctrl_req := false;
-									mrs_bank_ctrl_err_arr(mrs_bank_ctrl_bursts_int) := mrs_bank_ctrl_err_int;
-									mrs_bank_ctrl_err_int := 0;
-
-									bank_ctrl_bank_exp(mrs_bank_ctrl_bursts_int) := bank_ctrl_bank;
-									row_exp(mrs_bank_ctrl_bursts_int) := bank_ctrl_row;
-									mrs_exp(mrs_bank_ctrl_bursts_int) := 0;
-									mrs_bank_cmd_exp(mrs_bank_ctrl_burst_int) := to_integer(unsigned(CMD_BANK_ACT));
-								else
-									mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
-								end if; 
-							else
-								if ((BankCtrlCtrlAck_tb /= ZERO_BANK_VEC) and (BankCtrlCtrlReq_tb = ZERO_BANK_VEC)) then
-									mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
-								end if;
-							end if;
-
-						end if;
-
-					elsif (mrs_ctrl_en = true) then
-
-						BankCtrlCtrlReq_tb <= (others => '0');
-						BankCtrlRowMemIn_tb <= (others => '0');
-
-						if (mrs_bank_ctrl_req = false) then
-
-							if (ctrl_delay_cnt = mrs_cmd_delay_int) then
-								-- MRS Controller
-								MRSCtrlCtrlReq_tb <= '1';
-								MRSCtrlCtrlCmd_tb <= std_logic_vector(to_unsigned(mrs_ctrl_cmd, MEM_CMD_L));
-								MRSCtrlCtrlData_tb <= std_logic_vector(to_unsigned(mrs_ctrl_data, ADDR_MEM_L_TB));
-
-								ctrl_delay_cnt := 0;
-								mrs_bank_ctrl_req := true;
-
-								wait for 1 ps;
-							else
-								-- MRS Controller
-								MRSCtrlCtrlReq_tb <= '0';
-								MRSCtrlCtrlCmd_tb <= (others => '0');
-								MRSCtrlCtrlData_tb <= (others => '0');
-
-								ctrl_delay_cnt := ctrl_delay_cnt + 1;
-							end if;
-
-						end if;
-
-						if (mrs_bank_ctrl_req = true) then
-
-							if (MRSCtrlCtrlAck_tb = '1') then
-								if (MRSCtrlCtrlReq_tb = '1') then
-
-									MRSCtrlCtrlReq_tb <= '0';
-									mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
-									mrs_bank_ctrl_req := false;
-									mrs_bank_ctrl_err_arr(mrs_bank_ctrl_bursts_int) := mrs_bank_ctrl_err_int;
-									mrs_bank_ctrl_err_int := 0;
-
-									bank_ctrl_bank_exp(mrs_bank_ctrl_bursts_int) := 0;
-									row_exp(mrs_bank_ctrl_bursts_int) := 0;
-									mrs_exp(mrs_bank_ctrl_bursts_int) := mrs_data;
-									mrs_bank_cmd_exp(mrs_bank_ctrl_burst_int) := mrs_cmd;
-								else
-									mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
-								end if; 
-							else
-								if ((BankCtrlCtrlAck_tb /= ZERO_BANK_VEC) and (BankCtrlCtrlReq_tb = ZERO_BANK_VEC)) then
-									mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
-								end if;
-							end if;
-
-						end if;
-
-					else
-
-						BankCtrlCtrlReq_tb <= (others => '0');
-						BankCtrlRowMemIn_tb <= (others => '0');
-						MRSCtrlCtrlReq <= '0';
-						MRSCtrlCtrlCmd <= (others => '0');
-						MRSCtrlCtrlData <= (others => '0');
-
-						if (ctrl_delay_cnt = bank_ctrl_delay_int) then 
-							ctrl_delay_cnt := 0;
-							mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
-						else
-							ctrl_delay_cnt := ctrl_delay_cnt + 1;
 						end if;
 
 					end if;
@@ -731,10 +742,28 @@ begin
 
 					if (ref_ctrl_en = true) then
 						if (ref_done = false) then
-							if (ref_ctrl_auto_ref = true) then
+							if (ref_ctrl_auto_ref = true) then -- Auto refresh command: Wait RefreshReq to be set and wait a delay before moving on
+								if (ref_ctrl_req = false) then
+									if (RefreshReq_tb = '1') then
+										ref_ctrl_req := true;
+									end if;
+								else
+									if (ref_delay_cnt := ref_delay_int) then
+										ref_done := true;
+										ref_ctrl_req = false;
 
+										ref_ctrl_err_arr(ref_col_cmd_bursts_int) := ref_cmd_err_int;
+										ref_cmd_err_int := 0;
+
+										ref_cmd_exp(num_requests_rtl_int, 0) := to_integer(unsigned(CMD_AUTO_REF));
+										ref_cmd_exp(num_requests_rtl_int, 1) := to_integer(unsigned(CMD_NOP));
+										ref_delay_cnt := 0;
+									else
+										ref_delay_cnt := ref_delay_cnt + 1;
+									end if;
+								end if;
 							else
-								if (self_ref_entry_req = false) then
+								if (ref_ctrl_req = false) then
 									if (ref_delay_cnt := ref_delay_int) then
 										RefCtrlCtrlReq_tb <= '1';
 
@@ -749,17 +778,23 @@ begin
 									end if;
 								end if;
 
-								if (self_ref_entry_req = true) then
+								if (ref_ctrl_req = true) then
 									if (RefCtrlCtrlAck_tb = '1') then
 										if (RefCtrlCtrlReq_tb = '1') then
 											RefCtrlCtrlReq_tb <= '0';
 											ref_ctrl_err_arr(ref_col_cmd_bursts_int) := ref_cmd_err_int;
 											ref_cmd_err_int := 0;
 
-	--										ref_cmd_req := false;
-	--										ref_done := true;
+											ref_ctrl_req := false;
 
-											ref_cmd_exp(num_requests_rtl_int, 0) := to_integer(unsigned(CMD_SELF_REF_ENTRY));
+											if (self_ref = false) then
+												ref_cmd_exp(num_requests_rtl_int, 0) := to_integer(unsigned(CMD_SELF_REF_ENTRY));
+												self_ref := true;
+											else
+												ref_cmd_exp(num_requests_rtl_int, 1) := to_integer(unsigned(CMD_SELF_REF_EXIT));
+												self_ref := false;
+												ref_done := true;
+											end if;
 										else
 											ref_cmd_err_int := ref_cmd_err_int + 1;
 										end if;
