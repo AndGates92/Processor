@@ -460,7 +460,6 @@ begin
 		variable cmd_delay_arr_extra	: int_arr(0 to ((NUM_EXTRA_TEST*MAX_OUTSTANDING_BURSTS_TB) - 1));
 		variable err_arr_extra	: int_arr(0 to (MAX_OUTSTANDING_BURSTS_TB - 1));
 
-
 		variable pass	: integer;
 		variable num_pass	: integer;
 
