@@ -7,6 +7,7 @@ use common_rtl_pkg.functions_pkg.all;
 library ddr2_rtl_pkg;
 use ddr2_rtl_pkg.ddr2_phy_pkg.all;
 use ddr2_rtl_pkg.ddr2_mrs_max_pkg.all;
+use ddr2_rtl_pkg.ddr2_phy_arbiter_top_pkg.all;
 use ddr2_rtl_pkg.ddr2_phy_ref_ctrl_pkg.all;
 use ddr2_rtl_pkg.ddr2_phy_mrs_ctrl_pkg.all;
 use ddr2_rtl_pkg.ddr2_phy_odt_ctrl_pkg.all;
@@ -84,9 +85,10 @@ port (
 	CmdDecRowMem			: out std_logic_vector(ROW_L - 1 downto 0);
 	CmdDecBankMem			: out std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	CmdDecCmdMem			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
-	CmdDecMRSCmd			: out std_logic_vector(ADDR_L - 1 downto 0)
+	CmdDecMRSCmd			: out std_logic_vector(MRS_REG_L - 1 downto 0)
 
 );
+end entity ddr2_phy_ctrl_top;
 
 architecture rtl of ddr2_phy_ctrl_top is
 
@@ -118,7 +120,7 @@ architecture rtl of ddr2_phy_ctrl_top is
 
 	signal MRSCtrlCmdReq		: std_logic;
 	signal MRSCtrlCmd		: std_logic_vector(MEM_CMD_L - 1 downto 0);
-	signal RSCtrlData		: std_logic_vector(MRS_REG_L - 1 downto 0);
+	signal MRSCtrlData		: std_logic_vector(MRS_REG_L - 1 downto 0);
 
 	-- ODT Controller
 	signal MRSCtrlODTCtrlAck	: std_logic;
@@ -164,7 +166,7 @@ begin
 		ReadOpEnable => RefCtrlReadopEnable,
 
 		-- PHY Init
-		PhyInitCompleted => RefCtrlPhyInitCompleted,
+		PhyInitCompleted => PhyInitCompleted,
 
 		-- Bank Controller
 		BankIdle => BankIdleVec,
@@ -337,8 +339,8 @@ begin
 		RefCtrlCmdAck => RefCtrlCmdAck,
 
 		-- MRS Controller
-		MRSCtrlMRSCmd => MRSCtrlMRSCmd,
-		MRSCtrlCmdMem => MRSCtrlCmdMem,
+		MRSCtrlMRSCmd => MRSCtrlData,
+		MRSCtrlCmdMem => MRSCtrlCmd,
 		MRSCtrlCmdReq => MRSCtrlCmdReq,
 
 		MRSCtrlCmdAck => MRSCtrlCmdAck,
