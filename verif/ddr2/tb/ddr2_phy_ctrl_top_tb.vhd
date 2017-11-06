@@ -13,9 +13,10 @@ library common_tb_pkg;
 use common_tb_pkg.functions_pkg_tb.all;
 use common_tb_pkg.shared_pkg_tb.all;
 library ddr2_rtl_pkg;
+use ddr2_rtl_pkg.ddr2_mrs_max_pkg.all;
 use ddr2_rtl_pkg.ddr2_define_pkg.all;
 use ddr2_rtl_pkg.ddr2_phy_pkg.all;
-use ddr2_rtl_pkg.ddr2_phy_cmd_ctrl_pkg.all;
+use ddr2_rtl_pkg.ddr2_phy_ctrl_top_pkg.all;
 library ddr2_tb_pkg;
 use ddr2_tb_pkg.ddr2_pkg_tb.all;
 use ddr2_tb_pkg.ddr2_log_pkg.all;
@@ -56,20 +57,20 @@ architecture bench of ddr2_phy_ctrl_top_tb is
 
 	-- Column Controller
 	-- Controller
-	signal ColCtrlCtrlReq_tb		: std_logic_vector(COL_CTRL_NUM - 1 downto 0);
-	signal ColCtrlReadBurstIn_tb		: std_logic_vector(COL_CTRL_NUM - 1 downto 0);
-	signal ColCtrlColMemIn_tb		: std_logic_vector(COL_CTRL_NUM*COL_L - 1 downto 0);
-	signal ColCtrlBankMemIn_tb		: std_logic_vector(COL_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
-	signal ColCtrlBurstLength_tb		: std_logic_vector(COL_CTRL_NUM*BURST_LENGTH_L - 1 downto 0);
+	signal ColCtrlCtrlReq_tb		: std_logic_vector(COL_CTRL_NUM_TB - 1 downto 0);
+	signal ColCtrlReadBurstIn_tb		: std_logic_vector(COL_CTRL_NUM_TB - 1 downto 0);
+	signal ColCtrlColMemIn_tb		: std_logic_vector(COL_CTRL_NUM_TB*COL_L_TB - 1 downto 0);
+	signal ColCtrlBankMemIn_tb		: std_logic_vector(COL_CTRL_NUM_TB*(int_to_bit_num(BANK_NUM_TB)) - 1 downto 0);
+	signal ColCtrlBurstLength_tb		: std_logic_vector(COL_CTRL_NUM_TB*BURST_LENGTH_L_TB - 1 downto 0);
 
-	signal ColCtrlCtrlAck_tb		: std_logic_vector(COL_CTRL_NUM - 1 downto 0);
+	signal ColCtrlCtrlAck_tb		: std_logic_vector(COL_CTRL_NUM_TB - 1 downto 0);
 
 	-- Bank Controllers
 	-- Transaction Controller
-	signal BankCtrlRowMemIn_tb		: std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
-	signal BankCtrlCtrlReq_tb		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
+	signal BankCtrlRowMemIn_tb		: std_logic_vector(BANK_CTRL_NUM_TB*ROW_L_TB - 1 downto 0);
+	signal BankCtrlCtrlReq_tb		: std_logic_vector(BANK_CTRL_NUM_TB - 1 downto 0);
 
-	signal BankCtrlCtrlAck_tb		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
+	signal BankCtrlCtrlAck_tb		: std_logic_vector(BANK_CTRL_NUM_TB - 1 downto 0);
 
 	-- MRS Controller
 	-- Transaction Controller
@@ -99,11 +100,11 @@ architecture bench of ddr2_phy_ctrl_top_tb is
 
 	-- Arbiter
 	-- Command Decoder
-	signal CmdDecColMem_tb			: std_logic_vector(COL_L - 1 downto 0);
-	signal CmdDecRowMem_tb			: std_logic_vector(ROW_L - 1 downto 0);
-	signal CmdDecBankMem_tb			: std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
+	signal CmdDecColMem_tb			: std_logic_vector(COL_L_TB - 1 downto 0);
+	signal CmdDecRowMem_tb			: std_logic_vector(ROW_L_TB - 1 downto 0);
+	signal CmdDecBankMem_tb			: std_logic_vector(int_to_bit_num(BANK_NUM_TB) - 1 downto 0);
 	signal CmdDecCmdMem_tb			: std_logic_vector(MEM_CMD_L - 1 downto 0);
-	signal CmdDecMRSCmd_tb			: std_logic_vector(ADDR_MEM_L_TB - 1 downto 0)
+	signal CmdDecMRSCmd_tb			: std_logic_vector(ADDR_MEM_L_TB - 1 downto 0);
 
 begin
 
@@ -206,9 +207,12 @@ begin
 			variable burst_bits_int		: integer;
 			variable rw_burst_int		: boolean;
 			variable mrs_cmd_id		: integer;
+			variable ref_int		: boolean;
+			variable ref_req_int		: integer;
 		begin
 			num_bursts_int := 0;
 			ref_req := 0;
+			ref_req_int := 0;
 			num_bursts_arr_int := reset_int_arr(0, BANK_NUM_TB);
 			uniform(seed1, seed2, rand_val);
 			num_bursts_int := integer(rand_val*real(BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
@@ -242,9 +246,10 @@ begin
 				rw_burst(i) := rw_burst_int;
 
 				uniform(seed1, seed2, rand_val);
-				ref(i) := rand_bool(rand_val, 0.5);
-				if (ref(i) = true) then
-					ref_req := ref_req + 1;
+				ref_int := rand_bool(rand_val, 0.5);
+				ref(i) := ref_int;
+				if (ref_int = true) then
+					ref_req_int := ref_req_int + 1;
 				end if;
 
 				uniform(seed1, seed2, rand_val);
@@ -347,6 +352,8 @@ begin
 				rw_burst(i) := false;
 			end loop;
 
+			ref_req := ref_req_int;
+
 		end procedure test_param;
 
 		procedure run_ctrl_top(variable num_bursts_exp, ref_req, burst_bits, al, wl, cas : in integer; variable high_temp : in boolean; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, auto_ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable num_bursts_rtl : out integer; variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_cmd_rtl, ref_cmd_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)))) is
@@ -417,7 +424,7 @@ begin
 			DDR2CASLatency_tb <= std_logic_vector(to_unsigned(cas, int_to_bit_num(CAS_LATENCY_MAX_VALUE)));
 			DDR2AdditiveLatency_tb <= std_logic_vector(to_unsigned(al, int_to_bit_num(AL_MAX_VALUE)));
 			DDR2WriteLatency_tb <= std_logic_vector(to_unsigned(wl, int_to_bit_num(WRITE_LATENCY_MAX_VALUE)));
-			DDR2HighTemperature <= bool_to_std_logic(high_temp);
+			DDR2HighTemperatureRefresh_tb <= bool_to_std_logic(high_temp);
 
 			-- Column Controller
 			-- Controller
@@ -434,16 +441,16 @@ begin
 
 			-- MRS Controller
 			-- Transaction Controller
-			MRSCtrlCtrlReq <= '0';
-			MRSCtrlCtrlCmd <= CMD_NOP;
-			MRSCtrlCtrlData <= (others => '0');
+			MRSCtrlCtrlReq_tb <= '0';
+			MRSCtrlCtrlCmd_tb <= CMD_NOP;
+			MRSCtrlCtrlData_tb <= (others => '0');
 
 			-- Refresh Controller
 			-- PHY Init
-			PhyInitCompleted <= '0';
+			PhyInitCompleted_tb <= '0';
 
 			-- Controller
-			RefCtrlCtrlReq <= '0';
+			RefCtrlCtrlReq_tb <= '0';
 
 			mrs_bank_ctrl_bursts_int := 0;
 			ref_col_cmd_bursts_int := 0;
@@ -458,7 +465,7 @@ begin
 			bank_ctrl_row := rows(mrs_bank_ctrl_bursts_int);
 
 			col_ctrl_bank := bank(ref_col_cmd_bursts_int);
-			col_ctrl_col := col(ref_col_cmd_bursts_int);
+			col_ctrl_col := cols(ref_col_cmd_bursts_int);
 			col_ctrl_bl := bl(ref_col_cmd_bursts_int);
 			col_ctrl_read_burst := read_burst(ref_col_cmd_bursts_int);
 
@@ -553,9 +560,9 @@ begin
 					else
 						if (rw_burst_bank = true) then
 
-							MRSCtrlCtrlReq <= '0';
-							MRSCtrlCtrlCmd <= (others => '0');
-							MRSCtrlCtrlData <= (others => '0');
+							MRSCtrlCtrlReq_tb <= '0';
+							MRSCtrlCtrlCmd_tb <= (others => '0');
+							MRSCtrlCtrlData_tb <= (others => '0');
 
 							if (mrs_bank_ctrl_req = false) then
 
@@ -671,9 +678,9 @@ begin
 
 							BankCtrlCtrlReq_tb <= (others => '0');
 							BankCtrlRowMemIn_tb <= (others => '0');
-							MRSCtrlCtrlReq <= '0';
-							MRSCtrlCtrlCmd <= (others => '0');
-							MRSCtrlCtrlData <= (others => '0');
+							MRSCtrlCtrlReq_tb <= '0';
+							MRSCtrlCtrlCmd_tb <= (others => '0');
+							MRSCtrlCtrlData_tb <= (others => '0');
 
 							if (ctrl_delay_cnt = bank_ctrl_delay_int) then 
 								ctrl_delay_cnt := 0;
@@ -695,7 +702,7 @@ begin
 					ref_ctrl_auto_ref := auto_ref(ref_col_cmd_bursts_int);
 
 					col_ctrl_bank := bank(ref_col_cmd_bursts_int);
-					col_ctrl_col := col(ref_col_cmd_bursts_int);
+					col_ctrl_col := cols(ref_col_cmd_bursts_int);
 					col_ctrl_bl := bl(ref_col_cmd_bursts_int);
 					col_ctrl_read_burst := read_burst(ref_col_cmd_bursts_int);
 
@@ -770,9 +777,9 @@ begin
 										ref_ctrl_req := true;
 									end if;
 								else
-									if (ref_delay_cnt := ref_delay_int) then
+									if (ref_delay_cnt = ref_delay_int) then
 										ref_done := true;
-										ref_ctrl_req = false;
+										ref_ctrl_req := false;
 
 										ref_ctrl_err_arr(rtl_ref_cmd_cnt) := ref_cmd_err_int;
 										ref_cmd_err_int := 0;
@@ -787,7 +794,7 @@ begin
 								end if;
 							else
 								if (ref_ctrl_req = false) then
-									if (ref_delay_cnt := ref_delay_int) then
+									if (ref_delay_cnt = ref_delay_int) then
 										RefCtrlCtrlReq_tb <= '1';
 
 										ref_delay_cnt := 0;
@@ -836,7 +843,7 @@ begin
 						ref_col_cmd_bursts_int := ref_col_cmd_bursts_int + 1;
 					end if;
 
-				end if:
+				end if;
 
 				if (exp_self_ref_exit = true) then
 
@@ -912,6 +919,8 @@ begin
 			variable no_ref_ctrl_err		: boolean;
 			variable no_cmd_sent_in_self_ref	: boolean;
 
+			variable file_line	: line;
+
 		begin
 
 			match_cols := compare_int_arr_2d(col_exp, col_rtl, num_bursts_exp, integer(2.0**(real(BURST_LENGTH_L_TB))));
@@ -930,15 +939,15 @@ begin
 
 			for i in 0 to (num_bursts_exp - 1) loop
 
-				if ((rw_burst(i) = true) and (ref(i) := true)) then
+				if ((rw_burst(i) = true) and (ref(i) = true)) then
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " Bank " & integer'image(bank(i)) & " Start Column " & integer'image(cols(i)) & " Row " & integer'image(rows(i)) & " Burst Length " & integer'image(bl(i)) & " Refresh : Auto-Refresh " & bool_to_std_bool(auto_ref(i))));
-				elsif ((rw_burst(i) = true) and (ref(i) := false)) then
+				elsif ((rw_burst(i) = true) and (ref(i) = false)) then
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " Bank " & integer'image(bank(i)) & " Start Column " & integer'image(cols(i)) & " Row " & integer'image(rows(i)) & " Burst Length " & integer'image(bl(i)) & " Refresh : False"));
-				elsif ((mrs(i) = true) and (ref(i) := true)) then
+				elsif ((mrs(i) = true) and (ref(i) = true)) then
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " MRS Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs(i)))) & " MRS Data " & integer'image(mrs_data(i)) & " Refresh : Auto-Refresh " & bool_to_std_bool(auto_ref(i))));
-				elsif ((mrs(i) = true) and (ref(i) := false)) then
+				elsif ((mrs(i) = true) and (ref(i) = false)) then
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " MRS Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs(i)))) & " MRS Data " & integer'image(mrs_data(i)) & " Refresh : False"));
-				elsif (ref(i) := true) then
+				elsif (ref(i) = true) then
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " Refresh : Auto-Refresh " & bool_to_std_bool(auto_ref(i))));
 				else
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " No Command "));
@@ -946,7 +955,7 @@ begin
 
 				writeline(file_pointer, file_line);
 
-			end loop:
+			end loop;
 
 			if ((num_bursts_rtl = num_bursts_exp) and (match_cols = true) and (match_mrs = true) and (match_row = true) and (match_col_cmd = true) and (match_mrs_bank_cmd = true) and (match_col_ctrl_bank = true) and (match_bank_ctrl_bank = true) and (match_ref_cmd = true) and (no_mrs_bank_ctrl_err = true) and (no_col_ctrl_err = true) and (no_ref_ctrl_err = true) and (no_cmd_sent_in_self_ref = true)) then
 				write(file_line, string'( "PHY Controller Top Level: PASS"));
@@ -989,7 +998,7 @@ begin
 					writeline(file_pointer, file_line);
 					for j in 0 to (bl(i) - 1) loop
 						if (col_cmd_rtl(i,j) /= col_cmd_exp(i,j)) then
-							write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Column Command exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_rtl(i, j))));
+							write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Column Command exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_rtl(i, j))))));
 							writeline(file_pointer, file_line);
 						end if;
 					end loop;
@@ -1174,13 +1183,13 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "PHY Controller Top Level => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TEST)));
+		write(file_line, string'( "PHY Controller Top Level => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TESTS)));
 		writeline(file_pointer, file_line);
 
-		if (num_pass = TOT_NUM_TEST) then
+		if (num_pass = TOT_NUM_TESTS) then
 			write(file_line, string'( "PHY Controller Top Level: TEST PASSED"));
 		else
-			write(file_line, string'( "PHY Controller Top Level: TEST FAILED: " & integer'image(TOT_NUM_TEST-num_pass) & " failures"));
+			write(file_line, string'( "PHY Controller Top Level: TEST FAILED: " & integer'image(TOT_NUM_TESTS-num_pass) & " failures"));
 		end if;
 		writeline(file_pointer, file_line);
 
