@@ -16,11 +16,11 @@ configuration config_ddr2_phy_ctrl_top of ddr2_phy_ctrl_top is
 		end for;
 
 		for CMD_CTRL_I: ddr2_phy_cmd_ctrl
-			use configuration config_ddr2_phy_cmd_ctrl;
+			use configuration ddr2_rtl.config_ddr2_phy_cmd_ctrl;
 		end for;
 
-		for ARBL_I: ddr2_phy_arbiter_top
-			use configuration config_ddr2_phy_arbiter_top;
+		for ARB_I: ddr2_phy_arbiter_top
+			use configuration ddr2_rtl.config_ddr2_phy_arbiter_top;
 		end for;
 	end for;
 end config_ddr2_phy_ctrl_top;
