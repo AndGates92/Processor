@@ -104,7 +104,7 @@ architecture rtl of ddr2_phy_ctrl_top is
 	-- Arbitrer
 	signal RefCtrlCmdAck		: std_logic;
 
-	signal RefCtrlCmdOut		: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal RefCtrlCmd		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal RefCtrlCmdReq		: std_logic;
 
 	-- ODT Controller
@@ -134,18 +134,18 @@ architecture rtl of ddr2_phy_ctrl_top is
 	-- Arbitrer
 	signal ColCtrlCmdAck		: std_logic_vector(COL_CTRL_NUM - 1 downto 0);
 
-	signal ColCtrlColMemOut		: std_logic_vector(COL_CTRL_NUM*COL_L - 1 downto 0);
-	signal ColCtrlBankMemOut	: std_logic_vector(COL_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
-	signal ColCtrlCmdOut		: std_logic_vector(COL_CTRL_NUM*MEM_CMD_L - 1 downto 0);
+	signal ColCtrlColMem		: std_logic_vector(COL_CTRL_NUM*COL_L - 1 downto 0);
+	signal ColCtrlBankMem		: std_logic_vector(COL_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
+	signal ColCtrlCmd		: std_logic_vector(COL_CTRL_NUM*MEM_CMD_L - 1 downto 0);
 	signal ColCtrlCmdReq		: std_logic_vector(COL_CTRL_NUM - 1 downto 0);
 
 	-- Bank Controller
 	-- Arbitrer
 	signal BankCtrlCmdAck		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
-	signal BankCtrlRowMemOut	: std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
-	signal BankCtrlBankMemOut	: std_logic_vector(BANK_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
-	signal BankCtrlCmdOut		: std_logic_vector(BANK_CTRL_NUM*MEM_CMD_L - 1 downto 0);
+	signal BankCtrlRowMem	: std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
+	signal BankCtrlBankMem	: std_logic_vector(BANK_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
+	signal BankCtrlCmd		: std_logic_vector(BANK_CTRL_NUM*MEM_CMD_L - 1 downto 0);
 	signal BankCtrlCmdReq		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
 begin
@@ -179,7 +179,7 @@ begin
 		-- Arbitrer
 		CmdAck => RefCtrlCmdAck,
 
-		CmdOut => RefCtrlCmdOut,
+		CmdOut => RefCtrlCmd,
 		CmdReq => RefCtrlCmdReq,
 
 		-- Controller
@@ -270,9 +270,9 @@ begin
 		-- Arbitrer
 		ColCtrlCmdAck => ColCtrlCmdAck,
 
-		ColCtrlColMemOut => ColCtrlColMemOut,
-		ColCtrlBankMemOut => ColCtrlBankMemOut,
-		ColCtrlCmdOut => ColCtrlCmdOut,
+		ColCtrlColMemOut => ColCtrlColMem,
+		ColCtrlBankMemOut => ColCtrlBankMem,
+		ColCtrlCmdOut => ColCtrlCmd,
 		ColCtrlCmdReq => ColCtrlCmdReq,
 
 		-- Controller
@@ -288,9 +288,9 @@ begin
 		-- Arbitrer
 		BankCtrlCmdAck => BankCtrlCmdAck,
 
-		BankCtrlRowMemOut => BankCtrlRowMemOut,
-		BankCtrlBankMemOut => BankCtrlBankMemOut,
-		BankCtrlCmdOut => BankCtrlCmdOut,
+		BankCtrlRowMemOut => BankCtrlRowMem,
+		BankCtrlBankMemOut => BankCtrlBankMem,
+		BankCtrlCmdOut => BankCtrlCmd,
 		BankCtrlCmdReq => BankCtrlCmdReq,
 
 		-- Transaction Controller
@@ -307,7 +307,7 @@ begin
 	ARB_I: ddr2_phy_arbiter_top generic map (
 		ROW_L => ROW_L,
 		COL_L => COL_L,
-		ADDR_L => ADDR_L,
+		ADDR_L => MRS_REG_L,
 		BANK_NUM => BANK_NUM,
 		BANK_CTRL_NUM => BANK_CTRL_NUM,
 		COL_CTRL_NUM => COL_CTRL_NUM
@@ -319,7 +319,7 @@ begin
 		-- Bank Controllers
 		BankCtrlBankMem => BankCtrlBankMem,
 		BankCtrlRowMem => BankCtrlRowMem,
-		BankCtrlCmdMem => BankCtrlCmdMem,
+		BankCtrlCmdMem => BankCtrlCmd,
 		BankCtrlCmdReq => BankCtrlCmdReq,
 
 		BankCtrlCmdAck => BankCtrlCmdAck,
@@ -327,13 +327,13 @@ begin
 		-- Column Controller
 		ColCtrlColMem => ColCtrlColMem,
 		ColCtrlBankMem => ColCtrlBankMem,
-		ColCtrlCmdMem => ColCtrlCmdMem,
+		ColCtrlCmdMem => ColCtrlCmd,
 		ColCtrlCmdReq => ColCtrlCmdReq,
 
 		ColCtrlCmdAck => ColCtrlCmdAck,
 
 		-- Refresh Controller
-		RefCtrlCmdMem => RefCtrlCmdMem,
+		RefCtrlCmdMem => RefCtrlCmd,
 		RefCtrlCmdReq => RefCtrlCmdReq,
 
 		RefCtrlCmdAck => RefCtrlCmdAck,
