@@ -392,10 +392,11 @@ begin
 			variable ref_ctrl_req			: boolean;
 			variable self_ref			: boolean;
 
+			variable stop_mrs_bank			: boolean;
 			variable end_col_cmd			: boolean;
 			variable ref_done			: boolean;
 
-			variable mrs_bank_ctrl_handshake	: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+			variable mrs_bank_ctrl_handshake	: bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 
 			variable mrs_bank_ctrl_err_int		: integer;
 			variable col_cmd_err_int		: integer;
@@ -497,8 +498,6 @@ begin
 
 			bank_ctrl_bank_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			bank_ctrl_bank_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			col_ctrl_bank_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			col_ctrl_bank_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			row_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			row_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			mrs_bank_cmd_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
@@ -529,11 +528,11 @@ begin
 			col_cmd_bl_cnt := 0;
 			cmd_sent_in_self_ref := 0;
 
-			ctrl_top: loop
+			ctrl_top_loop: loop
 
 				wait until ((clk_tb = '1') and (clk_tb'event));
 
-				exit ctrl_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (ref_col_cmd_burst_int = num_bursts_exp) and (col_cmd_cnt = num_bursts_exp) and (mrs_bank_cmd_cnt = num_bursts_exp) and (ref_req = ref_cmd_cnt));
+				exit ctrl_top_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (ref_col_cmd_bursts_int = num_bursts_exp) and (col_cmd_cnt = num_bursts_exp) and (mrs_bank_cmd_cnt = num_bursts_exp) and (ref_req = ref_cmd_cnt));
 
 				if (mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) = true) then
 					mrs_bank_ctrl_bursts_int := mrs_bank_ctrl_bursts_int + 1;
@@ -554,7 +553,7 @@ begin
 					mrs_cmd_delay_int := cmd_delay(mrs_bank_ctrl_bursts_int);
 
 					if (stop_mrs_bank = true) then
-						if ((RefreshReq_tb = '0') and (NonReadOpEnable = '1')) then -- Enable MRS/Bank ctrl after Refresh
+						if ((RefCtrlRefreshReq_tb = '0') and (RefCtrlNonReadOpEnable_tb = '1')) then -- Enable MRS/Bank ctrl after Refresh
 							stop_mrs_bank := false;
 						end if;
 					else
@@ -569,7 +568,7 @@ begin
 								if (ctrl_delay_cnt = bank_ctrl_delay_int) then 
 									-- Transaction Controller
 									for i in 0 to (BANK_NUM_TB - 1) loop
-										if (i = bank_ctrl_bank_int) then
+										if (i = bank_ctrl_bank) then
 											BankCtrlRowMemIn_tb(((i+1)*ROW_L_TB - 1) downto i*ROW_L_TB) <= std_logic_vector(to_unsigned(bank_ctrl_row, ROW_L_TB));
 										else
 											BankCtrlRowMemIn_tb(((i+1)*ROW_L_TB - 1) downto i*ROW_L_TB) <= (others => '0');
@@ -602,8 +601,8 @@ begin
 										bank_ctrl_bank_exp(mrs_bank_ctrl_bursts_int) := bank_ctrl_bank;
 										row_exp(mrs_bank_ctrl_bursts_int) := bank_ctrl_row;
 										mrs_exp(mrs_bank_ctrl_bursts_int) := 0;
-										mrs_bank_cmd_exp(mrs_bank_ctrl_burst_int) := to_integer(unsigned(CMD_BANK_ACT));
-										if (RefreshReq_tb = '1') then
+										mrs_bank_cmd_exp(mrs_bank_ctrl_bursts_int) := to_integer(unsigned(CMD_BANK_ACT));
+										if (RefCtrlRefreshReq_tb = '1') then
 											stop_mrs_bank := true;
 										end if;
 									else
@@ -658,9 +657,9 @@ begin
 
 										bank_ctrl_bank_exp(mrs_bank_ctrl_bursts_int) := 0;
 										row_exp(mrs_bank_ctrl_bursts_int) := 0;
-										mrs_exp(mrs_bank_ctrl_bursts_int) := mrs_data;
-										mrs_bank_cmd_exp(mrs_bank_ctrl_burst_int) := mrs_cmd;
-										if (RefreshReq_tb = '1') then
+										mrs_exp(mrs_bank_ctrl_bursts_int) := mrs_ctrl_data;
+										mrs_bank_cmd_exp(mrs_bank_ctrl_bursts_int) := mrs_cmd;
+										if (RefCtrlRefreshReq_tb = '1') then
 											stop_mrs_bank := true;
 										end if;
 									else
@@ -773,7 +772,7 @@ begin
 						if (ref_done = false) then
 							if (ref_ctrl_auto_ref = true) then -- Auto refresh command: Wait RefreshReq to be set and wait a delay before moving on
 								if (ref_ctrl_req = false) then
-									if (RefreshReq_tb = '1') then
+									if (RefCtrlRefreshReq_tb = '1') then
 										ref_ctrl_req := true;
 									end if;
 								else
