@@ -28,7 +28,7 @@ architecture bench of ddr2_phy_ctrl_top_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
 	constant NUM_TESTS		: integer := 1000;
-	constant NUM_EXTRA_TESTS	: integer := 16;
+	constant NUM_EXTRA_TESTS	: integer := 0;
 	constant TOT_NUM_TESTS		: integer := NUM_TESTS + NUM_EXTRA_TESTS;
 	constant MAX_ATTEMPTS		: integer := 20;
 
@@ -353,6 +353,7 @@ begin
 			end loop;
 
 			ref_req := ref_req_int;
+			num_bursts_arr := num_bursts_arr_int;
 
 		end procedure test_param;
 
@@ -417,6 +418,9 @@ begin
 			variable exp_self_ref_exit		: boolean;
 			variable col_cmd_bl_cnt			: integer;
 			variable cmd_sent_in_self_ref		: integer;
+
+			variable ref_cmd_err_int		: integer;
+			variable ref_cmd_req			: boolean;
 
 		begin
 
@@ -658,7 +662,7 @@ begin
 										bank_ctrl_bank_exp(mrs_bank_ctrl_bursts_int) := 0;
 										row_exp(mrs_bank_ctrl_bursts_int) := 0;
 										mrs_exp(mrs_bank_ctrl_bursts_int) := mrs_ctrl_data;
-										mrs_bank_cmd_exp(mrs_bank_ctrl_bursts_int) := mrs_cmd;
+										mrs_bank_cmd_exp(mrs_bank_ctrl_bursts_int) := mrs_ctrl_cmd;
 										if (RefCtrlRefreshReq_tb = '1') then
 											stop_mrs_bank := true;
 										end if;
@@ -666,7 +670,7 @@ begin
 										mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
 									end if; 
 								else
-									if ((MRSCtrlCtrlAck_tb = '1') and (BankCtrlCtrlReq_tb = '0')) then
+									if ((MRSCtrlCtrlAck_tb = '1') and (MRSCtrlCtrlReq_tb = '0')) then
 										mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
 									end if;
 								end if;
@@ -902,7 +906,7 @@ begin
 
 		end procedure run_ctrl_top;
 
-		procedure verify(variable num_bursts_rtl, num_bursts_exp, ref_req : in integer; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, auto_ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_cmd_rtl, ref_cmd_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable num_bursts_rtl, num_bursts_exp, ref_req : in integer; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, auto_ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_cmd_rtl, ref_cmd_exp : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); file file_pointer : text; variable pass: out integer) is
 
 			variable match_mrs		: boolean;
 			variable match_cols		: boolean;
@@ -924,9 +928,9 @@ begin
 
 			match_cols := compare_int_arr_2d(col_exp, col_rtl, num_bursts_exp, integer(2.0**(real(BURST_LENGTH_L_TB))));
 			match_mrs := compare_int_arr(mrs_exp, mrs_rtl, num_bursts_exp);
-			match_row := compare_int_arr(row_exp, row_rtl, num_bursts_exp);
+			match_rows := compare_int_arr(row_exp, row_rtl, num_bursts_exp);
 			match_col_cmd := compare_int_arr_2d(col_cmd_exp, col_cmd_rtl, num_bursts_exp, integer(2.0**(real(BURST_LENGTH_L_TB))));
-			match_mrs_bank_cmd := compare_int_arr(mrs_bank_cmd_exp, mrs_bank_cmd_rtl, num_bursts_exp, integer(2.0**(real(BURST_LENGTH_L_TB))));
+			match_mrs_bank_cmd := compare_int_arr(mrs_bank_cmd_exp, mrs_bank_cmd_rtl, num_bursts_exp);
 			match_col_ctrl_bank := compare_int_arr_2d(col_ctrl_bank_exp, col_ctrl_bank_rtl, num_bursts_exp, integer(2.0**(real(BURST_LENGTH_L_TB))));
 			match_bank_ctrl_bank := compare_int_arr(bank_ctrl_bank_exp, bank_ctrl_bank_rtl, num_bursts_exp);
 			match_ref_cmd := compare_int_arr_2d(ref_cmd_exp, ref_cmd_rtl, ref_req, 2);
@@ -939,15 +943,15 @@ begin
 			for i in 0 to (num_bursts_exp - 1) loop
 
 				if ((rw_burst(i) = true) and (ref(i) = true)) then
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " Bank " & integer'image(bank(i)) & " Start Column " & integer'image(cols(i)) & " Row " & integer'image(rows(i)) & " Burst Length " & integer'image(bl(i)) & " Refresh : Auto-Refresh " & bool_to_std_bool(auto_ref(i))));
+					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " Bank " & integer'image(bank(i)) & " Start Column " & integer'image(cols(i)) & " Row " & integer'image(rows(i)) & " Burst Length " & integer'image(bl(i)) & " Refresh : Auto-Refresh " & bool_to_str(auto_ref(i))));
 				elsif ((rw_burst(i) = true) and (ref(i) = false)) then
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " Bank " & integer'image(bank(i)) & " Start Column " & integer'image(cols(i)) & " Row " & integer'image(rows(i)) & " Burst Length " & integer'image(bl(i)) & " Refresh : False"));
 				elsif ((mrs(i) = true) and (ref(i) = true)) then
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " MRS Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs(i)))) & " MRS Data " & integer'image(mrs_data(i)) & " Refresh : Auto-Refresh " & bool_to_std_bool(auto_ref(i))));
+					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " MRS Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_cmd(i), MEM_CMD_L))) & " MRS Data " & integer'image(mrs_data(i)) & " Refresh : Auto-Refresh " & bool_to_str(auto_ref(i))));
 				elsif ((mrs(i) = true) and (ref(i) = false)) then
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " MRS Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs(i)))) & " MRS Data " & integer'image(mrs_data(i)) & " Refresh : False"));
+					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " MRS Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_cmd(i), MEM_CMD_L))) & " MRS Data " & integer'image(mrs_data(i)) & " Refresh : False"));
 				elsif (ref(i) = true) then
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " Refresh : Auto-Refresh " & bool_to_std_bool(auto_ref(i))));
+					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " Refresh : Auto-Refresh " & bool_to_str(auto_ref(i))));
 				else
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " No Command "));
 				end if;
@@ -956,7 +960,7 @@ begin
 
 			end loop;
 
-			if ((num_bursts_rtl = num_bursts_exp) and (match_cols = true) and (match_mrs = true) and (match_row = true) and (match_col_cmd = true) and (match_mrs_bank_cmd = true) and (match_col_ctrl_bank = true) and (match_bank_ctrl_bank = true) and (match_ref_cmd = true) and (no_mrs_bank_ctrl_err = true) and (no_col_ctrl_err = true) and (no_ref_ctrl_err = true) and (no_cmd_sent_in_self_ref = true)) then
+			if ((num_bursts_rtl = num_bursts_exp) and (match_cols = true) and (match_mrs = true) and (match_rows = true) and (match_col_cmd = true) and (match_mrs_bank_cmd = true) and (match_col_ctrl_bank = true) and (match_bank_ctrl_bank = true) and (match_ref_cmd = true) and (no_mrs_bank_ctrl_err = true) and (no_col_ctrl_err = true) and (no_ref_ctrl_err = true) and (no_cmd_sent_in_self_ref = true)) then
 				write(file_line, string'( "PHY Controller Top Level: PASS"));
 				writeline(file_pointer, file_line);
 				pass := 1;
@@ -968,7 +972,7 @@ begin
 				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS/Bank Command mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_bank_cmd_exp(i)))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_bank_cmd_rtl(i))))));
+					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_bank_cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_bank_cmd_rtl(i), MEM_CMD_L)))));
 					writeline(file_pointer, file_line);
 				end loop;
 			elsif (match_bank_ctrl_bank = false) then
@@ -983,7 +987,7 @@ begin
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_bursts_exp - 1) loop
 					for j in 0 to 1 loop
-						write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_exp(i, j)))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_rtl(i, j))))));
+						write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_rtl(i, j), MEM_CMD_L)))));
 						writeline(file_pointer, file_line);
 					end loop;
 				end loop;
@@ -993,11 +997,11 @@ begin
 				for i in 0 to (num_bursts_exp - 1) loop
 					write(file_line, string'( "========================================================================================"));
 					writeline(file_pointer, file_line);
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Col " & integer'image(col_exp(i, 0)) & " Read Burst " & bool_to_std_logic(read_burst(i)) & " Burst Length " & integer'image(bl(i))));
+					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Col " & integer'image(col_exp(i, 0)) & " Read Burst " & bool_to_str(read_burst(i)) & " Burst Length " & integer'image(bl(i))));
 					writeline(file_pointer, file_line);
 					for j in 0 to (bl(i) - 1) loop
 						if (col_cmd_rtl(i,j) /= col_cmd_exp(i,j)) then
-							write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Column Command exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_rtl(i, j))))));
+							write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Column Command exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_rtl(i, j), MEM_CMD_L)))));
 							writeline(file_pointer, file_line);
 						end if;
 					end loop;
@@ -1098,6 +1102,8 @@ begin
 		variable num_bursts_exp	: integer;
 		variable num_bursts_rtl	: integer;
 
+		variable num_bursts_arr	: int_arr(0 to (BANK_NUM_TB - 1));
+
 		variable ref_req	: integer;
 		variable burst_bits	: integer;
 		variable al		: integer;
@@ -1166,7 +1172,7 @@ begin
 		write(file_line, string'( "PHY Controller Top Level Test"));
 		writeline(file_pointer, file_line);
 
-		for i in 0 to NUM_TEST-1 loop
+		for i in 0 to NUM_TESTS-1 loop
 
 			test_param(num_bursts_exp, ref_req, burst_bits, al, wl, cas, high_temp, num_bursts_arr, bank, cols, rows, mrs_data, read_burst, bl, cmd_delay, ctrl_delay, rw_burst, ref, mrs, auto_ref, ref_delay, mrs_cmd, seed1, seed2);
 
