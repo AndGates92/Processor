@@ -906,7 +906,7 @@ begin
 
 		end procedure run_ctrl_top;
 
-		procedure verify(variable num_bursts_rtl, num_bursts_exp, ref_req : in integer; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, auto_ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_cmd_rtl, ref_cmd_exp : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable num_bursts_rtl, num_bursts_exp, ref_req : in integer; variable num_bursts_arr : in int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, auto_ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_cmd_rtl, ref_cmd_exp : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); file file_pointer : text; variable pass: out integer) is
 
 			variable match_mrs		: boolean;
 			variable match_cols		: boolean;
@@ -939,6 +939,13 @@ begin
 			no_col_ctrl_err := compare_int_arr(reset_int_arr(0, num_bursts_exp), col_ctrl_err_arr, num_bursts_exp);
 			no_ref_ctrl_err := compare_int_arr(reset_int_arr(0, ref_req), ref_ctrl_err_arr, ref_req);
 			no_cmd_sent_in_self_ref := compare_int_arr(reset_int_arr(0, ref_req), cmd_sent_in_self_ref_err, ref_req);
+
+			for i in 0 to (BANK_NUM_TB - 1) loop
+
+				write(file_line, string'( "PHY Controller Top Level: Bank #" & integer'image(i) & ": Number of bursts " & integer'image(num_bursts_arr(i))));
+				writeline(file_pointer, file_line);
+
+			end loop;
 
 			for i in 0 to (num_bursts_exp - 1) loop
 
@@ -1178,7 +1185,7 @@ begin
 
 			run_ctrl_top(num_bursts_exp, ref_req, burst_bits, al, wl, cas, high_temp, bank, cols, rows, mrs_data, read_burst, bl, cmd_delay, ctrl_delay, rw_burst, ref, auto_ref, mrs, ref_delay, mrs_cmd, num_bursts_rtl, mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err, ref_cmd_rtl, ref_cmd_exp, col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp);
 
-			verify(num_bursts_rtl, num_bursts_exp, ref_req, bank, cols, rows, mrs_data, read_burst, bl, rw_burst, ref, auto_ref, mrs, mrs_cmd, mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err, ref_cmd_rtl, ref_cmd_exp, col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp, file_pointer, pass);
+			verify(num_bursts_rtl, num_bursts_exp, ref_req, num_bursts_arr, bank, cols, rows, mrs_data, read_burst, bl, rw_burst, ref, auto_ref, mrs, mrs_cmd, mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err, ref_cmd_rtl, ref_cmd_exp, col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
