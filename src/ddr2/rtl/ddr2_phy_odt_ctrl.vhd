@@ -110,7 +110,7 @@ begin
 
 	DelayCntInitValue <= to_unsigned(T_AOFD, CNT_ODT_CTRL_L) when (StateC = ODT_CTRL_IDLE) else to_unsigned(T_AOND_max, CNT_ODT_CTRL_L);
 
-	state_det : process(StateC, MRSCtrlReq, MRSUpdateCompleted, RefCtrlReq, Cmd, ZeroDelayCnt)
+	state_det : process(StateC, MRSCtrlReq, MRSUpdateCompleted, RefCtrlReq, Cmd, ZeroDelayCnt, MRSCmdAccepted, RefCmdAccepted)
 	begin
 
 		-- avoid latches
