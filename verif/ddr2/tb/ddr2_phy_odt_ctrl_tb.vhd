@@ -301,9 +301,10 @@ begin
 						else
 							MRSCmdAccepted_tb <= '0';
 						end if;
-					end loop;
 
-					wait until ((clk_tb = '1') and (clk_tb'event));
+						wait until ((clk_tb = '1') and (clk_tb'event));
+
+					end loop;
 
 					MRSCmdAccepted_tb <= '0';
 
@@ -327,8 +328,6 @@ begin
 						end if;
 					end loop;
 
-					RefCtrlReq_tb <= '0';
-
 					wait until ((clk_tb = '0') and (clk_tb'event));
 
 					if (ODT_tb = '1') then
@@ -336,6 +335,38 @@ begin
 					else
 						odt_enabled_arr_rtl(num_requests_rtl_int) := false;
 					end if;
+
+					if (RefCtrlReq_tb = '1') then
+
+						while (RefCtrlAck_tb = '0') loop
+							wait until ((clk_tb = '1') and (clk_tb'event));
+							wait until ((clk_tb = '0') and (clk_tb'event));
+
+							MRSUpdateCompleted_tb <= '0';
+						end loop;
+
+						wait until ((clk_tb = '1') and (clk_tb'event));
+
+						RefCtrlReq_tb <= '0';
+
+						for i in 0 to req_delay loop
+							if (i = req_delay) then
+								RefCmdAccepted_tb <= '1';
+							else
+								RefCmdAccepted_tb <= '0';
+							end if;
+
+							wait until ((clk_tb = '1') and (clk_tb'event));
+
+						end loop;
+
+						wait until ((clk_tb = '0') and (clk_tb'event));
+
+						RefCmdAccepted_tb <= '0';
+
+					end if;
+
+					RefCtrlReq_tb <= '0';
 
 					wait until ((clk_tb = '1') and (clk_tb'event));
 
@@ -383,9 +414,12 @@ begin
 						else
 							RefCmdAccepted_tb <= '0';
 						end if;
+
+						wait until ((clk_tb = '1') and (clk_tb'event));
+
 					end loop;
 
-					wait until ((clk_tb = '1') and (clk_tb'event));
+					wait until ((clk_tb = '0') and (clk_tb'event));
 
 					RefCmdAccepted_tb <= '0';
 
@@ -427,14 +461,41 @@ begin
 					end loop;
 
 					RefCtrlReq_tb <= '0';
-					MRSCtrlReq_tb <= '0';
 
-					wait until ((clk_tb = '0') and (clk_tb'event));
+					if (MRSCtrlReq_tb = '1') then
 
-					if (ODT_tb = '1') then
-						odt_enabled_arr_rtl(num_requests_rtl_int) := true;
-					else
-						odt_enabled_arr_rtl(num_requests_rtl_int) := false;
+						while (MRSCtrlAck_tb = '0') loop
+							wait until ((clk_tb = '1') and (clk_tb'event));
+							wait until ((clk_tb = '0') and (clk_tb'event));
+						end loop;
+
+						MRSCtrlReq_tb <= '0';
+
+						wait until ((clk_tb = '1') and (clk_tb'event));
+
+						MRSCtrlReq_tb <= '0';
+
+						for i in 0 to req_delay loop
+							if (i = req_delay) then
+								MRSCmdAccepted_tb <= '1';
+							else
+								MRSCmdAccepted_tb <= '0';
+							end if;
+
+							wait until ((clk_tb = '1') and (clk_tb'event));
+
+						end loop;
+
+						MRSCmdAccepted_tb <= '0';
+
+						for i in 0 to delay_after_turn_off loop
+							wait until ((clk_tb = '1') and (clk_tb'event));
+
+							if (i = delay_after_turn_off) then
+								MRSUpdateCompleted_tb <= '1';
+							end if;
+						end loop;
+
 					end if;
 
 					wait until ((clk_tb = '1') and (clk_tb'event));
