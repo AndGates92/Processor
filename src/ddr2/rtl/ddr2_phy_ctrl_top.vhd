@@ -97,6 +97,8 @@ architecture rtl of ddr2_phy_ctrl_top is
 
 	-- Refresh Controller
 	-- ODT Controller
+	signal RefCtrlMRSCmdAccepted	: std_logic;
+
 	signal RefCtrlODTCtrlAck	: std_logic;
 
 	signal RefCtrlODTCtrlReq	: std_logic;
@@ -123,6 +125,8 @@ architecture rtl of ddr2_phy_ctrl_top is
 	signal MRSCtrlData		: std_logic_vector(MRS_REG_L - 1 downto 0);
 
 	-- ODT Controller
+	signal MRSCtrlMRSCmdAccepted	: std_logic;
+
 	signal MRSCtrlODTCtrlAck	: std_logic;
 
 	signal MRSCtrlODTCtrlReq	: std_logic;
@@ -172,6 +176,8 @@ begin
 		BankIdle => BankIdleVec,
 
 		-- ODT Controller
+		RefCmdAccepted => RefCtrlMRSCmdAccepted,
+
 		ODTCtrlAck => RefCtrlODTCtrlAck,
 
 		ODTCtrlReq => RefCtrlODTCtrlReq,
@@ -199,12 +205,16 @@ begin
 		Cmd => ODTCtrlCmd,
 
 		-- MRS Controller
+		MRSCmdAccepted => MRSCtrlMRSCmdAccepted,
+
 		MRSCtrlReq => MRSCtrlODTCtrlReq,
 		MRSUpdateCompleted => MRSUpdateCompleted,
 
 		MRSCtrlAck => MRSCtrlODTCtrlAck,
 
 		-- Refresh Controller
+		RefCmdAccepted => RefCtrlMRSCmdAccepted,
+
 		RefCtrlReq => RefCtrlODTCtrlReq,
 
 		RefCtrlAck => RefCtrlODTCtrlAck,
@@ -239,6 +249,8 @@ begin
 		Data => MRSCtrlData,
 
 		-- ODT Controller
+		MRSCmdAccepted => MRSCtrlMRSCmdAccepted,
+
 		ODTCtrlAck => MRSCtrlODTCtrlAck,
 
 		ODTCtrlReq => MRSCtrlODTCtrlReq,

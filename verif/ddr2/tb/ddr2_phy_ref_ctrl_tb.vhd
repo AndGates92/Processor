@@ -61,6 +61,7 @@ architecture bench of ddr2_phy_ref_ctrl_tb is
 	-- ODT Controller
 	signal ODTCtrlAck_tb		: std_logic;
 
+	signal RefCmdAccepted_tb	: std_logic;
 	signal ODTCtrlReq_tb		: std_logic;
 
 	-- Arbitrer
@@ -102,6 +103,7 @@ begin
 		-- ODT Controller
 		ODTCtrlAck => ODTCtrlAck_tb,
 
+		RefCmdAccepted => RefCmdAccepted_tb,
 		ODTCtrlReq => ODTCtrlReq_tb,
 
 		-- Arbitrer

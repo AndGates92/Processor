@@ -34,12 +34,14 @@ package ddr2_phy_odt_ctrl_pkg is
 		Cmd			: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 		-- MRS Controller
+		MRSCmdAccepted		: in std_logic;
 		MRSCtrlReq		: in std_logic;
 		MRSUpdateCompleted	: in std_logic;
 
 		MRSCtrlAck		: out std_logic;
 
 		-- Refresh Controller
+		RefCmdAccepted		: in std_logic;
 		RefCtrlReq		: in std_logic;
 
 		RefCtrlAck		: out std_logic;

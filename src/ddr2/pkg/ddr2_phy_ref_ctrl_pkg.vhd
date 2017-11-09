@@ -61,6 +61,7 @@ package ddr2_phy_ref_ctrl_pkg is
 		-- ODT Controller
 		ODTCtrlAck		: in std_logic;
 
+		RefCmdAccepted		: out std_logic;
 		ODTCtrlReq		: out std_logic;
 
 		-- Arbitrer

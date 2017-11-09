@@ -35,6 +35,7 @@ port (
 	-- ODT Controller
 	ODTCtrlAck		: in std_logic;
 
+	MRSCmdAccepted		: out std_logic;
 	ODTCtrlReq		: out std_logic;
 
 	-- Turn ODT signal on after MRS command(s)
@@ -113,6 +114,9 @@ begin
 	Cmd <= CmdC;
 	Data <= DataC;
 	ODTCtrlReq <= ODTCtrlReqC;
+
+	-- MRS Command accepted by arbiter
+	MRSCmdAccepted <= CmdAck and CmdReqC;
 
 	-- Request ODT turn off before sending MRS commands
 	ODTCtrlReqN <=	CtrlReq		when (StateC = MRS_CTRL_IDLE) else

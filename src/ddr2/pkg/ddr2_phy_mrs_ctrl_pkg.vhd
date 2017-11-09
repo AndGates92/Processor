@@ -47,6 +47,7 @@ package ddr2_phy_mrs_ctrl_pkg is
 		-- ODT Controller
 		ODTCtrlAck		: in std_logic;
 
+		MRSCmdAccepted		: out std_logic;
 		ODTCtrlReq		: out std_logic;
 
 		-- Turn ODT signal on after MRS command(s)

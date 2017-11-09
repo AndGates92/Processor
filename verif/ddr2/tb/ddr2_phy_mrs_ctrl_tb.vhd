@@ -57,6 +57,7 @@ architecture bench of ddr2_phy_mrs_ctrl_tb is
 	-- ODT Controller
 	signal ODTCtrlAck_tb	: std_logic;
 
+	signal MRSCmdAccepted_tb	: std_logic;
 	signal ODTCtrlReq_tb	: std_logic;
 
 	-- Turn ODT signal on after MRS command(s)
@@ -88,6 +89,7 @@ begin
 		-- ODT Controller
 		ODTCtrlAck => ODTCtrlAck_tb,
 
+		MRSCmdAccepted => MRSCmdAccepted_tb,
 		ODTCtrlReq => ODTCtrlReq_tb,
 
 		-- Turn ODT signal on after MRS command(s)

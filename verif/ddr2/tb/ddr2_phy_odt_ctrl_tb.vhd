@@ -39,15 +39,17 @@ architecture bench of ddr2_phy_odt_ctrl_tb is
 	signal Cmd_tb	: std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 	-- MRS Controller
+	signal MRSCmdAccepted_tb	: std_logic;
 	signal MRSCtrlReq_tb		: std_logic;
 	signal MRSUpdateCompleted_tb	: std_logic;
 
 	signal MRSCtrlAck_tb		: std_logic;
 
 	-- Refresh Controller
-	signal RefCtrlReq_tb	: std_logic;
+	signal RefCmdAccepted_tb	: std_logic;
+	signal RefCtrlReq_tb		: std_logic;
 
-	signal RefCtrlAck_tb	: std_logic;
+	signal RefCtrlAck_tb		: std_logic;
 
 	-- Stop Arbiter
 	signal PauseArbiter_tb	: std_logic;
@@ -68,12 +70,14 @@ begin
 		Cmd => Cmd_tb,
 
 		-- MRS Controller
+		MRSCmdAccepted => MRSCmdAccepted_tb,
 		MRSCtrlReq => MRSCtrlReq_tb,
 		MRSUpdateCompleted => MRSUpdateCompleted_tb,
 
 		MRSCtrlAck => MRSCtrlAck_tb,
 
 		-- Refresh Controller
+		RefCmdAccepted => RefCmdAccepted_tb,
 		RefCtrlReq => RefCtrlReq_tb,
 
 		RefCtrlAck => RefCtrlAck_tb,
@@ -196,6 +200,9 @@ begin
 				MRSCtrlReq_tb <= '0';
 				RefCtrlReq_tb <= '0';
 
+				MRSCmdAccepted_tb <= '0';
+				RefCmdAccepted_tb <= '0';
+
 				MRSUpdateCompleted_tb <= '0';
 
 				err := 0;
@@ -288,6 +295,18 @@ begin
 
 					MRSCtrlReq_tb <= '0';
 
+					for i in 0 to req_delay loop
+						if (i = req_delay) then
+							MRSCmdAccepted_tb <= '1';
+						else
+							MRSCmdAccepted_tb <= '0';
+						end if;
+					end loop;
+
+					wait until ((clk_tb = '1') and (clk_tb'event));
+
+					MRSCmdAccepted_tb <= '0';
+
 					for i in 0 to delay_after_turn_off loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
 
@@ -357,6 +376,18 @@ begin
 					wait until ((clk_tb = '1') and (clk_tb'event));
 
 					RefCtrlReq_tb <= '0';
+
+					for i in 0 to req_delay loop
+						if (i = req_delay) then
+							RefCmdAccepted_tb <= '1';
+						else
+							RefCmdAccepted_tb <= '0';
+						end if;
+					end loop;
+
+					wait until ((clk_tb = '1') and (clk_tb'event));
+
+					RefCmdAccepted_tb <= '0';
 
 					for i in 0 to delay_after_turn_off loop
 						wait until ((clk_tb = '1') and (clk_tb'event));

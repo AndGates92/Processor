@@ -36,6 +36,7 @@ port (
 	-- ODT Controller
 	ODTCtrlAck		: in std_logic;
 
+	RefCmdAccepted		: out std_logic;
 	ODTCtrlReq		: out std_logic;
 
 	-- Arbitrer
@@ -180,6 +181,9 @@ begin
 	NonReadOpEnable <= NonReadOpEnableC;
 
 	RefreshReq <= RefreshReqC;
+
+	-- Ref Command accepted by arbiter
+	RefCmdAccepted <= CmdAck and CmdReqC when (StateC = SELF_REF_ENTRY_REQUEST) else '0';
 
 	-- Outstanding refresh counter
 	with IncrDecrOutstandingRefCntVec select
