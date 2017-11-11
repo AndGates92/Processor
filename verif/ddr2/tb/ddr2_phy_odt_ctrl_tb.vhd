@@ -113,7 +113,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_requests : out integer; variable mrs_mem_cmd, mem_cmd, req_delay, delay_after_turn_off: out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_req, ref_ctrl_req, toggle_other_req: out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_requests : out integer; variable mrs_mem_cmd, mem_cmd, req_delay, delay_after_turn_off: out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_req, ref_ctrl_req, toggle_other_req, valid_mrs_ref: out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 			variable num_requests_int	: integer;
 			variable mrs_cmd_id		: integer;
@@ -151,18 +151,22 @@ begin
 				ref_ctrl_req(i) := rand_bool(rand_val, 0.5);
 				uniform(seed1, seed2, rand_val);
 				toggle_other_req(i) := rand_bool(rand_val, 0.5);
+				uniform(seed1, seed2, rand_val);
+				valid_mrs_ref(i) := rand_bool(rand_val, 0.75);
 			end loop;
 			for i in num_requests_int to (MAX_OUTSTANDING_BURSTS_TB - 1) loop
 				mem_cmd(i) := to_integer(unsigned(CMD_NOP));
+				mrs_mem_cmd(i) := to_integer(unsigned(CMD_NOP));
 				req_delay(i) := 0;
 				delay_after_turn_off(i) := 0;
 				mrs_ctrl_req(i) := false;
 				ref_ctrl_req(i) := false;
 				toggle_other_req(i) := false;
+				valid_mrs_ref(i) := false;
 			end loop;
 		end procedure test_param;
 
-		procedure run_odt_ctrl (variable num_requests_exp: in integer; variable mrs_mem_cmd_arr, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_req_arr, ref_ctrl_req_arr, toggle_other_req_arr: in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl: out integer; variable odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable odt_ctrl_err_arr, mem_cmd_sel_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
+		procedure run_odt_ctrl (variable num_requests_exp: in integer; variable mrs_mem_cmd_arr, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable mrs_ctrl_req_arr, ref_ctrl_req_arr, toggle_other_req_arr, valid_mrs_ref_arr : in bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl: out integer; variable odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp : out bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable odt_ctrl_err_arr, mem_cmd_sel_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1))) is
 
 			variable num_requests_rtl_int	: integer;
 			variable req_delay		: integer;
@@ -173,6 +177,7 @@ begin
 			variable mrs_ctrl_req		: boolean;
 			variable ref_ctrl_req		: boolean;
 			variable toggle_other_req	: boolean;
+			variable valid_mrs_ref		: boolean;
 
 			variable err			: integer;
 			variable toggle_cnt		: integer;
@@ -189,6 +194,7 @@ begin
 			mrs_ctrl_req := mrs_ctrl_req_arr(num_requests_rtl_int);
 			ref_ctrl_req := ref_ctrl_req_arr(num_requests_rtl_int);
 			toggle_other_req := toggle_other_req_arr(num_requests_rtl_int);
+			valid_mrs_ref := valid_mrs_ref_arr(num_requests_rtl_int);
 
 			odt_disabled_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
 			pause_arb_arr_rtl := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
@@ -198,6 +204,7 @@ begin
 			odt_enabled_arr_exp := reset_bool_arr(false, MAX_REQUESTS_PER_TEST);
 
 			odt_ctrl_err_arr := reset_int_arr(0, MAX_REQUESTS_PER_TEST);
+			mem_cmd_sel_arr := reset_int_arr(to_integer(unsigned(CMD_NOP)), MAX_REQUESTS_PER_TEST);
 
 			err := 0;
 			toggle_cnt := 0;
@@ -214,6 +221,7 @@ begin
 				mrs_ctrl_req := mrs_ctrl_req_arr(num_requests_rtl_int);
 				ref_ctrl_req := ref_ctrl_req_arr(num_requests_rtl_int);
 				toggle_other_req := toggle_other_req_arr(num_requests_rtl_int);
+				valid_mrs_ref := valid_mrs_ref_arr(num_requests_rtl_int);
 
 				MRSCtrlReq_tb <= '0';
 				RefCtrlReq_tb <= '0';
@@ -226,9 +234,9 @@ begin
 				err := 0;
 				toggle_cnt := 0;
 
-				if (mrs_ctrl_req = true) then
+				if ((valid_mrs_ref = true) and (mrs_ctrl_req = true)) then
 					mem_cmd_sel := mrs_mem_cmd;
-				elsif (ref_ctrl_req = true) then
+				elsif ((valid_mrs_ref = true) and (ref_ctrl_req = true)) then
 					mem_cmd_sel := to_integer(unsigned(CMD_SELF_REF_ENTRY));
 				else
 					mem_cmd_sel := mem_cmd;
@@ -284,7 +292,7 @@ begin
 					if ((MRSCtrlAck_tb = '1') or (RefCtrlAck_tb = '1')) then
 						err := err + 1;
 					end if;
-				elsif ((mem_cmd_sel = to_integer(unsigned(CMD_MODE_REG_SET))) or (mem_cmd_sel = to_integer(unsigned(CMD_EXT_MODE_REG_SET_1))) or (mem_cmd_sel = to_integer(unsigned(CMD_EXT_MODE_REG_SET_2))) or (mem_cmd_sel = to_integer(unsigned(CMD_EXT_MODE_REG_SET_3))) or (mem_cmd_sel = to_integer(unsigned(CMD_SELF_REF_ENTRY))) or (mem_cmd_sel = to_integer(unsigned(CMD_SELF_REF_EXIT)))) then
+				elsif ((mem_cmd_sel = to_integer(unsigned(CMD_MODE_REG_SET))) or (mem_cmd_sel = to_integer(unsigned(CMD_EXT_MODE_REG_SET_1))) or (mem_cmd_sel = to_integer(unsigned(CMD_EXT_MODE_REG_SET_2))) or (mem_cmd_sel = to_integer(unsigned(CMD_EXT_MODE_REG_SET_3)))) then
 					if (mrs_ctrl_req = true) then
 						odt_disabled_arr_exp(num_requests_rtl_int) := true;
 						odt_enabled_arr_exp(num_requests_rtl_int) := true;
@@ -420,7 +428,10 @@ begin
 							odt_enabled_arr_rtl(num_requests_rtl_int) := false;
 						end if;
 
-					elsif (ref_ctrl_req = true) then
+					end if;
+
+				elsif (mem_cmd_sel = to_integer(unsigned(CMD_SELF_REF_ENTRY))) then
+					if (ref_ctrl_req = true) then
 						odt_disabled_arr_exp(num_requests_rtl_int) := true;
 						odt_enabled_arr_exp(num_requests_rtl_int) := true;
 						pause_arb_arr_exp(num_requests_rtl_int) := true;
@@ -656,6 +667,7 @@ begin
 		variable mrs_ctrl_req_arr	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 		variable ref_ctrl_req_arr	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 		variable toggle_other_req_arr	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable valid_mrs_ref_arr	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
 		variable odt_disabled_arr_rtl	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 		variable odt_enabled_arr_rtl	: bool_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
@@ -686,9 +698,9 @@ begin
 
 		for i in 0 to NUM_TESTS-1 loop
 
-			test_param(num_requests_exp, mrs_mem_cmd_arr, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, toggle_other_req_arr, seed1, seed2);
+			test_param(num_requests_exp, mrs_mem_cmd_arr, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, toggle_other_req_arr, valid_mrs_ref_arr, seed1, seed2);
 
-			run_odt_ctrl(num_requests_exp, mrs_mem_cmd_arr, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, toggle_other_req_arr, num_requests_rtl, odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp, odt_ctrl_err_arr, mem_cmd_sel_arr);
+			run_odt_ctrl(num_requests_exp, mrs_mem_cmd_arr, mem_cmd_arr, req_delay_arr, delay_after_turn_off_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, toggle_other_req_arr, valid_mrs_ref_arr, num_requests_rtl, odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp, odt_ctrl_err_arr, mem_cmd_sel_arr);
 
 			verify(num_requests_exp, num_requests_rtl, mem_cmd_sel_arr, mrs_ctrl_req_arr, ref_ctrl_req_arr, odt_disabled_arr_rtl, pause_arb_arr_rtl, odt_enabled_arr_rtl, odt_disabled_arr_exp, pause_arb_arr_exp, odt_enabled_arr_exp, odt_ctrl_err_arr, file_pointer, pass);
 
