@@ -5,6 +5,8 @@ VCOM_WORK = -work
 GHDL = ghdl
 
 ROOT_DIR = .
+SCRIPT_DIR = ${ROOT_DIR}/script
+
 SRC_DIR = ${ROOT_DIR}/src
 COMMON_SRC_DIR = ${SRC_DIR}/common
 COMMON_RTL_DIR = ${COMMON_SRC_DIR}/rtl
@@ -116,6 +118,7 @@ all:
 	make all_common
 	make all_cpu
 	make all_ddr2
+	${SCRIPT_DIR}/postprocess.sh
 
 all_common:
 	make fifo_1clk_all
