@@ -4,17 +4,22 @@ WORK_DIRNAME=work
 
 if [ -n "${PROC_PROJ}" ]; then
 	WORK_DIR=${PROC_PROJ}/VHDL_code/work
-else
-	echo Variable PROC_PROJ not found.
+fi
+
+# $WORK_DIR doesn't exist or $PROJ_DIR is not defined
+if [ ! -d ${WORK_DIR} ] || [ ! -n "${PROC_PROJ}" ]; then
+
 	echo Looking for $WORK_DIRNAME in tree from current directory `pwd`
 
 	#initialize exit status and work directory
 	WORK_DIR=`pwd`
 	SEARCH_EXIT_STATUS=1
+
 	while [ $SEARCH_EXIT_STATUS -eq 1 ];
 	do
 		ls -d ${WORK_DIR}/*/ 2>/dev/null | grep $WORK_DIRNAME
 		SEARCH_EXIT_STATUS=$?
+
 		if [ ${SEARCH_EXIT_STATUS} -eq 1 ]; then
 			if [ "${WORK_DIR}" = "/" ]; then
 				echo No $WORK_DIRNAME directory found in tree
