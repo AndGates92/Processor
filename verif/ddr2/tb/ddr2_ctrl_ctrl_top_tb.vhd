@@ -188,6 +188,41 @@ begin
 
 		procedure reset is
 		begin
+
+			-- MRS configuration
+			DDR2BurstLength_tb <= (others => '0');
+			DDR2CASLatency_tb <= (others => '0');
+			DDR2AdditiveLatency_tb <= (others => '0');
+			DDR2WriteLatency_tb <= (others => '0');
+			DDR2HighTemperatureRefresh_tb <= '0';
+
+			-- Column Controller
+			-- Controller
+			ColCtrlCtrlReq_tb <= (others => '0');
+			ColCtrlReadBurstIn_tb <= (others => '0');
+			ColCtrlColMemIn_tb <= (others => '0');
+			ColCtrlBankMemIn_tb <= (others => '0');
+			ColCtrlBurstLength_tb <= (others => '0');
+
+			-- Bank Controllers
+			-- Transaction Controller
+			BankCtrlRowMemIn_tb <= (others => '0');
+			BankCtrlCtrlReq_tb <= (others => '0');
+
+			-- MRS Controller
+			-- Transaction Controller
+			MRSCtrlCtrlReq_tb <= '0';
+			MRSCtrlCtrlCmd_tb <= CMD_NOP;
+			MRSCtrlCtrlData_tb <= (others => '0');
+
+			-- Refresh Controller
+			-- PHY Init
+			PhyInitCompleted_tb <= '0';
+
+			-- Controller
+			RefCtrlCtrlReq_tb <= '0';
+
+
 			rst_tb <= '0';
 			wait until ((clk_tb'event) and (clk_tb = '1'));
 			rst_tb <= '1';
@@ -420,7 +455,6 @@ begin
 			variable cmd_sent_in_self_ref		: integer;
 
 			variable ref_cmd_err_int		: integer;
-			variable ref_cmd_req			: boolean;
 
 		begin
 
@@ -556,12 +590,16 @@ begin
 					bank_ctrl_delay_int := ctrl_delay(mrs_bank_ctrl_bursts_int);
 					mrs_cmd_delay_int := cmd_delay(mrs_bank_ctrl_bursts_int);
 
+report "bank/MRS burst " & integer'image(mrs_bank_ctrl_bursts_int);
+
 					if (stop_mrs_bank = true) then
 						if ((RefCtrlRefreshReq_tb = '0') and (RefCtrlNonReadOpEnable_tb = '1')) then -- Enable MRS/Bank ctrl after Refresh
 							stop_mrs_bank := false;
 						end if;
 					else
 						if (rw_burst_bank = true) then
+
+report "Open Bank " & integer'image(bank_ctrl_bank) & " row " & integer'image(bank_ctrl_row);
 
 							MRSCtrlCtrlReq_tb <= '0';
 							MRSCtrlCtrlCmd_tb <= (others => '0');
@@ -621,6 +659,8 @@ begin
 							end if;
 
 						elsif (mrs_ctrl_en = true) then
+
+report "MRS " & integer'image(mrs_ctrl_cmd) & " data " & integer'image(mrs_ctrl_data);
 
 							BankCtrlCtrlReq_tb <= (others => '0');
 							BankCtrlRowMemIn_tb <= (others => '0');
@@ -712,7 +752,13 @@ begin
 					col_cmd_delay_int := cmd_delay(ref_col_cmd_bursts_int);
 					ref_delay_int := ref_delay(ref_col_cmd_bursts_int);
 
+report "ref/column burst " & integer'image(ref_col_cmd_bursts_int);
+report "column " & bool_to_str(rw_burst_col) & " refresh " & bool_to_str(ref_ctrl_en);
+
 					if (rw_burst_col = true) then
+
+report "column burst " & integer'image(col_ctrl_bl) & " bank " & integer'image(col_ctrl_bank) & " col " & integer'image(col_ctrl_col) & " read " & bool_to_str(col_ctrl_read_burst) & " col cmd done "  & bool_to_str(end_col_cmd);
+
 						if (end_col_cmd = false) then
 							if (col_cmd_req = false) then
 								if (col_cmd_delay_cnt = col_cmd_delay_int) then
@@ -773,6 +819,10 @@ begin
 					end if;
 
 					if (ref_ctrl_en = true) then
+
+report "ref burst " & bool_to_str(ref_done) & " ctrl auto ref " & bool_to_str(ref_ctrl_auto_ref) & " ref ctrl req " & bool_to_str(ref_ctrl_req);
+report "delay " & integer'image(ref_delay_cnt) & " out of " & integer'image(ref_delay_int);
+
 						if (ref_done = false) then
 							if (ref_ctrl_auto_ref = true) then -- Auto refresh command: Wait RefreshReq to be set and wait a delay before moving on
 								if (ref_ctrl_req = false) then
@@ -797,12 +847,14 @@ begin
 								end if;
 							else
 								if (ref_ctrl_req = false) then
+report "ref_ctrl_req is false";
 									if (ref_delay_cnt = ref_delay_int) then
 										RefCtrlCtrlReq_tb <= '1';
 
 										ref_delay_cnt := 0;
-										ref_cmd_req := true;
+										ref_ctrl_req := true;
 
+report "ref_ctrl_req is false";
 										wait for 1 ps;
 									else
 
@@ -812,6 +864,9 @@ begin
 								end if;
 
 								if (ref_ctrl_req = true) then
+
+report "wait ack ";
+
 									if (RefCtrlCtrlAck_tb = '1') then
 										if (RefCtrlCtrlReq_tb = '1') then
 											RefCtrlCtrlReq_tb <= '0';
