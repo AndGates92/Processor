@@ -36,6 +36,8 @@ port (
 	DDR2WriteLatency		: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
 	DDR2HighTemperatureRefresh	: in std_logic;
 
+	NoBankColCmd		: in std_logic;
+
 	-- Column Controller
 	-- Controller
 	ColCtrlCtrlReq		: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
@@ -60,6 +62,7 @@ port (
 	MRSCtrlCtrlData			: in std_logic_vector(MRS_REG_L - 1 downto 0);
 
 	MRSCtrlCtrlAck			: out std_logic;
+	MRSCtrlMRSReq			: out std_logic;
 
 	-- Refresh Controller
 	-- Transaction Controller
@@ -97,7 +100,7 @@ architecture rtl of ddr2_ctrl_ctrl_top is
 
 	-- Refresh Controller
 	-- ODT Controller
-	signal RefCtrlMRSCmdAccepted	: std_logic;
+	signal RefCtrlRefCmdAccepted	: std_logic;
 
 	signal RefCtrlODTCtrlAck	: std_logic;
 
@@ -123,6 +126,9 @@ architecture rtl of ddr2_ctrl_ctrl_top is
 	signal MRSCtrlCmdReq		: std_logic;
 	signal MRSCtrlCmd		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal MRSCtrlData		: std_logic_vector(MRS_REG_L - 1 downto 0);
+
+	signal MRSCtrlODTCtrlCmd	: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal RefCtrlODTCtrlCmd	: std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 	-- ODT Controller
 	signal MRSCtrlMRSCmdAccepted	: std_logic;
@@ -176,11 +182,12 @@ begin
 		BankIdle => BankIdleVec,
 
 		-- ODT Controller
-		RefCmdAccepted => RefCtrlMRSCmdAccepted,
+		RefCmdAccepted => RefCtrlRefCmdAccepted,
 
 		ODTCtrlAck => RefCtrlODTCtrlAck,
 
 		ODTCtrlReq => RefCtrlODTCtrlReq,
+		ODTCmd => RefCtrlODTCtrlCmd,
 
 		-- Arbitrer
 		CmdAck => RefCtrlCmdAck,
@@ -202,20 +209,24 @@ begin
 		rst => rst,
 
 		-- Command sent to memory
-		Cmd => ODTCtrlCmd,
+		Cmd => CmdDecCmdMem,
+
+		NoBankColCmd => NoBankColCmd,
 
 		-- MRS Controller
 		MRSCmdAccepted => MRSCtrlMRSCmdAccepted,
 
 		MRSCtrlReq => MRSCtrlODTCtrlReq,
+		MRSCmd => MRSCtrlODTCtrlCmd,
 		MRSUpdateCompleted => MRSUpdateCompleted,
 
 		MRSCtrlAck => MRSCtrlODTCtrlAck,
 
 		-- Refresh Controller
-		RefCmdAccepted => RefCtrlMRSCmdAccepted,
+		RefCmdAccepted => RefCtrlRefCmdAccepted,
 
 		RefCtrlReq => RefCtrlODTCtrlReq,
+		RefCmd => RefCtrlODTCtrlCmd,
 
 		RefCtrlAck => RefCtrlODTCtrlAck,
 
@@ -240,6 +251,7 @@ begin
 		CtrlData => MRSCtrlCtrlData,
 
 		CtrlAck => MRSCtrlCtrlAck,
+		MRSReq => MRSCtrlMRSReq,
 
 		-- Commands
 		CmdAck => MRSCtrlCmdAck,
@@ -254,6 +266,7 @@ begin
 		ODTCtrlAck => MRSCtrlODTCtrlAck,
 
 		ODTCtrlReq => MRSCtrlODTCtrlReq,
+		ODTCmd => MRSCtrlODTCtrlCmd,
 
 		-- Turn ODT signal on after MRS command(s)
 		MRSUpdateCompleted => MRSUpdateCompleted

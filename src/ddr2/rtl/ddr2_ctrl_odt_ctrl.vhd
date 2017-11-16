@@ -21,9 +21,12 @@ port (
 	-- Command sent to memory
 	Cmd			: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 
+	NoBankColCmd		: in std_logic;
+
 	-- MRS Controller
 	MRSCmdAccepted		: in std_logic;
 	MRSCtrlReq		: in std_logic;
+	MRSCmd			: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 	MRSUpdateCompleted	: in std_logic;
 
 	MRSCtrlAck		: out std_logic;
@@ -31,6 +34,7 @@ port (
 	-- Refresh Controller
 	RefCmdAccepted		: in std_logic;
 	RefCtrlReq		: in std_logic;
+	RefCmd			: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 	RefCtrlAck		: out std_logic;
 
@@ -54,9 +58,9 @@ architecture rtl of ddr2_ctrl_odt_ctrl is
 	signal SetDelayCnt		: std_logic;
 	signal DelayCntInitValue	: unsigned(CNT_ODT_CTRL_L - 1 downto 0);
 	signal ZeroDelayCnt		: std_logic;
-	signal MRSCmd			: std_logic;
-	signal RefEntryCmd		: std_logic;
-	signal RefExitCmd		: std_logic;
+	signal MRSCmdIn			: std_logic;
+	signal RefEntryCmdIn		: std_logic;
+	signal RefExitCmdIn		: std_logic;
 
 begin
 
@@ -106,18 +110,18 @@ begin
 			RefCtrlReq and (not ZeroDelayCnt)	when (StateC = ODT_CTRL_REF_REQ) else
 			DelayCntEnC;
 
-	MRSCmd <= '1' when ((Cmd = CMD_MODE_REG_SET) or (Cmd = CMD_EXT_MODE_REG_SET_1) or (Cmd = CMD_EXT_MODE_REG_SET_2) or (Cmd = CMD_EXT_MODE_REG_SET_3)) else '0';
-	RefEntryCmd <= '1' when ((Cmd = CMD_SELF_REF_ENTRY)) else '0';
-	RefExitCmd <= '1' when ((Cmd = CMD_SELF_REF_EXIT)) else '0';
+	MRSCmdIn <= '1' when ((MRSCmd = CMD_MODE_REG_SET) or (MRSCmd = CMD_EXT_MODE_REG_SET_1) or (MRSCmd = CMD_EXT_MODE_REG_SET_2) or (MRSCmd = CMD_EXT_MODE_REG_SET_3)) else '0';
+	RefEntryCmdIn <= '1' when ((RefCmd = CMD_SELF_REF_ENTRY)) else '0';
+	RefExitCmdIn <= '1' when ((RefCmd = CMD_SELF_REF_EXIT)) else '0';
 
 	-- Set delay counter when toggling ODT signal
-	SetDelayCnt <=	((MRSCtrlReq and MRSCmd) or (RefCtrlReq and RefEntryCmd))	when (StateC = ODT_CTRL_IDLE) else
+	SetDelayCnt <=	((MRSCtrlReq and MRSCmdIn) or (RefCtrlReq and RefEntryCmdIn))	when (StateC = ODT_CTRL_IDLE) else
 			(ZeroDelayCnt and RefCmdAccepted)				when (StateC = ODT_CTRL_TURN_OFF_REF) else -- Refresh Exit
 			'0';
 
 	DelayCntInitValue <= to_unsigned(T_AOFD, CNT_ODT_CTRL_L) when (StateC = ODT_CTRL_IDLE) else to_unsigned(T_AOND_max, CNT_ODT_CTRL_L);
 
-	state_det : process(StateC, MRSCtrlReq, MRSUpdateCompleted, RefCtrlReq, RefEntryCmd, MRSCmd, RefExitCmd, ZeroDelayCnt, MRSCmdAccepted, RefCmdAccepted)
+	state_det : process(StateC, MRSCtrlReq, MRSUpdateCompleted, RefCtrlReq, RefEntryCmdIn, MRSCmd, RefExitCmdIn, ZeroDelayCnt, MRSCmdAccepted, RefCmdAccepted)
 	begin
 
 		-- avoid latches
@@ -126,7 +130,7 @@ begin
 		if (StateC = ODT_CTRL_IDLE) then
 			if ((MRSCmd = '1') and (MRSCtrlReq = '1')) then
 					StateN <= ODT_CTRL_TURN_OFF_MRS;
-			elsif ((RefEntryCmd = '1') and (RefCtrlReq = '1')) then
+			elsif ((RefEntryCmdIn = '1') and (RefCtrlReq = '1')) then
 				StateN <= ODT_CTRL_TURN_OFF_REF;
 			end if;
 		elsif (StateC = ODT_CTRL_TURN_OFF_MRS) then
@@ -146,7 +150,7 @@ begin
 				StateN <= ODT_CTRL_IDLE;
 			end if;
 		elsif (StateC = ODT_CTRL_REF_REQ) then
-			if ((ZeroDelayCnt = '1') and (RefCtrlReq = '1') and (RefExitCmd = '1')) then
+			if ((ZeroDelayCnt = '1') and (RefCtrlReq = '1') and (RefExitCmdIn = '1')) then
 				StateN <= ODT_CTRL_IDLE;
 			end if;
 		end if;

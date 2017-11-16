@@ -24,6 +24,7 @@ port (
 	CtrlData		: in std_logic_vector(MRS_REG_L - 1 downto 0);
 
 	CtrlAck			: out std_logic;
+	MRSReq			: out std_logic;
 
 	-- Commands
 	CmdAck			: in std_logic;
@@ -37,6 +38,7 @@ port (
 
 	MRSCmdAccepted		: out std_logic;
 	ODTCtrlReq		: out std_logic;
+	ODTCmd			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 	-- Turn ODT signal on after MRS command(s)
 	MRSUpdateCompleted	: out std_logic
@@ -51,6 +53,7 @@ architecture rtl of ddr2_ctrl_mrs_ctrl is
 	signal StateC, StateN		: std_logic_vector(STATE_MRS_CTRL_L - 1 downto 0);
 
 	signal ODTCtrlReqC, ODTCtrlReqN	: std_logic;
+	signal ODTCmdN, ODTCmdC		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 	signal CtrlAckC, CtrlAckN	: std_logic;
 
@@ -78,6 +81,7 @@ begin
 			DelayCntEnC <= '0';
 
 			ODTCtrlReqC <= '0';
+			ODTCmdC <= CMD_NOP;
 
 			CtrlAckC <= '0';
 
@@ -95,6 +99,7 @@ begin
 			DelayCntEnC <= DelayCntEnN;
 
 			ODTCtrlReqC <= ODTCtrlReqN;
+			ODTCmdC <= ODTCmdN;
 
 			CtrlAckC <= CtrlAckN;
 
@@ -109,11 +114,17 @@ begin
 
 	-- Assign outputs
 	MRSUpdateCompleted <= MRSUpdateCompletedC;
+
 	CtrlAck <= CtrlAckC;
+
 	CmdReq <= CmdReqC;
 	Cmd <= CmdC;
 	Data <= DataC;
+
 	ODTCtrlReq <= ODTCtrlReqC;
+	ODTCmd <= ODTCmdC;
+
+	MRSReq <= not ODTCtrlReqC;
 
 	-- MRS Command accepted by arbiter
 	MRSCmdAccepted <= CmdAck and CmdReqC;
@@ -122,6 +133,11 @@ begin
 	ODTCtrlReqN <=	CtrlReq		when (StateC = MRS_CTRL_IDLE) else
 			not ODTCtrlAck	when (StateC = MRS_CTRL_ODT_TURN_OFF) else
 			ODTCtrlReqC;
+
+	ODTCmdN <=	CtrlCmd		when (StateC = MRS_CTRL_IDLE) else
+			CMD_NOP		when (ODTCtrlAck = '1') else
+			ODTCmdC;
+
 
 	-- Assert command request on the way in to MRS_CTRL_SEND_CMD
 	CmdReqN <=	not CmdAck			when (StateC = MRS_CTRL_SEND_CMD) else

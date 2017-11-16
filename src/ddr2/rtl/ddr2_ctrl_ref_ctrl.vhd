@@ -38,6 +38,7 @@ port (
 
 	RefCmdAccepted		: out std_logic;
 	ODTCtrlReq		: out std_logic;
+	ODTCmd			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 	-- Arbitrer
 	CmdAck			: in std_logic;
@@ -105,6 +106,8 @@ architecture rtl of ddr2_ctrl_ref_ctrl is
 	signal AllOpEnableN, AllOpEnableC	: std_logic;
 
 	signal ODTCtrlReqN, ODTCtrlReqC		: std_logic;
+	signal ODTCmdN, ODTCmdC			: std_logic_vector(MEM_CMD_L - 1 downto 0);
+
 begin
 
 	reg: process(rst, clk)
@@ -131,6 +134,7 @@ begin
 			AllOpEnableC <= '0';
 
 			ODTCtrlReqC <= '0';
+			ODTCmdC <= CMD_NOP;
 
 			RefreshReqC <= '0';
 
@@ -159,13 +163,14 @@ begin
 
 			AllOpEnableC <= AllOpEnableN;
 
-			ODTCtrlReqC <= ODTCtrlReqN;
-
 			RefreshReqC <= RefreshReqN;
 
 			CmdReqC <= CmdReqN;
 
 			CtrlAckC <= CtrlAckN;
+
+			ODTCtrlReqC <= ODTCtrlReqN;
+			ODTCmdC <= ODTCmdN;
 
 		end if;
 	end process reg;
@@ -173,6 +178,7 @@ begin
 	CtrlAck <= CtrlAckC;
 
 	ODTCtrlReq <= ODTCtrlReqC;
+	ODTCmd <= ODTCmdC;
 
 	CmdReq <= CmdReqC;
 	CmdOut <= Cmd_comb;
@@ -247,6 +253,10 @@ begin
 			(AllOpEnableC and SelfRefreshOpC)	when (StateC = ENABLE_OP) else
 			not ODTCtrlAck				when ((StateC = ODT_DISABLE) or (StateC = ODT_ENABLE)) else
 			ODTCtrlReqC;
+
+	ODTCmdN <=	CMD_SELF_REF_ENTRY	when ((CtrlReq = '1') and (StateC = FINISH_OUTSTANDING_TX) and (BankIdle = all_banks_idle)) else
+			CMD_SELF_REF_EXIT	when ((AllOpEnableC = '1') and (SelfRefreshOpC = '1') and (StateC = ENABLE_OP)) else
+			ODTCmdC;
 
 	SelfRefresh <= '1' when (StateC = SELF_REF) else '0';
 	SelfRefreshOpN <= CtrlReq when ((StateC = FINISH_OUTSTANDING_TX) and (BankIdle = all_banks_idle)) else SelfRefreshOpC;
