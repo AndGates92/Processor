@@ -33,9 +33,12 @@ package ddr2_ctrl_odt_ctrl_pkg is
 		-- Command sent to memory
 		Cmd			: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 
+		NoBankColCmd		: in std_logic;
+
 		-- MRS Controller
 		MRSCmdAccepted		: in std_logic;
 		MRSCtrlReq		: in std_logic;
+		MRSCmd			: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 		MRSUpdateCompleted	: in std_logic;
 
 		MRSCtrlAck		: out std_logic;
@@ -43,6 +46,7 @@ package ddr2_ctrl_odt_ctrl_pkg is
 		-- Refresh Controller
 		RefCmdAccepted		: in std_logic;
 		RefCtrlReq		: in std_logic;
+		RefCmd			: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 		RefCtrlAck		: out std_logic;
 

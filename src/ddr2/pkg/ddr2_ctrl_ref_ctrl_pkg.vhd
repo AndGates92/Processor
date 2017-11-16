@@ -63,6 +63,7 @@ package ddr2_ctrl_ref_ctrl_pkg is
 
 		RefCmdAccepted		: out std_logic;
 		ODTCtrlReq		: out std_logic;
+		ODTCmd			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 		-- Arbitrer
 		CmdAck			: in std_logic;

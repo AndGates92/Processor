@@ -33,6 +33,8 @@ package ddr2_ctrl_ctrl_top_pkg is
 		DDR2WriteLatency		: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
 		DDR2HighTemperatureRefresh	: in std_logic;
 
+		NoBankColCmd		: in std_logic;
+
 		-- Column Controller
 		-- Controller
 		ColCtrlCtrlReq		: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
@@ -57,6 +59,7 @@ package ddr2_ctrl_ctrl_top_pkg is
 		MRSCtrlCtrlData			: in std_logic_vector(MRS_REG_L - 1 downto 0);
 
 		MRSCtrlCtrlAck			: out std_logic;
+		MRSCtrlMRSReq			: out std_logic;
 
 		-- Refresh Controller
 		-- Transaction Controller

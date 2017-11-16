@@ -36,6 +36,7 @@ package ddr2_ctrl_mrs_ctrl_pkg is
 		CtrlData		: in std_logic_vector(MRS_REG_L - 1 downto 0);
 
 		CtrlAck			: out std_logic;
+		MRSReq			: out std_logic;
 
 		-- Commands
 		CmdAck			: in std_logic;
@@ -49,6 +50,7 @@ package ddr2_ctrl_mrs_ctrl_pkg is
 
 		MRSCmdAccepted		: out std_logic;
 		ODTCtrlReq		: out std_logic;
+		ODTCmd			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 		-- Turn ODT signal on after MRS command(s)
 		MRSUpdateCompleted	: out std_logic
