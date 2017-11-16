@@ -63,6 +63,7 @@ architecture bench of ddr2_ctrl_ref_ctrl_tb is
 
 	signal RefCmdAccepted_tb	: std_logic;
 	signal ODTCtrlReq_tb		: std_logic;
+	signal ODTCmd_tb		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 	-- Arbitrer
 	signal CmdAck_tb		: std_logic;
@@ -105,6 +106,7 @@ begin
 
 		RefCmdAccepted => RefCmdAccepted_tb,
 		ODTCtrlReq => ODTCtrlReq_tb,
+		ODTCmd => ODTCmd_tb,
 
 		-- Arbitrer
 		CmdAck => CmdAck_tb,
