@@ -105,9 +105,9 @@ begin
 			DelayCntC;
 
 	-- Count
-	DelayCntEnN <=	(MRSCtrlReq or RefCtrlReq)		when (StateC = ODT_CTRL_IDLE) else
-			not ZeroDelayCnt			when ((StateC = ODT_CTRL_TURN_OFF_REF) or (StateC = ODT_CTRL_TURN_OFF_MRS)) else
-			RefCtrlReq and (not ZeroDelayCnt)	when (StateC = ODT_CTRL_REF_REQ) else
+	DelayCntEnN <=	((MRSCtrlReq or RefCtrlReq) and NoBankColCmd)		when (StateC = ODT_CTRL_IDLE) else
+			not ZeroDelayCnt					when ((StateC = ODT_CTRL_TURN_OFF_REF) or (StateC = ODT_CTRL_TURN_OFF_MRS)) else
+			RefCtrlReq and (not ZeroDelayCnt)			when (StateC = ODT_CTRL_REF_REQ) else
 			DelayCntEnC;
 
 	MRSCmdIn <= '1' when ((MRSCmd = CMD_MODE_REG_SET) or (MRSCmd = CMD_EXT_MODE_REG_SET_1) or (MRSCmd = CMD_EXT_MODE_REG_SET_2) or (MRSCmd = CMD_EXT_MODE_REG_SET_3)) else '0';
@@ -121,17 +121,19 @@ begin
 
 	DelayCntInitValue <= to_unsigned(T_AOFD, CNT_ODT_CTRL_L) when (StateC = ODT_CTRL_IDLE) else to_unsigned(T_AOND_max, CNT_ODT_CTRL_L);
 
-	state_det : process(StateC, MRSCtrlReq, MRSUpdateCompleted, RefCtrlReq, RefEntryCmdIn, MRSCmd, RefExitCmdIn, ZeroDelayCnt, MRSCmdAccepted, RefCmdAccepted)
+	state_det : process(StateC, MRSCtrlReq, MRSUpdateCompleted, RefCtrlReq, RefEntryCmdIn, MRSCmdIn, RefExitCmdIn, ZeroDelayCnt, MRSCmdAccepted, RefCmdAccepted, NoBankColCmd)
 	begin
 
 		-- avoid latches
 		StateN <= StateC;
 
 		if (StateC = ODT_CTRL_IDLE) then
-			if ((MRSCmd = '1') and (MRSCtrlReq = '1')) then
-					StateN <= ODT_CTRL_TURN_OFF_MRS;
-			elsif ((RefEntryCmdIn = '1') and (RefCtrlReq = '1')) then
-				StateN <= ODT_CTRL_TURN_OFF_REF;
+			if (NoBankColCmd = '1') then
+				if ((MRSCmdIn = '1') and (MRSCtrlReq = '1')) then
+						StateN <= ODT_CTRL_TURN_OFF_MRS;
+				elsif ((RefEntryCmdIn = '1') and (RefCtrlReq = '1')) then
+					StateN <= ODT_CTRL_TURN_OFF_REF;
+				end if;
 			end if;
 		elsif (StateC = ODT_CTRL_TURN_OFF_MRS) then
 			if (ZeroDelayCnt = '1') then
