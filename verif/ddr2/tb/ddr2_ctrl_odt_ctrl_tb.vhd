@@ -268,8 +268,18 @@ begin
 					if (i = req_delay) then
 
 						Cmd_tb <= std_logic_vector(to_unsigned(mem_cmd, MEM_CMD_L));
-						MRSCmd_tb <= std_logic_vector(to_unsigned(mrs_mem_cmd, MEM_CMD_L));
-						RefCmd_tb <= CMD_SELF_REF_ENTRY;
+
+						if ((valid_mrs_ref = true) and (mrs_ctrl_req = true)) then
+							MRSCmd_tb <= std_logic_vector(to_unsigned(mrs_mem_cmd, MEM_CMD_L));
+						else
+							MRSCmd_tb <= CMD_NOP;
+						end if;
+
+						if ((valid_mrs_ref = true) and (ref_ctrl_req = true)) then
+							RefCmd_tb <= CMD_SELF_REF_ENTRY;
+						else
+							RefCmd_tb <= CMD_NOP;
+						end if;
 						MRSCtrlReq_tb <= bool_to_std_logic(mrs_ctrl_req);
 						RefCtrlReq_tb <= bool_to_std_logic(ref_ctrl_req);
 
@@ -280,190 +290,102 @@ begin
 
 				wait until ((clk_tb = '0') and (clk_tb'event));
 
-				if ((mem_cmd_sel = to_integer(unsigned(CMD_MODE_REG_SET))) or (mem_cmd_sel = to_integer(unsigned(CMD_EXT_MODE_REG_SET_1))) or (mem_cmd_sel = to_integer(unsigned(CMD_EXT_MODE_REG_SET_2))) or (mem_cmd_sel = to_integer(unsigned(CMD_EXT_MODE_REG_SET_3)))) then
-					if (mrs_ctrl_req = true) then
+				if ((valid_mrs_ref = true) and (mrs_ctrl_req = true)) then
 
-						for i in 0 to req_delay loop
-							wait until ((clk_tb = '1') and (clk_tb'event));
-							if (i = req_delay) then
-								NoBankColCmd_tb <= '1';
-							end if;
-						end loop;
-
-						odt_disabled_arr_exp(num_requests_rtl_int) := true;
-						odt_enabled_arr_exp(num_requests_rtl_int) := true;
-						pause_arb_arr_exp(num_requests_rtl_int) := true;
-
-						if (ODT_tb = '0') then
-							odt_disabled_arr_rtl(num_requests_rtl_int) := true;
-						else
-							odt_disabled_arr_rtl(num_requests_rtl_int) := false;
-						end if;
-
-						pause_arb_arr_rtl(num_requests_rtl_int) := true;
-
-						while (MRSCtrlAck_tb = '0') loop
-							wait until ((clk_tb = '1') and (clk_tb'event));
-							wait until ((clk_tb = '0') and (clk_tb'event));
-
-							if (toggle_other_req = true) then
-								if (toggle_cnt < req_delay) then
-									toggle_cnt := toggle_cnt + 1;
-								else
-									RefCtrlReq_tb <= '1';
-								end if;
-							end if;
-
-							if (RefCtrlAck_tb = '1') then
-								err := err + 1;
-							end if;
-						end loop;
-
+					for i in 0 to req_delay loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
-
-						MRSCtrlReq_tb <= '0';
-
-						for i in 0 to req_delay loop
-							if (i = req_delay) then
-								MRSCmdAccepted_tb <= '1';
-							else
-								MRSCmdAccepted_tb <= '0';
-							end if;
-
-							wait until ((clk_tb = '1') and (clk_tb'event));
-
-						end loop;
-
-						wait until ((clk_tb = '0') and (clk_tb'event));
-
-						MRSCmdAccepted_tb <= '0';
-
-						for i in 0 to delay_after_turn_off loop
-							wait until ((clk_tb = '1') and (clk_tb'event));
-
-							if (toggle_other_req = true) then
-								if (toggle_cnt < req_delay) then
-									toggle_cnt := toggle_cnt + 1;
-								else
-									RefCtrlReq_tb <= '1';
-									MRSCmd_tb <= CMD_NOP;
-									RefCmd_tb <= CMD_SELF_REF_ENTRY;
-								end if;
-							end if;
-
-							if ((MRSCtrlAck_tb = '1') or (RefCtrlAck_tb = '1')) then
-								err := err + 1;
-							end if;
-
-							if (PauseArbiter_tb = '0') then
-								pause_arb_arr_rtl(num_requests_rtl_int) := false;
-							end if;
-
-							if (i = delay_after_turn_off) then
-								MRSUpdateCompleted_tb <= '1';
-							end if;
-						end loop;
-
-						wait until ((clk_tb = '0') and (clk_tb'event));
-
-						MRSCmd_tb <= CMD_NOP;
-						RefCmd_tb <= CMD_SELF_REF_ENTRY;
-
-						if (RefCtrlReq_tb = '1') then
-
-							while (RefCtrlAck_tb = '0') loop
-								wait until ((clk_tb = '1') and (clk_tb'event));
-								wait until ((clk_tb = '0') and (clk_tb'event));
-
-								MRSUpdateCompleted_tb <= '0';
-							end loop;
-
-							wait until ((clk_tb = '1') and (clk_tb'event));
-
-							RefCtrlReq_tb <= '0';
-
-							for i in 0 to req_delay loop
-								if (i = req_delay) then
-									RefCmdAccepted_tb <= '1';
-								else
-									RefCmdAccepted_tb <= '0';
-								end if;
-
-								wait until ((clk_tb = '1') and (clk_tb'event));
-
-							end loop;
-
-							wait until ((clk_tb = '0') and (clk_tb'event));
-
-							RefCmdAccepted_tb <= '0';
-
-							for i in 0 to delay_after_turn_off loop
-								wait until ((clk_tb = '1') and (clk_tb'event));
-
-								if (i = delay_after_turn_off) then
-									RefCtrlReq_tb <= '1';
-									RefCmd_tb <= CMD_SELF_REF_EXIT;
-								end if;
-							end loop;
-
-							while (RefCtrlAck_tb = '0') loop
-
-								wait until ((clk_tb = '1') and (clk_tb'event));
-
-							end loop;
-
-							wait until ((clk_tb = '0') and (clk_tb'event));
-
+						if (i = req_delay) then
+							NoBankColCmd_tb <= '1';
 						end if;
+					end loop;
 
-						RefCtrlReq_tb <= '0';
+					odt_disabled_arr_exp(num_requests_rtl_int) := true;
+					odt_enabled_arr_exp(num_requests_rtl_int) := true;
+					pause_arb_arr_exp(num_requests_rtl_int) := true;
 
-						wait until ((clk_tb = '1') and (clk_tb'event));
+					wait until ((clk_tb = '0') and (clk_tb'event));
 
-						if (ODT_tb = '1') then
-							odt_enabled_arr_rtl(num_requests_rtl_int) := true;
-						else
-							odt_enabled_arr_rtl(num_requests_rtl_int) := false;
-						end if;
-
+					if (ODT_tb = '0') then
+						odt_disabled_arr_rtl(num_requests_rtl_int) := true;
+					else
+						odt_disabled_arr_rtl(num_requests_rtl_int) := false;
 					end if;
 
-				elsif (mem_cmd_sel = to_integer(unsigned(CMD_SELF_REF_ENTRY))) then
-					if (ref_ctrl_req = true) then
-						odt_disabled_arr_exp(num_requests_rtl_int) := true;
-						odt_enabled_arr_exp(num_requests_rtl_int) := true;
-						pause_arb_arr_exp(num_requests_rtl_int) := true;
+					pause_arb_arr_rtl(num_requests_rtl_int) := true;
 
-						for i in 0 to req_delay loop
-							wait until ((clk_tb = '1') and (clk_tb'event));
-							if (i = req_delay) then
-								NoBankColCmd_tb <= '1';
+					while (MRSCtrlAck_tb = '0') loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+						wait until ((clk_tb = '0') and (clk_tb'event));
+
+						if (toggle_other_req = true) then
+							if (toggle_cnt < req_delay) then
+								toggle_cnt := toggle_cnt + 1;
+							else
+								RefCtrlReq_tb <= '1';
 							end if;
-						end loop;
-
-						if (ODT_tb = '0') then
-							odt_disabled_arr_rtl(num_requests_rtl_int) := true;
-						else
-							odt_disabled_arr_rtl(num_requests_rtl_int) := false;
 						end if;
 
-						pause_arb_arr_rtl(num_requests_rtl_int) := true;
+						if (RefCtrlAck_tb = '1') then
+							err := err + 1;
+						end if;
+					end loop;
+
+					wait until ((clk_tb = '1') and (clk_tb'event));
+
+					MRSCtrlReq_tb <= '0';
+
+					for i in 0 to req_delay loop
+						if (i = req_delay) then
+							MRSCmdAccepted_tb <= '1';
+						else
+							MRSCmdAccepted_tb <= '0';
+						end if;
+
+						wait until ((clk_tb = '1') and (clk_tb'event));
+
+					end loop;
+
+					wait until ((clk_tb = '0') and (clk_tb'event));
+
+					MRSCmdAccepted_tb <= '0';
+
+					for i in 0 to delay_after_turn_off loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+
+						if (toggle_other_req = true) then
+							if (toggle_cnt < req_delay) then
+								toggle_cnt := toggle_cnt + 1;
+							else
+								RefCtrlReq_tb <= '1';
+								MRSCmd_tb <= CMD_NOP;
+								RefCmd_tb <= CMD_SELF_REF_ENTRY;
+							end if;
+						end if;
+
+						if ((MRSCtrlAck_tb = '1') or (RefCtrlAck_tb = '1')) then
+							err := err + 1;
+						end if;
+
+						if (PauseArbiter_tb = '0') then
+							pause_arb_arr_rtl(num_requests_rtl_int) := false;
+						end if;
+
+						if (i = delay_after_turn_off) then
+							MRSUpdateCompleted_tb <= '1';
+						end if;
+					end loop;
+
+					wait until ((clk_tb = '0') and (clk_tb'event));
+
+					MRSCmd_tb <= CMD_NOP;
+
+					if (RefCtrlReq_tb = '1') then
 
 						while (RefCtrlAck_tb = '0') loop
 							wait until ((clk_tb = '1') and (clk_tb'event));
 							wait until ((clk_tb = '0') and (clk_tb'event));
 
-							if (toggle_other_req = true) then
-								if (toggle_cnt < req_delay) then
-									toggle_cnt := toggle_cnt + 1;
-								else
-									MRSCtrlReq_tb <= '1';
-								end if;
-							end if;
-
-							if (MRSCtrlAck_tb = '1') then
-								err := err + 1;
-							end if;
+							MRSUpdateCompleted_tb <= '0';
 						end loop;
 
 						wait until ((clk_tb = '1') and (clk_tb'event));
@@ -488,22 +410,6 @@ begin
 						for i in 0 to delay_after_turn_off loop
 							wait until ((clk_tb = '1') and (clk_tb'event));
 
-							if (PauseArbiter_tb = '0') then
-								pause_arb_arr_rtl(num_requests_rtl_int) := false;
-							end if;
-
-							if (toggle_other_req = true) then
-								if (toggle_cnt < req_delay) then
-									toggle_cnt := toggle_cnt + 1;
-								else
-									MRSCtrlReq_tb <= '1';
-								end if;
-							end if;
-
-							if ((MRSCtrlAck_tb = '1') or (RefCtrlAck_tb = '1')) then
-								err := err + 1;
-							end if;
-
 							if (i = delay_after_turn_off) then
 								RefCtrlReq_tb <= '1';
 								RefCmd_tb <= CMD_SELF_REF_EXIT;
@@ -511,72 +417,172 @@ begin
 						end loop;
 
 						while (RefCtrlAck_tb = '0') loop
+
 							wait until ((clk_tb = '1') and (clk_tb'event));
-
-							if (toggle_other_req = true) then
-								if (toggle_cnt < req_delay) then
-									toggle_cnt := toggle_cnt + 1;
-								else
-									MRSCtrlReq_tb <= '1';
-									MRSCmd_tb <= std_logic_vector(to_unsigned(mrs_mem_cmd, MEM_CMD_L));
-								end if;
-							end if;
-
-							if (MRSCtrlAck_tb = '1') then
-								err := err + 1;
-							end if;
 
 						end loop;
 
 						wait until ((clk_tb = '0') and (clk_tb'event));
-						RefCtrlReq_tb <= '0';
 
+					end if;
 
-						if (MRSCtrlReq_tb = '1') then
-							MRSCmd_tb <= std_logic_vector(to_unsigned(mrs_mem_cmd, MEM_CMD_L));
+					RefCtrlReq_tb <= '0';
 
-							while (MRSCtrlAck_tb = '0') loop
-								wait until ((clk_tb = '1') and (clk_tb'event));
-								wait until ((clk_tb = '0') and (clk_tb'event));
-							end loop;
+					wait until ((clk_tb = '1') and (clk_tb'event));
 
-							MRSCtrlReq_tb <= '0';
+					if (ODT_tb = '1') then
+						odt_enabled_arr_rtl(num_requests_rtl_int) := true;
+					else
+						odt_enabled_arr_rtl(num_requests_rtl_int) := false;
+					end if;
+				elsif ((valid_mrs_ref = true) and (ref_ctrl_req = true)) then
 
-							wait until ((clk_tb = '1') and (clk_tb'event));
+					odt_disabled_arr_exp(num_requests_rtl_int) := true;
+					odt_enabled_arr_exp(num_requests_rtl_int) := true;
+					pause_arb_arr_exp(num_requests_rtl_int) := true;
 
-							MRSCtrlReq_tb <= '0';
+					for i in 0 to req_delay loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+						if (i = req_delay) then
+							NoBankColCmd_tb <= '1';
+						end if;
+					end loop;
 
-							for i in 0 to req_delay loop
-								if (i = req_delay) then
-									MRSCmdAccepted_tb <= '1';
-								else
-									MRSCmdAccepted_tb <= '0';
-								end if;
+					wait until ((clk_tb = '0') and (clk_tb'event));
 
-								wait until ((clk_tb = '1') and (clk_tb'event));
+					if (ODT_tb = '0') then
+						odt_disabled_arr_rtl(num_requests_rtl_int) := true;
+					else
+						odt_disabled_arr_rtl(num_requests_rtl_int) := false;
+					end if;
 
-							end loop;
+					pause_arb_arr_rtl(num_requests_rtl_int) := true;
 
-							MRSCmdAccepted_tb <= '0';
+					while (RefCtrlAck_tb = '0') loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+						wait until ((clk_tb = '0') and (clk_tb'event));
 
-							for i in 0 to delay_after_turn_off loop
-								wait until ((clk_tb = '1') and (clk_tb'event));
+						if (toggle_other_req = true) then
+							if (toggle_cnt < req_delay) then
+								toggle_cnt := toggle_cnt + 1;
+							else
+								MRSCtrlReq_tb <= '1';
+							end if;
+						end if;
 
-								if (i = delay_after_turn_off) then
-									MRSUpdateCompleted_tb <= '1';
-								end if;
-							end loop;
+						if (MRSCtrlAck_tb = '1') then
+							err := err + 1;
+						end if;
+					end loop;
 
+					wait until ((clk_tb = '1') and (clk_tb'event));
+
+					RefCtrlReq_tb <= '0';
+
+					for i in 0 to req_delay loop
+						if (i = req_delay) then
+							RefCmdAccepted_tb <= '1';
+						else
+							RefCmdAccepted_tb <= '0';
 						end if;
 
 						wait until ((clk_tb = '1') and (clk_tb'event));
 
-						if (ODT_tb = '1') then
-							odt_enabled_arr_rtl(num_requests_rtl_int) := true;
-						else
-							odt_enabled_arr_rtl(num_requests_rtl_int) := false;
+					end loop;
+
+					wait until ((clk_tb = '0') and (clk_tb'event));
+
+					RefCmdAccepted_tb <= '0';
+
+					for i in 0 to delay_after_turn_off loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+
+						if (PauseArbiter_tb = '0') then
+							pause_arb_arr_rtl(num_requests_rtl_int) := false;
 						end if;
 
+						if (toggle_other_req = true) then
+							if (toggle_cnt < req_delay) then
+								toggle_cnt := toggle_cnt + 1;
+							else
+								MRSCtrlReq_tb <= '1';
+							end if;
+						end if;
+
+						if ((MRSCtrlAck_tb = '1') or (RefCtrlAck_tb = '1')) then
+							err := err + 1;
+						end if;
+
+						if (i = delay_after_turn_off) then
+							RefCtrlReq_tb <= '1';
+							RefCmd_tb <= CMD_SELF_REF_EXIT;
+						end if;
+					end loop;
+
+					while (RefCtrlAck_tb = '0') loop
+						wait until ((clk_tb = '1') and (clk_tb'event));
+
+						if (toggle_other_req = true) then
+							if (toggle_cnt < req_delay) then
+								toggle_cnt := toggle_cnt + 1;
+							else
+								MRSCtrlReq_tb <= '1';
+								MRSCmd_tb <= std_logic_vector(to_unsigned(mrs_mem_cmd, MEM_CMD_L));
+							end if;
+						end if;
+
+						if (MRSCtrlAck_tb = '1') then
+							err := err + 1;
+						end if;
+
+					end loop;
+
+					wait until ((clk_tb = '0') and (clk_tb'event));
+					RefCtrlReq_tb <= '0';
+
+					if (MRSCtrlReq_tb = '1') then
+						MRSCmd_tb <= std_logic_vector(to_unsigned(mrs_mem_cmd, MEM_CMD_L));
+
+						while (MRSCtrlAck_tb = '0') loop
+							wait until ((clk_tb = '1') and (clk_tb'event));
+							wait until ((clk_tb = '0') and (clk_tb'event));
+						end loop;
+
+						MRSCtrlReq_tb <= '0';
+
+						wait until ((clk_tb = '1') and (clk_tb'event));
+
+						MRSCtrlReq_tb <= '0';
+
+						for i in 0 to req_delay loop
+							if (i = req_delay) then
+								MRSCmdAccepted_tb <= '1';
+							else
+								MRSCmdAccepted_tb <= '0';
+							end if;
+
+							wait until ((clk_tb = '1') and (clk_tb'event));
+
+						end loop;
+
+						MRSCmdAccepted_tb <= '0';
+
+						for i in 0 to delay_after_turn_off loop
+							wait until ((clk_tb = '1') and (clk_tb'event));
+
+							if (i = delay_after_turn_off) then
+								MRSUpdateCompleted_tb <= '1';
+							end if;
+						end loop;
+
+					end if;
+
+					wait until ((clk_tb = '1') and (clk_tb'event));
+
+					if (ODT_tb = '1') then
+						odt_enabled_arr_rtl(num_requests_rtl_int) := true;
+					else
+						odt_enabled_arr_rtl(num_requests_rtl_int) := false;
 					end if;
 
 				elsif ((mem_cmd_sel = to_integer(unsigned(CMD_READ))) or (mem_cmd_sel = to_integer(unsigned(CMD_READ_PRECHARGE)))) then
@@ -700,8 +706,8 @@ begin
 		variable num_requests_rtl	: integer;
 
 		variable mem_cmd_arr			: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
-		variable mrs_mem_cmd_arr			: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
-		variable mem_cmd_sel_arr			: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable mrs_mem_cmd_arr		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
+		variable mem_cmd_sel_arr		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 		variable req_delay_arr			: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 		variable delay_after_turn_off_arr	: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
