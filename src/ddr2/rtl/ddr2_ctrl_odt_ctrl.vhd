@@ -93,10 +93,10 @@ begin
 	RefCtrlAck <= (ZeroDelayCnt and RefCtrlReq) when ((StateC = ODT_CTRL_TURN_OFF_REF) or (StateC = ODT_CTRL_REF_REQ)) else '0';
 
 	-- ODT is brought low if:
-	-- Read command
-	-- MRS controller requests and not write or bank act command
-	-- Refresh controller requests
-	ODT <= '0' when (((StateC = ODT_CTRL_IDLE) and ((Cmd = CMD_READ_PRECHARGE) or (Cmd = CMD_READ) or (((MRSCtrlReq = '1') or (RefCtrlReq = '1')) and (Cmd /= CMD_BANK_ACT) and (Cmd /= CMD_WRITE_PRECHARGE) and (Cmd /= CMD_WRITE)))) or (StateC = ODT_CTRL_TURN_OFF_MRS) or (StateC = ODT_CTRL_TURN_OFF_REF) or ((StateC = ODT_CTRL_MRS_UPD) and (MRSUpdateCompleted = '0')) or ((StateC = ODT_CTRL_REF_REQ) and (RefCtrlReq = '0'))) else '1';
+	-- Read command and valid Bank/Col command (NoBankColCmd = 0)
+	-- MRS controller requests and invalid Bank/Col command (NoBankColCmd = 1)
+	-- Refresh controller requests and invalid Bank/Col command (NoBankColCmd = 1)
+	ODT <= '0' when (((StateC = ODT_CTRL_IDLE) and (((NoBankColCmd = '0') and ((Cmd = CMD_READ_PRECHARGE) or (Cmd = CMD_READ))) or ((NoBankColCmd = '1') and ((MRSCtrlReq = '1') or (RefCtrlReq = '1'))))) or (StateC = ODT_CTRL_TURN_OFF_MRS) or (StateC = ODT_CTRL_TURN_OFF_REF) or ((StateC = ODT_CTRL_MRS_UPD) and (MRSUpdateCompleted = '0')) or ((StateC = ODT_CTRL_REF_REQ) and (RefCtrlReq = '0'))) else '1';
 
 	ZeroDelayCnt <= '1' when (DelayCntC = zero_delay_cnt_value) else '0';
 
@@ -115,8 +115,8 @@ begin
 	RefExitCmdIn <= '1' when ((RefCmd = CMD_SELF_REF_EXIT)) else '0';
 
 	-- Set delay counter when toggling ODT signal
-	SetDelayCnt <=	((MRSCtrlReq and MRSCmdIn) or (RefCtrlReq and RefEntryCmdIn))	when (StateC = ODT_CTRL_IDLE) else
-			(ZeroDelayCnt and RefCmdAccepted)				when (StateC = ODT_CTRL_TURN_OFF_REF) else -- Refresh Exit
+	SetDelayCnt <=	NoBankColCmd and ((MRSCtrlReq and MRSCmdIn) or (RefCtrlReq and RefEntryCmdIn))	when (StateC = ODT_CTRL_IDLE) else
+			(ZeroDelayCnt and RefCmdAccepted)						when (StateC = ODT_CTRL_TURN_OFF_REF) else -- Refresh Exit
 			'0';
 
 	DelayCntInitValue <= to_unsigned(T_AOFD, CNT_ODT_CTRL_L) when (StateC = ODT_CTRL_IDLE) else to_unsigned(T_AOND_max, CNT_ODT_CTRL_L);
