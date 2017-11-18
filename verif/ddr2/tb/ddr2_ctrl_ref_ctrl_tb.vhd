@@ -28,7 +28,7 @@ end entity ddr2_ctrl_ref_ctrl_tb;
 architecture bench of ddr2_ctrl_ref_ctrl_tb is
 
 	constant CLK_PERIOD	: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TEST	: integer := 50;
+	constant NUM_TEST	: integer := 500;
 	constant NUM_EXTRA_TEST	: integer := 0;
 	constant TOT_NUM_TEST	: integer := NUM_TEST + NUM_EXTRA_TEST;
 
