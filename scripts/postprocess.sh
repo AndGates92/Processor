@@ -61,9 +61,9 @@ TOT_TESTS=`expr "${NUM_FAILS}" + "${NUM_PASSES}"`
 TEST_PASSED=`sed -n '/PASSED/p' ${SUMMARY_LOG_FULL_PATH} | sed 's/:.*/,/' | sed 's/, /,/'`
 TEST_FAILED=`sed -n '/FAILED/p' ${SUMMARY_LOG_FULL_PATH} | sed 's/:.*/,/' | sed 's/, /,/'`
 echo
-echo "======================"
-echo Regression results
-echo "======================"
+echo "============================"
+echo "     Regression results"
+echo "============================"
 echo
 echo PASS: ${NUM_PASSES} out of ${TOT_TESTS} tests
 echo
