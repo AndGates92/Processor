@@ -36,8 +36,6 @@ port (
 	DDR2WriteLatency		: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
 	DDR2HighTemperatureRefresh	: in std_logic;
 
-	NoBankColCmd		: in std_logic;
-
 	-- Column Controller
 	-- Controller
 	ColCtrlCtrlReq		: in std_logic_vector(COL_CTRL_NUM - 1 downto 0);
@@ -95,8 +93,12 @@ end entity ddr2_ctrl_ctrl_top;
 
 architecture rtl of ddr2_ctrl_ctrl_top is
 
+	constant ZERO_BANK_IDLE_VEC	: std_logic_vector(BANK_CTRL_NUM - 1 downto 0) := (others => '0'); 
+
 	-- Bank Status
 	signal BankIdleVec		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
+
+	signal NoBankColCmd		: std_logic;
 
 	-- Refresh Controller
 	-- ODT Controller
@@ -153,10 +155,12 @@ architecture rtl of ddr2_ctrl_ctrl_top is
 	-- Arbitrer
 	signal BankCtrlCmdAck		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
 
-	signal BankCtrlRowMem	: std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
-	signal BankCtrlBankMem	: std_logic_vector(BANK_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
+	signal BankCtrlRowMem		: std_logic_vector(BANK_CTRL_NUM*ROW_L - 1 downto 0);
+	signal BankCtrlBankMem		: std_logic_vector(BANK_CTRL_NUM*(int_to_bit_num(BANK_NUM)) - 1 downto 0);
 	signal BankCtrlCmd		: std_logic_vector(BANK_CTRL_NUM*MEM_CMD_L - 1 downto 0);
 	signal BankCtrlCmdReq		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
+
+	signal CmdDecCmdMem_int		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 begin
 
@@ -209,7 +213,7 @@ begin
 		rst => rst,
 
 		-- Command sent to memory
-		Cmd => CmdDecCmdMem,
+		Cmd => CmdDecCmdMem_int,
 
 		NoBankColCmd => NoBankColCmd,
 
@@ -377,9 +381,13 @@ begin
 		CmdDecColMem => CmdDecColMem,
 		CmdDecRowMem => CmdDecRowMem,
 		CmdDecBankMem => CmdDecBankMem,
-		CmdDecCmdMem => CmdDecCmdMem,
+		CmdDecCmdMem => CmdDecCmdMem_int,
 		CmdDecMRSCmd => CmdDecMRSCmd
 
 	);
+
+	CmdDecCmdMem <= CmdDecCmdMem_int;
+
+	NoBankColCmd <= '1' when (BankIdleVec = ZERO_BANK_IDLE_VEC) else '0';
 
 end rtl;
