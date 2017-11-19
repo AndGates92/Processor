@@ -79,6 +79,7 @@ architecture bench of ddr2_ctrl_ctrl_top_tb is
 	signal MRSCtrlCtrlData_tb		: std_logic_vector(ADDR_MEM_L_TB - 1 downto 0);
 
 	signal MRSCtrlCtrlAck_tb		: std_logic;
+	signal MRSCtrlMRSReq_tb			: std_logic;
 
 	-- Refresh Controller
 	-- Transaction Controller
@@ -153,6 +154,7 @@ begin
 		MRSCtrlCtrlData => MRSCtrlCtrlData_tb,
 
 		MRSCtrlCtrlAck => MRSCtrlCtrlAck_tb,
+		MRSCtrlMRSReq => MRSCtrlMRSReq_tb,
 
 		-- Refresh Controller
 		-- Transaction Controller
@@ -566,6 +568,8 @@ begin
 			col_cmd_bl_cnt := 0;
 			cmd_sent_in_self_ref := 0;
 
+			PhyInitCompleted_tb <= '1';
+
 			ctrl_top_loop: loop
 
 				wait until ((clk_tb = '1') and (clk_tb'event));
@@ -593,7 +597,7 @@ begin
 report "bank/MRS burst " & integer'image(mrs_bank_ctrl_bursts_int);
 
 					if (stop_mrs_bank = true) then
-						if ((RefCtrlRefreshReq_tb = '0') and (RefCtrlNonReadOpEnable_tb = '1')) then -- Enable MRS/Bank ctrl after Refresh
+						if ((MRSCtrlMRSReq_tb = '0') and (RefCtrlRefreshReq_tb = '0') and (RefCtrlNonReadOpEnable_tb = '1')) then -- Enable MRS/Bank ctrl after Refresh
 							stop_mrs_bank := false;
 						end if;
 					else
@@ -644,7 +648,7 @@ report "Open Bank " & integer'image(bank_ctrl_bank) & " row " & integer'image(ba
 										row_exp(mrs_bank_ctrl_bursts_int) := bank_ctrl_row;
 										mrs_exp(mrs_bank_ctrl_bursts_int) := 0;
 										mrs_bank_cmd_exp(mrs_bank_ctrl_bursts_int) := to_integer(unsigned(CMD_BANK_ACT));
-										if (RefCtrlRefreshReq_tb = '1') then
+										if ((RefCtrlRefreshReq_tb = '1') or (MRSCtrlMRSReq_tb = '1')) then
 											stop_mrs_bank := true;
 										end if;
 									else
@@ -703,7 +707,7 @@ report "MRS " & integer'image(mrs_ctrl_cmd) & " data " & integer'image(mrs_ctrl_
 										row_exp(mrs_bank_ctrl_bursts_int) := 0;
 										mrs_exp(mrs_bank_ctrl_bursts_int) := mrs_ctrl_data;
 										mrs_bank_cmd_exp(mrs_bank_ctrl_bursts_int) := mrs_ctrl_cmd;
-										if (RefCtrlRefreshReq_tb = '1') then
+										if ((RefCtrlRefreshReq_tb = '1') or (MRSCtrlMRSReq_tb = '1')) then
 											stop_mrs_bank := true;
 										end if;
 									else
@@ -826,8 +830,8 @@ report "delay " & integer'image(ref_delay_cnt) & " out of " & integer'image(ref_
 						if (ref_done = false) then
 							if (ref_ctrl_auto_ref = true) then -- Auto refresh command: Wait RefreshReq to be set and wait a delay before moving on
 								if (ref_ctrl_req = false) then
-									if (RefCtrlRefreshReq_tb = '1') then
-										ref_ctrl_req := true;
+									if ((RefCtrlRefreshReq_tb = '1') or (MRSCtrlMRSReq_tb = '1')) then
+										stop_mrs_bank := true;
 									end if;
 								else
 									if (ref_delay_cnt = ref_delay_int) then
