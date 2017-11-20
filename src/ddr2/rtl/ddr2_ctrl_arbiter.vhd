@@ -286,7 +286,7 @@ begin
 	CmdDecCmdMem <=	PriorityCmdMem		when ((PauseArbiter = '0') and (PriorityCmdReq = '1')) else
 			ColPriorityCmdMem	when ((PauseArbiter = '0') and (ColPriorityCmdReq = '1')) else
 			BankPriorityCmdMem	when ((PauseArbiter = '0') and (BankPriorityCmdReq = '1')) else
-			RefPriorityCmdMem	when ((PauseArbiter = '0') and (RefPriorityCmdReq = '1')) else
+			RefPriorityCmdMem	when (RefPriorityCmdReq = '1') else
 			MRSPriorityCmdMem	when ((PauseArbiter = '0') and (MRSPriorityCmdReq = '1')) else
 			CMD_NOP;
 
@@ -320,7 +320,7 @@ begin
 
 		if (PauseArbiter = '1') then
 			CmdAck <= (others => '0');
-			RefCtrlCmdAck <= '0';
+			RefCtrlCmdAck <= RefPriorityCmdReq;
 			MRSCtrlCmdAck <= '0';
 		else
 			if (PriorityCmdReq = '1') then
