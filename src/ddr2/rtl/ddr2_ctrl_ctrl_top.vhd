@@ -93,7 +93,7 @@ end entity ddr2_ctrl_ctrl_top;
 
 architecture rtl of ddr2_ctrl_ctrl_top is
 
-	constant ZERO_BANK_IDLE_VEC	: std_logic_vector(BANK_CTRL_NUM - 1 downto 0) := (others => '0'); 
+	constant ALL_ONE_BANK_IDLE_VEC	: std_logic_vector(BANK_CTRL_NUM - 1 downto 0) := (others => '1'); 
 
 	-- Bank Status
 	signal BankIdleVec		: std_logic_vector(BANK_CTRL_NUM - 1 downto 0);
@@ -115,9 +115,6 @@ architecture rtl of ddr2_ctrl_ctrl_top is
 	signal RefCtrlCmdReq		: std_logic;
 
 	-- ODT Controller
-	-- Command sent to memory
-	signal ODTCtrlCmd		: std_logic_vector(MEM_CMD_L - 1 downto 0);
-
 	-- Stop Arbiter
 	signal ODTCtrlPauseArbiter	: std_logic;
 
@@ -128,6 +125,7 @@ architecture rtl of ddr2_ctrl_ctrl_top is
 	signal MRSCtrlCmdReq		: std_logic;
 	signal MRSCtrlCmd		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal MRSCtrlData		: std_logic_vector(MRS_REG_L - 1 downto 0);
+	signal LastMRSCmd		: std_logic;
 
 	signal MRSCtrlODTCtrlCmd	: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal RefCtrlODTCtrlCmd	: std_logic_vector(MEM_CMD_L - 1 downto 0);
@@ -223,6 +221,7 @@ begin
 		MRSCtrlReq => MRSCtrlODTCtrlReq,
 		MRSCmd => MRSCtrlODTCtrlCmd,
 		MRSUpdateCompleted => MRSUpdateCompleted,
+		LastMRSCmd => LastMRSCmd,
 
 		MRSCtrlAck => MRSCtrlODTCtrlAck,
 
@@ -271,6 +270,7 @@ begin
 
 		ODTCtrlReq => MRSCtrlODTCtrlReq,
 		ODTCmd => MRSCtrlODTCtrlCmd,
+		LastMRSCmd => LastMRSCmd,
 
 		-- Turn ODT signal on after MRS command(s)
 		MRSUpdateCompleted => MRSUpdateCompleted
@@ -388,6 +388,6 @@ begin
 
 	CmdDecCmdMem <= CmdDecCmdMem_int;
 
-	NoBankColCmd <= '1' when (BankIdleVec = ZERO_BANK_IDLE_VEC) else '0';
+	NoBankColCmd <= '1' when (BankIdleVec = ALL_ONE_BANK_IDLE_VEC) else '0';
 
 end rtl;
