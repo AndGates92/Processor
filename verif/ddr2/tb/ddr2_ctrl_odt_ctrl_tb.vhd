@@ -45,6 +45,7 @@ architecture bench of ddr2_ctrl_odt_ctrl_tb is
 	signal MRSCtrlReq_tb		: std_logic;
 	signal MRSCmd_tb		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal MRSUpdateCompleted_tb	: std_logic;
+	signal LastMRSCmd_tb		: std_logic;
 
 	signal MRSCtrlAck_tb		: std_logic;
 
@@ -80,6 +81,7 @@ begin
 		MRSCtrlReq => MRSCtrlReq_tb,
 		MRSCmd => MRSCmd_tb,
 		MRSUpdateCompleted => MRSUpdateCompleted_tb,
+		LastMRSCmd => LastMRSCmd_tb,
 
 		MRSCtrlAck => MRSCtrlAck_tb,
 
@@ -244,6 +246,7 @@ begin
 				RefCmdAccepted_tb <= '0';
 
 				MRSUpdateCompleted_tb <= '0';
+				LastMRSCmd_tb <= '0';
 
 				NoBankColCmd_tb <= '0';
 
@@ -296,6 +299,9 @@ begin
 						wait until ((clk_tb = '1') and (clk_tb'event));
 						if (i = req_delay) then
 							NoBankColCmd_tb <= '1';
+						end if;
+						if (i = req_delay/2) then
+							LastMRSCmd_tb <= '1';
 						end if;
 					end loop;
 
@@ -468,6 +474,9 @@ begin
 							else
 								MRSCtrlReq_tb <= '1';
 							end if;
+							if (i = toggle_cnt/2) then
+								LastMRSCmd_tb <= '1';
+							end if;
 						end if;
 
 						if (MRSCtrlAck_tb = '1') then
@@ -507,6 +516,9 @@ begin
 							else
 								MRSCtrlReq_tb <= '1';
 							end if;
+							if (i = toggle_cnt/2) then
+								LastMRSCmd_tb <= '1';
+							end if;
 						end if;
 
 						if ((MRSCtrlAck_tb = '1') or (RefCtrlAck_tb = '1')) then
@@ -528,6 +540,9 @@ begin
 							else
 								MRSCtrlReq_tb <= '1';
 								MRSCmd_tb <= std_logic_vector(to_unsigned(mrs_mem_cmd, MEM_CMD_L));
+							end if;
+							if (i = toggle_cnt/2) then
+								LastMRSCmd_tb <= '1';
 							end if;
 						end if;
 
