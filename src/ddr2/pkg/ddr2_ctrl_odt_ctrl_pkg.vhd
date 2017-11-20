@@ -40,6 +40,7 @@ package ddr2_ctrl_odt_ctrl_pkg is
 		MRSCtrlReq		: in std_logic;
 		MRSCmd			: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 		MRSUpdateCompleted	: in std_logic;
+		LastMRSCmd		: in std_logic;
 
 		MRSCtrlAck		: out std_logic;
 

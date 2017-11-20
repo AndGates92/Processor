@@ -51,6 +51,7 @@ package ddr2_ctrl_mrs_ctrl_pkg is
 		MRSCmdAccepted		: out std_logic;
 		ODTCtrlReq		: out std_logic;
 		ODTCmd			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
+		LastMRSCmd		: out std_logic;
 
 		-- Turn ODT signal on after MRS command(s)
 		MRSUpdateCompleted	: out std_logic
