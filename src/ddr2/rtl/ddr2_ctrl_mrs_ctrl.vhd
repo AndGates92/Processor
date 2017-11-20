@@ -39,6 +39,7 @@ port (
 	MRSCmdAccepted		: out std_logic;
 	ODTCtrlReq		: out std_logic;
 	ODTCmd			: out std_logic_vector(MEM_CMD_L - 1 downto 0);
+	LastMRSCmd		: out std_logic;
 
 	-- Turn ODT signal on after MRS command(s)
 	MRSUpdateCompleted	: out std_logic
@@ -124,14 +125,14 @@ begin
 	ODTCtrlReq <= ODTCtrlReqC;
 	ODTCmd <= ODTCmdC;
 
-	MRSReq <= not ODTCtrlReqC;
+	MRSReq <= ODTCtrlReqC;
 
 	-- MRS Command accepted by arbiter
 	MRSCmdAccepted <= CmdAck and CmdReqC;
 
 	-- Request ODT turn off before sending MRS commands
 	ODTCtrlReqN <=	CtrlReq		when (StateC = MRS_CTRL_IDLE) else
-			not ODTCtrlAck	when (StateC = MRS_CTRL_ODT_TURN_OFF) else
+			not ODTCtrlAck	when ((StateC = MRS_CTRL_ODT_TURN_OFF) or (StateC = MRS_CTRL_ODT_TURN_ON)) else
 			ODTCtrlReqC;
 
 	ODTCmdN <=	CtrlCmd		when (StateC = MRS_CTRL_IDLE) else
@@ -169,8 +170,10 @@ begin
 
 	DelayCntInitValue <= to_unsigned(T_MOD_max, CNT_MRS_CTRL_L);
 
+	LastMRSCmd <= (ZeroDelayCnt and (not CtrlReq)) when (StateC = MRS_CTRL_REG_UPD) else '0';
+
 	-- Complete MRS update if no outstanding requests
-	MRSUpdateCompletedN <=	(ZeroDelayCnt and not CtrlReq)	when(StateC = MRS_CTRL_REG_UPD) else
+	MRSUpdateCompletedN <=	(ZeroDelayCnt and not CtrlReq)	when (StateC = MRS_CTRL_REG_UPD) else
 				(not ODTCtrlAck)		when (StateC = MRS_CTRL_ODT_TURN_ON) else
 				MRSUpdateCompletedC;
 
