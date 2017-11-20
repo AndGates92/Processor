@@ -60,6 +60,7 @@ architecture bench of ddr2_ctrl_mrs_ctrl_tb is
 	signal MRSCmdAccepted_tb	: std_logic;
 	signal ODTCtrlReq_tb		: std_logic;
 	signal ODTCmd_tb		: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal LastMRSCmd_tb		: std_logic;
 
 	-- Turn ODT signal on after MRS command(s)
 	signal MRSUpdateCompleted_tb	: std_logic;
@@ -93,6 +94,7 @@ begin
 		MRSCmdAccepted => MRSCmdAccepted_tb,
 		ODTCtrlReq => ODTCtrlReq_tb,
 		ODTCmd => ODTCmd_tb,
+		LastMRSCmd => LastMRSCmd_tb,
 
 		-- Turn ODT signal on after MRS command(s)
 		MRSUpdateCompleted => MRSUpdateCompleted_tb
