@@ -397,7 +397,8 @@ begin
 		procedure run_ctrl_top(variable num_bursts_exp, ref_req, burst_bits, al, wl, cas : in integer; variable high_temp : in boolean; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, auto_ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable num_bursts_rtl : out integer; variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_cmd_rtl, ref_cmd_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)))) is
 
 			variable mrs_bank_ctrl_bursts_int	: integer;
-			variable ref_col_cmd_bursts_int		: integer;
+			variable col_cmd_bursts_int		: integer;
+			variable ref_cmd_bursts_int		: integer;
 
 			variable bank_ctrl_bank			: integer;
 			variable bank_ctrl_row			: integer;
@@ -494,29 +495,32 @@ begin
 			RefCtrlCtrlReq_tb <= '0';
 
 			mrs_bank_ctrl_bursts_int := 0;
-			ref_col_cmd_bursts_int := 0;
+			col_cmd_bursts_int := 0;
+			ref_cmd_bursts_int := 0;
 
 			rw_burst_bank := rw_burst(mrs_bank_ctrl_bursts_int);
-			rw_burst_col := rw_burst(ref_col_cmd_bursts_int);
-			ref_ctrl_en := ref(ref_col_cmd_bursts_int);
-			ref_ctrl_auto_ref := auto_ref(ref_col_cmd_bursts_int);
+			rw_burst_col := rw_burst(col_cmd_bursts_int);
+
+			ref_ctrl_en := ref(ref_cmd_bursts_int);
+			ref_ctrl_auto_ref := auto_ref(ref_cmd_bursts_int);
+
 			mrs_ctrl_en := mrs(mrs_bank_ctrl_bursts_int);
 
 			bank_ctrl_bank := bank(mrs_bank_ctrl_bursts_int);
 			bank_ctrl_row := rows(mrs_bank_ctrl_bursts_int);
 
-			col_ctrl_bank := bank(ref_col_cmd_bursts_int);
-			col_ctrl_col := cols(ref_col_cmd_bursts_int);
-			col_ctrl_bl := bl(ref_col_cmd_bursts_int);
-			col_ctrl_read_burst := read_burst(ref_col_cmd_bursts_int);
+			col_ctrl_bank := bank(col_cmd_bursts_int);
+			col_ctrl_col := cols(col_cmd_bursts_int);
+			col_ctrl_bl := bl(col_cmd_bursts_int);
+			col_ctrl_read_burst := read_burst(col_cmd_bursts_int);
 
 			mrs_ctrl_cmd := mrs_cmd(mrs_bank_ctrl_bursts_int);
 			mrs_ctrl_data := mrs_data(mrs_bank_ctrl_bursts_int);
 
 			bank_ctrl_delay_int := ctrl_delay(mrs_bank_ctrl_bursts_int);
-			col_cmd_delay_int := cmd_delay(ref_col_cmd_bursts_int);
+			col_cmd_delay_int := cmd_delay(col_cmd_bursts_int);
 			mrs_cmd_delay_int := cmd_delay(mrs_bank_ctrl_bursts_int);
-			ref_delay_int := ref_delay(ref_col_cmd_bursts_int);
+			ref_delay_int := ref_delay(ref_cmd_bursts_int);
 
 			ctrl_delay_cnt := 0;
 			col_cmd_delay_cnt := 0;
@@ -574,11 +578,7 @@ begin
 
 				wait until ((clk_tb = '1') and (clk_tb'event));
 
-				exit ctrl_top_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (ref_col_cmd_bursts_int = num_bursts_exp) and (col_cmd_cnt = num_bursts_exp) and (mrs_bank_cmd_cnt = num_bursts_exp) and (ref_req = ref_cmd_cnt));
-
-				if (mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) = true) then
-					mrs_bank_ctrl_bursts_int := mrs_bank_ctrl_bursts_int + 1;
-				end if;
+				exit ctrl_top_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (col_cmd_bursts_int = num_bursts_exp) and (ref_cmd_bursts_int = num_bursts_exp) and (col_cmd_cnt = num_bursts_exp) and (mrs_bank_cmd_cnt = num_bursts_exp) and (ref_req = ref_cmd_cnt));
 
 				if (mrs_bank_ctrl_bursts_int < num_bursts_exp) then
 
@@ -595,6 +595,7 @@ begin
 					mrs_cmd_delay_int := cmd_delay(mrs_bank_ctrl_bursts_int);
 
 report "bank/MRS burst " & integer'image(mrs_bank_ctrl_bursts_int);
+report "stop_mrs_bank " & bool_to_str(stop_mrs_bank);
 
 					if (stop_mrs_bank = true) then
 						if ((MRSCtrlMRSReq_tb = '0') and (RefCtrlRefreshReq_tb = '0') and (RefCtrlNonReadOpEnable_tb = '1')) then -- Enable MRS/Bank ctrl after Refresh
@@ -742,22 +743,19 @@ report "MRS " & integer'image(mrs_ctrl_cmd) & " data " & integer'image(mrs_ctrl_
 
 				end if;
 
-				if ((ref_col_cmd_bursts_int < mrs_bank_ctrl_bursts_int) and (ref_col_cmd_bursts_int < num_bursts_exp)) then
+				if ((col_cmd_bursts_int < mrs_bank_ctrl_bursts_int) and (col_cmd_bursts_int < num_bursts_exp)) then
 
-					rw_burst_col := rw_burst(ref_col_cmd_bursts_int);
-					ref_ctrl_en := ref(ref_col_cmd_bursts_int);
-					ref_ctrl_auto_ref := auto_ref(ref_col_cmd_bursts_int);
+					rw_burst_col := rw_burst(col_cmd_bursts_int);
 
-					col_ctrl_bank := bank(ref_col_cmd_bursts_int);
-					col_ctrl_col := cols(ref_col_cmd_bursts_int);
-					col_ctrl_bl := bl(ref_col_cmd_bursts_int);
-					col_ctrl_read_burst := read_burst(ref_col_cmd_bursts_int);
+					col_ctrl_bank := bank(col_cmd_bursts_int);
+					col_ctrl_col := cols(col_cmd_bursts_int);
+					col_ctrl_bl := bl(col_cmd_bursts_int);
+					col_ctrl_read_burst := read_burst(col_cmd_bursts_int);
 
-					col_cmd_delay_int := cmd_delay(ref_col_cmd_bursts_int);
-					ref_delay_int := ref_delay(ref_col_cmd_bursts_int);
+					col_cmd_delay_int := cmd_delay(col_cmd_bursts_int);
 
-report "ref/column burst " & integer'image(ref_col_cmd_bursts_int);
-report "column " & bool_to_str(rw_burst_col) & " refresh " & bool_to_str(ref_ctrl_en);
+report "column burst " & integer'image(col_cmd_bursts_int);
+report "column " & bool_to_str(rw_burst_col);
 
 					if (rw_burst_col = true) then
 
@@ -776,7 +774,6 @@ report "column burst " & integer'image(col_ctrl_bl) & " bank " & integer'image(c
 									col_cmd_delay_cnt := 0;
 									col_cmd_req := true;
 
-									wait for 1 ps;
 								else
 
 									ColCtrlCtrlReq_tb <= (others => '0');
@@ -788,32 +785,33 @@ report "column burst " & integer'image(col_ctrl_bl) & " bank " & integer'image(c
 								if (ColCtrlCtrlAck_tb(0) = '1') then
 									if (ColCtrlCtrlReq_tb(0) = '1') then
 										ColCtrlCtrlReq_tb <= (others => '0');
-										col_ctrl_err_arr(ref_col_cmd_bursts_int) := col_cmd_err_int;
+										col_ctrl_err_arr(col_cmd_bursts_int) := col_cmd_err_int;
 										col_cmd_err_int := 0;
 
 										col_cmd_req := false;
 										end_col_cmd := true;
 
 										for bl_cnt in 0 to (col_ctrl_bl - 1) loop
-											col_ctrl_bank_exp(ref_col_cmd_bursts_int, bl_cnt) := col_ctrl_bank;
-											col_exp(ref_col_cmd_bursts_int, bl_cnt) := col_ctrl_col + (bl_cnt * integer(2.0**real(burst_bits)));
+											col_ctrl_bank_exp(col_cmd_bursts_int, bl_cnt) := col_ctrl_bank;
+											col_exp(col_cmd_bursts_int, bl_cnt) := col_ctrl_col + (bl_cnt * integer(2.0**real(burst_bits)));
 											if (col_ctrl_read_burst = true) then
 												if (bl_cnt = (col_ctrl_bl - 1)) then
-													col_cmd_exp(ref_col_cmd_bursts_int, bl_cnt) := to_integer(unsigned(CMD_READ_PRECHARGE));
+													col_cmd_exp(col_cmd_bursts_int, bl_cnt) := to_integer(unsigned(CMD_READ_PRECHARGE));
 												else
-													col_cmd_exp(ref_col_cmd_bursts_int, bl_cnt) := to_integer(unsigned(CMD_READ));
+													col_cmd_exp(col_cmd_bursts_int, bl_cnt) := to_integer(unsigned(CMD_READ));
 												end if;
 											else
 												if (bl_cnt = (col_ctrl_bl - 1)) then
-													col_cmd_exp(ref_col_cmd_bursts_int, bl_cnt) := to_integer(unsigned(CMD_WRITE_PRECHARGE));
+													col_cmd_exp(col_cmd_bursts_int, bl_cnt) := to_integer(unsigned(CMD_WRITE_PRECHARGE));
 												else
-													col_cmd_exp(ref_col_cmd_bursts_int, bl_cnt) := to_integer(unsigned(CMD_WRITE));
+													col_cmd_exp(col_cmd_bursts_int, bl_cnt) := to_integer(unsigned(CMD_WRITE));
 												end if;
 											end if;
 										end loop;
+
 									else
 										col_cmd_err_int := col_cmd_err_int + 1;
-									end if; 
+									end if;
 								end if;
 
 							end if;
@@ -821,6 +819,18 @@ report "column burst " & integer'image(col_ctrl_bl) & " bank " & integer'image(c
 					else
 						end_col_cmd := true;
 					end if;
+
+				end if;
+
+				if ((ref_cmd_bursts_int <= col_cmd_bursts_int) and  (ref_cmd_bursts_int < mrs_bank_ctrl_bursts_int) and (ref_cmd_bursts_int < num_bursts_exp)) then
+
+report "refresh burst " & integer'image(ref_cmd_bursts_int);
+report "refresh " & bool_to_str(ref_ctrl_en);
+
+					ref_ctrl_en := ref(ref_cmd_bursts_int);
+					ref_ctrl_auto_ref := auto_ref(ref_cmd_bursts_int);
+
+					ref_delay_int := ref_delay(ref_cmd_bursts_int);
 
 					if (ref_ctrl_en = true) then
 
@@ -845,6 +855,7 @@ report "delay " & integer'image(ref_delay_cnt) & " out of " & integer'image(ref_
 										ref_cmd_exp(rtl_ref_cmd_cnt, 1) := to_integer(unsigned(CMD_NOP));
 										rtl_ref_cmd_cnt := rtl_ref_cmd_cnt + 1;
 										ref_delay_cnt := 0;
+
 									else
 										ref_delay_cnt := ref_delay_cnt + 1;
 									end if;
@@ -858,8 +869,8 @@ report "ref_ctrl_req is false";
 										ref_delay_cnt := 0;
 										ref_ctrl_req := true;
 
-report "ref_ctrl_req is false";
 										wait for 1 ps;
+report "ref_ctrl_req is false";
 									else
 
 										RefCtrlCtrlReq_tb <= '0';
@@ -887,6 +898,7 @@ report "wait ack ";
 												rtl_ref_cmd_cnt := rtl_ref_cmd_cnt + 1;
 												self_ref := false;
 												ref_done := true;
+
 											end if;
 										else
 											ref_cmd_err_int := ref_cmd_err_int + 1;
@@ -899,12 +911,22 @@ report "wait ack ";
 						ref_done := true;
 					end if;
 
-					if ((end_col_cmd = true) and (ref_done = true)) then
-						end_col_cmd := false;
-						ref_done := false;
-						ref_col_cmd_bursts_int := ref_col_cmd_bursts_int + 1;
-					end if;
+				end if;
 
+				wait until ((clk_tb = '0') and (clk_tb'event));
+
+				if (ref_done = true) then
+					ref_done := false;
+					ref_cmd_bursts_int := ref_cmd_bursts_int + 1;
+				end if;
+
+				if (end_col_cmd = true) then
+					end_col_cmd := false;
+					col_cmd_bursts_int := col_cmd_bursts_int + 1;
+				end if;
+
+				if (mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) = true) then
+					mrs_bank_ctrl_bursts_int := mrs_bank_ctrl_bursts_int + 1;
 				end if;
 
 				if (exp_self_ref_exit = true) then
