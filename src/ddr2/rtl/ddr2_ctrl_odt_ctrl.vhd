@@ -28,6 +28,7 @@ port (
 	MRSCtrlReq		: in std_logic;
 	MRSCmd			: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 	MRSUpdateCompleted	: in std_logic;
+	LastMRSCmd		: in std_logic;
 
 	MRSCtrlAck		: out std_logic;
 
@@ -84,10 +85,12 @@ begin
 	end process reg;
 
 	-- pause arbiter when updating MRS registers, waiting MRS turn off register or Refresh controller request
-	PauseArbiter <= '1' when (((StateC = ODT_CTRL_MRS_UPD) and (MRSUpdateCompleted = '0')) or ((StateC = ODT_CTRL_REF_REQ) and (RefCtrlReq = '0'))) else '0';
+	PauseArbiter <= '1' when (((StateC = ODT_CTRL_MRS_UPD) and (MRSUpdateCompleted = '0') and (LastMRSCmd = '1')) or ((StateC = ODT_CTRL_REF_REQ) and (RefCtrlReq = '0'))) else '0';
 
 	-- Ack MRS controller request after delay has expired
-	MRSCtrlAck <= (ZeroDelayCnt and MRSCtrlReq) when (StateC = ODT_CTRL_TURN_OFF_MRS) else '0';
+	MRSCtrlAck <=	(ZeroDelayCnt and MRSCtrlReq)	when (StateC = ODT_CTRL_TURN_OFF_MRS) else
+ 			MRSCtrlReq			when (StateC = ODT_CTRL_MRS_UPD) else
+			'0';
 
 	-- Ack Refresh controller request after delay has expired
 	RefCtrlAck <= (ZeroDelayCnt and RefCtrlReq) when ((StateC = ODT_CTRL_TURN_OFF_REF) or (StateC = ODT_CTRL_REF_REQ)) else '0';
@@ -148,7 +151,7 @@ begin
 				end if;
 			end if;
 		elsif (StateC = ODT_CTRL_MRS_UPD) then
-			if (MRSUpdateCompleted = '1') then
+			if ((MRSUpdateCompleted = '1') and (MRSCtrlReq = '1')) then
 				StateN <= ODT_CTRL_IDLE;
 			end if;
 		elsif (StateC = ODT_CTRL_REF_REQ) then
