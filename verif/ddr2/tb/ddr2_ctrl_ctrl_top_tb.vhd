@@ -342,7 +342,7 @@ begin
 					mrs_data(i) := integer(rand_val*(2.0**(real(ADDR_MEM_L_TB)) - 1.0));
 
 					uniform(seed1, seed2, rand_val);
-					mrs_cmd_id := integer(rand_val*real(REG_NUM_TB));
+					mrs_cmd_id := round(rand_val*real(REG_NUM_TB-1));
 					if (mrs_cmd_id = 0) then
 						mrs_cmd(i) := to_integer(unsigned(CMD_MODE_REG_SET));
 					elsif (mrs_cmd_id = 1) then
@@ -580,6 +580,12 @@ begin
 
 				exit ctrl_top_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (col_cmd_bursts_int = num_bursts_exp) and (ref_cmd_bursts_int = num_bursts_exp) and (col_cmd_cnt = num_bursts_exp) and (mrs_bank_cmd_cnt = num_bursts_exp) and (ref_req = ref_cmd_cnt));
 
+				wait for 1 ps;
+
+report "bank/MRS burst " & integer'image(mrs_bank_ctrl_bursts_int);
+report "column burst " & integer'image(col_cmd_bursts_int);
+report "refresh burst " & integer'image(ref_cmd_bursts_int);
+
 				if (mrs_bank_ctrl_bursts_int < num_bursts_exp) then
 
 					rw_burst_bank := rw_burst(mrs_bank_ctrl_bursts_int);
@@ -594,7 +600,6 @@ begin
 					bank_ctrl_delay_int := ctrl_delay(mrs_bank_ctrl_bursts_int);
 					mrs_cmd_delay_int := cmd_delay(mrs_bank_ctrl_bursts_int);
 
-report "bank/MRS burst " & integer'image(mrs_bank_ctrl_bursts_int);
 report "stop_mrs_bank " & bool_to_str(stop_mrs_bank);
 
 					if (stop_mrs_bank = true) then
@@ -626,6 +631,7 @@ report "Open Bank " & integer'image(bank_ctrl_bank) & " row " & integer'image(ba
 									mrs_bank_ctrl_req := true;
 
 									wait for 1 ps;
+
 								else
 									-- Transaction Controller
 									BankCtrlRowMemIn_tb <= (others => '0');
@@ -754,12 +760,10 @@ report "MRS " & integer'image(mrs_ctrl_cmd) & " data " & integer'image(mrs_ctrl_
 
 					col_cmd_delay_int := cmd_delay(col_cmd_bursts_int);
 
-report "column burst " & integer'image(col_cmd_bursts_int);
 report "column " & bool_to_str(rw_burst_col);
+report "column burst details " & integer'image(col_ctrl_bl) & " bank " & integer'image(col_ctrl_bank) & " col " & integer'image(col_ctrl_col) & " read " & bool_to_str(col_ctrl_read_burst) & " col cmd done "  & bool_to_str(end_col_cmd);
 
 					if (rw_burst_col = true) then
-
-report "column burst " & integer'image(col_ctrl_bl) & " bank " & integer'image(col_ctrl_bank) & " col " & integer'image(col_ctrl_col) & " read " & bool_to_str(col_ctrl_read_burst) & " col cmd done "  & bool_to_str(end_col_cmd);
 
 						if (end_col_cmd = false) then
 							if (col_cmd_req = false) then
@@ -824,7 +828,6 @@ report "column burst " & integer'image(col_ctrl_bl) & " bank " & integer'image(c
 
 				if ((ref_cmd_bursts_int <= col_cmd_bursts_int) and  (ref_cmd_bursts_int < mrs_bank_ctrl_bursts_int) and (ref_cmd_bursts_int < num_bursts_exp)) then
 
-report "refresh burst " & integer'image(ref_cmd_bursts_int);
 report "refresh " & bool_to_str(ref_ctrl_en);
 
 					ref_ctrl_en := ref(ref_cmd_bursts_int);
@@ -834,7 +837,7 @@ report "refresh " & bool_to_str(ref_ctrl_en);
 
 					if (ref_ctrl_en = true) then
 
-report "ref burst " & bool_to_str(ref_done) & " ctrl auto ref " & bool_to_str(ref_ctrl_auto_ref) & " ref ctrl req " & bool_to_str(ref_ctrl_req);
+report "ref done " & bool_to_str(ref_done) & " ctrl auto ref " & bool_to_str(ref_ctrl_auto_ref) & " ref ctrl req " & bool_to_str(ref_ctrl_req);
 report "delay " & integer'image(ref_delay_cnt) & " out of " & integer'image(ref_delay_int);
 
 						if (ref_done = false) then
@@ -915,19 +918,30 @@ report "wait ack ";
 
 				wait until ((clk_tb = '0') and (clk_tb'event));
 
-				if (ref_done = true) then
-					ref_done := false;
-					ref_cmd_bursts_int := ref_cmd_bursts_int + 1;
+				if (ref_cmd_bursts_int < num_bursts_exp) then
+					if (ref_done = true) then
+						ref_done := false;
+						ref_cmd_bursts_int := ref_cmd_bursts_int + 1;
+					end if;
 				end if;
 
-				if (end_col_cmd = true) then
-					end_col_cmd := false;
-					col_cmd_bursts_int := col_cmd_bursts_int + 1;
+				if (col_cmd_bursts_int < num_bursts_exp) then
+					if (end_col_cmd = true) then
+						end_col_cmd := false;
+						col_cmd_bursts_int := col_cmd_bursts_int + 1;
+					end if;
 				end if;
 
-				if (mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) = true) then
-					mrs_bank_ctrl_bursts_int := mrs_bank_ctrl_bursts_int + 1;
+				if (mrs_bank_ctrl_bursts_int < num_bursts_exp) then
+					if (mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) = true) then
+						mrs_bank_ctrl_bursts_int := mrs_bank_ctrl_bursts_int + 1;
+					end if;
 				end if;
+
+report "end bank/MRS burst " & integer'image(mrs_bank_ctrl_bursts_int);
+report "end column burst " & integer'image(col_cmd_bursts_int);
+report "end refresh burst " & integer'image(ref_cmd_bursts_int);
+
 
 				if (exp_self_ref_exit = true) then
 
