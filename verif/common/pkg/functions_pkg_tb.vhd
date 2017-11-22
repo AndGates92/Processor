@@ -60,7 +60,7 @@ package body functions_pkg_tb is
 		variable bool	: boolean;
 	begin
 		assert (weight <= 1.0) report "weight must be less 1.0" severity FAILURE;
-		if (rand_val > weight) then
+		if (rand_val < weight) then
 			bool := True;
 		else
 			bool := False;
