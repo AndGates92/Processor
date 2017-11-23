@@ -232,7 +232,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure test_param(variable num_bursts, mrs_bank_req, col_req, ref_req, burst_bits, al, wl, cas : out integer; variable high_temp : out boolean; variable num_bursts_arr : out int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows, mrs_data : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, mrs, auto_ref : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2 : inout positive) is
+		procedure test_param(variable num_bursts, mrs_req, bank_req, col_req, ref_req, burst_bits, al, wl, cas : out integer; variable high_temp : out boolean; variable num_bursts_arr : out int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows, mrs_data : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, mrs, auto_ref : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2 : inout positive) is
 			variable rand_val		: real;
 			variable bl4_int		: boolean;
 			variable num_bursts_arr_int	: int_arr(0 to (BANK_NUM_TB - 1));
@@ -246,13 +246,16 @@ begin
 			variable mrs_cmd_id		: integer;
 			variable ref_int		: boolean;
 			variable mrs_int		: boolean;
-			variable mrs_bank_req_int	: integer;
+			variable bank_req_int		: integer;
+			variable mrs_req_int		: integer;
 			variable col_req_int		: integer;
 			variable ref_req_int		: integer;
 		begin
 			num_bursts_int := 0;
-			mrs_bank_req := 0;
-			mrs_bank_req_int := 0;
+			bank_req := 0;
+			bank_req_int := 0;
+			mrs_req := 0;
+			mrs_req_int := 0;
 			col_req := 0;
 			col_req_int := 0;
 			ref_req := 0;
@@ -338,7 +341,7 @@ begin
 					uniform(seed1, seed2, rand_val);
 					read_burst(i) := rand_bool(rand_val, 0.5);
 
-					mrs_bank_req_int := mrs_bank_req_int + 1;
+					bank_req_int := bank_req_int + 1;
 					col_req_int := col_req_int + 1;
 
 					mrs(i) := false;
@@ -351,7 +354,7 @@ begin
 					mrs_int := rand_bool(rand_val, 0.5);
 					mrs(i) := mrs_int;
 					if (mrs_int = true) then
-						mrs_bank_req_int := mrs_bank_req_int + 1;
+						mrs_req_int := mrs_req_int + 1;
 					end if;
 
 					uniform(seed1, seed2, rand_val);
@@ -405,14 +408,15 @@ begin
 				rw_burst(i) := false;
 			end loop;
 
-			mrs_bank_req := mrs_bank_req_int;
+			bank_req := bank_req_int;
+			mrs_req := mrs_req_int;
 			col_req := col_req_int;
 			ref_req := ref_req_int;
 			num_bursts_arr := num_bursts_arr_int;
 
 		end procedure test_param;
 
-		procedure run_ctrl_top(variable num_bursts_exp, burst_bits, al, wl, cas : in integer; variable high_temp : in boolean; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, auto_ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable num_bursts_rtl : out integer; variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_cmd_rtl, ref_cmd_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)))) is
+		procedure run_ctrl_top(variable num_bursts_exp, burst_bits, al, wl, cas : in integer; variable high_temp : in boolean; variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, auto_ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_delay, mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable num_bursts_rtl : out integer; variable mrs_ctrl_err_arr, bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, mrs_ctrl_bank_rtl, mrs_ctrl_bank_exp, mrs_ctrl_row_rtl, mrs_ctrl_row_exp, mrs_ctrl_cmd_rtl, mrs_ctrl_cmd_exp, mrs_ctrl_mrs_rtl, mrs_ctrl_mrs_exp, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, bank_ctrl_row_rtl, bank_ctrl_row_exp, bank_ctrl_cmd_rtl, bank_ctrl_cmd_exp, bank_ctrl_mrs_rtl, bank_ctrl_mrs_exp, cmd_sent_in_self_ref_err : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_cmd_rtl, ref_cmd_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)))) is
 
 			variable mrs_bank_ctrl_bursts_int	: integer;
 			variable col_cmd_bursts_int		: integer;
@@ -444,7 +448,8 @@ begin
 			variable col_cmd_delay_cnt		: integer;
 			variable ref_delay_cnt			: integer;
 
-			variable mrs_bank_ctrl_req		: boolean;
+			variable bank_ctrl_req			: boolean;
+			variable mrs_ctrl_req			: boolean;
 			variable col_cmd_req			: boolean;
 			variable ref_ctrl_req			: boolean;
 			variable self_ref			: boolean;
@@ -455,22 +460,25 @@ begin
 
 			variable mrs_bank_ctrl_handshake	: bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 
-			variable mrs_bank_ctrl_err_int		: integer;
+			variable bank_ctrl_err_int		: integer;
+			variable mrs_ctrl_err_int		: integer;
 			variable col_cmd_err_int		: integer;
 			variable ref_ctrl_err_int		: integer;
 
 			variable bl_cnt				: integer;
 
-			variable mrs_bank_cmd_cnt_rtl		: integer;
+			variable bank_cmd_cnt_rtl		: integer;
+			variable mrs_cmd_cnt_rtl		: integer;
 			variable col_cmd_cnt_rtl		: integer;
 			variable ref_cmd_cnt_rtl		: integer;
 
-			variable mrs_bank_cmd_cnt		: integer;
+			variable bank_cmd_cnt			: integer;
 			variable bank_act_cnt			: integer;
 			variable col_cmd_cnt			: integer;
 			variable ref_cmd_cnt			: integer;
 
-			variable mrs_bank_cnt_exp		: integer;
+			variable bank_cnt_exp			: integer;
+			variable mrs_cnt_exp			: integer;
 			variable col_cnt_exp			: integer;
 			variable ref_cnt_exp			: integer;
 
@@ -557,18 +565,28 @@ begin
 
 			mrs_bank_ctrl_handshake := reset_bool_arr(false, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 
-			mrs_bank_ctrl_err_arr := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			bank_ctrl_err_arr := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_ctrl_err_arr := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			col_ctrl_err_arr := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			ref_ctrl_err_arr := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 
 			bank_ctrl_bank_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			bank_ctrl_bank_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			row_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			row_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			mrs_bank_cmd_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			mrs_bank_cmd_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			mrs_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			mrs_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			bank_ctrl_row_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			bank_ctrl_row_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			bank_ctrl_cmd_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			bank_ctrl_cmd_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			bank_ctrl_mrs_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			bank_ctrl_mrs_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+
+			mrs_ctrl_bank_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_ctrl_bank_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_ctrl_row_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_ctrl_row_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_ctrl_cmd_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_ctrl_cmd_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_ctrl_mrs_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_ctrl_mrs_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 
 			col_rtl := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
 			col_exp := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
@@ -583,7 +601,7 @@ begin
 
 			bl_cnt := 0;
 
-			mrs_bank_cmd_cnt := 0;
+			bank_cmd_cnt := 0;
 			bank_act_cnt := 0;
 			col_cmd_cnt := 0;
 			ref_cmd_cnt := 0;
@@ -668,12 +686,12 @@ begin
 										mrs_bank_ctrl_err_arr(mrs_bank_cnt_exp) := mrs_bank_ctrl_err_int;
 										mrs_bank_ctrl_err_int := 0;
 
-										bank_ctrl_bank_exp(mrs_bank_cnt_exp) := bank_ctrl_bank;
-										row_exp(mrs_bank_cnt_exp) := bank_ctrl_row;
-										mrs_exp(mrs_bank_cnt_exp) := 0;
-										mrs_bank_cmd_exp(mrs_bank_cnt_exp) := to_integer(unsigned(CMD_BANK_ACT));
+										bank_ctrl_bank_exp(bank_cnt_exp) := bank_ctrl_bank;
+										bank_ctrl_row_exp(bank_cnt_exp) := bank_ctrl_row;
+										bank_ctrl_mrs_exp(bank_cnt_exp) := 0;
+										bank_ctrl_cmd_exp(bank_cnt_exp) := to_integer(unsigned(CMD_BANK_ACT));
 
-										mrs_bank_cnt_exp := mrs_bank_cnt_exp + 1;
+										bank_cnt_exp := bank_cnt_exp + 1;
 
 										bank_act_cnt := bank_act_cnt + 1;
 
@@ -730,12 +748,12 @@ begin
 										mrs_bank_ctrl_err_arr(mrs_bank_cnt_exp) := mrs_bank_ctrl_err_int;
 										mrs_bank_ctrl_err_int := 0;
 
-										bank_ctrl_bank_exp(mrs_bank_cnt_exp) := 0;
-										row_exp(mrs_bank_cnt_exp) := 0;
-										mrs_exp(mrs_bank_cnt_exp) := mrs_ctrl_data;
-										mrs_bank_cmd_exp(mrs_bank_cnt_exp) := mrs_ctrl_cmd;
+										mrs_ctrl_bank_exp(mrs_cnt_exp) := 0;
+										mrs_ctrl_row_exp(mrs_cnt_exp) := 0;
+										mrs_ctrl_mrs_exp(mrs_cnt_exp) := mrs_ctrl_data;
+										mrs_ctrl_cmd_exp(mrs_cnt_exp) := mrs_ctrl_cmd;
 
-										mrs_bank_cnt_exp := mrs_bank_cnt_exp + 1;
+										mrs_cnt_exp := mrs_cnt_exp + 1;
 
 										if ((RefCtrlRefreshReq_tb = '1') or (MRSCtrlMRSReq_tb = '1')) then
 											stop_mrs_bank := true;
@@ -989,17 +1007,17 @@ begin
 						col_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecColMem_tb));
 						col_cmd_bl_cnt := col_cmd_bl_cnt + 1;
 					elsif (CmdDecCmdMem_tb = CMD_BANK_ACT) then
-						bank_ctrl_bank_rtl(mrs_bank_cmd_cnt) := to_integer(unsigned(CmdDecBankMem_tb));
-						row_rtl(mrs_bank_cmd_cnt) := to_integer(unsigned(CmdDecRowMem_tb));
-						mrs_rtl(mrs_bank_cmd_cnt) := 0;
-						mrs_bank_cmd_rtl(mrs_bank_cmd_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
-						mrs_bank_cmd_cnt := mrs_bank_cmd_cnt + 1;
+						bank_ctrl_bank_rtl(bank_cmd_cnt) := to_integer(unsigned(CmdDecBankMem_tb));
+						bank_ctrl_row_rtl(bank_cmd_cnt) := to_integer(unsigned(CmdDecRowMem_tb));
+						bank_ctrl_mrs_rtl(bank_cmd_cnt) := 0;
+						bank_ctrl_cmd_rtl(bank_cmd_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
+						bank_cmd_cnt := bank_cmd_cnt + 1;
 					elsif ((CmdDecCmdMem_tb = CMD_MODE_REG_SET) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_1) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_2) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_3)) then
-						bank_ctrl_bank_rtl(mrs_bank_cmd_cnt) := 0;
-						row_rtl(mrs_bank_cmd_cnt) := 0;
-						mrs_rtl(mrs_bank_cmd_cnt) := to_integer(unsigned(CmdDecMRSCmd_tb));
-						mrs_bank_cmd_rtl(mrs_bank_cmd_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
-						mrs_bank_cmd_cnt := mrs_bank_cmd_cnt + 1;
+						bank_ctrl_bank_rtl(bank_cmd_cnt) := 0;
+						bank_ctrl_row_rtl(bank_cmd_cnt) := 0;
+						bank_ctrl_mrs_rtl(bank_cmd_cnt) := to_integer(unsigned(CmdDecMRSCmd_tb));
+						bank_ctrl_cmd_rtl(bank_cmd_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
+						bank_cmd_cnt := bank_cmd_cnt + 1;
 					end if;
 
 				end if;
@@ -1010,7 +1028,7 @@ begin
 
 		end procedure run_ctrl_top;
 
-		procedure verify(variable num_bursts_rtl, num_bursts_exp, mrs_bank_req, col_req, ref_req : in integer; variable num_bursts_arr : in int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, auto_ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_cmd_rtl, ref_cmd_exp : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); file file_pointer : text; variable pass: out integer) is
+		procedure verify(variable num_bursts_rtl, num_bursts_exp, mrs_bank_req, col_req, ref_req : in integer; variable num_bursts_arr : in int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows, mrs_data : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable rw_burst, ref, auto_ref, mrs : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_cmd : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, mrs_ctrl_bank_rtl, mrs_ctrl_bank_exp, mrs_ctrl_row_rtl, mrs_ctrl_row_exp, mrs_ctrl_cmd_rtl, mrs_ctrl_cmd_exp, mrs_ctrl_mrs_rtl, mrs_ctrl_mrs_exp, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, bank_ctrl_row_rtl, bank_ctrl_row_exp, bank_ctrl_cmd_rtl, bank_ctrl_cmd_exp, bank_ctrl_mrs_rtl, bank_ctrl_mrs_exp, cmd_sent_in_self_ref_err : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable ref_cmd_rtl, ref_cmd_exp : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1); variable col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp : in int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0))); file file_pointer : text; variable pass: out integer) is
 
 			variable match_mrs		: boolean;
 			variable match_cols		: boolean;
@@ -1031,15 +1049,23 @@ begin
 		begin
 
 			match_cols := compare_int_arr_2d(col_exp, col_rtl, col_req, integer(2.0**(real(BURST_LENGTH_L_TB))));
-			match_mrs := compare_int_arr(mrs_exp, mrs_rtl, mrs_bank_req);
-			match_rows := compare_int_arr(row_exp, row_rtl, mrs_bank_req);
+
+			match_bank_ctrl_mrs := compare_int_arr(bank_ctrl_mrs_exp, bank_ctrl_mrs_rtl, bank_req);
+			match_bank_ctrl_rows := compare_int_arr(bank_ctrl_row_exp, bank_ctrl_row_rtl, bank_req);
+			match_bank_ctrl_cmd := compare_int_arr(bank_ctrl_cmd_exp, bank_ctrl_cmd_rtl, bank_req);
+			match_bank_ctrl_bank := compare_int_arr(bank_ctrl_bank_exp, bank_ctrl_bank_rtl, bank_req);
+
+			match_mrs_ctrl_mrs := compare_int_arr(mrs_ctrl_mrs_exp, mrs_ctrl_mrs_rtl, mrs_req);
+			match_mrs_ctrl_rows := compare_int_arr(mrs_ctrl_row_exp, mrs_ctrl_row_rtl, mrs_req);
+			match_mrs_ctrl_cmd := compare_int_arr(mrs_ctrl_cmd_exp, mrs_ctrl_cmd_rtl, mrs_req);
+			match_mrs_ctrl_bank := compare_int_arr(mrs_ctrl_bank_exp, mrs_ctrl_bank_rtl, mrs_req);
+
 			match_col_cmd := compare_int_arr_2d(col_cmd_exp, col_cmd_rtl, col_req, integer(2.0**(real(BURST_LENGTH_L_TB))));
-			match_mrs_bank_cmd := compare_int_arr(mrs_bank_cmd_exp, mrs_bank_cmd_rtl, mrs_bank_req);
 			match_col_ctrl_bank := compare_int_arr_2d(col_ctrl_bank_exp, col_ctrl_bank_rtl, col_req, integer(2.0**(real(BURST_LENGTH_L_TB))));
-			match_bank_ctrl_bank := compare_int_arr(bank_ctrl_bank_exp, bank_ctrl_bank_rtl, mrs_bank_req);
 			match_ref_cmd := compare_int_arr_2d(ref_cmd_exp, ref_cmd_rtl, ref_req, 2);
 
-			no_mrs_bank_ctrl_err := compare_int_arr(reset_int_arr(0, mrs_bank_req), mrs_bank_ctrl_err_arr, mrs_bank_req);
+			no_bank_ctrl_err := compare_int_arr(reset_int_arr(0, bank_req), bank_ctrl_err_arr, bank_req);
+			no_mrs_ctrl_err := compare_int_arr(reset_int_arr(0, mrs_req), mrs_ctrl_err_arr, mrs_req);
 			no_col_ctrl_err := compare_int_arr(reset_int_arr(0, col_req), col_ctrl_err_arr, col_req);
 			no_ref_ctrl_err := compare_int_arr(reset_int_arr(0, ref_req), ref_ctrl_err_arr, ref_req);
 			no_cmd_sent_in_self_ref := compare_int_arr(reset_int_arr(0, ref_req), cmd_sent_in_self_ref_err, ref_req);
@@ -1071,7 +1097,7 @@ begin
 
 			end loop;
 
-			if ((num_bursts_rtl = num_bursts_exp) and (match_cols = true) and (match_mrs = true) and (match_rows = true) and (match_col_cmd = true) and (match_mrs_bank_cmd = true) and (match_col_ctrl_bank = true) and (match_bank_ctrl_bank = true) and (match_ref_cmd = true) and (no_mrs_bank_ctrl_err = true) and (no_col_ctrl_err = true) and (no_ref_ctrl_err = true) and (no_cmd_sent_in_self_ref = true)) then
+			if ((num_bursts_rtl = num_bursts_exp) and (match_cols = true) and (match_bank_ctrl_mrs = true) and (match_bank_ctrl_rows = true) and (match_bank_ctrl_cmd = true) and (match_bank_ctrl_bank = true) and (no_bank_ctrl_err = true) and (match_col_ctrl_bank = true) and (match_col_cmd = true) and (match_ref_cmd = true) and (no_col_ctrl_err = true) and (no_ref_ctrl_err = true) and (no_cmd_sent_in_self_ref = true)) then
 				write(file_line, string'( "PHY Controller Top Level: PASS"));
 				writeline(file_pointer, file_line);
 				pass := 1;
@@ -1079,24 +1105,87 @@ begin
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Number bursts mismatch): exp " & integer'image(num_bursts_exp) & " vs rtl " & integer'image(num_bursts_rtl)));
 				writeline(file_pointer, file_line);
 				pass := 0;
-			elsif (match_mrs_bank_cmd = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS/Bank Command mismatch)"));
+			elsif (match_bank_ctrl_cmd = false) then
+				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller Bank Command mismatch)"));
 				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
-					if (mrs_bank_cmd_exp(i) /= mrs_bank_cmd_rtl(i)) then
-						write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_bank_cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_bank_cmd_rtl(i), MEM_CMD_L)))));
+				for i in 0 to (bank_req - 1) loop
+					if (bank_ctrl_cmd_exp(i) /= bank_ctrl_cmd_rtl(i)) then
+						write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(bank_ctrl_cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(bank_ctrl_cmd_rtl(i), MEM_CMD_L)))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 			elsif (match_bank_ctrl_bank = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller Bank mismatch)"));
 				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
+				for i in 0 to (bank_req - 1) loop
 					if (bank_ctrl_bank_exp(i) /= bank_ctrl_bank_rtl(i)) then
 						write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Bank exp " & integer'image(bank_ctrl_bank_exp(i)) & " vs rtl " & integer'image(bank_ctrl_bank_rtl(i))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
+			elsif (match_bank_ctrl_rows = false) then
+				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller Row mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (bank_req - 1) loop
+					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Row exp " & integer'image(bank_ctrl_row_exp(i)) & " vs rtl " & integer'image(bank_ctrl_row_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+			elsif (match_bank_ctrl_mrs = false) then
+				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller MRS Data mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (bank_req - 1) loop
+					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: MRS data exp " & integer'image(bank_ctrl_mrs_exp(i)) & " vs rtl " & integer'image(bank_ctrl_mrs_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+			elsif (no_bank_ctrl_err = false) then
+				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller Handshake Error)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (bank_req - 1) loop
+					write(file_line, string'( "PHY Controller Top Level: Error Burst #" & integer'image(i) & ": " & integer'image(bank_ctrl_err_arr(i)) & " Error(s)"));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+			elsif (match_mrs_ctrl_cmd = false) then
+				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller Bank Command mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (mrs_req - 1) loop
+					if (mrs_ctrl_cmd_exp(i) /= mrs_ctrl_cmd_rtl(i)) then
+						write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_ctrl_cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_ctrl_cmd_rtl(i), MEM_CMD_L)))));
+						writeline(file_pointer, file_line);
+					end if;
+				end loop;
+			elsif (match_mrs_ctrl_bank = false) then
+				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller Bank mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (mrs_req - 1) loop
+					if (mrs_ctrl_bank_exp(i) /= mrs_ctrl_bank_rtl(i)) then
+						write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Bank exp " & integer'image(mrs_ctrl_bank_exp(i)) & " vs rtl " & integer'image(mrs_ctrl_bank_rtl(i))));
+						writeline(file_pointer, file_line);
+					end if;
+				end loop;
+			elsif (match_mrs_ctrl_rows = false) then
+				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller Row mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (mrs_req - 1) loop
+					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Row exp " & integer'image(mrs_ctrl_row_exp(i)) & " vs rtl " & integer'image(mrs_ctrl_row_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+			elsif (match_mrs_ctrl_mrs = false) then
+				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller MRS Data mismatch)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (mrs_req - 1) loop
+					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: MRS data exp " & integer'image(mrs_ctrl_mrs_exp(i)) & " vs rtl " & integer'image(mrs_ctrl_mrs_rtl(i))));
+					writeline(file_pointer, file_line);
+				end loop;
+			elsif (no_mrs_ctrl_err = false) then
+				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller Handshake Error)"));
+				writeline(file_pointer, file_line);
+				for i in 0 to (mrs_req - 1) loop
+					write(file_line, string'( "PHY Controller Top Level: Error Burst #" & integer'image(i) & ": " & integer'image(mrs_ctrl_err_arr(i)) & " Error(s)"));
+					writeline(file_pointer, file_line);
+				end loop;
+				pass := 0;
+
 			elsif (match_ref_cmd = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Refresh Command mismatch)"));
 				writeline(file_pointer, file_line);
@@ -1162,28 +1251,6 @@ begin
 				write(file_line, string'( "========================================================================================"));
 				writeline(file_pointer, file_line);
 				pass := 0;
-			elsif (match_rows = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Row mismatch)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Row exp " & integer'image(row_exp(i)) & " vs rtl " & integer'image(row_rtl(i))));
-					writeline(file_pointer, file_line);
-				end loop;
-			elsif (match_mrs = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Data mismatch)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: MRS data exp " & integer'image(mrs_exp(i)) & " vs rtl " & integer'image(mrs_rtl(i))));
-					writeline(file_pointer, file_line);
-				end loop;
-			elsif (no_mrs_bank_ctrl_err = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS/Bank Controller Handshake Error)"));
-				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Controller Top Level: Error Burst #" & integer'image(i) & ": " & integer'image(mrs_bank_ctrl_err_arr(i)) & " Error(s)"));
-					writeline(file_pointer, file_line);
-				end loop;
-				pass := 0;
 			elsif (no_col_ctrl_err = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Column Controller Handshake Error)"));
 				writeline(file_pointer, file_line);
@@ -1221,7 +1288,8 @@ begin
 
 		variable num_bursts_arr	: int_arr(0 to (BANK_NUM_TB - 1));
 
-		variable mrs_bank_req	: integer;
+		variable bank_req	: integer;
+		variable mrs_req	: integer;
 		variable col_req	: integer;
 		variable ref_req	: integer;
 		variable burst_bits	: integer;
@@ -1250,17 +1318,29 @@ begin
 		variable ref_delay	: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 		variable mrs_cmd	: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 
-		variable mrs_bank_ctrl_err_arr		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable bank_ctrl_err_arr		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable mrs_ctrl_err_arr		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 		variable col_ctrl_err_arr		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 		variable ref_ctrl_err_arr		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+
 		variable bank_ctrl_bank_rtl		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 		variable bank_ctrl_bank_exp		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable row_rtl			: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable row_exp			: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable mrs_bank_cmd_rtl		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable mrs_bank_cmd_exp		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable mrs_rtl			: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
-		variable mrs_exp			: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable bank_ctrl_row_rtl		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable bank_ctrl_row_exp		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable bank_ctrl_cmd_rtl		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable bank_ctrl_cmd_exp		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable bank_ctrl_mrs_rtl		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable bank_ctrl_mrs_exp		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+
+		variable mrs_ctrl_bank_rtl		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable mrs_ctrl_bank_exp		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable mrs_ctrl_row_rtl		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable mrs_ctrl_row_exp		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable mrs_ctrl_cmd_rtl		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable mrs_ctrl_cmd_exp		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable mrs_ctrl_mrs_rtl		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+		variable mrs_ctrl_mrs_exp		: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+
 		variable cmd_sent_in_self_ref_err	: int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 
 		variable ref_cmd_rtl			: int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to 1);
@@ -1293,11 +1373,11 @@ begin
 
 		for i in 0 to NUM_TESTS-1 loop
 
-			test_param(num_bursts_exp, mrs_bank_req, col_req, ref_req, burst_bits, al, wl, cas, high_temp, num_bursts_arr, bank, cols, rows, mrs_data, read_burst, bl, cmd_delay, ctrl_delay, rw_burst, ref, mrs, auto_ref, ref_delay, mrs_cmd, seed1, seed2);
+			test_param(num_bursts_exp, mrs_req, bank_req, col_req, ref_req, burst_bits, al, wl, cas, high_temp, num_bursts_arr, bank, cols, rows, mrs_data, read_burst, bl, cmd_delay, ctrl_delay, rw_burst, ref, mrs, auto_ref, ref_delay, mrs_cmd, seed1, seed2);
 
-			run_ctrl_top(num_bursts_exp, burst_bits, al, wl, cas, high_temp, bank, cols, rows, mrs_data, read_burst, bl, cmd_delay, ctrl_delay, rw_burst, ref, auto_ref, mrs, ref_delay, mrs_cmd, num_bursts_rtl, mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err, ref_cmd_rtl, ref_cmd_exp, col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp);
+			run_ctrl_top(num_bursts_exp, burst_bits, al, wl, cas, high_temp, bank, cols, rows, mrs_data, read_burst, bl, cmd_delay, ctrl_delay, rw_burst, ref, auto_ref, mrs, ref_delay, mrs_cmd, num_bursts_rtl, mrs_ctrl_err_arr, bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, mrs_ctrl_bank_rtl, mrs_ctrl_bank_exp, mrs_ctrl_row_rtl, mrs_ctrl_row_exp, mrs_ctrl_cmd_rtl, mrs_ctrl_cmd_exp, mrs_ctrl_mrs_rtl, mrs_ctrl_mrs_exp, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, bank_ctrl_row_rtl, bank_ctrl_row_exp, bank_ctrl_cmd_rtl, bank_ctrl_cmd_exp, bank_ctrl_mrs_rtl, bank_ctrl_mrs_exp, cmd_sent_in_self_ref_err, ref_cmd_rtl, ref_cmd_exp, col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp);
 
-			verify(num_bursts_rtl, num_bursts_exp, mrs_bank_req, col_req, ref_req, num_bursts_arr, bank, cols, rows, mrs_data, read_burst, bl, rw_burst, ref, auto_ref, mrs, mrs_cmd, mrs_bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, row_rtl, row_exp, mrs_bank_cmd_rtl, mrs_bank_cmd_exp, mrs_rtl, mrs_exp, cmd_sent_in_self_ref_err, ref_cmd_rtl, ref_cmd_exp, col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp, file_pointer, pass);
+			verify(num_bursts_rtl, num_bursts_exp, mrs_req, bank_req, col_req, ref_req, num_bursts_arr, bank, cols, rows, mrs_data, read_burst, bl, rw_burst, ref, auto_ref, mrs, mrs_cmd, mrs_ctrl_err_arr, bank_ctrl_err_arr, col_ctrl_err_arr, ref_ctrl_err_arr, mrs_ctrl_bank_rtl, mrs_ctrl_bank_exp, mrs_ctrl_row_rtl, mrs_ctrl_row_exp, mrs_ctrl_cmd_rtl, mrs_ctrl_cmd_exp, mrs_ctrl_mrs_rtl, mrs_ctrl_mrs_exp, bank_ctrl_bank_rtl, bank_ctrl_bank_exp, bank_ctrl_row_rtl, bank_ctrl_row_exp, bank_ctrl_cmd_rtl, bank_ctrl_cmd_exp, bank_ctrl_mrs_rtl, bank_ctrl_mrs_exp, cmd_sent_in_self_ref_err, ref_cmd_rtl, ref_cmd_exp, col_rtl, col_exp, col_cmd_rtl, col_cmd_exp, col_ctrl_bank_rtl, col_ctrl_bank_exp, file_pointer, pass);
 
 			num_pass := num_pass + pass;
 
