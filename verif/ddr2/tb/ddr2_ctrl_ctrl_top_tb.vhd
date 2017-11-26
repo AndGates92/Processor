@@ -27,7 +27,7 @@ end entity ddr2_ctrl_ctrl_top_tb;
 architecture bench of ddr2_ctrl_ctrl_top_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TESTS		: integer := 2; --1000;
+	constant NUM_TESTS		: integer := 1; --1000;
 	constant NUM_EXTRA_TESTS	: integer := 0;
 	constant TOT_NUM_TESTS		: integer := NUM_TESTS + NUM_EXTRA_TESTS;
 	constant MAX_ATTEMPTS		: integer := 20;
@@ -333,7 +333,8 @@ begin
 					if (attempt_num = MAX_ATTEMPTS) then
 						bl_int := 1;
 					end if;
-					bl(i) := bl_int;
+					bl(bank_req_int) := bl_int;
+report "bl " & integer'image(bl_int);
 
 					uniform(seed1, seed2, rand_val);
 					rows(i) := integer(rand_val*(2.0**(real(ROW_L_TB)) - 1.0));
@@ -456,6 +457,7 @@ begin
 
 			variable stop_mrs_bank			: boolean;
 			variable end_col_cmd			: boolean;
+			variable ref_done_int			: boolean;
 			variable ref_done			: boolean;
 
 			variable mrs_bank_ctrl_handshake	: bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
@@ -561,6 +563,7 @@ begin
 			self_ref := false;
 
 			end_col_cmd := false;
+			ref_done_int := false;
 			ref_done := false;
 
 			mrs_bank_ctrl_handshake := reset_bool_arr(false, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
@@ -575,8 +578,8 @@ begin
 
 			bank_ctrl_row_rtl := reset_int_arr_2d(0, BANK_NUM_TB, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			bank_ctrl_row_exp := reset_int_arr_2d(0, BANK_NUM_TB, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			bank_ctrl_cmd_rtl := reset_int_arr_2d(to_integer(to_unsigned(CMD_NOP)), BANK_NUM_TB, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			bank_ctrl_cmd_exp := reset_int_arr_2d(to_integer(to_unsigned(CMD_NOP)), BANK_NUM_TB, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			bank_ctrl_cmd_rtl := reset_int_arr_2d(to_integer(unsigned(CMD_NOP)), BANK_NUM_TB, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			bank_ctrl_cmd_exp := reset_int_arr_2d(to_integer(unsigned(CMD_NOP)), BANK_NUM_TB, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			bank_ctrl_mrs_rtl := reset_int_arr_2d(0, BANK_NUM_TB, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			bank_ctrl_mrs_exp := reset_int_arr_2d(0, BANK_NUM_TB, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 
@@ -584,20 +587,20 @@ begin
 			mrs_ctrl_bank_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			mrs_ctrl_row_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			mrs_ctrl_row_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			mrs_ctrl_cmd_rtl := reset_int_arr(to_integer(to_unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			mrs_ctrl_cmd_exp := reset_int_arr(to_integer(to_unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_ctrl_cmd_rtl := reset_int_arr(to_integer(unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			mrs_ctrl_cmd_exp := reset_int_arr(to_integer(unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			mrs_ctrl_mrs_rtl := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			mrs_ctrl_mrs_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 
 			col_rtl := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
 			col_exp := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
-			col_cmd_rtl := reset_int_arr_2d(to_integer(to_unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
-			col_cmd_exp := reset_int_arr_2d(to_integer(to_unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
+			col_cmd_rtl := reset_int_arr_2d(to_integer(unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
+			col_cmd_exp := reset_int_arr_2d(to_integer(unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
 			col_ctrl_bank_rtl := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
 			col_ctrl_bank_exp := reset_int_arr_2d(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), integer(2.0**(real(BURST_LENGTH_L_TB))));
 
-			ref_cmd_rtl := reset_int_arr_2d(to_integer(to_unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
-			ref_cmd_exp := reset_int_arr_2d(to_integer(to_unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			ref_cmd_rtl := reset_int_arr_2d(to_integer(unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), 2);
+			ref_cmd_exp := reset_int_arr_2d(to_integer(unsigned(CMD_NOP)), (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB), 2);
 
 			mrs_bank_ctrl_err_int := 0;
 			col_cmd_err_int := 0;
@@ -698,7 +701,7 @@ begin
 
 										bank_act_cnt := bank_act_cnt + 1;
 
-										if ((RefCtrlRefreshReq_tb = '1') or (MRSCtrlMRSReq_tb = '1')) then
+										if (MRSCtrlMRSReq_tb = '1') then
 											stop_mrs_bank := true;
 										end if;
 									else
@@ -758,7 +761,7 @@ begin
 
 										mrs_cnt_exp := mrs_cnt_exp + 1;
 
-										if ((RefCtrlRefreshReq_tb = '1') or (MRSCtrlMRSReq_tb = '1')) then
+										if (MRSCtrlMRSReq_tb = '1') then
 											stop_mrs_bank := true;
 										end if;
 									else
@@ -799,7 +802,7 @@ begin
 
 					col_ctrl_bank := bank(col_cmd_bursts_int);
 					col_ctrl_col := cols(col_cmd_bursts_int);
-					col_ctrl_bl := bl(col_cmd_bursts_int);
+					col_ctrl_bl := bl(col_cnt_exp);
 					col_ctrl_read_burst := read_burst(col_cmd_bursts_int);
 
 					col_cmd_delay_int := cmd_delay(col_cmd_bursts_int);
@@ -881,26 +884,29 @@ begin
 						if (ref_done = false) then
 							if (ref_ctrl_auto_ref = true) then -- Auto refresh command: Wait RefreshReq to be set and wait a delay before moving on
 								if (ref_ctrl_req = false) then
-									if ((RefCtrlRefreshReq_tb = '1') or (MRSCtrlMRSReq_tb = '1')) then
+									if (RefCtrlRefreshReq_tb = '1') then
 										stop_mrs_bank := true;
 										ref_ctrl_req := true;
+report "auto ref Refresh Req detected";
 									end if;
 								else
-									if (ref_delay_cnt = ref_delay_int) then
-										ref_done := true;
-										ref_ctrl_req := false;
+									if (RefCtrlRefreshReq_tb = '0') then
+										if (ref_delay_cnt = ref_delay_int) then
+											ref_done := true;
+											ref_ctrl_req := false;
 
-										ref_ctrl_err_arr(ref_cnt_exp) := ref_cmd_err_int;
-										ref_cmd_err_int := 0;
+											ref_ctrl_err_arr(ref_cnt_exp) := ref_cmd_err_int;
+											ref_cmd_err_int := 0;
 
-										ref_cmd_exp(ref_cnt_exp, 0) := to_integer(unsigned(CMD_AUTO_REF));
-										ref_cmd_exp(ref_cnt_exp, 1) := to_integer(unsigned(CMD_NOP));
-										ref_cnt_exp := ref_cnt_exp + 1;
-										ref_delay_cnt := 0;
+											ref_cmd_exp(ref_cnt_exp, 0) := to_integer(unsigned(CMD_AUTO_REF));
+											ref_cmd_exp(ref_cnt_exp, 1) := to_integer(unsigned(CMD_NOP));
+											ref_cnt_exp := ref_cnt_exp + 1;
+											ref_delay_cnt := 0;
 report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'image(ref_cnt_exp - 1) & " auto ref true";
 
-									else
-										ref_delay_cnt := ref_delay_cnt + 1;
+										else
+											ref_delay_cnt := ref_delay_cnt + 1;
+										end if;
 									end if;
 								end if;
 							else
@@ -921,27 +927,38 @@ report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'im
 
 								if (ref_ctrl_req = true) then
 
-									if (RefCtrlCtrlAck_tb = '1') then
-										if (RefCtrlCtrlReq_tb = '1') then
-											RefCtrlCtrlReq_tb <= '0';
-											ref_ctrl_err_arr(ref_cnt_exp) := ref_cmd_err_int;
-											ref_cmd_err_int := 0;
+									if (ref_done_int = false) then
+										if (RefCtrlCtrlAck_tb = '1') then
+											if (RefCtrlCtrlReq_tb = '1') then
+												RefCtrlCtrlReq_tb <= '0';
+												ref_ctrl_err_arr(ref_cnt_exp) := ref_cmd_err_int;
+												ref_cmd_err_int := 0;
 
-											ref_ctrl_req := false;
-
-											if (self_ref = false) then
-												ref_cmd_exp(ref_cnt_exp, 0) := to_integer(unsigned(CMD_SELF_REF_ENTRY));
-												self_ref := true;
-											else
-												ref_cmd_exp(ref_cnt_exp, 1) := to_integer(unsigned(CMD_SELF_REF_EXIT));
-												ref_cnt_exp := ref_cnt_exp + 1;
-												self_ref := false;
-												ref_done := true;
+												if (self_ref = false) then
+													ref_cmd_exp(ref_cnt_exp, 0) := to_integer(unsigned(CMD_SELF_REF_ENTRY));
+													self_ref := true;
+													ref_ctrl_req := false;
+												else
+													ref_cmd_exp(ref_cnt_exp, 1) := to_integer(unsigned(CMD_SELF_REF_EXIT));
+													ref_cnt_exp := ref_cnt_exp + 1;
+													self_ref := false;
+													ref_done_int := true;
 report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'image(ref_cnt_exp - 1) & " auto ref false";
 
+													wait for 1 ps;
+
+												end if;
+											else
+												ref_cmd_err_int := ref_cmd_err_int + 1;
 											end if;
-										else
-											ref_cmd_err_int := ref_cmd_err_int + 1;
+										end if;
+									end if;
+
+									if (ref_done_int = true) then
+										if (RefCtrlRefreshReq_tb = '0') then
+											ref_done := true;
+											ref_done_int := false;
+											ref_ctrl_req := false;
 										end if;
 									end if;
 								end if;
@@ -1208,13 +1225,15 @@ report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'im
 			elsif (match_col_cmd = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Column Command mismatch)"));
 				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
+				for i in 0 to (col_req - 1) loop
 					write(file_line, string'( "========================================================================================"));
 					writeline(file_pointer, file_line);
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Col " & integer'image(col_exp(i, 0)) & " Read Burst " & bool_to_str(read_burst(i)) & " Burst Length " & integer'image(bl(i))));
 					writeline(file_pointer, file_line);
 					for j in 0 to (bl(i) - 1) loop
 						if (col_cmd_rtl(i,j) /= col_cmd_exp(i,j)) then
+report "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Col " & integer'image(col_exp(i, 0)) & " Read Burst " & bool_to_str(read_burst(i)) & " Burst Length " & integer'image(bl(i));
+report "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Column Command exp " & integer'image(col_cmd_exp(i, j)) & " vs rtl " & integer'image(col_cmd_rtl(i, j));
 							write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Column Command exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_rtl(i, j), MEM_CMD_L)))));
 							writeline(file_pointer, file_line);
 						end if;
@@ -1226,7 +1245,7 @@ report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'im
 			elsif (match_col_ctrl_bank = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Column Command Bank mismatch)"));
 				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
+				for i in 0 to (col_req - 1) loop
 					write(file_line, string'( "========================================================================================"));
 					writeline(file_pointer, file_line);
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Bank " & integer'image(col_ctrl_bank_exp(i, 0))));
@@ -1244,7 +1263,7 @@ report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'im
 			elsif (match_cols = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Col mismatch)"));
 				writeline(file_pointer, file_line);
-				for i in 0 to (num_bursts_exp - 1) loop
+				for i in 0 to (col_req - 1) loop
 					write(file_line, string'( "========================================================================================"));
 					writeline(file_pointer, file_line);
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Start Col " & integer'image(col_exp(i, 0)) & " Burst Length " & integer'image(bl(i))));
