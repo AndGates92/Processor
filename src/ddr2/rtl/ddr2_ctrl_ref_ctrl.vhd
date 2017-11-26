@@ -116,7 +116,7 @@ begin
 
 			StateC <= REF_CTRL_IDLE;
 
-			CntAutoRefC <= (others => '0');
+			CntAutoRefC <= CntAutoRefInitValue;
 			AutoRefCntEnC <= '0';
 
 			CntOutstandingRefC <= (others => '0');
