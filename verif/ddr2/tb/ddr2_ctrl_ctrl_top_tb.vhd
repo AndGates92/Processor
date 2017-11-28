@@ -27,7 +27,7 @@ end entity ddr2_ctrl_ctrl_top_tb;
 architecture bench of ddr2_ctrl_ctrl_top_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TESTS		: integer := 1; --1000;
+	constant NUM_TESTS		: integer := 1000;
 	constant NUM_EXTRA_TESTS	: integer := 0;
 	constant TOT_NUM_TESTS		: integer := NUM_TESTS + NUM_EXTRA_TESTS;
 	constant MAX_ATTEMPTS		: integer := 20;
@@ -334,7 +334,6 @@ begin
 						bl_int := 1;
 					end if;
 					bl(bank_req_int) := bl_int;
-report "bl " & integer'image(bl_int);
 
 					uniform(seed1, seed2, rand_val);
 					rows(i) := integer(rand_val*(2.0**(real(ROW_L_TB)) - 1.0));
@@ -467,7 +466,7 @@ report "bl " & integer'image(bl_int);
 
 			variable mrs_bank_ctrl_err_int		: integer;
 			variable col_cmd_err_int		: integer;
-			variable ref_ctrl_err_int		: integer;
+			variable ref_cmd_err_int		: integer;
 
 			variable bl_cnt				: integer;
 
@@ -487,8 +486,6 @@ report "bl " & integer'image(bl_int);
 			variable exp_self_ref_exit		: boolean;
 			variable col_cmd_bl_cnt			: integer;
 			variable cmd_sent_in_self_ref		: integer;
-
-			variable ref_cmd_err_int		: integer;
 
 		begin
 
@@ -604,7 +601,7 @@ report "bl " & integer'image(bl_int);
 
 			mrs_bank_ctrl_err_int := 0;
 			col_cmd_err_int := 0;
-			ref_ctrl_err_int := 0;
+			ref_cmd_err_int := 0;
 
 			bl_cnt := 0;
 
@@ -836,8 +833,6 @@ report "bl " & integer'image(bl_int);
 										col_ctrl_err_arr(col_cnt_exp) := col_cmd_err_int;
 										col_cmd_err_int := 0;
 
-										col_cnt_exp := col_cnt_exp + 1;
-
 										col_cmd_req := false;
 										end_col_cmd := true;
 
@@ -858,6 +853,8 @@ report "bl " & integer'image(bl_int);
 												end if;
 											end if;
 										end loop;
+
+										col_cnt_exp := col_cnt_exp + 1;
 
 									else
 										col_cmd_err_int := col_cmd_err_int + 1;
@@ -887,7 +884,6 @@ report "bl " & integer'image(bl_int);
 									if (RefCtrlRefreshReq_tb = '1') then
 										stop_mrs_bank := true;
 										ref_ctrl_req := true;
-report "auto ref Refresh Req detected";
 									end if;
 								else
 									if (RefCtrlRefreshReq_tb = '0') then
@@ -902,7 +898,6 @@ report "auto ref Refresh Req detected";
 											ref_cmd_exp(ref_cnt_exp, 1) := to_integer(unsigned(CMD_NOP));
 											ref_cnt_exp := ref_cnt_exp + 1;
 											ref_delay_cnt := 0;
-report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'image(ref_cnt_exp - 1) & " auto ref true";
 
 										else
 											ref_delay_cnt := ref_delay_cnt + 1;
@@ -931,19 +926,21 @@ report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'im
 										if (RefCtrlCtrlAck_tb = '1') then
 											if (RefCtrlCtrlReq_tb = '1') then
 												RefCtrlCtrlReq_tb <= '0';
-												ref_ctrl_err_arr(ref_cnt_exp) := ref_cmd_err_int;
-												ref_cmd_err_int := 0;
 
 												if (self_ref = false) then
 													ref_cmd_exp(ref_cnt_exp, 0) := to_integer(unsigned(CMD_SELF_REF_ENTRY));
 													self_ref := true;
 													ref_ctrl_req := false;
 												else
+
+													ref_ctrl_err_arr(ref_cnt_exp) := ref_cmd_err_int;
+													ref_cmd_err_int := 0;
+
 													ref_cmd_exp(ref_cnt_exp, 1) := to_integer(unsigned(CMD_SELF_REF_EXIT));
 													ref_cnt_exp := ref_cnt_exp + 1;
+
 													self_ref := false;
 													ref_done_int := true;
-report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'image(ref_cnt_exp - 1) & " auto ref false";
 
 													wait for 1 ps;
 
@@ -1000,7 +997,7 @@ report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'im
 						cmd_sent_in_self_ref := 0;
 						ref_cmd_cnt := ref_cmd_cnt + 1;
 						exp_self_ref_exit := false;
-					elsif ((CmdDecCmdMem_tb /= CMD_NOP) or (CmdDecCmdMem_tb /= CMD_DESEL)) then
+					elsif ((CmdDecCmdMem_tb /= CMD_NOP) and (CmdDecCmdMem_tb /= CMD_DESEL)) then
 						cmd_sent_in_self_ref := cmd_sent_in_self_ref + 1;
 					end if;
 
@@ -1215,11 +1212,10 @@ report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'im
 				writeline(file_pointer, file_line);
 				for i in 0 to (ref_req - 1) loop
 					for j in 0 to 1 loop
---						if (ref_cmd_exp(i, j) /= ref_cmd_rtl(i, j)) then
-							report "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_rtl(i, j), MEM_CMD_L)));
+						if (ref_cmd_exp(i, j) /= ref_cmd_rtl(i, j)) then
 							write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_rtl(i, j), MEM_CMD_L)))));
 							writeline(file_pointer, file_line);
---						end if;
+						end if;
 					end loop;
 				end loop;
 			elsif (match_col_cmd = false) then
@@ -1232,8 +1228,6 @@ report "burst " & integer'image(ref_cmd_bursts_int) & " ref burst " & integer'im
 					writeline(file_pointer, file_line);
 					for j in 0 to (bl(i) - 1) loop
 						if (col_cmd_rtl(i,j) /= col_cmd_exp(i,j)) then
-report "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Col " & integer'image(col_exp(i, 0)) & " Read Burst " & bool_to_str(read_burst(i)) & " Burst Length " & integer'image(bl(i));
-report "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Column Command exp " & integer'image(col_cmd_exp(i, j)) & " vs rtl " & integer'image(col_cmd_rtl(i, j));
 							write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Column Command exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_rtl(i, j), MEM_CMD_L)))));
 							writeline(file_pointer, file_line);
 						end if;
