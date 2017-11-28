@@ -138,6 +138,9 @@ all_cpu:
 
 all_ddr2:
 	make ddr2_ctrl_init_all
+	make ddr2_ctrl_arbiter_all
+	make ddr2_ctrl_arbiter_top_all
+	make ddr2_ctrl_regs_all
 	make ddr2_ctrl_bank_ctrl_all
 	make ddr2_ctrl_col_ctrl_all
 	make ddr2_ctrl_ref_ctrl_all
@@ -145,9 +148,7 @@ all_ddr2:
 	make ddr2_ctrl_odt_ctrl_all
 	make ddr2_ctrl_mrs_ctrl_all
 	make ddr2_ctrl_cmd_dec_all
-	make ddr2_ctrl_arbiter_all
-	make ddr2_ctrl_arbiter_top_all
-	make ddr2_ctrl_regs_all
+	make ddr2_ctrl_ctrl_top_all
 
 clean:
 	rm -rf ${LOG_FILES} ${SUMMARY_FILE} ${ROOT_WORK_DIR}/*
