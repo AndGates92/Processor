@@ -376,12 +376,29 @@ begin
 							pause_arb_arr_rtl(num_requests_rtl_int) := false;
 						end if;
 
+						if (i = delay_after_turn_off/2) then
+							MRSCtrlReq_tb <= '1';
+						end if;
+
 						if (i = delay_after_turn_off) then
 							MRSUpdateCompleted_tb <= '1';
 						end if;
 					end loop;
 
 					wait until ((clk_tb = '0') and (clk_tb'event));
+
+					if (MRSCtrlAck_tb = '1') then
+						wait until ((clk_tb = '1') and (clk_tb'event));
+						wait until ((clk_tb = '0') and (clk_tb'event));
+					else
+						while (MRSCtrlAck_tb = '0') loop
+							wait until ((clk_tb = '1') and (clk_tb'event));
+							wait until ((clk_tb = '0') and (clk_tb'event));
+						end loop;
+					end if;
+
+					MRSCtrlReq_tb <= '0';
+					MRSUpdateCompleted_tb <= '0';
 
 					MRSCmd_tb <= CMD_NOP;
 
@@ -474,7 +491,7 @@ begin
 							else
 								MRSCtrlReq_tb <= '1';
 							end if;
-							if (i = toggle_cnt/2) then
+							if (toggle_cnt = req_delay/2) then
 								LastMRSCmd_tb <= '1';
 							end if;
 						end if;
@@ -541,7 +558,7 @@ begin
 								MRSCtrlReq_tb <= '1';
 								MRSCmd_tb <= std_logic_vector(to_unsigned(mrs_mem_cmd, MEM_CMD_L));
 							end if;
-							if (i = toggle_cnt/2) then
+							if (toggle_cnt = req_delay/2) then
 								LastMRSCmd_tb <= '1';
 							end if;
 						end if;
@@ -585,14 +602,30 @@ begin
 						for i in 0 to delay_after_turn_off loop
 							wait until ((clk_tb = '1') and (clk_tb'event));
 
+							if (i = delay_after_turn_off/2) then
+								MRSCtrlReq_tb <= '1';
+							end if;
 							if (i = delay_after_turn_off) then
 								MRSUpdateCompleted_tb <= '1';
 							end if;
 						end loop;
 
-					end if;
+						wait until ((clk_tb = '0') and (clk_tb'event));
 
-					wait until ((clk_tb = '1') and (clk_tb'event));
+						if (MRSCtrlAck_tb = '1') then
+							wait until ((clk_tb = '1') and (clk_tb'event));
+							wait until ((clk_tb = '0') and (clk_tb'event));
+						else
+							while (MRSCtrlAck_tb = '0') loop
+								wait until ((clk_tb = '1') and (clk_tb'event));
+								wait until ((clk_tb = '0') and (clk_tb'event));
+							end loop;
+						end if;
+
+						MRSCtrlReq_tb <= '0';
+						MRSUpdateCompleted_tb <= '0';
+
+					end if;
 
 					if (ODT_tb = '1') then
 						odt_enabled_arr_rtl(num_requests_rtl_int) := true;
