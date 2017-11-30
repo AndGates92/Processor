@@ -88,8 +88,8 @@ begin
 	PauseArbiter <= '1' when (((StateC = ODT_CTRL_MRS_UPD) and (MRSUpdateCompleted = '0') and (LastMRSCmd = '1')) or ((StateC = ODT_CTRL_REF_REQ) and (RefCtrlReq = '0'))) else '0';
 
 	-- Ack MRS controller request after delay has expired
-	MRSCtrlAck <=	(ZeroDelayCnt and MRSCtrlReq)	when (StateC = ODT_CTRL_TURN_OFF_MRS) else
- 			MRSCtrlReq			when (StateC = ODT_CTRL_MRS_UPD) else
+	MRSCtrlAck <=	(ZeroDelayCnt and MRSCtrlReq)		when (StateC = ODT_CTRL_TURN_OFF_MRS) else
+ 			(MRSCtrlReq and MRSUpdateCompleted)	when (StateC = ODT_CTRL_MRS_UPD) else
 			'0';
 
 	-- Ack Refresh controller request after delay has expired
