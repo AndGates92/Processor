@@ -548,6 +548,9 @@ begin
 						end if;
 					end loop;
 
+					wait until ((clk_tb = '0') and (clk_tb'event));
+
+
 					while (RefCtrlAck_tb = '0') loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
 
@@ -567,8 +570,17 @@ begin
 							err := err + 1;
 						end if;
 
+						wait until ((clk_tb = '0') and (clk_tb'event));
+
 					end loop;
 
+					if (ODT_tb = '1') then
+						odt_enabled_arr_rtl(num_requests_rtl_int) := true;
+					else
+						odt_enabled_arr_rtl(num_requests_rtl_int) := false;
+					end if;
+
+					wait until ((clk_tb = '1') and (clk_tb'event));
 					wait until ((clk_tb = '0') and (clk_tb'event));
 					RefCtrlReq_tb <= '0';
 
@@ -625,12 +637,6 @@ begin
 						MRSCtrlReq_tb <= '0';
 						MRSUpdateCompleted_tb <= '0';
 
-					end if;
-
-					if (ODT_tb = '1') then
-						odt_enabled_arr_rtl(num_requests_rtl_int) := true;
-					else
-						odt_enabled_arr_rtl(num_requests_rtl_int) := false;
 					end if;
 
 				elsif ((mem_cmd_sel = to_integer(unsigned(CMD_READ))) or (mem_cmd_sel = to_integer(unsigned(CMD_READ_PRECHARGE)))) then
