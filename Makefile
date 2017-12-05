@@ -18,9 +18,10 @@ CPU_RTL_DIR = ${CPU_SRC_DIR}/rtl
 CPU_RTL_PKG_DIR = ${CPU_SRC_DIR}/pkg
 CPU_RTL_CFG_DIR = ${CPU_SRC_DIR}/cfg
 DDR2_SRC_DIR = ${SRC_DIR}/ddr2
-DDR2_RTL_DIR = ${DDR2_SRC_DIR}/rtl
-DDR2_RTL_PKG_DIR = ${DDR2_SRC_DIR}/pkg
-DDR2_RTL_CFG_DIR = ${DDR2_SRC_DIR}/cfg
+DDR2_CTRL_SRC_DIR = ${DDR2_SRC_DIR}/ctrl
+DDR2_CTRL_RTL_DIR = ${DDR2_CTRL_SRC_DIR}/rtl
+DDR2_CTRL_RTL_PKG_DIR = ${DDR2_CTRL_SRC_DIR}/pkg
+DDR2_CTRL_RTL_CFG_DIR = ${DDR2_CTRL_SRC_DIR}/cfg
 
 VERIF_DIR = ${ROOT_DIR}/verif
 COMMON_VERIF_DIR = ${VERIF_DIR}/common
@@ -34,10 +35,11 @@ CPU_VERIF_PKG_DIR = ${CPU_VERIF_DIR}/pkg
 CPU_VERIF_CFG_DIR = ${CPU_VERIF_DIR}/cfg
 CPU_VERIF_MODELS_DIR = ${CPU_VERIF_DIR}/models
 DDR2_VERIF_DIR = ${VERIF_DIR}/ddr2
-DDR2_VERIF_TB_DIR = ${DDR2_VERIF_DIR}/tb
-DDR2_VERIF_PKG_DIR = ${DDR2_VERIF_DIR}/pkg
-DDR2_VERIF_CFG_DIR = ${DDR2_VERIF_DIR}/cfg
-DDR2_VERIF_MODELS_DIR = ${DDR2_VERIF_DIR}/models
+DDR2_CTRL_VERIF_DIR = ${DDR2_VERIF_DIR}/ddr2
+DDR2_CTRL_VERIF_TB_DIR = ${DDR2_CTRL_VERIF_DIR}/tb
+DDR2_CTRL_VERIF_PKG_DIR = ${DDR2_CTRL_VERIF_DIR}/pkg
+DDR2_CTRL_VERIF_CFG_DIR = ${DDR2_CTRL_VERIF_DIR}/cfg
+DDR2_CTRL_VERIF_MODELS_DIR = ${DDR2_CTRL_VERIF_DIR}/models
 
 WAVES_DIR = /tmp
 
@@ -90,21 +92,21 @@ CPU_TB_LIB_NAME = cpu_tb
 CPU_TB_WORK_DIR = ${ROOT_WORK_DIR}/cpu_tb_work
 CPU_TB_GHDL_ARGS = -g  --work=${CPU_TB_LIB_NAME} --workdir=${CPU_TB_WORK_DIR} -P${CPU_RTL_WORK_DIR} -P${CPU_RTL_PKG_WORK_DIR} -P${CPU_TB_PKG_WORK_DIR} -P${COMMON_RTL_WORK_DIR} -P${COMMON_RTL_PKG_WORK_DIR} -P${COMMON_TB_PKG_WORK_DIR}
 
-DDR2_RTL_PKG_LIB_NAME = ddr2_rtl_pkg
-DDR2_RTL_PKG_WORK_DIR = ${ROOT_WORK_DIR}/ddr2_rtl_pkg_work
-DDR2_RTL_PKG_GHDL_ARGS = -g --work=${DDR2_RTL_PKG_LIB_NAME} --workdir=${DDR2_RTL_PKG_WORK_DIR} -P${COMMON_RTL_PKG_WORK_DIR}
+DDR2_CTRL_RTL_PKG_LIB_NAME = ddr2_ctrl_rtl_pkg
+DDR2_CTRL_RTL_PKG_WORK_DIR = ${ROOT_WORK_DIR}/ddr2_ctrl_rtl_pkg_work
+DDR2_CTRL_RTL_PKG_GHDL_ARGS = -g --work=${DDR2_CTRL_RTL_PKG_LIB_NAME} --workdir=${DDR2_CTRL_RTL_PKG_WORK_DIR} -P${COMMON_RTL_PKG_WORK_DIR}
 
-DDR2_TB_PKG_LIB_NAME = ddr2_tb_pkg
-DDR2_TB_PKG_WORK_DIR = ${ROOT_WORK_DIR}/ddr2_tb_pkg_work
-DDR2_TB_PKG_GHDL_ARGS = -g --work=${DDR2_TB_PKG_LIB_NAME} --workdir=${DDR2_TB_PKG_WORK_DIR} -P${COMMON_RTL_PKG_WORK_DIR} -P${COMMON_TB_PKG_WORK_DIR} -P${DDR2_RTL_PKG_WORK_DIR}
+DDR2_CTRL_TB_PKG_LIB_NAME = ddr2_ctrl_tb_pkg
+DDR2_CTRL_TB_PKG_WORK_DIR = ${ROOT_WORK_DIR}/ddr2_ctrl_tb_pkg_work
+DDR2_CTRL_TB_PKG_GHDL_ARGS = -g --work=${DDR2_CTRL_TB_PKG_LIB_NAME} --workdir=${DDR2_CTRL_TB_PKG_WORK_DIR} -P${COMMON_RTL_PKG_WORK_DIR} -P${COMMON_TB_PKG_WORK_DIR} -P${DDR2_CTRL_RTL_PKG_WORK_DIR}
 
-DDR2_RTL_LIB_NAME = ddr2_rtl
-DDR2_RTL_WORK_DIR = ${ROOT_WORK_DIR}/ddr2_rtl_work
-DDR2_RTL_GHDL_ARGS = -g --work=${DDR2_RTL_LIB_NAME} --workdir=${DDR2_RTL_WORK_DIR} -P${DDR2_RTL_PKG_WORK_DIR} -P${COMMON_RTL_PKG_WORK_DIR} -P${COMMON_RTL_WORK_DIR}
+DDR2_CTRL_RTL_LIB_NAME = ddr2_ctrl_rtl
+DDR2_CTRL_RTL_WORK_DIR = ${ROOT_WORK_DIR}/ddr2_ctrl_rtl_work
+DDR2_CTRL_RTL_GHDL_ARGS = -g --work=${DDR2_CTRL_RTL_LIB_NAME} --workdir=${DDR2_CTRL_RTL_WORK_DIR} -P${DDR2_CTRL_RTL_PKG_WORK_DIR} -P${COMMON_RTL_PKG_WORK_DIR} -P${COMMON_RTL_WORK_DIR}
 
-DDR2_TB_LIB_NAME = ddr2_tb
-DDR2_TB_WORK_DIR = ${ROOT_WORK_DIR}/ddr2_tb_work
-DDR2_TB_GHDL_ARGS = -g  --work=${DDR2_TB_LIB_NAME} --workdir=${DDR2_TB_WORK_DIR} -P${DDR2_RTL_WORK_DIR} -P${DDR2_RTL_PKG_WORK_DIR} -P${DDR2_TB_PKG_WORK_DIR} -P${COMMON_RTL_PKG_WORK_DIR} -P${COMMON_TB_PKG_WORK_DIR}
+DDR2_CTRL_TB_LIB_NAME = ddr2_ctrl_tb
+DDR2_CTRL_TB_WORK_DIR = ${ROOT_WORK_DIR}/ddr2_ctrl_tb_work
+DDR2_CTRL_TB_GHDL_ARGS = -g  --work=${DDR2_CTRL_TB_LIB_NAME} --workdir=${DDR2_CTRL_TB_WORK_DIR} -P${DDR2_CTRL_RTL_WORK_DIR} -P${DDR2_CTRL_RTL_PKG_WORK_DIR} -P${DDR2_CTRL_TB_PKG_WORK_DIR} -P${COMMON_RTL_PKG_WORK_DIR} -P${COMMON_TB_PKG_WORK_DIR}
 
 GHDL_RUN_ARGS = --vcd=${WAVES_DIR}/
 
@@ -192,10 +194,10 @@ cpu_work_dir:
 	mkdir -p ${CPU_TB_WORK_DIR}
 
 ddr2_work_dir:
-	mkdir -p ${DDR2_RTL_PKG_WORK_DIR}
-	mkdir -p ${DDR2_RTL_WORK_DIR}
-	mkdir -p ${DDR2_TB_PKG_WORK_DIR}
-	mkdir -p ${DDR2_TB_WORK_DIR}
+	mkdir -p ${DDR2_CTRL_RTL_PKG_WORK_DIR}
+	mkdir -p ${DDR2_CTRL_RTL_WORK_DIR}
+	mkdir -p ${DDR2_CTRL_TB_PKG_WORK_DIR}
+	mkdir -p ${DDR2_CTRL_TB_WORK_DIR}
 
 common_rtl_libraries: 
 	@echo "Analysing ${COMMON_RTL_PKG_DIR}/type_conversion_pkg.vhd"
@@ -214,46 +216,46 @@ common_rtl_libraries:
 	${GHDL} -a ${COMMON_RTL_PKG_GHDL_ARGS} ${COMMON_RTL_PKG_DIR}/fifo_2clk_pkg.vhd
 
 ddr2_rtl_libraries:
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_define_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_define_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_gen_ac_timing_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_gen_ac_timing_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_io_ac_timing_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_io_ac_timing_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_odt_ac_timing_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_odt_ac_timing_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_mrs_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_mrs_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_mrs_max_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_mrs_max_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_init_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_init_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_bank_ctrl_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_bank_ctrl_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_col_ctrl_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_col_ctrl_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_ref_ctrl_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_ref_ctrl_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_cmd_ctrl_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_cmd_ctrl_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_arbiter_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_arbiter_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_arbiter_top_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_arbiter_top_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_cmd_dec_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_cmd_dec_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_odt_ctrl_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_odt_ctrl_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_mrs_ctrl_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_mrs_ctrl_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_regs_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_regs_pkg.vhd
-	@echo "Analysing ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_ctrl_top_pkg.vhd"
-	${GHDL} -a ${DDR2_RTL_PKG_GHDL_ARGS} ${DDR2_RTL_PKG_DIR}/ddr2_ctrl_ctrl_top_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_define_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_define_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_gen_ac_timing_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_gen_ac_timing_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_io_ac_timing_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_io_ac_timing_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_odt_ac_timing_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_odt_ac_timing_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_mrs_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_mrs_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_mrs_max_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_mrs_max_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_init_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_init_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_bank_ctrl_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_bank_ctrl_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_col_ctrl_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_col_ctrl_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_ref_ctrl_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_ref_ctrl_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_cmd_ctrl_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_cmd_ctrl_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_arbiter_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_arbiter_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_arbiter_top_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_arbiter_top_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_cmd_dec_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_cmd_dec_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_odt_ctrl_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_odt_ctrl_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_mrs_ctrl_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_mrs_ctrl_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_regs_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_regs_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_ctrl_top_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_PKG_GHDL_ARGS} ${DDR2_CTRL_RTL_PKG_DIR}/ddr2_ctrl_ctrl_top_pkg.vhd
 
 cpu_rtl_libraries:
 	@echo "Analysing ${CPU_RTL_PKG_DIR}/proc_pkg.vhd"
@@ -306,10 +308,10 @@ cpu_verif_libraries:
 	${GHDL} -a ${CPU_TB_PKG_GHDL_ARGS} ${CPU_VERIF_PKG_DIR}/decode_pkg_tb.vhd
 
 ddr2_verif_libraries:
-	@echo "Analysing ${DDR2_VERIF_PKG_DIR}/ddr2_log_pkg.vhd"
-	${GHDL} -a ${DDR2_TB_PKG_GHDL_ARGS} ${DDR2_VERIF_PKG_DIR}/ddr2_log_pkg.vhd
-	@echo "Analysing ${DDR2_VERIF_PKG_DIR}/ddr2_pkg_tb.vhd"
-	${GHDL} -a ${DDR2_TB_PKG_GHDL_ARGS} ${DDR2_VERIF_PKG_DIR}/ddr2_pkg_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_PKG_DIR}/ddr2_log_pkg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_PKG_GHDL_ARGS} ${DDR2_CTRL_VERIF_PKG_DIR}/ddr2_log_pkg.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_PKG_DIR}/ddr2_pkg_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_PKG_GHDL_ARGS} ${DDR2_CTRL_VERIF_PKG_DIR}/ddr2_pkg_tb.vhd
 
 common_libraries:
 	make common_rtl_libraries
@@ -682,20 +684,20 @@ fifo_2clk_all:
 	make fifo_2clk
 	make simulate_fifo_2clk
 
-ddr2_ctrl_init: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_init_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_init.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_init.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_init_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_init_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_init_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_init_tb_cfg.vhd
+ddr2_ctrl_init: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_init_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_init.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_init.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_init_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_init_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_init_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_init_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_init_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_init_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_init_tb
 	rm -r e~config_ddr2_ctrl_init_tb.o
-	mv config_ddr2_ctrl_init_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_init_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_init: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_init_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_init.o  ${DDR2_TB_WORK_DIR}/ddr2_ctrl_init_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_init_tb ${GHDL_RUN_ARGS}ddr2_ctrl_init.vcd
+simulate_ddr2_ctrl_init: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_init_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_init.o  ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_init_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_init_tb ${GHDL_RUN_ARGS}ddr2_ctrl_init.vcd
 
 ddr2_ctrl_init_all:
 	make work_dir
@@ -704,20 +706,20 @@ ddr2_ctrl_init_all:
 	make ddr2_ctrl_init
 	make simulate_ddr2_ctrl_init
 
-ddr2_ctrl_bank_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_bank_ctrl_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_bank_ctrl_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_bank_ctrl_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_bank_ctrl_tb_cfg.vhd
+ddr2_ctrl_bank_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_bank_ctrl_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_bank_ctrl_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_bank_ctrl_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_bank_ctrl_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_bank_ctrl_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_bank_ctrl_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_bank_ctrl_tb
 	rm -r e~config_ddr2_ctrl_bank_ctrl_tb.o
-	mv config_ddr2_ctrl_bank_ctrl_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_bank_ctrl_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_bank_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_bank_ctrl.o  ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_ctrl_bank_ctrl_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_bank_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_bank_ctrl.vcd
+simulate_ddr2_ctrl_bank_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_bank_ctrl.o  ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_bank_ctrl_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_bank_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_bank_ctrl.vcd
 
 ddr2_ctrl_bank_ctrl_all:
 	make work_dir
@@ -726,20 +728,20 @@ ddr2_ctrl_bank_ctrl_all:
 	make ddr2_ctrl_bank_ctrl
 	make simulate_ddr2_ctrl_bank_ctrl
 
-ddr2_ctrl_col_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_col_ctrl_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_col_ctrl_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_col_ctrl_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_col_ctrl_tb_cfg.vhd
+ddr2_ctrl_col_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_col_ctrl_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_col_ctrl_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_col_ctrl_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_col_ctrl_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_col_ctrl_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_col_ctrl_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_col_ctrl_tb
 	rm -r e~config_ddr2_ctrl_col_ctrl_tb.o
-	mv config_ddr2_ctrl_col_ctrl_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_col_ctrl_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_col_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_col_ctrl.o  ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_ctrl_col_ctrl_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_col_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_col_ctrl.vcd
+simulate_ddr2_ctrl_col_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_col_ctrl.o  ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_col_ctrl_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_col_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_col_ctrl.vcd
 
 ddr2_ctrl_col_ctrl_all:
 	make work_dir
@@ -748,20 +750,20 @@ ddr2_ctrl_col_ctrl_all:
 	make ddr2_ctrl_col_ctrl
 	make simulate_ddr2_ctrl_col_ctrl
 
-ddr2_ctrl_ref_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_ref_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_ref_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_ref_ctrl.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_ref_ctrl_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_ref_ctrl_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_ref_ctrl_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_ref_ctrl_tb_cfg.vhd
+ddr2_ctrl_ref_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_ref_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_ref_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_ref_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_ref_ctrl_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_ref_ctrl_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_ref_ctrl_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_ref_ctrl_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_ref_ctrl_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_ref_ctrl_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_ref_ctrl_tb
 	rm -r e~config_ddr2_ctrl_ref_ctrl_tb.o
-	mv config_ddr2_ctrl_ref_ctrl_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_ref_ctrl_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_ref_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_ref_ctrl.o  ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_ref_ctrl_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_ctrl_ref_ctrl_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_ref_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_ref_ctrl.vcd
+simulate_ddr2_ctrl_ref_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_ref_ctrl.o  ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_ref_ctrl_pkg.o ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_ref_ctrl_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_ref_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_ref_ctrl.vcd
 
 ddr2_ctrl_ref_ctrl_all:
 	make work_dir
@@ -770,26 +772,26 @@ ddr2_ctrl_ref_ctrl_all:
 	make ddr2_ctrl_ref_ctrl
 	make simulate_ddr2_ctrl_ref_ctrl
 
-ddr2_ctrl_cmd_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_cmd_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_cmd_ctrl.vhd
-	@echo "Analysing ${DDR2_RTL_CFG_DIR}/ddr2_ctrl_cmd_ctrl_cfg.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_CFG_DIR}/ddr2_ctrl_cmd_ctrl_cfg.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_cmd_ctrl_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_cmd_ctrl_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_cmd_ctrl_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_cmd_ctrl_tb_cfg.vhd
+ddr2_ctrl_cmd_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_cmd_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_cmd_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_CFG_DIR}/ddr2_ctrl_cmd_ctrl_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_CFG_DIR}/ddr2_ctrl_cmd_ctrl_cfg.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_cmd_ctrl_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_cmd_ctrl_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_cmd_ctrl_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_cmd_ctrl_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_cmd_ctrl_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_cmd_ctrl_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_cmd_ctrl_tb
 	rm -r e~config_ddr2_ctrl_cmd_ctrl_tb.o
-	mv config_ddr2_ctrl_cmd_ctrl_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_cmd_ctrl_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_cmd_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_bank_ctrl.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_col_ctrl.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_cmd_ctrl.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_ctrl_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_ctrl_cmd_ctrl_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_cmd_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_cmd_ctrl.vcd
+simulate_ddr2_ctrl_cmd_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_bank_ctrl.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_col_ctrl.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_cmd_ctrl.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_ctrl_pkg.o ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_cmd_ctrl_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_cmd_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_cmd_ctrl.vcd
 
 ddr2_ctrl_cmd_ctrl_all:
 	make work_dir
@@ -798,20 +800,20 @@ ddr2_ctrl_cmd_ctrl_all:
 	make ddr2_ctrl_cmd_ctrl
 	make simulate_ddr2_ctrl_cmd_ctrl
 
-ddr2_ctrl_cmd_dec: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_dec_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_cmd_dec.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_cmd_dec.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_cmd_dec_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_cmd_dec_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_cmd_dec_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_cmd_dec_tb_cfg.vhd
+ddr2_ctrl_cmd_dec: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_dec_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_cmd_dec.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_cmd_dec.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_cmd_dec_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_cmd_dec_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_cmd_dec_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_cmd_dec_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_cmd_dec_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_cmd_dec_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_cmd_dec_tb
 	rm -r e~config_ddr2_ctrl_cmd_dec_tb.o
-	mv config_ddr2_ctrl_cmd_dec_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_cmd_dec_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_cmd_dec: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_cmd_dec.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_dec_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_ctrl_cmd_dec_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_cmd_dec_tb ${GHDL_RUN_ARGS}ddr2_ctrl_cmd_dec.vcd
+simulate_ddr2_ctrl_cmd_dec: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_cmd_dec.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_dec_pkg.o ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_cmd_dec_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_cmd_dec_tb ${GHDL_RUN_ARGS}ddr2_ctrl_cmd_dec.vcd
 
 ddr2_ctrl_cmd_dec_all:
 	make work_dir
@@ -820,20 +822,20 @@ ddr2_ctrl_cmd_dec_all:
 	make ddr2_ctrl_cmd_dec
 	make simulate_ddr2_ctrl_cmd_dec
 
-ddr2_ctrl_arbiter: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_arbiter_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_arbiter_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_arbiter_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_arbiter_tb_cfg.vhd
+ddr2_ctrl_arbiter: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_arbiter_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_arbiter_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_arbiter_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_arbiter_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_arbiter_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_arbiter_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_arbiter_tb
 	rm -r e~config_ddr2_ctrl_arbiter_tb.o
-	mv config_ddr2_ctrl_arbiter_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_arbiter_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_arbiter: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_arbiter.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_ctrl_arbiter_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_arbiter_tb ${GHDL_RUN_ARGS}ddr2_ctrl_arbiter.vcd
+simulate_ddr2_ctrl_arbiter: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_arbiter.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_arbiter_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_arbiter_tb ${GHDL_RUN_ARGS}ddr2_ctrl_arbiter.vcd
 
 ddr2_ctrl_arbiter_all:
 	make work_dir
@@ -842,26 +844,26 @@ ddr2_ctrl_arbiter_all:
 	make ddr2_ctrl_arbiter
 	make simulate_ddr2_ctrl_arbiter
 
-ddr2_ctrl_arbiter_top: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_top_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter_ctrl.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter_top.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter_top.vhd
-	@echo "Analysing ${DDR2_RTL_CFG_DIR}/ddr2_ctrl_arbiter_top_cfg.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_CFG_DIR}/ddr2_ctrl_arbiter_top_cfg.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_arbiter_top_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_arbiter_top_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_arbiter_top_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_arbiter_top_tb_cfg.vhd
+ddr2_ctrl_arbiter_top: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_top_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter_top.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter_top.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_CFG_DIR}/ddr2_ctrl_arbiter_top_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_CFG_DIR}/ddr2_ctrl_arbiter_top_cfg.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_arbiter_top_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_arbiter_top_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_arbiter_top_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_arbiter_top_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_arbiter_top_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_arbiter_top_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_arbiter_top_tb
 	rm -r e~config_ddr2_ctrl_arbiter_top_tb.o
-	mv config_ddr2_ctrl_arbiter_top_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_arbiter_top_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_arbiter_top: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.o  ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_arbiter.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_arbiter_ctrl.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_arbiter_top.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_top_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_ctrl_arbiter_top_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_arbiter_top_tb ${GHDL_RUN_ARGS}ddr2_ctrl_arbiter_top.vcd
+simulate_ddr2_ctrl_arbiter_top: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.o  ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_arbiter.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_arbiter_ctrl.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_arbiter_top.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_top_pkg.o ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_arbiter_top_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_arbiter_top_tb ${GHDL_RUN_ARGS}ddr2_ctrl_arbiter_top.vcd
 
 ddr2_ctrl_arbiter_top_all:
 	make work_dir
@@ -870,20 +872,20 @@ ddr2_ctrl_arbiter_top_all:
 	make ddr2_ctrl_arbiter_top
 	make simulate_ddr2_ctrl_arbiter_top
 
-ddr2_ctrl_odt_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_odt_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_odt_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_odt_ctrl.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_odt_ctrl_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_odt_ctrl_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_odt_ctrl_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_odt_ctrl_tb_cfg.vhd
+ddr2_ctrl_odt_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_odt_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_odt_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_odt_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_odt_ctrl_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_odt_ctrl_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_odt_ctrl_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_odt_ctrl_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_odt_ctrl_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_odt_ctrl_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_odt_ctrl_tb
 	rm -r e~config_ddr2_ctrl_odt_ctrl_tb.o
-	mv config_ddr2_ctrl_odt_ctrl_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_odt_ctrl_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_odt_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_odt_ctrl.o  ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_odt_ctrl_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_ctrl_odt_ctrl_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_odt_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_odt_ctrl.vcd
+simulate_ddr2_ctrl_odt_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_odt_ctrl.o  ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_odt_ctrl_pkg.o ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_odt_ctrl_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_odt_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_odt_ctrl.vcd
 
 ddr2_ctrl_odt_ctrl_all:
 	make work_dir
@@ -892,20 +894,20 @@ ddr2_ctrl_odt_ctrl_all:
 	make ddr2_ctrl_odt_ctrl
 	make simulate_ddr2_ctrl_odt_ctrl
 
-ddr2_ctrl_mrs_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_mrs_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_mrs_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_mrs_ctrl.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_mrs_ctrl_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_mrs_ctrl_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_mrs_ctrl_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_mrs_ctrl_tb_cfg.vhd
+ddr2_ctrl_mrs_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_mrs_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_mrs_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_mrs_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_mrs_ctrl_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_mrs_ctrl_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_mrs_ctrl_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_mrs_ctrl_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_mrs_ctrl_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_mrs_ctrl_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_mrs_ctrl_tb
 	rm -r e~config_ddr2_ctrl_mrs_ctrl_tb.o
-	mv config_ddr2_ctrl_mrs_ctrl_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_mrs_ctrl_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_mrs_ctrl: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_mrs_ctrl.o  ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_mrs_ctrl_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_ctrl_mrs_ctrl_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_mrs_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_mrs_ctrl.vcd
+simulate_ddr2_ctrl_mrs_ctrl: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_mrs_ctrl.o  ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_mrs_ctrl_pkg.o ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_mrs_ctrl_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_mrs_ctrl_tb ${GHDL_RUN_ARGS}ddr2_ctrl_mrs_ctrl.vcd
 
 ddr2_ctrl_mrs_ctrl_all:
 	make work_dir
@@ -914,20 +916,20 @@ ddr2_ctrl_mrs_ctrl_all:
 	make ddr2_ctrl_mrs_ctrl
 	make simulate_ddr2_ctrl_mrs_ctrl
 
-ddr2_ctrl_regs: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_regs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_regs.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_regs.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_regs_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_regs_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_regs_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_regs_tb_cfg.vhd
+ddr2_ctrl_regs: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_regs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_regs.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_regs.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_regs_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_regs_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_regs_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_regs_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_regs_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_regs_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_regs_tb
 	rm -r e~config_ddr2_ctrl_regs_tb.o
-	mv config_ddr2_ctrl_regs_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_regs_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_regs: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_regs.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_regs_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_ctrl_regs_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_regs_tb ${GHDL_RUN_ARGS}ddr2_ctrl_regs.vcd
+simulate_ddr2_ctrl_regs: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_regs.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_regs_pkg.o ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_regs_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_regs_tb ${GHDL_RUN_ARGS}ddr2_ctrl_regs.vcd
 
 ddr2_ctrl_regs_all:
 	make work_dir
@@ -936,44 +938,44 @@ ddr2_ctrl_regs_all:
 	make ddr2_ctrl_regs
 	make simulate_ddr2_ctrl_regs
 
-ddr2_ctrl_ctrl_top: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_top_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_odt_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_ref_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_mrs_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_ctrl_top_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter_ctrl.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter_top.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_arbiter_top.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_odt_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_odt_ctrl.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_mrs_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_mrs_ctrl.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_cmd_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_cmd_ctrl.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_ref_ctrl.vhd
-	@echo "Analysing ${DDR2_RTL_DIR}/ddr2_ctrl_ctrl_top.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_DIR}/ddr2_ctrl_ctrl_top.vhd
-	@echo "Analysing ${DDR2_RTL_CFG_DIR}/ddr2_ctrl_arbiter_top_cfg.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_CFG_DIR}/ddr2_ctrl_arbiter_top_cfg.vhd
-	@echo "Analysing ${DDR2_RTL_CFG_DIR}/ddr2_ctrl_cmd_ctrl_cfg.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_CFG_DIR}/ddr2_ctrl_cmd_ctrl_cfg.vhd
-	@echo "Analysing ${DDR2_RTL_CFG_DIR}/ddr2_ctrl_ctrl_top_cfg.vhd"
-	${GHDL} -a ${DDR2_RTL_GHDL_ARGS} ${DDR2_RTL_CFG_DIR}/ddr2_ctrl_ctrl_top_cfg.vhd
-	@echo "Analysing ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_ctrl_top_tb.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_TB_DIR}/ddr2_ctrl_ctrl_top_tb.vhd
-	@echo "Analysing ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_ctrl_top_tb_cfg.vhd"
-	${GHDL} -a ${DDR2_TB_GHDL_ARGS} ${DDR2_VERIF_CFG_DIR}/ddr2_ctrl_ctrl_top_tb_cfg.vhd
+ddr2_ctrl_ctrl_top: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_top_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_odt_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_ref_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_mrs_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_ctrl_top_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter_top.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_arbiter_top.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_odt_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_odt_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_mrs_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_mrs_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_bank_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_cmd_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_cmd_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_col_ctrl.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_ref_ctrl.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_ctrl_top.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_DIR}/ddr2_ctrl_ctrl_top.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_CFG_DIR}/ddr2_ctrl_arbiter_top_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_CFG_DIR}/ddr2_ctrl_arbiter_top_cfg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_CFG_DIR}/ddr2_ctrl_cmd_ctrl_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_CFG_DIR}/ddr2_ctrl_cmd_ctrl_cfg.vhd
+	@echo "Analysing ${DDR2_CTRL_RTL_CFG_DIR}/ddr2_ctrl_ctrl_top_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_RTL_GHDL_ARGS} ${DDR2_CTRL_RTL_CFG_DIR}/ddr2_ctrl_ctrl_top_cfg.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_ctrl_top_tb.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_TB_DIR}/ddr2_ctrl_ctrl_top_tb.vhd
+	@echo "Analysing ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_ctrl_top_tb_cfg.vhd"
+	${GHDL} -a ${DDR2_CTRL_TB_GHDL_ARGS} ${DDR2_CTRL_VERIF_CFG_DIR}/ddr2_ctrl_ctrl_top_tb_cfg.vhd
 	@echo "Elaborating ddr2_ctrl_ctrl_top_tb_cfg"
-	${GHDL} -e ${DDR2_TB_GHDL_ARGS} config_ddr2_ctrl_ctrl_top_tb
+	${GHDL} -e ${DDR2_CTRL_TB_GHDL_ARGS} config_ddr2_ctrl_ctrl_top_tb
 	rm -r e~config_ddr2_ctrl_ctrl_top_tb.o
-	mv config_ddr2_ctrl_ctrl_top_tb ${DDR2_TB_WORK_DIR}
+	mv config_ddr2_ctrl_ctrl_top_tb ${DDR2_CTRL_TB_WORK_DIR}
 
-simulate_ddr2_ctrl_ctrl_top: ${DDR2_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.o  ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_arbiter.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_arbiter_ctrl.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_arbiter_top.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_top_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_mrs_ctrl.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_ref_ctrl.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_odt_ctrl.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_bank_ctrl.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_col_ctrl.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_cmd_ctrl.o ${DDR2_RTL_WORK_DIR}/ddr2_ctrl_ctrl_top.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_odt_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_ref_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_mrs_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_ctrl_pkg.o ${DDR2_RTL_PKG_WORK_DIR}/ddr2_ctrl_ctrl_top_pkg.o ${DDR2_TB_WORK_DIR}/ddr2_ctrl_ctrl_top_tb.o
-	cd ${DDR2_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_ctrl_top_tb ${GHDL_RUN_ARGS}ddr2_ctrl_ctrl_top.vcd
+simulate_ddr2_ctrl_ctrl_top: ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_pkg_tb.o ${DDR2_CTRL_TB_PKG_WORK_DIR}/ddr2_log_pkg.o ${COMMON_RTL_PKG_WORK_DIR}/functions_pkg.o ${COMMON_TB_PKG_WORK_DIR}/functions_pkg_tb.o ${COMMON_TB_PKG_WORK_DIR}/shared_pkg_tb.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_define_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_ctrl_pkg.o  ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_arbiter.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_arbiter_ctrl.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_arbiter_top.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_arbiter_top_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_mrs_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_gen_ac_timing_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_mrs_ctrl.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_ref_ctrl.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_odt_ctrl.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_bank_ctrl.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_col_ctrl.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_bank_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_col_ctrl_pkg.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_cmd_ctrl.o ${DDR2_CTRL_RTL_WORK_DIR}/ddr2_ctrl_ctrl_top.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_odt_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_ref_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_mrs_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_cmd_ctrl_pkg.o ${DDR2_CTRL_RTL_PKG_WORK_DIR}/ddr2_ctrl_ctrl_top_pkg.o ${DDR2_CTRL_TB_WORK_DIR}/ddr2_ctrl_ctrl_top_tb.o
+	cd ${DDR2_CTRL_TB_WORK_DIR} && ${GHDL} -r config_ddr2_ctrl_ctrl_top_tb ${GHDL_RUN_ARGS}ddr2_ctrl_ctrl_top.vcd
 
 ddr2_ctrl_ctrl_top_all:
 	make work_dir
