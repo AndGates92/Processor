@@ -2,10 +2,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library ddr2_rtl_pkg;
-use ddr2_rtl_pkg.ddr2_ctrl_pkg.all;
-use ddr2_rtl_pkg.ddr2_ctrl_init_pkg.all;
-use ddr2_rtl_pkg.ddr2_gen_ac_timing_pkg.all;
+library ddr2_ctrl_rtl_pkg;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_init_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_gen_ac_timing_pkg.all;
 
 entity ddr2_ctrl_init is
 generic (

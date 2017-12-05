@@ -11,16 +11,16 @@ use common_rtl_pkg.type_conversion_pkg.all;
 library common_tb_pkg;
 use common_tb_pkg.functions_pkg_tb.all;
 use common_tb_pkg.shared_pkg_tb.all;
-library ddr2_rtl_pkg;
-use ddr2_rtl_pkg.ddr2_define_pkg.all;
-use ddr2_rtl_pkg.ddr2_ctrl_pkg.all;
-use ddr2_rtl_pkg.ddr2_mrs_pkg.all;
-use ddr2_rtl_pkg.ddr2_mrs_max_pkg.all;
-use ddr2_rtl_pkg.ddr2_ctrl_ref_ctrl_pkg.all;
-use ddr2_rtl_pkg.ddr2_gen_ac_timing_pkg.all;
-library ddr2_tb_pkg;
-use ddr2_tb_pkg.ddr2_pkg_tb.all;
-use ddr2_tb_pkg.ddr2_log_pkg.all;
+library ddr2_ctrl_rtl_pkg;
+use ddr2_ctrl_rtl_pkg.ddr2_define_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_mrs_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_mrs_max_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_ref_ctrl_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_gen_ac_timing_pkg.all;
+library ddr2_ctrl_tb_pkg;
+use ddr2_ctrl_tb_pkg.ddr2_pkg_tb.all;
+use ddr2_ctrl_tb_pkg.ddr2_log_pkg.all;
 
 entity ddr2_ctrl_ref_ctrl_tb is
 end entity ddr2_ctrl_ref_ctrl_tb;

@@ -1,5 +1,5 @@
 library work;
-library ddr2_rtl;
+library ddr2_ctrl_rtl;
 
 configuration config_ddr2_ctrl_col_ctrl_tb of ddr2_ctrl_col_ctrl_tb is
 	for bench

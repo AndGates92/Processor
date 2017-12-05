@@ -5,9 +5,9 @@ use ieee.numeric_std.all;
 
 library common_rtl_pkg;
 use common_rtl_pkg.functions_pkg.all;
-library ddr2_rtl_pkg;
-use ddr2_rtl_pkg.ddr2_ctrl_pkg.all;
-use ddr2_rtl_pkg.ddr2_odt_ac_timing_pkg.all;
+library ddr2_ctrl_rtl_pkg;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_odt_ac_timing_pkg.all;
 
 package ddr2_ctrl_odt_ctrl_pkg is 
 

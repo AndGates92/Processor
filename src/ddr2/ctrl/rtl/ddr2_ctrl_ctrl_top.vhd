@@ -4,15 +4,15 @@ use ieee.numeric_std.all;
 
 library common_rtl_pkg;
 use common_rtl_pkg.functions_pkg.all;
-library ddr2_rtl_pkg;
-use ddr2_rtl_pkg.ddr2_ctrl_pkg.all;
-use ddr2_rtl_pkg.ddr2_mrs_max_pkg.all;
-use ddr2_rtl_pkg.ddr2_ctrl_arbiter_top_pkg.all;
-use ddr2_rtl_pkg.ddr2_ctrl_ref_ctrl_pkg.all;
-use ddr2_rtl_pkg.ddr2_ctrl_mrs_ctrl_pkg.all;
-use ddr2_rtl_pkg.ddr2_ctrl_odt_ctrl_pkg.all;
-use ddr2_rtl_pkg.ddr2_ctrl_cmd_ctrl_pkg.all;
-use ddr2_rtl_pkg.ddr2_gen_ac_timing_pkg.all;
+library ddr2_ctrl_rtl_pkg;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_mrs_max_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_arbiter_top_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_ref_ctrl_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_mrs_ctrl_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_odt_ctrl_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_cmd_ctrl_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_gen_ac_timing_pkg.all;
 
 entity ddr2_ctrl_ctrl_top is
 generic (
