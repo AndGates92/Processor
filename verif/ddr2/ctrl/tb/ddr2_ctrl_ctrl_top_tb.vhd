@@ -455,6 +455,7 @@ begin
 			variable self_ref			: boolean;
 
 			variable stop_mrs_bank			: boolean;
+			variable auto_ref_req			: boolean;
 			variable end_col_cmd			: boolean;
 			variable ref_done_int			: boolean;
 			variable ref_done			: boolean;
@@ -644,6 +645,7 @@ begin
 
 					if (stop_mrs_bank = true) then
 						if ((MRSCtrlMRSReq_tb = '0') and (RefCtrlRefreshReq_tb = '0') and (RefCtrlNonReadOpEnable_tb = '1')) then -- Enable MRS/Bank ctrl after Refresh
+report "Reenable MRS bank cmd";
 							stop_mrs_bank := false;
 						end if;
 					else
@@ -671,6 +673,8 @@ begin
 
 									wait for 1 ps;
 
+report "Bank Act " & integer'image(mrs_bank_ctrl_bursts_int) & " out of " & integer'image(num_bursts_exp);
+
 								else
 									-- Transaction Controller
 									BankCtrlRowMemIn_tb <= (others => '0');
@@ -683,6 +687,7 @@ begin
 							if (mrs_bank_ctrl_req = true) then
 
 								if (BankCtrlCtrlAck_tb(bank_ctrl_bank) = '1') then
+
 									if (BankCtrlCtrlReq_tb(bank_ctrl_bank) = '1') then
 										BankCtrlCtrlReq_tb <= (others => '0');
 										mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
@@ -698,8 +703,9 @@ begin
 
 										bank_act_cnt := bank_act_cnt + 1;
 
-										if (MRSCtrlMRSReq_tb = '1') then
+										if ((MRSCtrlMRSReq_tb = '1') or (auto_ref_req = true)) then
 											stop_mrs_bank := true;
+											auto_ref_req := false;
 										end if;
 									else
 										mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
@@ -727,6 +733,8 @@ begin
 
 									ctrl_delay_cnt := 0;
 									mrs_bank_ctrl_req := true;
+
+report "MRS " & integer'image(mrs_bank_ctrl_bursts_int);
 
 									wait for 1 ps;
 								else
@@ -783,6 +791,7 @@ begin
 							if (ctrl_delay_cnt = bank_ctrl_delay_int) then 
 								ctrl_delay_cnt := 0;
 								mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
+report "No Command " & integer'image(mrs_bank_ctrl_bursts_int);
 							else
 								ctrl_delay_cnt := ctrl_delay_cnt + 1;
 							end if;
@@ -818,6 +827,8 @@ begin
 
 									col_cmd_delay_cnt := 0;
 									col_cmd_req := true;
+
+report "Col Command " & integer'image(col_cmd_bursts_int);
 
 								else
 
@@ -864,6 +875,7 @@ begin
 							end if;
 						end if;
 					else
+report "No Col Command " & integer'image(col_cmd_bursts_int);
 						end_col_cmd := true;
 					end if;
 
@@ -882,8 +894,16 @@ begin
 							if (ref_ctrl_auto_ref = true) then -- Auto refresh command: Wait RefreshReq to be set and wait a delay before moving on
 								if (ref_ctrl_req = false) then
 									if (RefCtrlRefreshReq_tb = '1') then
-										stop_mrs_bank := true;
+										if (BankCtrlCtrlReq_tb = ZERO_BANK_VEC) then
+											stop_mrs_bank := true;
+											auto_ref_req := false;
+										else
+											auto_ref_req := true;
+										end if;
 										ref_ctrl_req := true;
+
+report "Auto Ref Command " & integer'image(ref_cmd_bursts_int);
+
 									end if;
 								else
 									if (RefCtrlRefreshReq_tb = '0') then
@@ -911,6 +931,8 @@ begin
 
 										ref_delay_cnt := 0;
 										ref_ctrl_req := true;
+
+report "Self Ref Command " & integer'image(ref_cmd_bursts_int);
 
 										wait for 1 ps;
 									else
@@ -962,6 +984,7 @@ begin
 							end if;
 						end if;
 					else
+report "No Ref Command " & integer'image(ref_cmd_bursts_int);
 						ref_done := true;
 					end if;
 
@@ -1004,10 +1027,12 @@ begin
 				else
 
 					if (CmdDecCmdMem_tb = CMD_SELF_REF_ENTRY) then
+report "self ref cmd cnt " & integer'image(ref_cmd_cnt) & " cmd " & integer'image(to_integer(unsigned(CmdDecCmdMem_tb)));
 						ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
 						exp_self_ref_exit := true;
 						cmd_sent_in_self_ref := 0;
 					elsif (CmdDecCmdMem_tb = CMD_AUTO_REF) then
+report "auto ref cmd cnt " & integer'image(ref_cmd_cnt) & " cmd " & integer'image(to_integer(unsigned(CmdDecCmdMem_tb)));
 						ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
 						ref_cmd_rtl(ref_cmd_cnt, 1) := to_integer(unsigned(CMD_NOP));
 						exp_self_ref_exit := false;
@@ -1015,12 +1040,14 @@ begin
 						cmd_sent_in_self_ref_err(ref_cmd_cnt) := cmd_sent_in_self_ref;
 						ref_cmd_cnt := ref_cmd_cnt + 1;
 					elsif ((CmdDecCmdMem_tb = CMD_READ_PRECHARGE) or (CmdDecCmdMem_tb = CMD_WRITE_PRECHARGE)) then
+report "col cmd cnt " & integer'image(col_cmd_cnt) & " col cmd bl cnt " & integer'image(col_cmd_bl_cnt) & " cmd " & integer'image(to_integer(unsigned(CmdDecCmdMem_tb))) & " bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb)));
 						col_cmd_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
 						col_ctrl_bank_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecBankMem_tb));
 						col_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecColMem_tb));
 						col_cmd_cnt := col_cmd_cnt + 1;
 						col_cmd_bl_cnt := 0;
 					elsif ((CmdDecCmdMem_tb = CMD_READ) or (CmdDecCmdMem_tb = CMD_WRITE)) then
+report "col cmd cnt " & integer'image(col_cmd_cnt) & " col cmd bl cnt " & integer'image(col_cmd_bl_cnt) & " cmd " & integer'image(to_integer(unsigned(CmdDecCmdMem_tb))) & " bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb)));
 						col_cmd_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
 						col_ctrl_bank_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecBankMem_tb));
 						col_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecColMem_tb));
