@@ -1012,15 +1012,10 @@ begin
 				else
 
 					if (CmdDecCmdMem_tb = CMD_SELF_REF_ENTRY) then
-
-report "MRS/Bank " & integer'image(mrs_bank_ctrl_bursts_int) & " col " & integer'image(col_cmd_bursts_int) & " ref " & integer'image(ref_cmd_bursts_int) & " exp " & integer'image(num_bursts_exp) & " RTL cmd col " & integer'image(col_cmd_cnt) & " bank " & integer'image(bank_act_cnt) & " ref " & integer'image(ref_cmd_cnt) & " ref exp " & integer'image(ref_cnt_exp);
-report "self ref cmd cnt " & integer'image(ref_cmd_cnt) & " cmd " & integer'image(to_integer(unsigned(CmdDecCmdMem_tb)));
 						ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
 						exp_self_ref_exit := true;
 						cmd_sent_in_self_ref := 0;
 					elsif (CmdDecCmdMem_tb = CMD_AUTO_REF) then
-report "MRS/Bank " & integer'image(mrs_bank_ctrl_bursts_int) & " col " & integer'image(col_cmd_bursts_int) & " ref " & integer'image(ref_cmd_bursts_int) & " exp " & integer'image(num_bursts_exp) & " RTL cmd col " & integer'image(col_cmd_cnt) & " bank " & integer'image(bank_act_cnt) & " ref " & integer'image(ref_cmd_cnt) & " ref exp " & integer'image(ref_cnt_exp);
-report "auto ref cmd cnt " & integer'image(ref_cmd_cnt) & " cmd " & integer'image(to_integer(unsigned(CmdDecCmdMem_tb)));
 						-- Auto Refresh may also happens because couter reaches 0 and not caused by the test
 						if (ref_cmd_cnt < ref_cnt_exp) then
 							ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
@@ -1031,16 +1026,12 @@ report "auto ref cmd cnt " & integer'image(ref_cmd_cnt) & " cmd " & integer'imag
 							ref_cmd_cnt := ref_cmd_cnt + 1;
 						end if;
 					elsif ((CmdDecCmdMem_tb = CMD_READ_PRECHARGE) or (CmdDecCmdMem_tb = CMD_WRITE_PRECHARGE)) then
-report "MRS/Bank " & integer'image(mrs_bank_ctrl_bursts_int) & " col " & integer'image(col_cmd_bursts_int) & " ref " & integer'image(ref_cmd_bursts_int) & " exp " & integer'image(num_bursts_exp) & " RTL cmd col " & integer'image(col_cmd_cnt) & " bank " & integer'image(bank_act_cnt) & " ref " & integer'image(ref_cmd_cnt) & " ref exp " & integer'image(ref_cnt_exp);
-report "col cmd cnt " & integer'image(col_cmd_cnt) & " col cmd bl cnt " & integer'image(col_cmd_bl_cnt) & " cmd " & integer'image(to_integer(unsigned(CmdDecCmdMem_tb))) & " bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb)));
 						col_cmd_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
 						col_ctrl_bank_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecBankMem_tb));
 						col_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecColMem_tb));
 						col_cmd_cnt := col_cmd_cnt + 1;
 						col_cmd_bl_cnt := 0;
 					elsif ((CmdDecCmdMem_tb = CMD_READ) or (CmdDecCmdMem_tb = CMD_WRITE)) then
-report "MRS/Bank " & integer'image(mrs_bank_ctrl_bursts_int) & " col " & integer'image(col_cmd_bursts_int) & " ref " & integer'image(ref_cmd_bursts_int) & " exp " & integer'image(num_bursts_exp) & " RTL cmd col " & integer'image(col_cmd_cnt) & " bank " & integer'image(bank_act_cnt) & " ref " & integer'image(ref_cmd_cnt) & " ref exp " & integer'image(ref_cnt_exp);
-report "col cmd cnt " & integer'image(col_cmd_cnt) & " col cmd bl cnt " & integer'image(col_cmd_bl_cnt) & " cmd " & integer'image(to_integer(unsigned(CmdDecCmdMem_tb))) & " bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb)));
 						col_cmd_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
 						col_ctrl_bank_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecBankMem_tb));
 						col_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecColMem_tb));
