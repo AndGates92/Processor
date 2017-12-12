@@ -883,6 +883,7 @@ begin
 
 						if (ref_done = false) then
 							if (ref_ctrl_auto_ref = true) then -- Auto refresh command: Wait RefreshReq to be set and wait a delay before moving on
+								RefCtrlCtrlReq_tb <= '0';
 								if (ref_ctrl_req = false) then
 									if (RefCtrlRefreshReq_tb = '1') then
 										if (BankCtrlCtrlReq_tb = ZERO_BANK_VEC) then
@@ -1005,6 +1006,8 @@ begin
 						cmd_sent_in_self_ref := 0;
 						ref_cmd_cnt := ref_cmd_cnt + 1;
 						exp_self_ref_exit := false;
+
+report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " & integer'image(ref_cmd_cnt) & " ref cnt exp " & integer'image(ref_cnt_exp);
 					elsif ((CmdDecCmdMem_tb /= CMD_NOP) and (CmdDecCmdMem_tb /= CMD_DESEL)) then
 						cmd_sent_in_self_ref := cmd_sent_in_self_ref + 1;
 					end if;
@@ -1015,9 +1018,10 @@ begin
 						ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
 						exp_self_ref_exit := true;
 						cmd_sent_in_self_ref := 0;
+report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " & integer'image(ref_cmd_cnt) & " ref cnt exp " & integer'image(ref_cnt_exp);
 					elsif (CmdDecCmdMem_tb = CMD_AUTO_REF) then
 						-- Auto Refresh may also happens because couter reaches 0 and not caused by the test
-						if (ref_cmd_cnt < ref_cnt_exp) then
+						if (ref_cmd_cnt <= ref_cnt_exp) then
 							ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
 							ref_cmd_rtl(ref_cmd_cnt, 1) := to_integer(unsigned(CMD_NOP));
 							exp_self_ref_exit := false;
@@ -1025,7 +1029,9 @@ begin
 							cmd_sent_in_self_ref_err(ref_cmd_cnt) := cmd_sent_in_self_ref;
 							ref_cmd_cnt := ref_cmd_cnt + 1;
 						end if;
+report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " & integer'image(ref_cmd_cnt) & " ref cnt exp " & integer'image(ref_cnt_exp);
 					elsif ((CmdDecCmdMem_tb = CMD_READ_PRECHARGE) or (CmdDecCmdMem_tb = CMD_WRITE_PRECHARGE)) then
+report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb))) & " Col " & integer'image(to_integer(unsigned(CmdDecColMem_tb))) & " bl cnt " & integer'image(0) & " col cnt " & integer'image(col_cmd_cnt) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
 						col_cmd_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
 						col_ctrl_bank_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecBankMem_tb));
 						col_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecColMem_tb));
@@ -1036,13 +1042,16 @@ begin
 						col_ctrl_bank_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecBankMem_tb));
 						col_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecColMem_tb));
 						col_cmd_bl_cnt := col_cmd_bl_cnt + 1;
+report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb))) & " Col " & integer'image(to_integer(unsigned(CmdDecColMem_tb))) & " bl cnt " & integer'image(col_cmd_bl_cnt) & " col cnt " & integer'image(col_cmd_cnt) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
 					elsif (CmdDecCmdMem_tb = CMD_BANK_ACT) then
+report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb))) & " Row " & integer'image(to_integer(unsigned(CmdDecRowMem_tb))) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
 						bank_ctrl_row_rtl(to_integer(unsigned(CmdDecBankMem_tb)), bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb)))) := to_integer(unsigned(CmdDecRowMem_tb));
 						bank_ctrl_mrs_rtl(to_integer(unsigned(CmdDecBankMem_tb)), bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb)))) := 0;
 						bank_ctrl_cmd_rtl(to_integer(unsigned(CmdDecBankMem_tb)), bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb)))) := to_integer(unsigned(CmdDecCmdMem_tb));
 
 						bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb))) := bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb))) + 1;
 					elsif ((CmdDecCmdMem_tb = CMD_MODE_REG_SET) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_1) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_2) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_3)) then
+report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Data " & integer'image(to_integer(unsigned(CmdDecMRSCmd_tb)));
 						mrs_ctrl_bank_rtl(mrs_cmd_cnt) := 0;
 						mrs_ctrl_row_rtl(mrs_cmd_cnt) := 0;
 						mrs_ctrl_mrs_rtl(mrs_cmd_cnt) := to_integer(unsigned(CmdDecMRSCmd_tb));
@@ -1151,6 +1160,7 @@ begin
 						end if;
 					end loop;
 				end loop;
+				pass := 0;
 			elsif (match_bank_ctrl_rows = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller Row mismatch)"));
 				writeline(file_pointer, file_line);
@@ -1160,6 +1170,7 @@ begin
 						writeline(file_pointer, file_line);
 					end loop;
 				end loop;
+				pass := 0;
 			elsif (match_bank_ctrl_mrs = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller MRS Data mismatch)"));
 				writeline(file_pointer, file_line);
@@ -1169,6 +1180,7 @@ begin
 						writeline(file_pointer, file_line);
 					end loop;
 				end loop;
+				pass := 0;
 			elsif (no_bank_ctrl_err = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller Handshake Error)"));
 				writeline(file_pointer, file_line);
@@ -1186,6 +1198,7 @@ begin
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
+				pass := 0;
 			elsif (match_mrs_ctrl_bank = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller Bank mismatch)"));
 				writeline(file_pointer, file_line);
@@ -1195,6 +1208,7 @@ begin
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
+				pass := 0;
 			elsif (match_mrs_ctrl_rows = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller Row mismatch)"));
 				writeline(file_pointer, file_line);
@@ -1202,6 +1216,7 @@ begin
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Row exp " & integer'image(mrs_ctrl_row_exp(i)) & " vs rtl " & integer'image(mrs_ctrl_row_rtl(i))));
 					writeline(file_pointer, file_line);
 				end loop;
+				pass := 0;
 			elsif (match_mrs_ctrl_mrs = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller MRS Data mismatch)"));
 				writeline(file_pointer, file_line);
@@ -1209,6 +1224,7 @@ begin
 					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: MRS data exp " & integer'image(mrs_ctrl_mrs_exp(i)) & " vs rtl " & integer'image(mrs_ctrl_mrs_rtl(i))));
 					writeline(file_pointer, file_line);
 				end loop;
+				pass := 0;
 			elsif (no_mrs_ctrl_err = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller Handshake Error)"));
 				writeline(file_pointer, file_line);
@@ -1217,7 +1233,6 @@ begin
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
-
 			elsif (match_ref_cmd = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Refresh Command mismatch)"));
 				writeline(file_pointer, file_line);
@@ -1229,6 +1244,7 @@ begin
 						end if;
 					end loop;
 				end loop;
+				pass := 0;
 			elsif (match_col_cmd = false) then
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Column Command mismatch)"));
 				writeline(file_pointer, file_line);
@@ -1310,6 +1326,7 @@ begin
 			else
 				write(file_line, string'( "PHY Controller Top Level: FAIL (Unknown Command)"));
 				writeline(file_pointer, file_line);
+				pass := 0;
 			end if;
 		end procedure verify;
 
