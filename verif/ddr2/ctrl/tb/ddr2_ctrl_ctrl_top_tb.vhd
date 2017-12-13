@@ -625,7 +625,7 @@ begin
 
 				wait until ((clk_tb = '1') and (clk_tb'event));
 
-				exit ctrl_top_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (col_cmd_bursts_int = num_bursts_exp) and (ref_cmd_bursts_int = num_bursts_exp) and (col_cmd_cnt = bank_act_cnt) and (ref_cmd_cnt = ref_cnt_exp));
+				exit ctrl_top_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (col_cmd_bursts_int = num_bursts_exp) and (ref_cmd_bursts_int = num_bursts_exp) and (col_cmd_cnt = bank_act_cnt) and (ref_cmd_cnt = ref_cnt_exp) and (mrs_cmd_cnt = mrs_cnt_exp));
 
 				wait for 1 ps;
 
@@ -1417,6 +1417,8 @@ report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Data " & i
 
 		write(file_line, string'( "PHY Controller Top Level Test"));
 		writeline(file_pointer, file_line);
+
+		pass := 1;
 
 		for i in 0 to NUM_TESTS-1 loop
 
