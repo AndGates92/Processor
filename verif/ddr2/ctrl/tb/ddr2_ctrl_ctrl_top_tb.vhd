@@ -455,7 +455,6 @@ begin
 			variable self_ref			: boolean;
 
 			variable stop_mrs_bank			: boolean;
-			variable auto_ref_req			: boolean;
 			variable end_col_cmd			: boolean;
 			variable ref_done_int			: boolean;
 			variable ref_done			: boolean;
@@ -643,11 +642,7 @@ begin
 					bank_ctrl_delay_int := ctrl_delay(mrs_bank_ctrl_bursts_int);
 					mrs_cmd_delay_int := cmd_delay(mrs_bank_ctrl_bursts_int);
 
-					if (stop_mrs_bank = true) then
-						if ((MRSCtrlMRSReq_tb = '0') and (RefCtrlRefreshReq_tb = '0') and (RefCtrlNonReadOpEnable_tb = '1')) then -- Enable MRS/Bank ctrl after Refresh
-							stop_mrs_bank := false;
-						end if;
-					else
+					if (stop_mrs_bank = false) then
 						if (rw_burst_bank = true) then
 
 							MRSCtrlCtrlReq_tb <= '0';
@@ -681,40 +676,6 @@ begin
 
 							end if;
 
-							if (mrs_bank_ctrl_req = true) then
-
-								if (BankCtrlCtrlAck_tb(bank_ctrl_bank) = '1') then
-
-									if (BankCtrlCtrlReq_tb(bank_ctrl_bank) = '1') then
-										BankCtrlCtrlReq_tb <= (others => '0');
-										mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
-										mrs_bank_ctrl_req := false;
-										bank_ctrl_err_arr(bank_act_cnt) := mrs_bank_ctrl_err_int;
-										mrs_bank_ctrl_err_int := 0;
-
-										bank_ctrl_row_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := bank_ctrl_row;
-										bank_ctrl_mrs_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := 0;
-										bank_ctrl_cmd_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := to_integer(unsigned(CMD_BANK_ACT));
-
-										bank_ctrl_cnt_exp(bank_ctrl_bank) := bank_ctrl_cnt_exp(bank_ctrl_bank) + 1;
-
-										bank_act_cnt := bank_act_cnt + 1;
-
-										if ((MRSCtrlMRSReq_tb = '1') or (auto_ref_req = true)) then
-											stop_mrs_bank := true;
-											auto_ref_req := false;
-										end if;
-									else
-										mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
-									end if; 
-								else
-									if ((BankCtrlCtrlAck_tb /= ZERO_BANK_VEC) and (BankCtrlCtrlReq_tb = ZERO_BANK_VEC)) then
-										mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
-									end if;
-								end if;
-
-							end if;
-
 						elsif (mrs_ctrl_en = true) then
 
 							BankCtrlCtrlReq_tb <= (others => '0');
@@ -743,38 +704,6 @@ begin
 
 							end if;
 
-							if (mrs_bank_ctrl_req = true) then
-
-								if (MRSCtrlCtrlAck_tb = '1') then
-									if (MRSCtrlCtrlReq_tb = '1') then
-
-										MRSCtrlCtrlReq_tb <= '0';
-										mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
-										mrs_bank_ctrl_req := false;
-										mrs_ctrl_err_arr(mrs_cnt_exp) := mrs_bank_ctrl_err_int;
-										mrs_bank_ctrl_err_int := 0;
-
-										mrs_ctrl_bank_exp(mrs_cnt_exp) := 0;
-										mrs_ctrl_row_exp(mrs_cnt_exp) := 0;
-										mrs_ctrl_mrs_exp(mrs_cnt_exp) := mrs_ctrl_data;
-										mrs_ctrl_cmd_exp(mrs_cnt_exp) := mrs_ctrl_cmd;
-
-										mrs_cnt_exp := mrs_cnt_exp + 1;
-
-										if (MRSCtrlMRSReq_tb = '1') then
-											stop_mrs_bank := true;
-										end if;
-									else
-										mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
-									end if; 
-								else
-									if ((MRSCtrlCtrlAck_tb = '1') and (MRSCtrlCtrlReq_tb = '0')) then
-										mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
-									end if;
-								end if;
-
-							end if;
-
 						else
 
 							BankCtrlCtrlReq_tb <= (others => '0');
@@ -795,6 +724,66 @@ begin
 					end if;
 
 				end if;
+
+				if (mrs_bank_ctrl_req = true) then
+
+					if (MRSCtrlCtrlAck_tb = '1') then
+						if (MRSCtrlCtrlReq_tb = '1') then
+
+							MRSCtrlCtrlReq_tb <= '0';
+							mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
+							mrs_bank_ctrl_req := false;
+							mrs_ctrl_err_arr(mrs_cnt_exp) := mrs_bank_ctrl_err_int;
+							mrs_bank_ctrl_err_int := 0;
+
+							mrs_ctrl_bank_exp(mrs_cnt_exp) := 0;
+							mrs_ctrl_row_exp(mrs_cnt_exp) := 0;
+							mrs_ctrl_mrs_exp(mrs_cnt_exp) := mrs_ctrl_data;
+							mrs_ctrl_cmd_exp(mrs_cnt_exp) := mrs_ctrl_cmd;
+
+							mrs_cnt_exp := mrs_cnt_exp + 1;
+
+							if (MRSCtrlMRSReq_tb = '1') then
+								stop_mrs_bank := true;
+							end if;
+						else
+							mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+						end if; 
+					else
+						if ((MRSCtrlCtrlAck_tb = '1') and (MRSCtrlCtrlReq_tb = '0')) then
+							mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+						end if;
+					end if;
+
+					if (BankCtrlCtrlAck_tb(bank_ctrl_bank) = '1') then
+
+						if (BankCtrlCtrlReq_tb(bank_ctrl_bank) = '1') then
+							BankCtrlCtrlReq_tb <= (others => '0');
+							mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
+							mrs_bank_ctrl_req := false;
+							bank_ctrl_err_arr(bank_act_cnt) := mrs_bank_ctrl_err_int;
+							mrs_bank_ctrl_err_int := 0;
+
+							bank_ctrl_row_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := bank_ctrl_row;
+							bank_ctrl_mrs_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := 0;
+							bank_ctrl_cmd_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := to_integer(unsigned(CMD_BANK_ACT));
+
+							bank_ctrl_cnt_exp(bank_ctrl_bank) := bank_ctrl_cnt_exp(bank_ctrl_bank) + 1;
+
+							bank_act_cnt := bank_act_cnt + 1;
+
+						else
+							mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+						end if; 
+					else
+						if ((BankCtrlCtrlAck_tb /= ZERO_BANK_VEC) and (BankCtrlCtrlReq_tb = ZERO_BANK_VEC)) then
+							mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+						end if;
+					end if;
+
+				end if;
+
+
 
 				if ((col_cmd_bursts_int < mrs_bank_ctrl_bursts_int) and (col_cmd_bursts_int < num_bursts_exp)) then
 
@@ -886,12 +875,7 @@ begin
 								RefCtrlCtrlReq_tb <= '0';
 								if (ref_ctrl_req = false) then
 									if (RefCtrlRefreshReq_tb = '1') then
-										if (BankCtrlCtrlReq_tb = ZERO_BANK_VEC) then
-											stop_mrs_bank := true;
-											auto_ref_req := false;
-										else
-											auto_ref_req := true;
-										end if;
+										stop_mrs_bank := true;
 										ref_ctrl_req := true;
 									end if;
 								else
@@ -1021,7 +1005,7 @@ report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " 
 report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " & integer'image(ref_cmd_cnt) & " ref cnt exp " & integer'image(ref_cnt_exp);
 					elsif (CmdDecCmdMem_tb = CMD_AUTO_REF) then
 						-- Auto Refresh may also happens because couter reaches 0 and not caused by the test
-						if (ref_cmd_cnt <= ref_cnt_exp) then
+						if (ref_cmd_cnt < ref_cnt_exp) then
 							ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
 							ref_cmd_rtl(ref_cmd_cnt, 1) := to_integer(unsigned(CMD_NOP));
 							exp_self_ref_exit := false;
@@ -1030,6 +1014,9 @@ report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " 
 							ref_cmd_cnt := ref_cmd_cnt + 1;
 						end if;
 report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " & integer'image(ref_cmd_cnt) & " ref cnt exp " & integer'image(ref_cnt_exp);
+report "mrs cnt " & integer'image(mrs_cmd_cnt) & " mrs cnt exp " & integer'image(mrs_cnt_exp);
+report "Col cnt " & integer'image(col_cmd_cnt) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
+report "stop bank " & bool_to_str(stop_mrs_bank) & " mrs/bank cmd " & integer'image(mrs_bank_ctrl_bursts_int) & " col cmd " & integer'image(col_cmd_bursts_int) & " ref cmd " & integer'image(ref_cmd_bursts_int);
 					elsif ((CmdDecCmdMem_tb = CMD_READ_PRECHARGE) or (CmdDecCmdMem_tb = CMD_WRITE_PRECHARGE)) then
 report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb))) & " Col " & integer'image(to_integer(unsigned(CmdDecColMem_tb))) & " bl cnt " & integer'image(0) & " col cnt " & integer'image(col_cmd_cnt) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
 						col_cmd_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
@@ -1051,7 +1038,7 @@ report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & i
 
 						bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb))) := bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb))) + 1;
 					elsif ((CmdDecCmdMem_tb = CMD_MODE_REG_SET) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_1) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_2) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_3)) then
-report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Data " & integer'image(to_integer(unsigned(CmdDecMRSCmd_tb)));
+report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Data " & integer'image(to_integer(unsigned(CmdDecMRSCmd_tb))) & " MRS cnt " & integer'image(mrs_cmd_cnt) & " exp " & integer'image(mrs_cnt_exp);
 						mrs_ctrl_bank_rtl(mrs_cmd_cnt) := 0;
 						mrs_ctrl_row_rtl(mrs_cmd_cnt) := 0;
 						mrs_ctrl_mrs_rtl(mrs_cmd_cnt) := to_integer(unsigned(CmdDecMRSCmd_tb));
@@ -1059,6 +1046,12 @@ report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Data " & i
 						mrs_cmd_cnt := mrs_cmd_cnt + 1;
 					end if;
 
+				end if;
+
+				if (stop_mrs_bank = true) then
+					if ((MRSCtrlMRSReq_tb = '0') and (RefCtrlRefreshReq_tb = '0') and (RefCtrlNonReadOpEnable_tb = '1')) then -- Enable MRS/Bank ctrl after Refresh
+						stop_mrs_bank := false;
+					end if;
 				end if;
 
 			end loop;
