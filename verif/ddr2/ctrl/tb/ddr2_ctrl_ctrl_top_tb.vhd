@@ -642,6 +642,8 @@ begin
 					bank_ctrl_delay_int := ctrl_delay(mrs_bank_ctrl_bursts_int);
 					mrs_cmd_delay_int := cmd_delay(mrs_bank_ctrl_bursts_int);
 
+report "bank_ctrl_bank " & integer'image(bank_ctrl_bank) & " MRS/Bank " & integer'image(mrs_bank_ctrl_bursts_int) & " num_bursts_exp " & integer'image(num_bursts_exp);
+
 					if (stop_mrs_bank = false) then
 						if (rw_burst_bank = true) then
 
@@ -723,66 +725,70 @@ begin
 
 					end if;
 
-				end if;
+					if (mrs_bank_ctrl_req = true) then
 
-				if (mrs_bank_ctrl_req = true) then
+						if (rw_burst_bank = true) then
 
-					if (MRSCtrlCtrlAck_tb = '1') then
-						if (MRSCtrlCtrlReq_tb = '1') then
+							if (BankCtrlCtrlAck_tb(bank_ctrl_bank) = '1') then
 
-							MRSCtrlCtrlReq_tb <= '0';
-							mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
-							mrs_bank_ctrl_req := false;
-							mrs_ctrl_err_arr(mrs_cnt_exp) := mrs_bank_ctrl_err_int;
-							mrs_bank_ctrl_err_int := 0;
+								if (BankCtrlCtrlReq_tb(bank_ctrl_bank) = '1') then
+									BankCtrlCtrlReq_tb <= (others => '0');
+									mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
+									mrs_bank_ctrl_req := false;
+									bank_ctrl_err_arr(bank_act_cnt) := mrs_bank_ctrl_err_int;
+									mrs_bank_ctrl_err_int := 0;
 
-							mrs_ctrl_bank_exp(mrs_cnt_exp) := 0;
-							mrs_ctrl_row_exp(mrs_cnt_exp) := 0;
-							mrs_ctrl_mrs_exp(mrs_cnt_exp) := mrs_ctrl_data;
-							mrs_ctrl_cmd_exp(mrs_cnt_exp) := mrs_ctrl_cmd;
+									bank_ctrl_row_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := bank_ctrl_row;
+									bank_ctrl_mrs_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := 0;
+									bank_ctrl_cmd_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := to_integer(unsigned(CMD_BANK_ACT));
 
-							mrs_cnt_exp := mrs_cnt_exp + 1;
+									bank_ctrl_cnt_exp(bank_ctrl_bank) := bank_ctrl_cnt_exp(bank_ctrl_bank) + 1;
 
-							if (MRSCtrlMRSReq_tb = '1') then
-								stop_mrs_bank := true;
+									bank_act_cnt := bank_act_cnt + 1;
+
+								else
+									mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+								end if; 
+							else
+								if ((BankCtrlCtrlAck_tb /= ZERO_BANK_VEC) and (BankCtrlCtrlReq_tb = ZERO_BANK_VEC)) then
+									mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+								end if;
 							end if;
-						else
-							mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
-						end if; 
-					else
-						if ((MRSCtrlCtrlAck_tb = '1') and (MRSCtrlCtrlReq_tb = '0')) then
-							mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+
+						elsif (mrs_ctrl_en = true) then
+
+							if (MRSCtrlCtrlAck_tb = '1') then
+								if (MRSCtrlCtrlReq_tb = '1') then
+
+									MRSCtrlCtrlReq_tb <= '0';
+									mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
+									mrs_bank_ctrl_req := false;
+									mrs_ctrl_err_arr(mrs_cnt_exp) := mrs_bank_ctrl_err_int;
+									mrs_bank_ctrl_err_int := 0;
+
+									mrs_ctrl_bank_exp(mrs_cnt_exp) := 0;
+									mrs_ctrl_row_exp(mrs_cnt_exp) := 0;
+									mrs_ctrl_mrs_exp(mrs_cnt_exp) := mrs_ctrl_data;
+									mrs_ctrl_cmd_exp(mrs_cnt_exp) := mrs_ctrl_cmd;
+
+									mrs_cnt_exp := mrs_cnt_exp + 1;
+
+									if (MRSCtrlMRSReq_tb = '1') then
+										stop_mrs_bank := true;
+									end if;
+								else
+									mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+								end if; 
+							else
+								if ((MRSCtrlCtrlAck_tb = '1') and (MRSCtrlCtrlReq_tb = '0')) then
+									mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
+								end if;
+							end if;
+
 						end if;
+
 					end if;
-
-					if (BankCtrlCtrlAck_tb(bank_ctrl_bank) = '1') then
-
-						if (BankCtrlCtrlReq_tb(bank_ctrl_bank) = '1') then
-							BankCtrlCtrlReq_tb <= (others => '0');
-							mrs_bank_ctrl_handshake(mrs_bank_ctrl_bursts_int) := true;
-							mrs_bank_ctrl_req := false;
-							bank_ctrl_err_arr(bank_act_cnt) := mrs_bank_ctrl_err_int;
-							mrs_bank_ctrl_err_int := 0;
-
-							bank_ctrl_row_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := bank_ctrl_row;
-							bank_ctrl_mrs_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := 0;
-							bank_ctrl_cmd_exp(bank_ctrl_bank, bank_ctrl_cnt_exp(bank_ctrl_bank)) := to_integer(unsigned(CMD_BANK_ACT));
-
-							bank_ctrl_cnt_exp(bank_ctrl_bank) := bank_ctrl_cnt_exp(bank_ctrl_bank) + 1;
-
-							bank_act_cnt := bank_act_cnt + 1;
-
-						else
-							mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
-						end if; 
-					else
-						if ((BankCtrlCtrlAck_tb /= ZERO_BANK_VEC) and (BankCtrlCtrlReq_tb = ZERO_BANK_VEC)) then
-							mrs_bank_ctrl_err_int := mrs_bank_ctrl_err_int + 1;
-						end if;
-					end if;
-
 				end if;
-
 
 
 				if ((col_cmd_bursts_int < mrs_bank_ctrl_bursts_int) and (col_cmd_bursts_int < num_bursts_exp)) then
