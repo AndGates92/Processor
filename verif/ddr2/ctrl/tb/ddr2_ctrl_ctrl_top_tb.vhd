@@ -27,7 +27,7 @@ end entity ddr2_ctrl_ctrl_top_tb;
 architecture bench of ddr2_ctrl_ctrl_top_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TESTS		: integer := 1000;
+	constant NUM_TESTS		: integer := 1; --1000;
 	constant NUM_EXTRA_TESTS	: integer := 0;
 	constant TOT_NUM_TESTS		: integer := NUM_TESTS + NUM_EXTRA_TESTS;
 	constant MAX_ATTEMPTS		: integer := 20;
@@ -479,6 +479,9 @@ begin
 			variable col_cmd_cnt			: integer;
 			variable ref_cmd_cnt			: integer;
 
+			variable mrs_cnt			: integer;
+			variable ref_cnt			: integer;
+
 			variable mrs_cnt_exp			: integer;
 			variable col_cnt_exp			: integer;
 			variable ref_cnt_exp			: integer;
@@ -610,6 +613,9 @@ begin
 			col_cmd_cnt := 0;
 			ref_cmd_cnt := 0;
 
+			mrs_cnt := 0;
+			ref_cnt := 0;
+
 			mrs_cnt_exp := 0;
 			col_cnt_exp := 0;
 			ref_cnt_exp := 0;
@@ -624,7 +630,7 @@ begin
 
 				wait until ((clk_tb = '1') and (clk_tb'event));
 
-				exit ctrl_top_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (col_cmd_bursts_int = num_bursts_exp) and (ref_cmd_bursts_int = num_bursts_exp) and (col_cmd_cnt = bank_act_cnt) and (ref_cmd_cnt = ref_cnt_exp) and (mrs_cmd_cnt = mrs_cnt_exp));
+				exit ctrl_top_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (col_cmd_bursts_int = num_bursts_exp) and (ref_cmd_bursts_int = num_bursts_exp) and (col_cmd_cnt = bank_act_cnt) and (ref_cmd_cnt = ref_cnt) and (mrs_cmd_cnt = mrs_cnt));
 
 				wait for 1 ps;
 
@@ -641,8 +647,6 @@ begin
 
 					bank_ctrl_delay_int := ctrl_delay(mrs_bank_ctrl_bursts_int);
 					mrs_cmd_delay_int := cmd_delay(mrs_bank_ctrl_bursts_int);
-
-report "bank_ctrl_bank " & integer'image(bank_ctrl_bank) & " MRS/Bank " & integer'image(mrs_bank_ctrl_bursts_int) & " num_bursts_exp " & integer'image(num_bursts_exp);
 
 					if (stop_mrs_bank = false) then
 						if (rw_burst_bank = true) then
@@ -693,6 +697,8 @@ report "bank_ctrl_bank " & integer'image(bank_ctrl_bank) & " MRS/Bank " & intege
 
 									ctrl_delay_cnt := 0;
 									mrs_bank_ctrl_req := true;
+
+									mrs_cnt := mrs_cnt + 1;
 
 									wait for 1 ps;
 								else
@@ -883,6 +889,7 @@ report "bank_ctrl_bank " & integer'image(bank_ctrl_bank) & " MRS/Bank " & intege
 									if (RefCtrlRefreshReq_tb = '1') then
 										stop_mrs_bank := true;
 										ref_ctrl_req := true;
+										ref_cnt := ref_cnt + 1;
 									end if;
 								else
 									if (RefCtrlRefreshReq_tb = '0') then
@@ -910,6 +917,8 @@ report "bank_ctrl_bank " & integer'image(bank_ctrl_bank) & " MRS/Bank " & intege
 
 										ref_delay_cnt := 0;
 										ref_ctrl_req := true;
+
+										ref_cnt := ref_cnt + 1;
 
 										wait for 1 ps;
 									else
@@ -1008,10 +1017,10 @@ report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " 
 						ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
 						exp_self_ref_exit := true;
 						cmd_sent_in_self_ref := 0;
-report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " & integer'image(ref_cmd_cnt) & " ref cnt exp " & integer'image(ref_cnt_exp);
+report "Refresh Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " & integer'image(ref_cmd_cnt) & " ref cnt exp " & integer'image(ref_cnt_exp);
 					elsif (CmdDecCmdMem_tb = CMD_AUTO_REF) then
 						-- Auto Refresh may also happens because couter reaches 0 and not caused by the test
-						if (ref_cmd_cnt < ref_cnt_exp) then
+						if (ref_cmd_cnt < ref_cnt) then
 							ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
 							ref_cmd_rtl(ref_cmd_cnt, 1) := to_integer(unsigned(CMD_NOP));
 							exp_self_ref_exit := false;
@@ -1019,12 +1028,12 @@ report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " 
 							cmd_sent_in_self_ref_err(ref_cmd_cnt) := cmd_sent_in_self_ref;
 							ref_cmd_cnt := ref_cmd_cnt + 1;
 						end if;
-report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " & integer'image(ref_cmd_cnt) & " ref cnt exp " & integer'image(ref_cnt_exp);
+report "Refresh Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " ref cnt " & integer'image(ref_cmd_cnt) & " ref cnt exp " & integer'image(ref_cnt_exp);
 report "mrs cnt " & integer'image(mrs_cmd_cnt) & " mrs cnt exp " & integer'image(mrs_cnt_exp);
 report "Col cnt " & integer'image(col_cmd_cnt) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
 report "stop bank " & bool_to_str(stop_mrs_bank) & " mrs/bank cmd " & integer'image(mrs_bank_ctrl_bursts_int) & " col cmd " & integer'image(col_cmd_bursts_int) & " ref cmd " & integer'image(ref_cmd_bursts_int);
 					elsif ((CmdDecCmdMem_tb = CMD_READ_PRECHARGE) or (CmdDecCmdMem_tb = CMD_WRITE_PRECHARGE)) then
-report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb))) & " Col " & integer'image(to_integer(unsigned(CmdDecColMem_tb))) & " bl cnt " & integer'image(0) & " col cnt " & integer'image(col_cmd_cnt) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
+-- report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb))) & " Col " & integer'image(to_integer(unsigned(CmdDecColMem_tb))) & " bl cnt " & integer'image(0) & " col cnt " & integer'image(col_cmd_cnt) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
 						col_cmd_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
 						col_ctrl_bank_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecBankMem_tb));
 						col_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecColMem_tb));
@@ -1035,16 +1044,16 @@ report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & i
 						col_ctrl_bank_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecBankMem_tb));
 						col_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecColMem_tb));
 						col_cmd_bl_cnt := col_cmd_bl_cnt + 1;
-report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb))) & " Col " & integer'image(to_integer(unsigned(CmdDecColMem_tb))) & " bl cnt " & integer'image(col_cmd_bl_cnt) & " col cnt " & integer'image(col_cmd_cnt) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
+-- report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb))) & " Col " & integer'image(to_integer(unsigned(CmdDecColMem_tb))) & " bl cnt " & integer'image(col_cmd_bl_cnt) & " col cnt " & integer'image(col_cmd_cnt) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
 					elsif (CmdDecCmdMem_tb = CMD_BANK_ACT) then
-report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb))) & " Row " & integer'image(to_integer(unsigned(CmdDecRowMem_tb))) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
+-- report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Bank " & integer'image(to_integer(unsigned(CmdDecBankMem_tb))) & " Row " & integer'image(to_integer(unsigned(CmdDecRowMem_tb))) & " bank act " & integer'image(bank_act_cnt) &  " max col cmd " & integer'image(num_bursts_exp);
 						bank_ctrl_row_rtl(to_integer(unsigned(CmdDecBankMem_tb)), bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb)))) := to_integer(unsigned(CmdDecRowMem_tb));
 						bank_ctrl_mrs_rtl(to_integer(unsigned(CmdDecBankMem_tb)), bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb)))) := 0;
 						bank_ctrl_cmd_rtl(to_integer(unsigned(CmdDecBankMem_tb)), bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb)))) := to_integer(unsigned(CmdDecCmdMem_tb));
 
 						bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb))) := bank_ctrl_cnt_rtl(to_integer(unsigned(CmdDecBankMem_tb))) + 1;
 					elsif ((CmdDecCmdMem_tb = CMD_MODE_REG_SET) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_1) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_2) or (CmdDecCmdMem_tb = CMD_EXT_MODE_REG_SET_3)) then
-report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Data " & integer'image(to_integer(unsigned(CmdDecMRSCmd_tb))) & " MRS cnt " & integer'image(mrs_cmd_cnt) & " exp " & integer'image(mrs_cnt_exp);
+-- report "Cmd " & ddr2_cmd_std_logic_vector_to_txt(CmdDecCmdMem_tb) & " Data " & integer'image(to_integer(unsigned(CmdDecMRSCmd_tb))) & " MRS cnt " & integer'image(mrs_cmd_cnt) & " exp " & integer'image(mrs_cnt_exp);
 						mrs_ctrl_bank_rtl(mrs_cmd_cnt) := 0;
 						mrs_ctrl_row_rtl(mrs_cmd_cnt) := 0;
 						mrs_ctrl_mrs_rtl(mrs_cmd_cnt) := to_integer(unsigned(CmdDecMRSCmd_tb));
