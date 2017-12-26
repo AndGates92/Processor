@@ -279,17 +279,11 @@ begin
 			end if;
 
 			fullRtl_bool := std_logic_to_bool(full_tb);
-			if (i = 0) then
-				emptyRtl_bool := False;
-			else
-				emptyRtl_bool := std_logic_to_bool(empty_tb);
-			end if;
+			emptyRtl_bool := std_logic_to_bool(empty_tb);
 			DataOut_rtl := to_integer(unsigned(DataOut_tb));
 
 			verify (DataIn_int, En_wr_bool, En_rd_bool, DataOut_ideal, DataOut_rtl, fullOut_bool, fullRtl_bool,  emptyOut_bool, emptyRtl_bool, file_pointer, pass);
 			num_pass := num_pass + pass;
-
---			wait for 1 ps;
 
 		end loop;
 
