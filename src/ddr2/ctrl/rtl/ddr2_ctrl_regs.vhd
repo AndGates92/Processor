@@ -2,9 +2,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library common_rtl_pkg;
+use common_rtl_pkg.functions_pkg.all;
 library ddr2_ctrl_rtl_pkg;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_regs_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_mrs_max_pkg.all;
 
 entity ddr2_ctrl_regs is
 generic (
@@ -22,20 +25,20 @@ port (
 	Cmd		: in std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 	-- Register Values
-	DDR2ODT				: out std_logic_vector(1 downto 0);
+	DDR2ODT				: out std_logic_vector(int_to_bit_num(ODT_MAX_VALUE) - 1 downto 0);
 	DDR2DataStrobesEnable		: out std_logic;
 	DDR2ReadDataStrobesEnable	: out std_logic;
 	DDR2HighTemperature		: out std_logic;
 	DDR2DLLReset			: out std_logic;
-	DDR2CASLatency			: out std_logic_vector(2 downto 0);
+	DDR2CASLatency			: out std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 	DDR2BurstType			: out std_logic;
-	DDR2BurstLength			: out std_logic_vector(2 downto 0);
+	DDR2BurstLength			: out std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 	DDR2PowerDownExitMode		: out std_logic;
-	DDR2AdditiveLatency		: out std_logic_vector(2 downto 0);
+	DDR2AdditiveLatency		: out std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
 	DDR2OutBufferEnable		: out std_logic;
 	DDR2DLLEnable			: out std_logic;
 	DDR2DrivingStrength		: out std_logic;
-	DDR2WriteRecovery		: out std_logic_vector(2 downto 0)
+	DDR2WriteRecovery		: out std_logic_vector(int_to_bit_num(WRITE_REC_MAX_VALUE) - 1 downto 0)
 );
 end entity ddr2_ctrl_regs;
 
@@ -83,18 +86,18 @@ begin
 	DDR2PhyRegsN(3) <= MRSCmd when (Cmd = CMD_EXT_MODE_REG_SET_3) else DDR2PhyRegsC(3);
 
 	-- MRS Breakdown
-	DDR2BurstLength <= DDR2PhyRegsC(0)(2 downto 0);
+	DDR2BurstLength <= DDR2PhyRegsC(0)(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 	DDR2BurstType <= DDR2PhyRegsC(0)(3);
-	DDR2CASLatency <= DDR2PhyRegsC(0)(6 downto 4);
+	DDR2CASLatency <= DDR2PhyRegsC(0)(4 + int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 4);
 	DDR2DLLReset <= DDR2PhyRegsC(0)(8);
-	DDR2WriteRecovery <= DDR2PhyRegsC(0)(11 downto 9);
+	DDR2WriteRecovery <= DDR2PhyRegsC(0)(9 + int_to_bit_num(WRITE_REC_MAX_VALUE) - 1 downto 9);
 	DDR2PowerDownExitMode <= DDR2PhyRegsC(0)(12);
 
 	-- EMRS1 Breakdown
 	DDR2DLLEnable <= DDR2PhyRegsC(1)(0);
 	DDR2DrivingStrength <= DDR2PhyRegsC(1)(1);
 	DDR2ODT <= DDR2PhyRegsC(1)(6) & DDR2PhyRegsC(1)(2);
-	DDR2AdditiveLatency <= DDR2PhyRegsC(1)(5 downto 3);
+	DDR2AdditiveLatency <= DDR2PhyRegsC(1)(3 + int_to_bit_num(AL_MAX_VALUE) - 1 downto 3);
 	DDR2DataStrobesEnable <= DDR2PhyRegsC(1)(10);
 	DDR2ReadDataStrobesEnable <= DDR2PhyRegsC(1)(11);
 	DDR2OutBufferEnable <= DDR2PhyRegsC(1)(12);

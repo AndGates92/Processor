@@ -44,20 +44,20 @@ architecture bench of ddr2_ctrl_regs_tb is
 	signal Cmd_tb		: std_logic_vector(MEM_CMD_L - 1 downto 0);
 
 	-- Register Values
-	signal DDR2ODT_tb			: std_logic_vector(1 downto 0);
+	signal DDR2ODT_tb			: std_logic_vector(int_to_bit_num(ODT_MAX_VALUE) - 1 downto 0);
 	signal DDR2DataStrobesEnable_tb		: std_logic;
 	signal DDR2ReadDataStrobesEnable_tb	: std_logic;
 	signal DDR2HighTemperature_tb		: std_logic;
 	signal DDR2DLLReset_tb			: std_logic;
-	signal DDR2CASLatency_tb		: std_logic_vector(2 downto 0);
+	signal DDR2CASLatency_tb		: std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 	signal DDR2BurstType_tb			: std_logic;
-	signal DDR2BurstLength_tb		: std_logic_vector(2 downto 0);
+	signal DDR2BurstLength_tb		: std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 	signal DDR2PowerDownExitMode_tb		: std_logic;
-	signal DDR2AdditiveLatency_tb		: std_logic_vector(2 downto 0);
+	signal DDR2AdditiveLatency_tb		: std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
 	signal DDR2OutBufferEnable_tb		: std_logic;
 	signal DDR2DLLEnable_tb			: std_logic;
 	signal DDR2DrivingStrength_tb		: std_logic;
-	signal DDR2WriteRecovery_tb		: std_logic_vector(2 downto 0);
+	signal DDR2WriteRecovery_tb		: std_logic_vector(int_to_bit_num(WRITE_REC_MAX_VALUE) - 1 downto 0);
 
 begin
 
