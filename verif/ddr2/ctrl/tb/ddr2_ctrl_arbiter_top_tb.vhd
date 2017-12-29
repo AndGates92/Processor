@@ -355,7 +355,16 @@ begin
 						bank_exp(num_cmd_rtl_int) := 0;
 						col_exp(num_cmd_rtl_int) := 0;
 						row_exp(num_cmd_rtl_int) := 0;
-						cmd_exp(num_cmd_rtl_int) := to_integer(unsigned(CMD_NOP));
+
+						cmd_ack(num_cmd_rtl_int) := std_logic_to_bool(RefCtrlCmdAck_tb);
+
+						if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
+							cmd_exp(num_cmd_rtl_int) := ref_ctrl_cmd(num_cmd_rtl_int);
+							cmd_found := true;
+						else
+							cmd_exp(num_cmd_rtl_int) := to_integer(unsigned(CMD_NOP));
+							cmd_found := false;
+						end if;
 
 						if (ColCtrlCmdAck_tb /= ZERO_COL_CTRL_ACK) then
 							col_ack_err(num_cmd_rtl_int) := true;
@@ -363,10 +372,6 @@ begin
 
 						if (BankCtrlCmdAck_tb /= ZERO_BANK_CTRL_ACK) then
 							bank_ack_err(num_cmd_rtl_int) := true;
-						end if;
-
-						if (RefCtrlCmdAck_tb /= ZERO_REF_CTRL_ACK) then
-							ref_ack_err(num_cmd_rtl_int) := true;
 						end if;
 
 						if (MRSCtrlCmdAck_tb /= ZERO_MRS_CTRL_ACK) then
