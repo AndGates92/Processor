@@ -139,6 +139,9 @@ all_cpu:
 	make execute_dcache_all
 
 all_ddr2:
+	make all_ddr2_ctrl
+
+all_ddr2_ctrl:
 	make ddr2_ctrl_init_all
 	make ddr2_ctrl_arbiter_all
 	make ddr2_ctrl_arbiter_top_all

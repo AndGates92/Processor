@@ -25,7 +25,7 @@ port (
 	-- MRS configuration
 	DDR2BurstLength		: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 	DDR2AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
-	DDR2WriteLatency	: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
+	DDR2CASLatency		: in std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 
 	-- Arbitrer
 	CmdAck		: in std_logic;
@@ -63,13 +63,15 @@ architecture rtl of ddr2_ctrl_bank_ctrl is
 	constant decr_outstanding_bursts_value	: unsigned(int_to_bit_num(MAX_OUTSTANDING_BURSTS) - 1 downto 0) := to_unsigned(1, int_to_bit_num(MAX_OUTSTANDING_BURSTS));
 	constant incr_outstanding_bursts_value	: unsigned(int_to_bit_num(MAX_OUTSTANDING_BURSTS) - 1 downto 0) := to_unsigned(1, int_to_bit_num(MAX_OUTSTANDING_BURSTS));
 
-	constant al_zero_padding_bank_cnt	: std_logic_vector(CNT_BANK_CTRL_L - AL_MAX_VALUE - 1 downto 0) := (others => '0');
-
-	constant al_zero_padding_delay_cnt	: std_logic_vector(CNT_DELAY_L - AL_MAX_VALUE - 1 downto 0) := (others => '0');
+	constant al_zero_padding_bank_cnt	: std_logic_vector(CNT_BANK_CTRL_L - int_to_bit_num(AL_MAX_VALUE) - 1 downto 0) := (others => '0');
+	constant al_zero_padding_delay_cnt	: std_logic_vector(CNT_DELAY_L - int_to_bit_num(AL_MAX_VALUE) - 1 downto 0) := (others => '0');
 	constant bl_zero_padding		: std_logic_vector(CNT_DELAY_L - BURST_LENGTH_MAX_VALUE - 1 downto 0) := (others => '0');
-	constant wl_zero_padding		: std_logic_vector(CNT_DELAY_L - WRITE_LATENCY_MAX_VALUE - 1 downto 0) := (others => '0');
+	constant wl_zero_padding		: unsigned(CNT_DELAY_L - int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0) := (others => '0');
+	constant wl_cl_zero_padding		: std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0) := (others => '0');
+	constant wl_al_zero_padding		: std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - int_to_bit_num(AL_MAX_VALUE) - 1 downto 0) := (others => '0');
 
 	signal MaxBurst			: std_logic_vector(BURST_LENGTH_MAX_VALUE - 1 downto 0);
+	signal DDR2WriteLatency		: unsigned(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
 
 	signal DecrOutstandingBurstsCnt	: std_logic;
 	signal IncrOutstandingBurstsCnt	: std_logic;
@@ -238,8 +240,9 @@ begin
 		end process max_burst_bit;
 	end generate MAX_BURST_CNT;
 
+	DDR2WriteLatency <= unsigned(wl_cl_zero_padding & DDR2CASLatency) + unsigned(wl_al_zero_padding & DDR2AdditiveLatency);
 	TReadPre <= unsigned(al_zero_padding_delay_cnt & DDR2AdditiveLatency) + unsigned(bl_zero_padding & "0" & MaxBurst(BURST_LENGTH_MAX_VALUE - 1 downto 1)) + to_unsigned(max_int((T_RTP - 1), 1), CNT_DELAY_L);
-	TWritePre <= unsigned(wl_zero_padding & DDR2WriteLatency) + unsigned(bl_zero_padding & MaxBurst) + to_unsigned(T_WR, CNT_DELAY_L);
+	TWritePre <= (wl_zero_padding & DDR2WriteLatency) + unsigned(bl_zero_padding & MaxBurst) + to_unsigned(T_WR, CNT_DELAY_L);
 
 	DelayCntInitValue <=	TReadPre			when ((ExitDataPhase = '1') and (ReadBurst = '1')) else
 				TWritePre			when ((ExitDataPhase = '1') and (ReadBurst = '0')) else

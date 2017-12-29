@@ -51,7 +51,6 @@ architecture bench of ddr2_ctrl_cmd_ctrl_tb is
 	signal DDR2CASLatency_tb	: std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 	signal DDR2BurstLength_tb	: std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 	signal DDR2AdditiveLatency_tb	: std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
-	signal DDR2WriteLatency_tb	: std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
 
 	-- Column Controller
 	-- Arbitrer
@@ -108,7 +107,6 @@ begin
 		DDR2CASLatency => DDR2CASLatency_tb,
 		DDR2BurstLength => DDR2BurstLength_tb,
 		DDR2AdditiveLatency => DDR2AdditiveLatency_tb,
-		DDR2WriteLatency => DDR2WriteLatency_tb,
 
 		-- Column Controller
 		-- Arbitrer
@@ -161,7 +159,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure setup_extra_tests(variable bl4, ordered_bursts, same_row : in boolean; variable num_bursts, burst_bits, al, wl, cas : out integer; variable num_bursts_arr : out int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2 : inout positive) is
+		procedure setup_extra_tests(variable bl4, ordered_bursts, same_row : in boolean; variable num_bursts, burst_bits, al, cas : out integer; variable num_bursts_arr : out int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2 : inout positive) is
 			variable rand_val		: real;
 			variable num_bursts_arr_int	: int_arr(0 to (BANK_NUM_TB - 1));
 			variable num_bursts_int		: integer;
@@ -196,9 +194,6 @@ begin
 
 			uniform(seed1, seed2, rand_val);
 			al := integer(rand_val*real(AL_MAX_VALUE));
-
-			uniform(seed1, seed2, rand_val);
-			wl := integer(rand_val*real(WRITE_LATENCY_MAX_VALUE));
 
 			uniform(seed1, seed2, rand_val);
 			cas := integer(rand_val*real(CAS_LATENCY_MAX_VALUE));
@@ -273,7 +268,7 @@ begin
 
 		end procedure setup_extra_tests;
 
-		procedure test_param(variable num_bursts, burst_bits, al, wl, cas : out integer; variable num_bursts_arr : out int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2 : inout positive) is
+		procedure test_param(variable num_bursts, burst_bits, al, cas : out integer; variable num_bursts_arr : out int_arr(0 to (BANK_NUM_TB - 1)); variable bank, cols, rows : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_burst : out bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl, cmd_delay, ctrl_delay : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable seed1, seed2 : inout positive) is
 			variable rand_val		: real;
 			variable bl4_int		: boolean;
 			variable num_bursts_arr_int	: int_arr(0 to (BANK_NUM_TB - 1));
@@ -308,9 +303,6 @@ begin
 
 			uniform(seed1, seed2, rand_val);
 			al := integer(rand_val*real(AL_MAX_VALUE));
-
-			uniform(seed1, seed2, rand_val);
-			wl := integer(rand_val*real(WRITE_LATENCY_MAX_VALUE));
 
 			uniform(seed1, seed2, rand_val);
 			cas := integer(rand_val*real(CAS_LATENCY_MAX_VALUE));
@@ -370,7 +362,7 @@ begin
 
 		end procedure test_param;
 
-		procedure run_cmd_ctrl (variable num_bursts_exp, burst_bits, al, wl, cas : in integer; variable bank_arr_exp, cols_arr, rows_arr_exp : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_bursts_arr_exp : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl_arr_exp, cmd_delay_arr, ctrl_delay_arr : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bank_ctrl_bursts : out integer; variable bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, row_arr_rtl, bank_arr_rtl, start_col_arr_exp : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_err_arr_exp, col_err_arr_rtl : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)))) is
+		procedure run_cmd_ctrl (variable num_bursts_exp, burst_bits, al, cas : in integer; variable bank_arr_exp, cols_arr, rows_arr_exp : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable read_bursts_arr_exp : in bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bl_arr_exp, cmd_delay_arr, ctrl_delay_arr : in int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable bank_ctrl_bursts : out integer; variable bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, row_arr_rtl, bank_arr_rtl, start_col_arr_exp : out int_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1)); variable col_err_arr_exp, col_err_arr_rtl : out int_arr_2d(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1), 0 to (integer(2.0**(real(BURST_LENGTH_L_TB)) - 1.0)))) is
 
 			variable rand_val			: real;
 			variable bank_ctrl_bursts_int		: integer;
@@ -460,7 +452,6 @@ begin
 			DDR2BurstLength_tb <= std_logic_vector(to_unsigned(burst_bits, int_to_bit_num(BURST_LENGTH_MAX_VALUE)));
 			DDR2CASLatency_tb <= std_logic_vector(to_unsigned(cas, int_to_bit_num(CAS_LATENCY_MAX_VALUE)));
 			DDR2AdditiveLatency_tb <= std_logic_vector(to_unsigned(al, int_to_bit_num(AL_MAX_VALUE)));
-			DDR2WriteLatency_tb <= std_logic_vector(to_unsigned(wl, int_to_bit_num(WRITE_LATENCY_MAX_VALUE)));
 
 			-- Column Controller
 			-- Arbitrer
@@ -789,7 +780,6 @@ begin
 		variable burst_bits	: integer;
 		variable cas		: integer;
 		variable al		: integer;
-		variable wl		: integer;
 
 		variable bank_ctrl_bursts	: integer;
 
@@ -835,9 +825,9 @@ begin
 
 		for i in 0 to NUM_TESTS-1 loop
 
-			test_param(num_bursts_exp, burst_bits, al, wl, cas, num_bursts_arr, bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, seed1, seed2);
+			test_param(num_bursts_exp, burst_bits, al, cas, num_bursts_arr, bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, seed1, seed2);
 
-			run_cmd_ctrl(num_bursts_exp, burst_bits, al, wl, cas,  bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, bank_ctrl_bursts, bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, rows_arr_rtl, bank_arr_rtl, start_col_arr_exp, col_err_arr_exp, col_err_arr_rtl);
+			run_cmd_ctrl(num_bursts_exp, burst_bits, al, cas,  bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, bank_ctrl_bursts, bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, rows_arr_rtl, bank_arr_rtl, start_col_arr_exp, col_err_arr_exp, col_err_arr_rtl);
 
 			verify (num_bursts_exp, bank_ctrl_bursts, num_bursts_arr, bank_arr_exp, bank_arr_rtl, rows_arr_exp, rows_arr_rtl, bl_arr_exp, bl_arr_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, start_col_arr_exp, read_bursts_arr_exp, col_err_arr_exp, col_err_arr_rtl, file_pointer, pass);
 
@@ -872,9 +862,9 @@ begin
 					bl4 := false;
 				end if;
 
-				setup_extra_tests(bl4, ordered_bursts, same_row, num_bursts_exp, burst_bits, al, wl, cas, num_bursts_arr, bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, seed1, seed2);
+				setup_extra_tests(bl4, ordered_bursts, same_row, num_bursts_exp, burst_bits, al, cas, num_bursts_arr, bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, seed1, seed2);
 
-				run_cmd_ctrl(num_bursts_exp, burst_bits, al, wl, cas, bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, bank_ctrl_bursts, bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, rows_arr_rtl, bank_arr_rtl, start_col_arr_exp, col_err_arr_exp, col_err_arr_rtl);
+				run_cmd_ctrl(num_bursts_exp, burst_bits, al, cas, bank_arr_exp, col_arr, rows_arr_exp, read_bursts_arr_exp, bl_arr_exp, cmd_delay_arr, ctrl_delay_arr, bank_ctrl_bursts, bank_ctrl_err_arr, col_ctrl_err_arr, bl_arr_rtl, rows_arr_rtl, bank_arr_rtl, start_col_arr_exp, col_err_arr_exp, col_err_arr_rtl);
 
 				verify (num_bursts_exp, bank_ctrl_bursts, num_bursts_arr, bank_arr_exp, bank_arr_rtl, rows_arr_exp, rows_arr_rtl, bl_arr_exp, bl_arr_rtl, bank_ctrl_err_arr, col_ctrl_err_arr, start_col_arr_exp, read_bursts_arr_exp, col_err_arr_exp, col_err_arr_rtl, file_pointer, pass);
 

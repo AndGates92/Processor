@@ -33,7 +33,6 @@ port (
 	DDR2CASLatency			: in std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 	DDR2BurstLength			: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 	DDR2AdditiveLatency		: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
-	DDR2WriteLatency		: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
 	DDR2HighTemperatureRefresh	: in std_logic;
 
 	-- Column Controller
@@ -293,7 +292,6 @@ begin
 		DDR2CASLatency => DDR2CASLatency,
 		DDR2BurstLength => DDR2BurstLength,
 		DDR2AdditiveLatency => DDR2AdditiveLatency,
-		DDR2WriteLatency => DDR2WriteLatency,
 
 		-- Column Controller
 		-- Arbitrer

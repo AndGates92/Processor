@@ -46,7 +46,7 @@ package ddr2_ctrl_bank_ctrl_pkg is
 		-- MRS configuration
 		DDR2BurstLength		: in std_logic_vector(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0);
 		DDR2AdditiveLatency	: in std_logic_vector(int_to_bit_num(AL_MAX_VALUE) - 1 downto 0);
-		DDR2WriteLatency		: in std_logic_vector(int_to_bit_num(WRITE_LATENCY_MAX_VALUE) - 1 downto 0);
+		DDR2CASLatency		: in std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 
 		-- Arbitrer
 		CmdAck		: in std_logic;
