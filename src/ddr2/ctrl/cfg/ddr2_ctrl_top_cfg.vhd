@@ -7,7 +7,7 @@ configuration config_ddr2_ctrl_top of ddr2_ctrl_top is
 			use entity ddr2_ctrl_rtl.ddr2_ctrl_ctrl_top(rtl);
 		end for;
 
-		for REGSL_I: ddr2_ctrl_regs
+		for REGS_I: ddr2_ctrl_regs
 			use entity ddr2_ctrl_rtl.ddr2_ctrl_regs(rtl);
 		end for;
 	end for;

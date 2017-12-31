@@ -8,6 +8,7 @@ library ddr2_ctrl_rtl_pkg;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_ctrl_top_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_regs_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_mrs_max_pkg.all;
 
 entity ddr2_ctrl_top is
 generic (
@@ -86,7 +87,7 @@ architecture rtl of ddr2_ctrl_top is
 	signal DDR2ODT				: std_logic_vector(int_to_bit_num(ODT_MAX_VALUE) - 1 downto 0);
 	signal DDR2DataStrobesEnable		: std_logic;
 	signal DDR2ReadDataStrobesEnable	: std_logic;
-	signal DDR2HighTemperature		: std_logic;
+	signal DDR2HighTemperatureRefresh	: std_logic;
 	signal DDR2DLLReset			: std_logic;
 	signal DDR2CASLatency			: std_logic_vector(int_to_bit_num(CAS_LATENCY_MAX_VALUE) - 1 downto 0);
 	signal DDR2BurstType			: std_logic;
@@ -98,6 +99,9 @@ architecture rtl of ddr2_ctrl_top is
 	signal DDR2DrivingStrength		: std_logic;
 	signal DDR2WriteRecovery		: std_logic_vector(int_to_bit_num(WRITE_REC_MAX_VALUE) - 1 downto 0);
 
+	signal CmdDecCmdMem_int			: std_logic_vector(MEM_CMD_L - 1 downto 0);
+	signal CmdDecMRSCmd_int			: std_logic_vector(MRS_REG_L - 1 downto 0);
+
 begin
 
 	CTRL_TOP_I: ddr2_ctrl_ctrl_top generic map (
@@ -107,7 +111,7 @@ begin
 		BANK_NUM => BANK_NUM,
 		COL_L => COL_L,
 		ROW_L => ROW_L,
-		MRS_REG_L => ADDR_MEM_L,
+		MRS_REG_L => MRS_REG_L,
 		MAX_OUTSTANDING_BURSTS => MAX_OUTSTANDING_BURSTS
 	)
 	port map (
@@ -169,8 +173,8 @@ begin
 		CmdDecColMem => CmdDecColMem,
 		CmdDecRowMem => CmdDecRowMem,
 		CmdDecBankMem => CmdDecBankMem,
-		CmdDecCmdMem => CmdDecCmdMem,
-		CmdDecMRSCmd => CmdDecMRSCmd
+		CmdDecCmdMem => CmdDecCmdMem_int,
+		CmdDecMRSCmd => CmdDecMRSCmd_int
 
 	);
 
@@ -183,8 +187,8 @@ begin
 		rst => rst,
 
 		-- Command Decoder
-		MRSCmd => CmdDecMRSCmd,
-		Cmd => CmdDecCmdMem,
+		MRSCmd => CmdDecMRSCmd_int,
+		Cmd => CmdDecCmdMem_int,
 
 		-- Register Values
 		DDR2ODT => DDR2ODT,
@@ -203,5 +207,8 @@ begin
 		DDR2WriteRecovery => DDR2WriteRecovery
 
 	);
+
+	CmdDecMRSCmd <= CmdDecMRSCmd_int;
+	CmdDecCmdMem <= CmdDecCmdMem_int;
 
 end rtl;
