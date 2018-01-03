@@ -33,6 +33,7 @@ architecture bench of ddr2_ctrl_mrs_ctrl_tb is
 	constant MAX_REQUESTS_PER_TEST	: integer := 50;
 	constant MAX_CMD_PER_REQUEST	: integer := 50;
 	constant MAX_DELAY		: integer := T_MOD_max; -- max delay in the same block between MRS commands is T_MOD_max otherwise it will be processed next time around
+	constant MAX_BANK_IDLE_DELAY	: integer := 50;
 
 	constant MRS_REG_L_TB	: positive := 13;
 
@@ -46,6 +47,9 @@ architecture bench of ddr2_ctrl_mrs_ctrl_tb is
 	signal CtrlData_tb	: std_logic_vector(MRS_REG_L_TB - 1 downto 0);
 
 	signal CtrlAck_tb	: std_logic;
+
+	-- Bank Controller
+	signal AllBanksIdle_tb	: std_logic;
 
 	-- Commands
 	signal CmdAck_tb	: std_logic;
@@ -80,6 +84,9 @@ begin
 		CtrlData => CtrlData_tb,
 
 		CtrlAck => CtrlAck_tb,
+
+		-- Bank Controller
+		AllBanksIdle => AllBanksIdle_tb,
 
 		-- Commands
 		CmdAck => CmdAck_tb,
@@ -125,7 +132,7 @@ begin
 			rst_tb <= '0';
 		end procedure reset;
 
-		procedure setup_extra_tests(variable rand_odt_delay, rand_ctrl_delay, rand_cmd_delay : in boolean; variable num_requests : out integer; variable num_cmd_per_request : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd, ctrl_data, ctrl_delay, cmd_delay : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1)); variable odt_delay : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
+		procedure setup_extra_tests(variable rand_odt_delay, rand_ctrl_delay, rand_cmd_delay, rand_bank_idle_delay : in boolean; variable num_requests : out integer; variable num_cmd_per_request : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd, ctrl_data, ctrl_delay, cmd_delay, bank_idle_delay : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1)); variable odt_delay : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 			variable num_requests_int	: integer;
 			variable num_cmd_per_request_int	: integer;
@@ -165,6 +172,12 @@ begin
 						uniform(seed1, seed2, rand_val);
 						cmd_delay(i, j) := integer(rand_val*real(MAX_DELAY));
 					end if;
+					if (rand_bank_idle_delay = true) then
+						bank_idle_delay(i, j) := 0;
+					else
+						uniform(seed1, seed2, rand_val);
+						bank_idle_delay(i, j) := integer(rand_val*real(MAX_BANK_IDLE_DELAY));
+					end if;
 					uniform(seed1, seed2, rand_val);
 					ctrl_cmd(i, j) := integer(rand_val*real(MAX_MEM_CMD_ID));
 					uniform(seed1, seed2, rand_val);
@@ -192,7 +205,7 @@ begin
 
 		end procedure setup_extra_tests;
 
-		procedure test_param(variable num_requests : out integer; variable num_cmd_per_request : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd, ctrl_data, ctrl_delay, cmd_delay : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1)); variable odt_delay : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
+		procedure test_param(variable num_requests : out integer; variable num_cmd_per_request : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd, ctrl_data, ctrl_delay, cmd_delay, bank_idle_delay : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1)); variable odt_delay : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable seed1, seed2: inout positive) is
 			variable rand_val	: real;
 			variable num_requests_int	: integer;
 			variable num_cmd_per_request_int	: integer;
@@ -221,6 +234,8 @@ begin
 					uniform(seed1, seed2, rand_val);
 					cmd_delay(i, j) := integer(rand_val*real(MAX_DELAY));
 					uniform(seed1, seed2, rand_val);
+					bank_idle_delay(i, j) := integer(rand_val*real(MAX_BANK_IDLE_DELAY));
+					uniform(seed1, seed2, rand_val);
 					ctrl_cmd(i, j) := integer(rand_val*real(MAX_MEM_CMD_ID));
 					uniform(seed1, seed2, rand_val);
 					ctrl_data(i, j) := integer(rand_val*real((2.0**(real(MRS_REG_L_TB))) - 1.0));
@@ -247,18 +262,19 @@ begin
 
 		end procedure test_param;
 
-		procedure run_mrs_ctrl(variable num_requests_exp : in integer; variable num_cmd_per_request_arr_exp : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1)); variable odt_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable num_cmd_per_request_arr_rtl, mrs_ctrl_err_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd_arr_rtl, ctrl_data_arr_rtl : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1))) is
+		procedure run_mrs_ctrl(variable num_requests_exp : in integer; variable num_cmd_per_request_arr_exp : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr, bank_idle_delay_arr : in int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1)); variable odt_delay_arr : in int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable num_requests_rtl : out integer; variable num_cmd_per_request_arr_rtl, mrs_ctrl_err_arr : out int_arr(0 to (MAX_REQUESTS_PER_TEST - 1)); variable ctrl_cmd_arr_rtl, ctrl_data_arr_rtl : out int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1))) is
 			variable num_requests_rtl_int			: integer;
 			variable num_cmd_per_request_rtl_int		: integer;
 
 			variable ctrl_num_cmd_per_request_rtl_int	: integer;
 			variable cmd_num_cmd_per_request_rtl_int	: integer;
 
-			variable ctrl_cmd	: integer;
-			variable ctrl_data	: integer;
-			variable ctrl_delay	: integer;
-			variable odt_delay	: integer;
-			variable cmd_delay	: integer;
+			variable ctrl_cmd		: integer;
+			variable ctrl_data		: integer;
+			variable ctrl_delay		: integer;
+			variable bank_idle_delay	: integer;
+			variable odt_delay		: integer;
+			variable cmd_delay		: integer;
 
 			variable error_int	: integer;
 
@@ -278,6 +294,7 @@ begin
 			ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 			ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 			ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
+			bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 			odt_delay := odt_delay_arr(num_requests_rtl_int);
 			cmd_delay := cmd_delay_arr(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int);
 
@@ -305,6 +322,7 @@ begin
 				ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 				ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 				ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
+				bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 				odt_delay := odt_delay_arr(num_requests_rtl_int);
 				cmd_delay := cmd_delay_arr(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int);
 
@@ -319,6 +337,8 @@ begin
 
 				CmdAck_tb <= '0';
 				ctrl_accepted := false;
+
+				AllBanksIdle_tb <= '0';
 
 				ODTCtrlAck_tb <= '0';
 
@@ -346,6 +366,7 @@ begin
 						ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 						ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 						ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
+						bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 					end if;
 				end if;
 
@@ -366,6 +387,7 @@ begin
 								ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
+								bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 							end if;
 						end if;
 					else
@@ -407,6 +429,7 @@ begin
 								ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
+								bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 							end if;
 						end if;
 					else
@@ -456,6 +479,7 @@ begin
 									ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 									ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 									ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
+									bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								end if;
 							end if;
 						else
@@ -502,6 +526,7 @@ begin
 									ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 									ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 									ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
+									bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								end if;
 							end if;
 						else
@@ -672,6 +697,7 @@ begin
 		variable rand_odt_delay		: boolean;
 		variable rand_cmd_delay		: boolean;
 		variable rand_ctrl_delay	: boolean;
+		variable rand_bank_idle_delay	: boolean;
 
 		variable pass	: integer;
 		variable num_pass	: integer;
@@ -693,9 +719,9 @@ begin
 
 		for i in 0 to NUM_TESTS-1 loop
 
-			test_param(num_requests_exp, num_cmd_per_request_arr_exp, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr, odt_delay_arr, seed1, seed2);
+			test_param(num_requests_exp, num_cmd_per_request_arr_exp, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr, bank_idle_delay_arr, odt_delay_arr, seed1, seed2);
 
-			run_mrs_ctrl(num_requests_exp, num_cmd_per_request_arr_exp, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr, odt_delay_arr, num_requests_rtl, num_cmd_per_request_arr_rtl, mrs_ctrl_err_arr, ctrl_cmd_arr_rtl, ctrl_data_arr_rtl);
+			run_mrs_ctrl(num_requests_exp, num_cmd_per_request_arr_exp, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr, bank_idle_delay_arr, odt_delay_arr, num_requests_rtl, num_cmd_per_request_arr_rtl, mrs_ctrl_err_arr, ctrl_cmd_arr_rtl, ctrl_data_arr_rtl);
 
 			verify(num_requests_exp, num_requests_rtl, num_cmd_per_request_arr_exp, num_cmd_per_request_arr_rtl, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_cmd_arr_rtl, ctrl_data_arr_rtl, mrs_ctrl_err_arr, file_pointer, pass);
 
@@ -709,43 +735,33 @@ begin
 
 			for i in 0 to NUM_EXTRA_TESTS-1 loop
 
-				if ((i mod 8) = 0) then
+				if ((i mod 2) = 0) then
 					rand_odt_delay := false;
-					rand_cmd_delay := false;
-					rand_ctrl_delay := false;
-				elsif ((i mod 8) = 1) then
-					rand_odt_delay := true;
-					rand_cmd_delay := false;
-					rand_ctrl_delay := false;
-				elsif ((i mod 8) = 2) then
-					rand_odt_delay := false;
-					rand_cmd_delay := true;
-					rand_ctrl_delay := false;
-				elsif ((i mod 8) = 3) then
-					rand_odt_delay := true;
-					rand_cmd_delay := true;
-					rand_ctrl_delay := false;
-				elsif ((i mod 8) = 4) then
-					rand_odt_delay := false;
-					rand_cmd_delay := false;
-					rand_ctrl_delay := true;
-				elsif ((i mod 8) = 5) then
-					rand_odt_delay := true;
-					rand_cmd_delay := false;
-					rand_ctrl_delay := true;
-				elsif ((i mod 8) = 6) then
-					rand_odt_delay := false;
-					rand_cmd_delay := true;
-					rand_ctrl_delay := true;
 				else
-					rand_odt_delay := false;
+					rand_odt_delay := true;
+				end if;
+
+				if ((i mod 4) < 2) then
+					rand_cmd_delay := false;
+				else
 					rand_cmd_delay := true;
+				end if;
+
+				if ((i mod 8) < 4) then
+					rand_ctrl_delay := false;
+				else
 					rand_ctrl_delay := true;
 				end if;
 
-				setup_extra_tests(rand_odt_delay, rand_ctrl_delay, rand_cmd_delay, num_requests_exp, num_cmd_per_request_arr_exp, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr, odt_delay_arr, seed1, seed2);
+				if ((i mod 16) < 8) then
+					rand_bank_idle_delay := false;
+				else
+					rand_bank_idle_delay := true;
+				end if;
 
-				run_mrs_ctrl(num_requests_exp, num_cmd_per_request_arr_exp, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr, odt_delay_arr, num_requests_rtl, num_cmd_per_request_arr_rtl, mrs_ctrl_err_arr, ctrl_cmd_arr_rtl, ctrl_data_arr_rtl);
+				setup_extra_tests(rand_odt_delay, rand_ctrl_delay, rand_cmd_delay, rand_bank_idle_delay, num_requests_exp, num_cmd_per_request_arr_exp, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr, bank_idle_delay_arr, odt_delay_arr, seed1, seed2);
+
+				run_mrs_ctrl(num_requests_exp, num_cmd_per_request_arr_exp, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_delay_arr, cmd_delay_arr, bank_idle_delay_arr, odt_delay_arr, num_requests_rtl, num_cmd_per_request_arr_rtl, mrs_ctrl_err_arr, ctrl_cmd_arr_rtl, ctrl_data_arr_rtl);
 
 				verify(num_requests_exp, num_requests_rtl, num_cmd_per_request_arr_exp, num_cmd_per_request_arr_rtl, ctrl_cmd_arr_exp, ctrl_data_arr_exp, ctrl_cmd_arr_rtl, ctrl_data_arr_rtl, mrs_ctrl_err_arr, file_pointer, pass);
 

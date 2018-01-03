@@ -26,6 +26,9 @@ port (
 	CtrlAck			: out std_logic;
 	MRSReq			: out std_logic;
 
+	-- Bank Controller
+	AllBanksIdle		: in std_logic;
+
 	-- Commands
 	CmdAck			: in std_logic;
 
@@ -142,7 +145,8 @@ begin
 
 	-- Assert command request on the way in to MRS_CTRL_SEND_CMD
 	CmdReqN <=	not CmdAck			when (StateC = MRS_CTRL_SEND_CMD) else
-			ODTCtrlAck			when (StateC = MRS_CTRL_ODT_TURN_OFF) else
+			(ODTCtrlAck and AllBanksIdle)	when (StateC = MRS_CTRL_ODT_TURN_OFF) else
+			AllBanksIdle			when (StateC = MRS_CTRL_WAIT_BANK_IDLE) else
 			(ZeroDelayCnt and CtrlReq)	when (StateC = MRS_CTRL_REG_UPD) else
 			CmdReqC;
 
@@ -189,6 +193,14 @@ begin
 			end if;
 		elsif (StateC = MRS_CTRL_ODT_TURN_OFF) then
 			if (ODTCtrlAck = '1') then
+				if (AllBanksIdle = '1') then
+					StateN <= MRS_CTRL_WAIT_BANK_IDLE;
+				else
+					StateN <= MRS_CTRL_SEND_CMD;
+				end if;
+			end if;
+		elsif (StateC = MRS_CTRL_WAIT_BANK_IDLE) then
+			if (AllBanksIdle = '1') then
 				StateN <= MRS_CTRL_SEND_CMD;
 			end if;
 		elsif (StateC = MRS_CTRL_SEND_CMD) then

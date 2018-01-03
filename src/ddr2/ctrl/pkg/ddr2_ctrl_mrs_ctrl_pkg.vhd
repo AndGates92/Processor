@@ -17,9 +17,10 @@ package ddr2_ctrl_mrs_ctrl_pkg is
 
 	constant MRS_CTRL_IDLE			: std_logic_vector(STATE_MRS_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(0, STATE_MRS_CTRL_L));
 	constant MRS_CTRL_ODT_TURN_OFF		: std_logic_vector(STATE_MRS_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(1, STATE_MRS_CTRL_L));
-	constant MRS_CTRL_SEND_CMD		: std_logic_vector(STATE_MRS_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_MRS_CTRL_L));
-	constant MRS_CTRL_REG_UPD		: std_logic_vector(STATE_MRS_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_MRS_CTRL_L));
-	constant MRS_CTRL_ODT_TURN_ON		: std_logic_vector(STATE_MRS_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_MRS_CTRL_L));
+	constant MRS_CTRL_WAIT_BANK_IDLE	: std_logic_vector(STATE_MRS_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(2, STATE_MRS_CTRL_L));
+	constant MRS_CTRL_SEND_CMD		: std_logic_vector(STATE_MRS_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(3, STATE_MRS_CTRL_L));
+	constant MRS_CTRL_REG_UPD		: std_logic_vector(STATE_MRS_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(4, STATE_MRS_CTRL_L));
+	constant MRS_CTRL_ODT_TURN_ON		: std_logic_vector(STATE_MRS_CTRL_L - 1 downto 0) := std_logic_vector(to_unsigned(5, STATE_MRS_CTRL_L));
 
 	component ddr2_ctrl_mrs_ctrl is
 	generic (
@@ -37,6 +38,9 @@ package ddr2_ctrl_mrs_ctrl_pkg is
 
 		CtrlAck			: out std_logic;
 		MRSReq			: out std_logic;
+
+		-- Bank Controller
+		AllBanksIdle		: in std_logic;
 
 		-- Commands
 		CmdAck			: in std_logic;
