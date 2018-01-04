@@ -276,12 +276,15 @@ begin
 			variable odt_delay		: integer;
 			variable cmd_delay		: integer;
 
-			variable error_int	: integer;
+			variable error_int		: integer;
 
-			variable ctrl_delay_cnt	: integer;
-			variable cmd_delay_cnt	: integer;
+			variable ctrl_delay_cnt		: integer;
+			variable cmd_delay_cnt		: integer;
+			variable bank_idle_cnt		: integer;
 
-			variable ctrl_accepted	: boolean;
+			variable bank_idle_arr_cnt	: integer;
+
+			variable ctrl_accepted		: boolean;
 
 		begin
 
@@ -294,9 +297,11 @@ begin
 			ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 			ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 			ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
-			bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 			odt_delay := odt_delay_arr(num_requests_rtl_int);
 			cmd_delay := cmd_delay_arr(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int);
+
+			bank_idle_arr_cnt := 0;
+			bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, bank_idle_arr_cnt);
 
 			ctrl_cmd_arr_rtl := reset_int_arr_2d(0, MAX_REQUESTS_PER_TEST, MAX_CMD_PER_REQUEST);
 			ctrl_data_arr_rtl := reset_int_arr_2d(0, MAX_REQUESTS_PER_TEST, MAX_CMD_PER_REQUEST);
@@ -309,6 +314,7 @@ begin
 
 			ctrl_delay_cnt := 0;
 			cmd_delay_cnt := 0;
+			bank_idle_cnt := 0;
 
 			mrs_loop : loop
 
@@ -322,14 +328,17 @@ begin
 				ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 				ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 				ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
-				bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 				odt_delay := odt_delay_arr(num_requests_rtl_int);
 				cmd_delay := cmd_delay_arr(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int);
+
+				bank_idle_arr_cnt := 0;
+				bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, bank_idle_arr_cnt);
 
 				error_int := 0;
 
 				ctrl_delay_cnt := 0;
 				cmd_delay_cnt := 0;
+				bank_idle_cnt := 0;
 
 				CtrlReq_tb <= '0';
 				CtrlCmd_tb <= CMD_NOP;
@@ -366,7 +375,6 @@ begin
 						ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 						ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 						ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
-						bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 					end if;
 				end if;
 
@@ -387,7 +395,6 @@ begin
 								ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
-								bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 							end if;
 						end if;
 					else
@@ -429,7 +436,6 @@ begin
 								ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
-								bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 							end if;
 						end if;
 					else
@@ -460,11 +466,19 @@ begin
 
 				for cmd_num in 0 to (num_cmd_per_request_rtl_int - 1) loop
 
+					AllBanksIdle_tb <= '0';
+
 					while (CmdReq_tb = '0') loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
 						wait until ((clk_tb = '0') and (clk_tb'event));
 
 						ODTCtrlAck_tb <= '0';
+
+						if (bank_idle_cnt = bank_idle_delay) then
+							AllBanksIdle_tb <= '1';
+						else
+							bank_idle_cnt := bank_idle_cnt + 1;
+						end if;
 
 						if (ctrl_accepted = false) then
 							if (CtrlAck_tb = '1') then
@@ -479,7 +493,6 @@ begin
 									ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 									ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 									ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
-									bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								end if;
 							end if;
 						else
@@ -504,6 +517,14 @@ begin
 						CmdAck_tb <= '0';
 					end loop;
 
+report "Increment bank_idle_arr_cnt";
+					bank_idle_arr_cnt := bank_idle_arr_cnt + 1;
+
+					if (bank_idle_arr_cnt < num_cmd_per_request_rtl_int) then
+						bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, bank_idle_arr_cnt);
+						bank_idle_cnt := 0;
+					end if;
+
 					wait until ((clk_tb = '1') and (clk_tb'event));
 					wait until ((clk_tb = '0') and (clk_tb'event));
 
@@ -526,7 +547,6 @@ begin
 									ctrl_cmd := ctrl_cmd_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 									ctrl_data := ctrl_data_arr_exp(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 									ctrl_delay := ctrl_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
-									bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, ctrl_num_cmd_per_request_rtl_int);
 								end if;
 							end if;
 						else
@@ -690,6 +710,7 @@ begin
 
 		variable ctrl_delay_arr		: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1));
 		variable cmd_delay_arr		: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1));
+		variable bank_idle_delay_arr	: int_arr_2d(0 to (MAX_REQUESTS_PER_TEST - 1), 0 to (MAX_CMD_PER_REQUEST - 1));
 		variable odt_delay_arr		: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
 
 		variable mrs_ctrl_err_arr	: int_arr(0 to (MAX_REQUESTS_PER_TEST - 1));
