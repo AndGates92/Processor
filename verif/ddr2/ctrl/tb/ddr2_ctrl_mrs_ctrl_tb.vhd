@@ -361,6 +361,8 @@ begin
 					end if;
 				end loop;
 
+report "ctrl accepted " & bool_to_str(ctrl_accepted);
+
 				wait until ((clk_tb = '0') and (clk_tb'event));
 
 				if (CtrlAck_tb = '1') then
@@ -381,6 +383,8 @@ begin
 				while (ODTCtrlReq_tb = '0') loop
 					wait until ((clk_tb = '1') and (clk_tb'event));
 					wait until ((clk_tb = '0') and (clk_tb'event));
+
+report "ctrl accepted " & bool_to_str(ctrl_accepted);
 
 					if (ctrl_accepted = false) then
 						if (CtrlAck_tb = '1') then
@@ -423,6 +427,8 @@ begin
 					wait until ((clk_tb = '1') and (clk_tb'event));
 					wait until ((clk_tb = '0') and (clk_tb'event));
 
+report "ctrl accepted " & bool_to_str(ctrl_accepted);
+
 					if (ctrl_accepted = false) then
 						if (CtrlAck_tb = '1') then
 							ctrl_accepted := true;
@@ -464,9 +470,12 @@ begin
 					end if;
 				end loop;
 
-				for cmd_num in 0 to (num_cmd_per_request_rtl_int - 1) loop
+--				for cmd_num in 0 to (num_cmd_per_request_rtl_int - 1) loop
+				while (ctrl_num_cmd_per_request_rtl_int < num_cmd_per_request_rtl_int) loop
 
 					AllBanksIdle_tb <= '0';
+
+report "ctrl accepted " & bool_to_str(ctrl_accepted);
 
 					while (CmdReq_tb = '0') loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
@@ -534,6 +543,10 @@ report "Increment bank_idle_arr_cnt";
 							error_int := error_int + 1;
 						end if;
 
+report "ctrl accepted " & bool_to_str(ctrl_accepted);
+report " ctrl #" & integer'image(ctrl_num_cmd_per_request_rtl_int) &  " of " & integer'image(num_cmd_per_request_rtl_int);
+report " ctrl #" & integer'image(cmd_num_cmd_per_request_rtl_int) &  " req #" & integer'image(num_requests_rtl_int);
+
 						if (ctrl_accepted = false) then
 							if (CtrlAck_tb = '1') then
 								ctrl_accepted := true;
@@ -590,6 +603,7 @@ report "Increment bank_idle_arr_cnt";
 				end loop;
 
 				while (MRSUpdateCompleted_tb = '0') loop
+--report "Wait MRS Update";
 						wait until ((clk_tb = '1') and (clk_tb'event));
 				end loop;
 
