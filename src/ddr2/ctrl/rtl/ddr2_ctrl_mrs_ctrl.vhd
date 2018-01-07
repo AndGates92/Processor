@@ -210,7 +210,11 @@ begin
 		elsif (StateC = MRS_CTRL_REG_UPD) then
 			if (ZeroDelayCnt = '1') then
 				if (CtrlReq = '1') then
-					StateN <= MRS_CTRL_SEND_CMD;
+					if (AllBanksIdle = '0') then
+						StateN <= MRS_CTRL_WAIT_BANK_IDLE;
+					else
+						StateN <= MRS_CTRL_SEND_CMD;
+					end if;
 				else
 					StateN <= MRS_CTRL_ODT_TURN_ON;
 				end if;
