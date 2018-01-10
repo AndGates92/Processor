@@ -46,6 +46,7 @@ architecture bench of ddr2_ctrl_mrs_ctrl_tb is
 	signal CtrlCmd_tb	: std_logic_vector(MEM_CMD_L - 1 downto 0);
 	signal CtrlData_tb	: std_logic_vector(MRS_REG_L_TB - 1 downto 0);
 
+	signal MRSReq_tb	: std_logic;
 	signal CtrlAck_tb	: std_logic;
 
 	-- Bank Controller
@@ -83,6 +84,7 @@ begin
 		CtrlCmd => CtrlCmd_tb,
 		CtrlData => CtrlData_tb,
 
+		MRSReq => MRSReq_tb,
 		CtrlAck => CtrlAck_tb,
 
 		-- Bank Controller
@@ -361,8 +363,6 @@ begin
 					end if;
 				end loop;
 
-report "ctrl accepted " & bool_to_str(ctrl_accepted);
-
 				wait until ((clk_tb = '0') and (clk_tb'event));
 
 				if (CtrlAck_tb = '1') then
@@ -383,8 +383,6 @@ report "ctrl accepted " & bool_to_str(ctrl_accepted);
 				while (ODTCtrlReq_tb = '0') loop
 					wait until ((clk_tb = '1') and (clk_tb'event));
 					wait until ((clk_tb = '0') and (clk_tb'event));
-
-report "ctrl accepted " & bool_to_str(ctrl_accepted);
 
 					if (ctrl_accepted = false) then
 						if (CtrlAck_tb = '1') then
@@ -427,8 +425,6 @@ report "ctrl accepted " & bool_to_str(ctrl_accepted);
 					wait until ((clk_tb = '1') and (clk_tb'event));
 					wait until ((clk_tb = '0') and (clk_tb'event));
 
-report "ctrl accepted " & bool_to_str(ctrl_accepted);
-
 					if (ctrl_accepted = false) then
 						if (CtrlAck_tb = '1') then
 							ctrl_accepted := true;
@@ -470,12 +466,10 @@ report "ctrl accepted " & bool_to_str(ctrl_accepted);
 					end if;
 				end loop;
 
---				for cmd_num in 0 to (num_cmd_per_request_rtl_int - 1) loop
-				while (ctrl_num_cmd_per_request_rtl_int < num_cmd_per_request_rtl_int) loop
+				for cmd_num in 0 to (num_cmd_per_request_rtl_int - 1) loop
 
 					AllBanksIdle_tb <= '0';
-
-report "ctrl accepted " & bool_to_str(ctrl_accepted);
+					CmdAck_tb <= '0';
 
 					while (CmdReq_tb = '0') loop
 						wait until ((clk_tb = '1') and (clk_tb'event));
@@ -526,14 +520,6 @@ report "ctrl accepted " & bool_to_str(ctrl_accepted);
 						CmdAck_tb <= '0';
 					end loop;
 
-report "Increment bank_idle_arr_cnt";
-					bank_idle_arr_cnt := bank_idle_arr_cnt + 1;
-
-					if (bank_idle_arr_cnt < num_cmd_per_request_rtl_int) then
-						bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, bank_idle_arr_cnt);
-						bank_idle_cnt := 0;
-					end if;
-
 					wait until ((clk_tb = '1') and (clk_tb'event));
 					wait until ((clk_tb = '0') and (clk_tb'event));
 
@@ -543,9 +529,11 @@ report "Increment bank_idle_arr_cnt";
 							error_int := error_int + 1;
 						end if;
 
-report "ctrl accepted " & bool_to_str(ctrl_accepted);
-report " ctrl #" & integer'image(ctrl_num_cmd_per_request_rtl_int) &  " of " & integer'image(num_cmd_per_request_rtl_int);
-report " ctrl #" & integer'image(cmd_num_cmd_per_request_rtl_int) &  " req #" & integer'image(num_requests_rtl_int);
+						if (bank_idle_cnt = bank_idle_delay) then
+							AllBanksIdle_tb <= '1';
+						else
+							bank_idle_cnt := bank_idle_cnt + 1;
+						end if;
 
 						if (ctrl_accepted = false) then
 							if (CtrlAck_tb = '1') then
@@ -587,10 +575,6 @@ report " ctrl #" & integer'image(cmd_num_cmd_per_request_rtl_int) &  " req #" & 
 							ctrl_cmd_arr_rtl(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int) := to_integer(unsigned(Cmd_tb));
 							ctrl_data_arr_rtl(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int) := to_integer(unsigned(Data_tb));
 							cmd_num_cmd_per_request_rtl_int := cmd_num_cmd_per_request_rtl_int + 1;
-
-							if (cmd_num_cmd_per_request_rtl_int < num_cmd_per_request_rtl_int) then 
-								cmd_delay := cmd_delay_arr(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int);
-							end if;
 						else
 							CmdAck_tb <= '0';
 						end if;
@@ -600,10 +584,22 @@ report " ctrl #" & integer'image(cmd_num_cmd_per_request_rtl_int) &  " req #" & 
 
 					end loop;
 
+					if (cmd_num_cmd_per_request_rtl_int < num_cmd_per_request_rtl_int) then 
+						cmd_delay := cmd_delay_arr(num_requests_rtl_int, cmd_num_cmd_per_request_rtl_int);
+					end if;
+
+					bank_idle_arr_cnt := bank_idle_arr_cnt + 1;
+
+
+					if (bank_idle_arr_cnt < num_cmd_per_request_rtl_int) then
+						bank_idle_delay := bank_idle_delay_arr(num_requests_rtl_int, bank_idle_arr_cnt);
+						bank_idle_cnt := 0;
+					end if;
+
+
 				end loop;
 
 				while (MRSUpdateCompleted_tb = '0') loop
---report "Wait MRS Update";
 						wait until ((clk_tb = '1') and (clk_tb'event));
 				end loop;
 
