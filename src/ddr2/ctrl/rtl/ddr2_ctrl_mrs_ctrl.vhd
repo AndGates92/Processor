@@ -144,10 +144,10 @@ begin
 
 
 	-- Assert command request on the way in to MRS_CTRL_SEND_CMD
-	CmdReqN <=	not CmdAck			when (StateC = MRS_CTRL_SEND_CMD) else
-			(ODTCtrlAck and AllBanksIdle)	when (StateC = MRS_CTRL_ODT_TURN_OFF) else
-			AllBanksIdle			when (StateC = MRS_CTRL_WAIT_BANK_IDLE) else
-			(ZeroDelayCnt and CtrlReq)	when (StateC = MRS_CTRL_REG_UPD) else
+	CmdReqN <=	not CmdAck					when (StateC = MRS_CTRL_SEND_CMD) else
+			(ODTCtrlAck and AllBanksIdle)			when (StateC = MRS_CTRL_ODT_TURN_OFF) else
+			AllBanksIdle					when (StateC = MRS_CTRL_WAIT_BANK_IDLE) else
+			(ZeroDelayCnt and CtrlReq and AllBanksIdle)	when (StateC = MRS_CTRL_REG_UPD) else
 			CmdReqC;
 
 	-- Ack command when idle or after updating MRS register
@@ -181,7 +181,7 @@ begin
 				(not ODTCtrlAck)		when (StateC = MRS_CTRL_ODT_TURN_ON) else
 				MRSUpdateCompletedC;
 
-	state_det : process(StateC, CtrlReq, CtrlCmd, CtrlData, ODTCtrlAck, ZeroDelayCnt, CmdAck)
+	state_det : process(StateC, CtrlReq, CtrlCmd, CtrlData, ODTCtrlAck, ZeroDelayCnt, CmdAck, AllBanksIdle)
 	begin
 
 		-- avoid latches

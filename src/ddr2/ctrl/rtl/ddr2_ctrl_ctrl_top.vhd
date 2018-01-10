@@ -255,6 +255,9 @@ begin
 		CtrlAck => MRSCtrlCtrlAck,
 		MRSReq => MRSCtrlMRSReq,
 
+		-- Bank Controller
+		AllBanksIdle => NoBankColCmd,
+
 		-- Commands
 		CmdAck => MRSCtrlCmdAck,
 
