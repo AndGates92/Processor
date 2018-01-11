@@ -16,15 +16,15 @@ library ddr2_ctrl_rtl_pkg;
 use ddr2_ctrl_rtl_pkg.ddr2_mrs_max_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_define_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_pkg.all;
-use ddr2_ctrl_rtl_pkg.ddr2_ctrl_ctrl_top_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_top_pkg.all;
 library ddr2_ctrl_tb_pkg;
 use ddr2_ctrl_tb_pkg.ddr2_pkg_tb.all;
 use ddr2_ctrl_tb_pkg.ddr2_log_pkg.all;
 
-entity ddr2_ctrl_ctrl_top_tb is
-end entity ddr2_ctrl_ctrl_top_tb;
+entity ddr2_ctrl_top_tb is
+end entity ddr2_ctrl_top_tb;
 
-architecture bench of ddr2_ctrl_ctrl_top_tb is
+architecture bench of ddr2_ctrl_top_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
 	constant NUM_TESTS		: integer := 1000;
@@ -102,7 +102,7 @@ architecture bench of ddr2_ctrl_ctrl_top_tb is
 
 begin
 
-	DUT: ddr2_ctrl_ctrl_top generic map (
+	DUT: ddr2_ctrl_top generic map (
 		BANK_CTRL_NUM => BANK_CTRL_NUM_TB,
 		COL_CTRL_NUM => COL_CTRL_NUM_TB,
 		BURST_LENGTH_L => BURST_LENGTH_L_TB,
@@ -277,6 +277,10 @@ begin
 					bank(i) := bank_int;
 					num_bursts_arr_int(bank_int) := num_bursts_arr_int(bank_int) + 1;
 
+					if (CmdDecCmdMem_tb = CMD_MODE_REG_SET) then
+						burst_bits_int := to_integer(unsigned(CmdDecMRSCmd_tb(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0)));
+					end if;
+
 					uniform(seed1, seed2, rand_val);
 					col_int := integer(rand_val*(2.0**(real(COL_L_TB - burst_bits_int)) - 1.0));
 					cols(i) := col_int*(2**burst_bits_int);
@@ -443,6 +447,7 @@ begin
 			variable col_cnt_exp			: integer;
 			variable ref_cnt_exp			: integer;
 
+			variable burst_bits			: integer;
 			variable exp_self_ref_exit		: boolean;
 			variable col_cmd_bl_cnt			: integer;
 			variable cmd_sent_in_self_ref		: integer;
@@ -583,6 +588,10 @@ begin
 				exit ctrl_top_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (col_cmd_bursts_int = num_bursts_exp) and (ref_cmd_bursts_int = num_bursts_exp) and (col_cmd_cnt = bank_act_cnt) and (ref_cmd_cnt = ref_cnt) and (mrs_cmd_cnt = mrs_cnt));
 
 				wait for 1 ps;
+
+				if (CmdDecCmdMem_tb = CMD_MODE_REG_SET) then
+					burst_bits := to_integer(unsigned(CmdDecMRSCmd_tb(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0)));
+				end if;
 
 				if (mrs_bank_ctrl_bursts_int < num_bursts_exp) then
 
@@ -792,6 +801,7 @@ begin
 
 										for bl_cnt in 0 to (col_ctrl_bl - 1) loop
 											col_ctrl_bank_exp(col_cnt_exp, bl_cnt) := col_ctrl_bank;
+
 											col_exp(col_cnt_exp, bl_cnt) := col_ctrl_col + (bl_cnt * integer(2.0**real(burst_bits)));
 											if (col_ctrl_read_burst = true) then
 												if (bl_cnt = (col_ctrl_bl - 1)) then
