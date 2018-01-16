@@ -6,6 +6,7 @@ library common_rtl_pkg;
 use common_rtl_pkg.functions_pkg.all;
 library ddr2_ctrl_rtl_pkg;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_init_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_regs_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_mrs_max_pkg.all;
 
@@ -47,13 +48,15 @@ architecture rtl of ddr2_ctrl_regs is
 	type reg_array is array(0 to (REG_NUM - 1)) of std_logic_vector(REG_L - 1 downto 0);
 	signal DDR2PhyRegsC, DDR2PhyRegsN	: reg_array;
 
+	signal DDR2PhyRegs_rst			: reg_array;
+
 begin
 
 	reg: process(rst, clk)
 	begin
 		if (rst = '1') then
 
-			DDR2PhyRegsC <= (others => (others => '0'));
+			DDR2PhyRegsC <= DDR2PhyRegs_rst;
 
 		elsif ((clk'event) and (clk = '1')) then
 
@@ -104,5 +107,11 @@ begin
 
 	-- EMRS2 Breakdown
 	DDR2HighTemperature <= DDR2PhyRegsC(2)(7);
+
+	-- Reset MRS Register
+	DDR2PhyRegs_rst(0) <= (12 => POWER_DOWN_EXIT, 11 => WRITE_REC(2), 10 => WRITE_REC(1), 9 => WRITE_REC(0), 6 => CAS(2), 5 => CAS(1), 4 => CAS(0), 3 => BURST_TYPE, 2 => BURST_LENGTH(2), 1 => BURST_LENGTH(1), 0 => BURST_LENGTH(0),  others => '0');
+	DDR2PhyRegs_rst(1) <= (12 => OUT_BUFFER, 11 => RDQS, 10 => nDQS, 6 => ODT(1), 2 => ODT(0), 5 => AL(2), 4 => AL(1), 3 => AL(0), 1 => DRIVING_STRENGTH, 0 => nDLL,  others => '0');
+	DDR2PhyRegs_rst(2) <= (7 => HITEMP_REF, others => '0');
+	DDR2PhyRegs_rst(3) <= (others => '0');
 
 end rtl;
