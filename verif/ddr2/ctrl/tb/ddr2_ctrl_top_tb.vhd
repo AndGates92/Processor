@@ -277,9 +277,7 @@ begin
 					bank(i) := bank_int;
 					num_bursts_arr_int(bank_int) := num_bursts_arr_int(bank_int) + 1;
 
-					if (CmdDecCmdMem_tb = CMD_MODE_REG_SET) then
-						burst_bits_int := to_integer(unsigned(CmdDecMRSCmd_tb(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0)));
-					end if;
+					burst_bits_int := to_integer(unsigned(CmdDecMRSCmd_tb(int_to_bit_num(BURST_LENGTH_MAX_VALUE) - 1 downto 0)));
 
 					uniform(seed1, seed2, rand_val);
 					col_int := integer(rand_val*(2.0**(real(COL_L_TB - burst_bits_int)) - 1.0));
@@ -1364,12 +1362,10 @@ begin
 		num_pass := 0;
 
 		reset;
-		file_open(file_pointer, ddr2_ctrl_ctrl_top_log_file, append_mode);
+		file_open(file_pointer, ddr2_ctrl_top_log_file, append_mode);
 
 		write(file_line, string'( "PHY Controller Top Level Test"));
 		writeline(file_pointer, file_line);
-
-		pass := 1;
 
 		for i in 0 to NUM_TESTS-1 loop
 
