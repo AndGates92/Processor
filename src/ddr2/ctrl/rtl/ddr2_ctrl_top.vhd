@@ -103,7 +103,7 @@ architecture rtl of ddr2_ctrl_top is
 
 begin
 
-	CTRL_TOP_I: ddr2_ctrl_ctrl_top generic map (
+	CTRL_CTRL_TOP_I: ddr2_ctrl_ctrl_top generic map (
 		BANK_CTRL_NUM => BANK_CTRL_NUM,
 		COL_CTRL_NUM => COL_CTRL_NUM,
 		BURST_LENGTH_L => BURST_LENGTH_L,

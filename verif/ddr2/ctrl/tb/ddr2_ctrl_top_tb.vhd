@@ -196,10 +196,10 @@ begin
 			MRSCtrlCtrlCmd_tb <= CMD_NOP;
 			MRSCtrlCtrlData_tb <= (others => '0');
 
-			-- Refresh Controller
 			-- PHY Init
 			PhyInitCompleted_tb <= '0';
 
+			-- Refresh Controller
 			-- Controller
 			RefCtrlCtrlReq_tb <= '0';
 
@@ -471,10 +471,10 @@ begin
 			MRSCtrlCtrlCmd_tb <= CMD_NOP;
 			MRSCtrlCtrlData_tb <= (others => '0');
 
-			-- Refresh Controller
 			-- PHY Init
 			PhyInitCompleted_tb <= '0';
 
+			-- Refresh Controller
 			-- Controller
 			RefCtrlCtrlReq_tb <= '0';
 
