@@ -3,7 +3,7 @@ library ddr2_ctrl_rtl;
 
 configuration config_ddr2_ctrl_init_top of ddr2_ctrl_init_top is
 	for rtl
-		for CTRL_TOP_I: ddr2_ctrl_ctrl_top
+		for CTRL_TOP_I: ddr2_ctrl_top
 			use configuration ddr2_ctrl_rtl.config_ddr2_ctrl_top;
 		end for;
 
