@@ -99,7 +99,7 @@ architecture bench of ddr2_ctrl_top_tb is
 
 begin
 
-	DUT: ddr2_ctrl_top generic map (
+	DUT: ddr2_ctrl_init_top generic map (
 		BANK_CTRL_NUM => BANK_CTRL_NUM_TB,
 		COL_CTRL_NUM => COL_CTRL_NUM_TB,
 		BURST_LENGTH_L => BURST_LENGTH_L_TB,
@@ -1057,7 +1057,7 @@ begin
 
 			for i in 0 to (BANK_NUM_TB - 1) loop
 
-				write(file_line, string'( "PHY Controller Top Level: Bank #" & integer'image(i) & ": Number of bursts " & integer'image(num_bursts_arr(i))));
+				write(file_line, string'( "PHY Controller Top Level with Initialization block: Bank #" & integer'image(i) & ": Number of bursts " & integer'image(num_bursts_arr(i))));
 				writeline(file_pointer, file_line);
 
 			end loop;
@@ -1065,17 +1065,17 @@ begin
 			for i in 0 to (num_bursts_exp - 1) loop
 
 				if ((rw_burst(i) = true) and (ref(i) = true)) then
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " Bank " & integer'image(bank(i)) & " Start Column " & integer'image(cols(i)) & " Row " & integer'image(rows(i)) & " Burst Length " & integer'image(bl(i)) & " Refresh : Auto-Refresh " & bool_to_str(auto_ref(i))));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " Bank " & integer'image(bank(i)) & " Start Column " & integer'image(cols(i)) & " Row " & integer'image(rows(i)) & " Burst Length " & integer'image(bl(i)) & " Refresh : Auto-Refresh " & bool_to_str(auto_ref(i))));
 				elsif ((rw_burst(i) = true) and (ref(i) = false)) then
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " Bank " & integer'image(bank(i)) & " Start Column " & integer'image(cols(i)) & " Row " & integer'image(rows(i)) & " Burst Length " & integer'image(bl(i)) & " Refresh : False"));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " Bank " & integer'image(bank(i)) & " Start Column " & integer'image(cols(i)) & " Row " & integer'image(rows(i)) & " Burst Length " & integer'image(bl(i)) & " Refresh : False"));
 				elsif ((mrs(i) = true) and (ref(i) = true)) then
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " MRS Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_cmd(i), MEM_CMD_L))) & " MRS Data " & integer'image(mrs_data(i)) & " Refresh : Auto-Refresh " & bool_to_str(auto_ref(i))));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " MRS Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_cmd(i), MEM_CMD_L))) & " MRS Data " & integer'image(mrs_data(i)) & " Refresh : Auto-Refresh " & bool_to_str(auto_ref(i))));
 				elsif ((mrs(i) = true) and (ref(i) = false)) then
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " MRS Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_cmd(i), MEM_CMD_L))) & " MRS Data " & integer'image(mrs_data(i)) & " Refresh : False"));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " MRS Command " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_cmd(i), MEM_CMD_L))) & " MRS Data " & integer'image(mrs_data(i)) & " Refresh : False"));
 				elsif (ref(i) = true) then
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " Refresh : Auto-Refresh " & bool_to_str(auto_ref(i))));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " Refresh : Auto-Refresh " & bool_to_str(auto_ref(i))));
 				else
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " No Command "));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " No Command "));
 				end if;
 
 				writeline(file_pointer, file_line);
@@ -1083,65 +1083,65 @@ begin
 			end loop;
 
 			if ((num_bursts_rtl = num_bursts_exp) and (match_cols = true) and (match_mrs_ctrl_mrs = true) and (match_mrs_ctrl_rows = true) and (match_mrs_ctrl_cmd = true) and (match_mrs_ctrl_bank = true) and (no_mrs_ctrl_err = true) and (match_bank_ctrl_mrs = true) and (match_bank_ctrl_rows = true) and (match_bank_ctrl_cmd = true) and (no_bank_ctrl_err = true) and (match_col_ctrl_bank = true) and (match_col_cmd = true) and (match_ref_cmd = true) and (no_col_ctrl_err = true) and (no_ref_ctrl_err = true) and (no_cmd_sent_in_self_ref = true)) then
-				write(file_line, string'( "PHY Controller Top Level: PASS"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: PASS"));
 				writeline(file_pointer, file_line);
 				pass := 1;
 			elsif (num_bursts_rtl /= num_bursts_exp) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Number bursts mismatch): exp " & integer'image(num_bursts_exp) & " vs rtl " & integer'image(num_bursts_rtl)));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Number bursts mismatch): exp " & integer'image(num_bursts_exp) & " vs rtl " & integer'image(num_bursts_rtl)));
 				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (match_bank_ctrl_cmd = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller Bank Command mismatch)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Bank Controller Bank Command mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (BANK_NUM_TB - 1) loop
 					for j in 0 to (num_bursts_arr(i) - 1) loop
 						if (bank_ctrl_cmd_exp(i, j) /= bank_ctrl_cmd_rtl(i, j)) then
-							write(file_line, string'( "PHY Controller Top Level: Bank " & integer'image(i) & " Burst #" & integer'image(j) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(bank_ctrl_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(bank_ctrl_cmd_rtl(i, j), MEM_CMD_L)))));
+							write(file_line, string'( "PHY Controller Top Level with Initialization Block: Bank " & integer'image(i) & " Burst #" & integer'image(j) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(bank_ctrl_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(bank_ctrl_cmd_rtl(i, j), MEM_CMD_L)))));
 							writeline(file_pointer, file_line);
 						end if;
 					end loop;
 				end loop;
 				pass := 0;
 			elsif (match_bank_ctrl_rows = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller Row mismatch)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Bank Controller Row mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (BANK_NUM_TB - 1) loop
 					for j in 0 to (num_bursts_arr(i) - 1) loop
-						write(file_line, string'( "PHY Controller Top Level: Bank " & integer'image(i) & " Burst #" & integer'image(j) & " details: Row exp " & integer'image(bank_ctrl_row_exp(i, j)) & " vs rtl " & integer'image(bank_ctrl_row_rtl(i, j))));
+						write(file_line, string'( "PHY Controller Top Level with Initialization Block: Bank " & integer'image(i) & " Burst #" & integer'image(j) & " details: Row exp " & integer'image(bank_ctrl_row_exp(i, j)) & " vs rtl " & integer'image(bank_ctrl_row_rtl(i, j))));
 						writeline(file_pointer, file_line);
 					end loop;
 				end loop;
 				pass := 0;
 			elsif (match_bank_ctrl_mrs = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller MRS Data mismatch)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Bank Controller MRS Data mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (BANK_NUM_TB - 1) loop
 					for j in 0 to (num_bursts_arr(i) - 1) loop
-						write(file_line, string'( "PHY Controller Top Level: Bank " & integer'image(i) & " Burst #" & integer'image(j) & " details: MRS data exp " & integer'image(bank_ctrl_mrs_exp(i, j)) & " vs rtl " & integer'image(bank_ctrl_mrs_rtl(i, j))));
+						write(file_line, string'( "PHY Controller Top Level with Initialization Block: Bank " & integer'image(i) & " Burst #" & integer'image(j) & " details: MRS data exp " & integer'image(bank_ctrl_mrs_exp(i, j)) & " vs rtl " & integer'image(bank_ctrl_mrs_rtl(i, j))));
 						writeline(file_pointer, file_line);
 					end loop;
 				end loop;
 				pass := 0;
 			elsif (no_bank_ctrl_err = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Bank Controller Handshake Error)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Bank Controller Handshake Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (bank_req - 1) loop
-					write(file_line, string'( "PHY Controller Top Level: Error Burst #" & integer'image(i) & ": " & integer'image(bank_ctrl_err_arr(i)) & " Error(s)"));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Error Burst #" & integer'image(i) & ": " & integer'image(bank_ctrl_err_arr(i)) & " Error(s)"));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
 			elsif (match_mrs_ctrl_cmd = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller Bank Command mismatch)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (MRS Controller Bank Command mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (mrs_req - 1) loop
 					if (mrs_ctrl_cmd_exp(i) /= mrs_ctrl_cmd_rtl(i)) then
-						write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_ctrl_cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_ctrl_cmd_rtl(i), MEM_CMD_L)))));
+						write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_ctrl_cmd_exp(i), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(mrs_ctrl_cmd_rtl(i), MEM_CMD_L)))));
 						writeline(file_pointer, file_line);
 					end if;
 				end loop;
 				pass := 0;
 			elsif (match_mrs_ctrl_bank = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller Bank mismatch)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (MRS Controller Bank mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (mrs_req - 1) loop
 					if (mrs_ctrl_bank_exp(i) /= mrs_ctrl_bank_rtl(i)) then
@@ -1151,48 +1151,48 @@ begin
 				end loop;
 				pass := 0;
 			elsif (match_mrs_ctrl_rows = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller Row mismatch)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (MRS Controller Row mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (mrs_req - 1) loop
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Row exp " & integer'image(mrs_ctrl_row_exp(i)) & " vs rtl " & integer'image(mrs_ctrl_row_rtl(i))));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " details: Row exp " & integer'image(mrs_ctrl_row_exp(i)) & " vs rtl " & integer'image(mrs_ctrl_row_rtl(i))));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
 			elsif (match_mrs_ctrl_mrs = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller MRS Data mismatch)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (MRS Controller MRS Data mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (mrs_req - 1) loop
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: MRS data exp " & integer'image(mrs_ctrl_mrs_exp(i)) & " vs rtl " & integer'image(mrs_ctrl_mrs_rtl(i))));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " details: MRS data exp " & integer'image(mrs_ctrl_mrs_exp(i)) & " vs rtl " & integer'image(mrs_ctrl_mrs_rtl(i))));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
 			elsif (no_mrs_ctrl_err = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (MRS Controller Handshake Error)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (MRS Controller Handshake Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (mrs_req - 1) loop
-					write(file_line, string'( "PHY Controller Top Level: Error Burst #" & integer'image(i) & ": " & integer'image(mrs_ctrl_err_arr(i)) & " Error(s)"));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Error Burst #" & integer'image(i) & ": " & integer'image(mrs_ctrl_err_arr(i)) & " Error(s)"));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
 			elsif (match_ref_cmd = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Refresh Command mismatch)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Refresh Command mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (ref_req - 1) loop
 					for j in 0 to 1 loop
 						if (ref_cmd_exp(i, j) /= ref_cmd_rtl(i, j)) then
-							write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_rtl(i, j), MEM_CMD_L)))));
+							write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_rtl(i, j), MEM_CMD_L)))));
 							writeline(file_pointer, file_line);
 						end if;
 					end loop;
 				end loop;
 				pass := 0;
 			elsif (match_col_cmd = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Column Command mismatch)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Column Command mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (col_req - 1) loop
 					write(file_line, string'( "========================================================================================"));
 					writeline(file_pointer, file_line);
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Col " & integer'image(col_exp(i, 0)) & " Read Burst " & bool_to_str(read_burst(i)) & " Burst Length " & integer'image(bl(i))));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " details: Col " & integer'image(col_exp(i, 0)) & " Read Burst " & bool_to_str(read_burst(i)) & " Burst Length " & integer'image(bl(i))));
 					writeline(file_pointer, file_line);
 					for j in 0 to (bl(i) - 1) loop
 						if (col_cmd_rtl(i,j) /= col_cmd_exp(i,j)) then
@@ -1205,12 +1205,12 @@ begin
 				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (match_col_ctrl_bank = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Column Command Bank mismatch)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Column Command Bank mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (col_req - 1) loop
 					write(file_line, string'( "========================================================================================"));
 					writeline(file_pointer, file_line);
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Bank " & integer'image(col_ctrl_bank_exp(i, 0))));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " details: Bank " & integer'image(col_ctrl_bank_exp(i, 0))));
 					writeline(file_pointer, file_line);
 					for j in 0 to (bl(i) - 1) loop
 						if (col_ctrl_bank_rtl(i,j) /= col_ctrl_bank_exp(i,j)) then
@@ -1223,12 +1223,12 @@ begin
 				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (match_cols = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Col mismatch)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Col mismatch)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (col_req - 1) loop
 					write(file_line, string'( "========================================================================================"));
 					writeline(file_pointer, file_line);
-					write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Start Col " & integer'image(col_exp(i, 0)) & " Burst Length " & integer'image(bl(i))));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Burst #" & integer'image(i) & " details: Start Col " & integer'image(col_exp(i, 0)) & " Burst Length " & integer'image(bl(i))));
 					writeline(file_pointer, file_line);
 					for j in 0 to (bl(i) - 1) loop
 						if (col_rtl(i,j) /= col_exp(i,j)) then
@@ -1241,31 +1241,31 @@ begin
 				writeline(file_pointer, file_line);
 				pass := 0;
 			elsif (no_col_ctrl_err = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Column Controller Handshake Error)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Column Controller Handshake Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Controller Top Level: Error Burst #" & integer'image(i) & ": " & integer'image(col_ctrl_err_arr(i)) & " Error(s)"));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Error Burst #" & integer'image(i) & ": " & integer'image(col_ctrl_err_arr(i)) & " Error(s)"));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
 			elsif (no_ref_ctrl_err = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Refresh Controller Handshake Error)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Refresh Controller Handshake Error)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Controller Top Level: Error Burst #" & integer'image(i) & ": " & integer'image(ref_ctrl_err_arr(i)) & " Error(s)"));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Error Burst #" & integer'image(i) & ": " & integer'image(ref_ctrl_err_arr(i)) & " Error(s)"));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
 			elsif (no_cmd_sent_in_self_ref = false) then
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Commands detected during Self Refresh)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Commands detected during Self Refresh)"));
 				writeline(file_pointer, file_line);
 				for i in 0 to (num_bursts_exp - 1) loop
-					write(file_line, string'( "PHY Controller Top Level: Error Burst #" & integer'image(i) & ": " & integer'image(cmd_sent_in_self_ref_err(i)) & " Error(s)"));
+					write(file_line, string'( "PHY Controller Top Level with Initialization Block: Error Burst #" & integer'image(i) & ": " & integer'image(cmd_sent_in_self_ref_err(i)) & " Error(s)"));
 					writeline(file_pointer, file_line);
 				end loop;
 				pass := 0;
 			else
-				write(file_line, string'( "PHY Controller Top Level: FAIL (Unknown Command)"));
+				write(file_line, string'( "PHY Controller Top Level with Initialization Block: FAIL (Unknown Command)"));
 				writeline(file_pointer, file_line);
 				pass := 0;
 			end if;
@@ -1348,9 +1348,9 @@ begin
 		num_pass := 0;
 
 		reset;
-		file_open(file_pointer, ddr2_ctrl_top_log_file, append_mode);
+		file_open(file_pointer, ddr2_ctrl_init_top_log_file, append_mode);
 
-		write(file_line, string'( "PHY Controller Top Level Test"));
+		write(file_line, string'( "PHY Controller Top Level with Initialization Block Test"));
 		writeline(file_pointer, file_line);
 
 		for i in 0 to NUM_TESTS-1 loop
@@ -1369,13 +1369,13 @@ begin
 		file_close(file_pointer);
 
 		file_open(file_pointer, summary_file, append_mode);
-		write(file_line, string'( "PHY Controller Top Level => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TESTS)));
+		write(file_line, string'( "PHY Controller Top Level with Initialization Block => PASSES: " & integer'image(num_pass) & " out of " & integer'image(TOT_NUM_TESTS)));
 		writeline(file_pointer, file_line);
 
 		if (num_pass = TOT_NUM_TESTS) then
-			write(file_line, string'( "PHY Controller Top Level: TEST PASSED"));
+			write(file_line, string'( "PHY Controller Top Level with Initialization Block: TEST PASSED"));
 		else
-			write(file_line, string'( "PHY Controller Top Level: TEST FAILED: " & integer'image(TOT_NUM_TESTS-num_pass) & " failures"));
+			write(file_line, string'( "PHY Controller Top Level with Initialization Block: TEST FAILED: " & integer'image(TOT_NUM_TESTS-num_pass) & " failures"));
 		end if;
 		writeline(file_pointer, file_line);
 
