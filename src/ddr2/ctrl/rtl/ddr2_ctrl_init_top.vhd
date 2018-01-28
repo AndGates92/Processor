@@ -5,6 +5,7 @@ use ieee.numeric_std.all;
 library common_rtl_pkg;
 use common_rtl_pkg.functions_pkg.all;
 library ddr2_ctrl_rtl_pkg;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_top_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_init_pkg.all;
 
@@ -84,12 +85,12 @@ architecture rtl of ddr2_ctrl_init_top is
 	signal CtrlTopRowMem	: std_logic_vector(ROW_L - 1 downto 0);
 	signal CtrlTopBankMem	: std_logic_vector(int_to_bit_num(BANK_NUM) - 1 downto 0);
 	signal CtrlTopCmdMem	: std_logic_vector(MEM_CMD_L - 1 downto 0);
-	signal CtrlTopMRSCmd	: std_logic_vector(MRS_REG_L - 1 downto 0)
+	signal CtrlTopMRSCmd	: std_logic_vector(MRS_REG_L - 1 downto 0);
 
 	-- Command Decoder
 	-- DDR Init
 	signal CtrlInitCmdMem	: std_logic_vector(MEM_CMD_L - 1 downto 0);
-	signal CtrlInitMRSCmd	: std_logic_vector(MRS_REG_L - 1 downto 0)
+	signal CtrlInitMRSCmd	: std_logic_vector(MRS_REG_L - 1 downto 0);
 
 	-- PHY Init
 	signal PhyInitCompleted	: std_logic;
@@ -103,7 +104,7 @@ begin
 		BANK_NUM => BANK_NUM,
 		COL_L => COL_L,
 		ROW_L => ROW_L,
-		MRS_REG_L => ADDR_MEM_L,
+		MRS_REG_L => MRS_REG_L,
 		MAX_OUTSTANDING_BURSTS => MAX_OUTSTANDING_BURSTS
 	)
 	port map (
@@ -165,15 +166,15 @@ begin
 	);
 
 	CTRL_INIT_I: ddr2_ctrl_init generic map (
-		BANK_L => BANK_L,
-		ADDR_MEM_L => ADDR_MEM_L
+		BANK_L => int_to_bit_num(BANK_NUM),
+		ADDR_MEM_L => MRS_REG_L
 	)
 	port map (
 		clk => clk,
 		rst => rst,
 
 		MRSCmd => CtrlInitMRSCmd,
-		Cmd => CtrlInitCmd,
+		Cmd => CtrlInitCmdMem,
 
 		InitializationCompleted => PhyInitCompleted
 	);

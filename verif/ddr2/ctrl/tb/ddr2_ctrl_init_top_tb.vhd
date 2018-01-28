@@ -16,15 +16,15 @@ library ddr2_ctrl_rtl_pkg;
 use ddr2_ctrl_rtl_pkg.ddr2_mrs_max_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_define_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_pkg.all;
-use ddr2_ctrl_rtl_pkg.ddr2_ctrl_top_pkg.all;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_init_top_pkg.all;
 library ddr2_ctrl_tb_pkg;
 use ddr2_ctrl_tb_pkg.ddr2_pkg_tb.all;
 use ddr2_ctrl_tb_pkg.ddr2_log_pkg.all;
 
-entity ddr2_ctrl_top_tb is
-end entity ddr2_ctrl_top_tb;
+entity ddr2_ctrl_init_top_tb is
+end entity ddr2_ctrl_init_top_tb;
 
-architecture bench of ddr2_ctrl_top_tb is
+architecture bench of ddr2_ctrl_init_top_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
 	constant NUM_TESTS		: integer := 1000;
