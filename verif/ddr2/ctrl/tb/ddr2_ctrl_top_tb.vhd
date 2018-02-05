@@ -13,6 +13,7 @@ library common_tb_pkg;
 use common_tb_pkg.functions_pkg_tb.all;
 use common_tb_pkg.shared_pkg_tb.all;
 library ddr2_ctrl_rtl_pkg;
+use ddr2_ctrl_rtl_pkg.ddr2_ctrl_init_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_mrs_max_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_define_pkg.all;
 use ddr2_ctrl_rtl_pkg.ddr2_ctrl_pkg.all;
@@ -27,7 +28,7 @@ end entity ddr2_ctrl_top_tb;
 architecture bench of ddr2_ctrl_top_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TESTS		: integer := 1000;
+	constant NUM_TESTS		: integer := 2; --1000;
 	constant NUM_EXTRA_TESTS	: integer := 0;
 	constant TOT_NUM_TESTS		: integer := NUM_TESTS + NUM_EXTRA_TESTS;
 	constant MAX_ATTEMPTS		: integer := 20;
@@ -578,6 +579,8 @@ begin
 			cmd_sent_in_self_ref := 0;
 
 			PhyInitCompleted_tb <= '1';
+
+			burst_bits := to_integer(unsigned(BURST_LENGTH));
 
 			ctrl_top_loop: loop
 
@@ -1228,7 +1231,7 @@ begin
 					writeline(file_pointer, file_line);
 					for j in 0 to (bl(i) - 1) loop
 						if (col_ctrl_bank_rtl(i,j) /= col_ctrl_bank_exp(i,j)) then
-							write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Column exp " & integer'image(col_ctrl_bank_exp(i, j)) & " vs rtl " & integer'image(col_ctrl_bank_rtl(i, j))));
+							write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Bank exp " & integer'image(col_ctrl_bank_exp(i, j)) & " vs rtl " & integer'image(col_ctrl_bank_rtl(i, j))));
 							writeline(file_pointer, file_line);
 						end if;
 					end loop;
@@ -1361,13 +1364,14 @@ begin
 
 		num_pass := 0;
 
-		reset;
 		file_open(file_pointer, ddr2_ctrl_top_log_file, append_mode);
 
 		write(file_line, string'( "PHY Controller Top Level Test"));
 		writeline(file_pointer, file_line);
 
 		for i in 0 to NUM_TESTS-1 loop
+
+			reset;
 
 			test_param(num_bursts_exp, mrs_req, bank_req, col_req, ref_req, num_bursts_arr, bank, cols, rows, mrs_data, read_burst, bl, cmd_delay, ctrl_delay, rw_burst, ref, mrs, auto_ref, ref_delay, mrs_cmd, seed1, seed2);
 

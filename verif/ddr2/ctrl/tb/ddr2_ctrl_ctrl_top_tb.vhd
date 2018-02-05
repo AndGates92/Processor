@@ -1263,7 +1263,7 @@ begin
 					writeline(file_pointer, file_line);
 					for j in 0 to (bl(i) - 1) loop
 						if (col_ctrl_bank_rtl(i,j) /= col_ctrl_bank_exp(i,j)) then
-							write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Column exp " & integer'image(col_ctrl_bank_exp(i, j)) & " vs rtl " & integer'image(col_ctrl_bank_rtl(i, j))));
+							write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Bank exp " & integer'image(col_ctrl_bank_exp(i, j)) & " vs rtl " & integer'image(col_ctrl_bank_rtl(i, j))));
 							writeline(file_pointer, file_line);
 						end if;
 					end loop;
