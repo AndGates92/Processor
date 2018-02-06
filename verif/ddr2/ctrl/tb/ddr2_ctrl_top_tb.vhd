@@ -293,7 +293,7 @@ begin
 					if (attempt_num = MAX_ATTEMPTS) then
 						bl_int := 1;
 					end if;
-					bl(bank_req_int) := bl_int;
+					bl(i) := bl_int;
 
 					uniform(seed1, seed2, rand_val);
 					rows(i) := integer(rand_val*(2.0**(real(ROW_L_TB)) - 1.0));
@@ -763,7 +763,7 @@ begin
 
 					col_ctrl_bank := bank(col_cmd_bursts_int);
 					col_ctrl_col := cols(col_cmd_bursts_int);
-					col_ctrl_bl := bl(col_cnt_exp);
+					col_ctrl_bl := bl(col_cmd_bursts_int);
 					col_ctrl_read_burst := read_burst(col_cmd_bursts_int);
 
 					col_cmd_delay_int := cmd_delay(col_cmd_bursts_int);
@@ -801,6 +801,7 @@ begin
 										end_col_cmd := true;
 
 										for bl_cnt in 0 to (col_ctrl_bl - 1) loop
+report "bl #" & integer'image(bl_cnt) & " out of " & integer'image(col_ctrl_bl) & " col_ctrl_bank " & integer'image(col_ctrl_bank);
 											col_ctrl_bank_exp(col_cnt_exp, bl_cnt) := col_ctrl_bank;
 
 											col_exp(col_cnt_exp, bl_cnt) := col_ctrl_col + (bl_cnt * integer(2.0**real(burst_bits)));
