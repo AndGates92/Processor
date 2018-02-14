@@ -275,9 +275,9 @@ begin
 	ColCtrlCntEnN <=	EndDataPhase and (ChangeOp or not CtrlReq) when (StateC = COL_CTRL_DATA_PHASE) else	-- enable counter if diff op next or no outstanding request
 				ColCtrlCntEnC;
 
-	CmdReqValid <=	CtrlAckN			when (StateC = COL_CTRL_IDLE) else
-			ZeroColCtrlCnt and CtrlReqValid	when (StateC = CHANGE_BURST_OP) else
-			'1'				when (StateC = COL_CTRL_DATA_PHASE) else
+	CmdReqValid <=	CtrlAckN									when (StateC = COL_CTRL_IDLE) else
+			ZeroColCtrlCnt and CtrlReqValid							when (StateC = CHANGE_BURST_OP) else
+			(not EndDataPhase) or ChangeOp or (not (BankActiveMuxed and CtrlReq))		when (StateC = COL_CTRL_DATA_PHASE) else
 			'0';
 
 	MAX_BURST_CNT: for i in MaxBurst'range generate
