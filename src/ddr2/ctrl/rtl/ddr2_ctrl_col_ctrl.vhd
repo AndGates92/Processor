@@ -97,13 +97,13 @@ architecture rtl of ddr2_ctrl_col_ctrl is
 	signal SetColToColCnt			: std_logic;
 	signal ColToColCntEn			: std_logic;
 	signal ZeroColToColCnt			: std_logic;
-	signal ZeroColToColCnt_comb		: std_logic;
 
 	signal CntColCtrlN, CntColCtrlC		: unsigned(CNT_COL_CTRL_L - 1 downto 0);
 	signal ColCtrlCntInitValue		: unsigned(CNT_COL_CTRL_L - 1 downto 0);
 	signal SetColCtrlCnt			: std_logic;
 	signal ColCtrlCntEnC, ColCtrlCntEnN	: std_logic;
 	signal ZeroColCtrlCnt			: std_logic;
+	signal ZeroColCtrlCnt_comb		: std_logic;
 
 	signal StateN, StateC			: std_logic_vector(STATE_COL_CTRL_L - 1 downto 0);
 
@@ -210,9 +210,9 @@ begin
 	CommandSel <= ReadBurstC & EndDataPhase & ZeroOutstandingBurstsMuxed;
 
 	with CommandSel select
-		Cmd_comb <=	CMD_READ_PRECHARGE	when "111",
-				CMD_READ		when "100" | "101" | "110",
-				CMD_WRITE_PRECHARGE	when "011",
+		Cmd_comb <=	CMD_READ_PRECHARGE	when "111" | "110",
+				CMD_READ		when "100" | "101",
+				CMD_WRITE_PRECHARGE	when "011" | "010",
 				CMD_WRITE		when others;
 
 	NoOutstandingBurst <= CmdReqC and CmdAck and (SingleBurstC or ZeroBurstCnt);
@@ -270,14 +270,15 @@ begin
 			(CntColCtrlC - decr_cnt_col_ctrl_value)	when ((ColCtrlCntEnC = '1') and (ZeroColCtrlCnt = '0')) else
 			CntColCtrlC;
 	ZeroColCtrlCnt <= '1' when (CntColCtrlC = zero_cnt_col_ctrl_value) else '0';
+	ZeroColCtrlCnt_comb <= '1' when (CntColCtrlN = zero_cnt_col_ctrl_value) else '0';
 	ColCtrlCntInitValue <= unsigned(TRTW_tat) when (ReadBurstC = '1') else unsigned(TWTR_tat);
 	SetColCtrlCnt <= EndDataPhase;
 	ColCtrlCntEnN <=	EndDataPhase and (ChangeOp or not CtrlReq) when (StateC = COL_CTRL_DATA_PHASE) else	-- enable counter if diff op next or no outstanding request
 				ColCtrlCntEnC;
 
-	CmdReqValid <=	CtrlAckN									when (StateC = COL_CTRL_IDLE) else
-			ZeroColCtrlCnt and CtrlReqValid							when (StateC = CHANGE_BURST_OP) else
-			(not EndDataPhase) or ChangeOp or (not (BankActiveMuxed and CtrlReq))		when (StateC = COL_CTRL_DATA_PHASE) else
+	CmdReqValid <=	CtrlAckN									when (StateN = COL_CTRL_IDLE) else
+			ZeroColCtrlCnt and CtrlReqValid							when (StateN = CHANGE_BURST_OP) else
+			(not EndDataPhase) or ChangeOp or (not (BankActiveMuxed and CtrlReq))		when (StateN = COL_CTRL_DATA_PHASE) else
 			'0';
 
 	MAX_BURST_CNT: for i in MaxBurst'range generate
@@ -290,13 +291,14 @@ begin
 		end process max_burst_bit;
 	end generate MAX_BURST_CNT;
 
-	CmdReqN <= ZeroColToColCnt_comb when (CmdReqValid = '1') else '0'; -- Send a Command Request if in COL_CTRL_DATA_PHASE state or moving into it
+	CmdReqN <=	(not CmdAck)		when (CmdReqC = '1') else
+			ZeroColToColCnt		when (CmdReqValid = '1') else
+			'0'; -- Send a Command Request if in COL_CTRL_DATA_PHASE state or moving into it
 
 	CntColToColN <=	ColToColCntInitValue				when (SetColToColCnt = '1') else
 			(CntColToColC - decr_cnt_col_to_col_value)	when ((ColToColCntEn = '1') and (ZeroColToColCnt = '0')) else
 			CntColToColC;
 	ZeroColToColCnt <= '1' when (CntColToColC = zero_cnt_col_to_col_value) else '0';
-	ZeroColToColCnt_comb <= '1' when (CntColToColN = zero_cnt_col_to_col_value) else '0';
 
 	COL_TO_COL_CNT_INIT_VALUE_NO_PADDING: if (CNT_COL_TO_COL_L = (BURST_LENGTH_MAX_VALUE - 1)) generate
 		ColToColCntMaxBurstPadded <= MaxBurst(BURST_LENGTH_MAX_VALUE downto 1);

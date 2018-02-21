@@ -28,7 +28,7 @@ end entity ddr2_ctrl_top_tb;
 architecture bench of ddr2_ctrl_top_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TESTS		: integer := 1000;
+	constant NUM_TESTS		: integer := 100;
 	constant NUM_EXTRA_TESTS	: integer := 0;
 	constant TOT_NUM_TESTS		: integer := NUM_TESTS + NUM_EXTRA_TESTS;
 	constant MAX_ATTEMPTS		: integer := 20;
@@ -1220,9 +1220,6 @@ begin
 					writeline(file_pointer, file_line);
 					for j in 0 to (bl(i) - 1) loop
 						if (col_cmd_rtl(i,j) /= col_cmd_exp(i,j)) then
-report "burst #"  & integer'image(i) & " out of "& integer'image(col_req);
-report "bl #"  & integer'image(j) & " out of "& integer'image(bl(i));
-report "col cmd RTL "  & integer'image(col_cmd_rtl(i,j)) & " exp "& integer'image(col_cmd_exp(i,j));
 							write(file_line, string'( "PHY Column Controller: Burst #" & integer'image(i) & " Cmd #" & integer'image(j) & " Column Command exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(col_cmd_rtl(i, j), MEM_CMD_L)))));
 							writeline(file_pointer, file_line);
 						end if;
