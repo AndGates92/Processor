@@ -452,6 +452,7 @@ begin
 			variable col_cmd_bl_cnt			: integer;
 			variable cmd_sent_in_self_ref		: integer;
 
+			variable consecutive_auto_ref		: boolean;
 		begin
 
 			-- Column Controller
@@ -520,6 +521,8 @@ begin
 			end_col_cmd := false;
 			ref_done_int := false;
 			ref_done := false;
+
+			consecutive_auto_ref := false;
 
 			read_burst_exp := reset_bool_arr(false, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			bl_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
@@ -967,6 +970,7 @@ begin
 
 				if (exp_self_ref_exit = true) then
 
+					consecutive_auto_ref := false;
 					if ((CmdDecCmdMem_tb = CMD_SELF_REF_ENTRY) or (CmdDecCmdMem_tb = CMD_SELF_REF_EXIT) or (CmdDecCmdMem_tb = CMD_AUTO_REF)) then
 						ref_cmd_rtl(ref_cmd_cnt, 1) := to_integer(unsigned(CmdDecCmdMem_tb));
 						cmd_sent_in_self_ref_err(ref_cmd_cnt) := cmd_sent_in_self_ref;
@@ -983,15 +987,35 @@ begin
 						ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
 						exp_self_ref_exit := true;
 						cmd_sent_in_self_ref := 0;
+						consecutive_auto_ref := false;
 					elsif (CmdDecCmdMem_tb = CMD_AUTO_REF) then
-						-- Auto Refresh may also happens because couter reaches 0 and not caused by the test
-						if (ref_cmd_cnt < ref_cnt) then
-							ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
-							ref_cmd_rtl(ref_cmd_cnt, 1) := to_integer(unsigned(CMD_NOP));
-							exp_self_ref_exit := false;
-							cmd_sent_in_self_ref := 0;
-							cmd_sent_in_self_ref_err(ref_cmd_cnt) := cmd_sent_in_self_ref;
-							ref_cmd_cnt := ref_cmd_cnt + 1;
+						if (auto_ref(ref_cmd_cnt) = true) then
+							-- Auto Refresh may also happens because couter reaches 0 and not caused by the test
+							if (ref_cmd_cnt < ref_cnt) then
+								ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
+								ref_cmd_rtl(ref_cmd_cnt, 1) := to_integer(unsigned(CMD_NOP));
+								exp_self_ref_exit := false;
+								cmd_sent_in_self_ref := 0;
+								cmd_sent_in_self_ref_err(ref_cmd_cnt) := cmd_sent_in_self_ref;
+								ref_cmd_cnt := ref_cmd_cnt + 1;
+								consecutive_auto_ref := false;
+							end if;
+						else
+							if (consecutive_auto_ref = true) then
+								consecutive_auto_ref := false;
+								for i in 0 to 1 loop
+									if (ref_cmd_cnt < ref_cnt) then
+										ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
+										ref_cmd_rtl(ref_cmd_cnt, 1) := to_integer(unsigned(CMD_NOP));
+										exp_self_ref_exit := false;
+										cmd_sent_in_self_ref := 0;
+										cmd_sent_in_self_ref_err(ref_cmd_cnt) := cmd_sent_in_self_ref;
+										ref_cmd_cnt := ref_cmd_cnt + 1;
+									end if;
+								end loop;
+							else
+								consecutive_auto_ref := true;
+							end if;
 						end if;
 					elsif ((CmdDecCmdMem_tb = CMD_READ_PRECHARGE) or (CmdDecCmdMem_tb = CMD_WRITE_PRECHARGE)) then
 						col_cmd_rtl(col_cmd_cnt, col_cmd_bl_cnt) := to_integer(unsigned(CmdDecCmdMem_tb));
