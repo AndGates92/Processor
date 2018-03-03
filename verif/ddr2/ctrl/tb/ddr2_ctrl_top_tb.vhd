@@ -28,7 +28,7 @@ end entity ddr2_ctrl_top_tb;
 architecture bench of ddr2_ctrl_top_tb is
 
 	constant CLK_PERIOD		: time := DDR2_CLK_PERIOD * 1 ns;
-	constant NUM_TESTS		: integer := 100;
+	constant NUM_TESTS		: integer := 1000;
 	constant NUM_EXTRA_TESTS	: integer := 0;
 	constant TOT_NUM_TESTS		: integer := NUM_TESTS + NUM_EXTRA_TESTS;
 	constant MAX_ATTEMPTS		: integer := 20;
@@ -421,6 +421,7 @@ begin
 			variable ref_done			: boolean;
 
 			variable mrs_bank_ctrl_handshake	: bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
+			variable ref_arr			: bool_arr(0 to (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB - 1));
 
 			variable bank_ctrl_cnt_rtl		: int_arr(0 to (BANK_NUM_TB - 1));
 			variable bank_ctrl_cnt_exp		: int_arr(0 to (BANK_NUM_TB - 1));
@@ -430,6 +431,7 @@ begin
 			variable ref_cmd_err_int		: integer;
 
 			variable bl_cnt				: integer;
+			variable cnt				: integer;
 
 			variable mrs_cmd_cnt_rtl		: integer;
 			variable col_cmd_cnt_rtl		: integer;
@@ -441,7 +443,6 @@ begin
 			variable ref_cmd_cnt			: integer;
 
 			variable mrs_cnt			: integer;
-			variable ref_cnt			: integer;
 
 			variable mrs_cnt_exp			: integer;
 			variable col_cnt_exp			: integer;
@@ -452,7 +453,6 @@ begin
 			variable col_cmd_bl_cnt			: integer;
 			variable cmd_sent_in_self_ref		: integer;
 
-			variable consecutive_auto_ref		: boolean;
 		begin
 
 			-- Column Controller
@@ -522,8 +522,6 @@ begin
 			ref_done_int := false;
 			ref_done := false;
 
-			consecutive_auto_ref := false;
-
 			read_burst_exp := reset_bool_arr(false, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 			bl_exp := reset_int_arr(0, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
 
@@ -575,7 +573,6 @@ begin
 			ref_cmd_cnt := 0;
 
 			mrs_cnt := 0;
-			ref_cnt := 0;
 
 			mrs_cnt_exp := 0;
 			col_cnt_exp := 0;
@@ -589,11 +586,20 @@ begin
 
 			burst_bits := to_integer(unsigned(BURST_LENGTH));
 
+			cnt := 0;
+			ref_arr := reset_bool_arr(false, (BANK_NUM_TB*MAX_OUTSTANDING_BURSTS_TB));
+			for i in 0 to (num_bursts_exp-1) loop
+				if (ref(i) = true) then
+					ref_arr(cnt) := auto_ref(i);
+					cnt := cnt + 1;
+				end if;
+			end loop;
+
 			ctrl_top_loop: loop
 
 				wait until ((clk_tb = '1') and (clk_tb'event));
 
-				exit ctrl_top_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (col_cmd_bursts_int = num_bursts_exp) and (ref_cmd_bursts_int = num_bursts_exp) and (col_cmd_cnt = bank_act_cnt) and (ref_cmd_cnt = ref_cnt) and (mrs_cmd_cnt = mrs_cnt));
+				exit ctrl_top_loop when ((mrs_bank_ctrl_bursts_int = num_bursts_exp) and (col_cmd_bursts_int = num_bursts_exp) and (ref_cmd_bursts_int = num_bursts_exp) and (col_cmd_cnt = bank_act_cnt) and (ref_cmd_cnt = ref_cnt_exp) and (mrs_cmd_cnt = mrs_cnt));
 
 				wait for 1 ps;
 
@@ -860,17 +866,14 @@ begin
 									if (RefCtrlRefreshReq_tb = '1') then
 										stop_mrs_bank := true;
 										ref_ctrl_req := true;
-										ref_cnt := ref_cnt + 1;
 									end if;
 								else
 									if (RefCtrlRefreshReq_tb = '0') then
 										if (ref_delay_cnt = ref_delay_int) then
 											ref_done := true;
 											ref_ctrl_req := false;
-
 											ref_ctrl_err_arr(ref_cnt_exp) := ref_cmd_err_int;
 											ref_cmd_err_int := 0;
-
 											ref_cmd_exp(ref_cnt_exp, 0) := to_integer(unsigned(CMD_AUTO_REF));
 											ref_cmd_exp(ref_cnt_exp, 1) := to_integer(unsigned(CMD_NOP));
 											ref_cnt_exp := ref_cnt_exp + 1;
@@ -888,8 +891,6 @@ begin
 
 										ref_delay_cnt := 0;
 										ref_ctrl_req := true;
-
-										ref_cnt := ref_cnt + 1;
 
 										wait for 1 ps;
 									else
@@ -911,7 +912,6 @@ begin
 													self_ref := true;
 													ref_ctrl_req := false;
 												else
-
 													ref_ctrl_err_arr(ref_cnt_exp) := ref_cmd_err_int;
 													ref_cmd_err_int := 0;
 
@@ -969,8 +969,6 @@ begin
 				end if;
 
 				if (exp_self_ref_exit = true) then
-
-					consecutive_auto_ref := false;
 					if ((CmdDecCmdMem_tb = CMD_SELF_REF_ENTRY) or (CmdDecCmdMem_tb = CMD_SELF_REF_EXIT) or (CmdDecCmdMem_tb = CMD_AUTO_REF)) then
 						ref_cmd_rtl(ref_cmd_cnt, 1) := to_integer(unsigned(CmdDecCmdMem_tb));
 						cmd_sent_in_self_ref_err(ref_cmd_cnt) := cmd_sent_in_self_ref;
@@ -980,41 +978,21 @@ begin
 					elsif ((CmdDecCmdMem_tb /= CMD_NOP) and (CmdDecCmdMem_tb /= CMD_DESEL)) then
 						cmd_sent_in_self_ref := cmd_sent_in_self_ref + 1;
 					end if;
-
 				else
-
 					if (CmdDecCmdMem_tb = CMD_SELF_REF_ENTRY) then
 						ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
 						exp_self_ref_exit := true;
 						cmd_sent_in_self_ref := 0;
-						consecutive_auto_ref := false;
 					elsif (CmdDecCmdMem_tb = CMD_AUTO_REF) then
-						if (auto_ref(ref_cmd_cnt) = true) then
-							-- Auto Refresh may also happens because couter reaches 0 and not caused by the test
-							if (ref_cmd_cnt < ref_cnt) then
+						-- Auto Refresh may also happens because couter reaches 0 and not caused by the test
+						if (ref_cmd_cnt <= ref_cnt_exp) then
+							if (ref_arr(ref_cmd_cnt) = true) then
 								ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
 								ref_cmd_rtl(ref_cmd_cnt, 1) := to_integer(unsigned(CMD_NOP));
 								exp_self_ref_exit := false;
 								cmd_sent_in_self_ref := 0;
 								cmd_sent_in_self_ref_err(ref_cmd_cnt) := cmd_sent_in_self_ref;
 								ref_cmd_cnt := ref_cmd_cnt + 1;
-								consecutive_auto_ref := false;
-							end if;
-						else
-							if (consecutive_auto_ref = true) then
-								consecutive_auto_ref := false;
-								for i in 0 to 1 loop
-									if (ref_cmd_cnt < ref_cnt) then
-										ref_cmd_rtl(ref_cmd_cnt, 0) := to_integer(unsigned(CmdDecCmdMem_tb));
-										ref_cmd_rtl(ref_cmd_cnt, 1) := to_integer(unsigned(CMD_NOP));
-										exp_self_ref_exit := false;
-										cmd_sent_in_self_ref := 0;
-										cmd_sent_in_self_ref_err(ref_cmd_cnt) := cmd_sent_in_self_ref;
-										ref_cmd_cnt := ref_cmd_cnt + 1;
-									end if;
-								end loop;
-							else
-								consecutive_auto_ref := true;
 							end if;
 						end if;
 					elsif ((CmdDecCmdMem_tb = CMD_READ_PRECHARGE) or (CmdDecCmdMem_tb = CMD_WRITE_PRECHARGE)) then
@@ -1227,10 +1205,10 @@ begin
 				writeline(file_pointer, file_line);
 				for i in 0 to (ref_req - 1) loop
 					for j in 0 to 1 loop
-						if (ref_cmd_exp(i, j) /= ref_cmd_rtl(i, j)) then
+--						if (ref_cmd_exp(i, j) /= ref_cmd_rtl(i, j)) then
 							write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_rtl(i, j), MEM_CMD_L)))));
 							writeline(file_pointer, file_line);
-						end if;
+--						end if;
 					end loop;
 				end loop;
 				pass := 0;
