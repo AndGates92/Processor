@@ -1205,10 +1205,10 @@ begin
 				writeline(file_pointer, file_line);
 				for i in 0 to (ref_req - 1) loop
 					for j in 0 to 1 loop
---						if (ref_cmd_exp(i, j) /= ref_cmd_rtl(i, j)) then
+						if (ref_cmd_exp(i, j) /= ref_cmd_rtl(i, j)) then
 							write(file_line, string'( "PHY Controller Top Level: Burst #" & integer'image(i) & " details: Cmd exp " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_exp(i, j), MEM_CMD_L))) & " vs rtl " & ddr2_cmd_std_logic_vector_to_txt(std_logic_vector(to_unsigned(ref_cmd_rtl(i, j), MEM_CMD_L)))));
 							writeline(file_pointer, file_line);
---						end if;
+						end if;
 					end loop;
 				end loop;
 				pass := 0;
